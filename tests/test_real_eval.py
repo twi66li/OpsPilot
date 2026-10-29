@@ -118,3 +118,24 @@ def test_snapshot_recovers_from_temporary_windows_file_lock(tmp_path, monkeypatc
     real_eval.save(path, {"completed": 11})
     assert len(attempts) == 3
     assert '"completed": 11' in path.read_text(encoding="utf-8")
+
+
+def test_tool_presence_alone_does_not_pass_answer_contract(monkeypatch):
+    from app.services import model_api
+    from eval.real_eval import score_tool_answers
+
+    class Judge:
+        def __init__(self, *args):
+            self.calls = []
+            self.client = SimpleNamespace(close=lambda: None)
+
+        def chat(self, *args, **kwargs):
+            self.calls.append({"status": "ok"})
+            return '{"uses_tool_results":false,"values_consistent":true,"simulation_disclosed":false,"reason":"只给查询建议"}'
+
+    monkeypatch.setattr(model_api, "ChatAPI", Judge)
+    row = {"id": "q1", "task_type": "tool", "status": "ok", "passed": True,
+           "checks": {"required_tools": True}, "events": [{"type": "final", "answer": "建议查询订单"}]}
+    score_tool_answers([row], [{"id": "q1", "question": "查询订单"}], "fake", "fake", "judge")
+    assert row["passed"] is False
+    assert row["checks"]["answer_matches_tool_output"] is False

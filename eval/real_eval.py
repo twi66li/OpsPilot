@@ -265,6 +265,40 @@ def behavior_rows(client, container, questions, is_ops, output):
     return rows
 
 
+def score_tool_answers(rows, questions, api_key, base_url, judge_model):
+    """工具事件存在不代表回答使用了证据；单独检查真实保存的输出与回答。"""
+    from app.services.model_api import ChatAPI
+    lookup = {q["id"]: q for q in questions}
+    judge = ChatAPI(api_key, base_url, judge_model)
+    for row in rows:
+        if row["task_type"] != "tool" or row["status"] != "ok" or row.get("tool_answer_judgment"):
+            continue
+        before = len(judge.calls)
+        try:
+            final = next(e for e in row["events"] if e["type"] == "final")
+            payload = {"question": lookup[row["id"]]["question"], "answer": final["answer"],
+                       "tools": [e for e in row["events"] if e["type"] == "tool"]}
+            verdict = json.loads(judge.chat(
+                '核对回答和本次实际工具输出，只返回JSON：'
+                '{"uses_tool_results":true/false,"values_consistent":true/false,"simulation_disclosed":true/false,"reason":"简述"}。'
+                'uses_tool_results要求回答真正复述至少一个核心查询结果，不能只说建议查询。'
+                'values_consistent要求回答涉及的订单、物流、指标或故障事实与工具一致，不杜撰。'
+                'simulation_disclosed仅当回答明确说明本次数据为演示/模拟时为true；不把缺少说明自动当作数值错误。',
+                json.dumps(payload, ensure_ascii=False), json_mode=True))
+            if not all(type(verdict.get(k)) is bool for k in ("uses_tool_results", "values_consistent", "simulation_disclosed")):
+                raise ValueError("工具回答裁判格式错误")
+            row["tool_answer_judgment"] = verdict
+            row["checks"]["answer_matches_tool_output"] = verdict["uses_tool_results"] and verdict["values_consistent"]
+            row["checks"]["simulation_scope_disclosed"] = verdict["simulation_disclosed"]
+            row["passed"] = all(row["checks"].values())
+        except Exception as exc:
+            row["tool_scoring_error"] = error_info(exc)
+            row["checks"]["answer_matches_tool_output"] = False
+            row["passed"] = False
+        row["judge_calls"] = judge.calls[before:]
+    judge.client.close()
+
+
 def summarize(retrieval, answers, behaviors, selected):
     result = {"selected_on_dev": selected, "splits": {}}
     for split in ("dev", "test"):
@@ -353,7 +387,7 @@ def write_report(output, run, summary, answers, behaviors, calls):
     if not failures:
         lines.append("本次所列测试用例未记录失败；这不代表开放场景均正确。")
     for row in failures:
-        reason = row.get("error") or (row.get("judgment") or {}).get("reason") or row.get("checks")
+        reason = row.get("error") or (row.get("judgment") or {}).get("reason") or (row.get("tool_answer_judgment") or {}).get("reason") or row.get("checks")
         lines.append(f"- {row['id']}：{reason}")
     lines += ["", "## 用量与限制", "", "```json", json.dumps(usage, ensure_ascii=False, indent=2), "```", "",
         "题库为资料驱动的合成题，human_reviewed=false；商家政策、错误码与阈值包含演示设定。",
@@ -365,6 +399,38 @@ def write_report(output, run, summary, answers, behaviors, calls):
     (output / "report.md").write_text("\n".join(lines), encoding="utf-8")
 
 
+def complete_saved_tool_scoring(output, dataset, api_key, base_url):
+    """仅补齐已保存工具回答的评分，绝不重新调用主模型或重跑检索。"""
+    run = json.loads((output / "run_manifest.json").read_text(encoding="utf-8"))
+    rows = json.loads((output / "behavior.json").read_text(encoding="utf-8"))
+    if all(r.get("tool_answer_judgment") for r in rows if r["task_type"] == "tool"):
+        print("工具回答评分已齐全，无需重复调用。", flush=True)
+        return
+    previous_hash = hashlib.sha256((output / "behavior.json").read_bytes()).hexdigest()
+    save(output / "behavior.before_tool_scoring.json", rows)
+    save(output / "summary.before_tool_scoring.json", json.loads((output / "summary.json").read_text(encoding="utf-8")))
+    questions = yaml.safe_load((dataset / "questions.yaml").read_text(encoding="utf-8"))["questions"]
+    score_tool_answers(rows, questions, api_key, base_url, run["judge_model"])
+    save(output / "behavior.json", rows)
+    answers = json.loads((output / "answers.json").read_text(encoding="utf-8"))
+    retrieval = json.loads((output / "retrieval.json").read_text(encoding="utf-8"))
+    calls = json.loads((output / "api_calls.json").read_text(encoding="utf-8"))
+    calls.extend(c for row in rows for c in row.get("judge_calls", []))
+    save(output / "api_calls.json", calls)
+    summary = summarize(retrieval, answers, rows, run["selected_mode"])
+    save(output / "summary.json", summary)
+    run["tool_scoring_postprocess"] = {"completed_at": datetime.now(timezone.utc).isoformat(),
+        "previous_behavior_sha256": previous_hash,
+        "code_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "git_head": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+        "primary_model_requests": 0, "judge_requests": sum(len(r.get("judge_calls", [])) for r in rows)}
+    run["api_errors"] = sum(c["status"] != "ok" for c in calls)
+    run["tool_scoring_errors"] = sum(bool(r.get("tool_scoring_error")) for r in rows)
+    save(output / "run_manifest.json", run)
+    write_report(output, run, summary, answers, rows, calls)
+    print(json.dumps({"output": str(output), "tool_scoring": "completed", "test_behavior": summary["splits"]["test"]["behavior"]}, ensure_ascii=False), flush=True)
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--dataset", type=Path, default=Path("eval/datasets/v1"))
@@ -374,13 +440,16 @@ def main():
     parser.add_argument("--workers", type=int, default=2)
     parser.add_argument("--smoke", action="store_true")
     parser.add_argument("--resume", action="store_true", help="只续跑该目录尚未保存的用例，保留已有结果")
+    parser.add_argument("--complete-tool-scoring", action="store_true", help="对已完成实验补齐工具回答评分，不重发主模型请求")
     args = parser.parse_args()
-    if args.output.exists() and not args.resume:
+    if args.output.exists() and not args.resume and not args.complete_tool_scoring:
         raise ValueError("输出目录已存在，请使用新目录保存实验，避免覆盖证据")
     api_key = os.getenv("DASHSCOPE_API_KEY") or os.getenv("OPENAI_API_KEY")
     base_url = os.getenv("DASHSCOPE_BASE_URL") or os.getenv("OPENAI_BASE_URL")
     if not api_key or not base_url:
         raise ValueError("先在进程环境配置模型服务密钥和地址")
+    if args.complete_tool_scoring:
+        return complete_saved_tool_scoring(args.output, args.dataset, api_key, base_url)
     os.environ.update(DATABASE_URL="sqlite:///:memory:", OPENAI_API_KEY=api_key, OPENAI_BASE_URL=base_url,
         EMBEDDING_PROVIDER="openai", EMBEDDING_MODEL="qwen3.7-text-embedding-flash", EMBEDDING_DIM="1024",
         LLM_PROVIDER="openai", CHAT_MODEL=args.chat_model, MODEL_STRICT="true", QDRANT_MODE="memory",
@@ -473,13 +542,15 @@ def main():
                     "criterion": "development judge answer correctness, retrieval metrics, simpler mode"})
                 print(f"开发集方案冻结：{selected}", flush=True)
         behaviors = behavior_rows(client, container, questions, is_ops, args.output)
+        score_tool_answers(behaviors, questions, api_key, base_url, args.judge_model)
+        save(args.output / "behavior.json", behaviors)
         summary = summarize(retrieved, answers, behaviors, selected)
         save(args.output / "summary.json", summary)
         calls = provider.calls + reranker.calls
         for row in answers:
             calls.extend(row["model_calls"] + row["judge_calls"])
         for row in behaviors:
-            calls.extend(row["model_calls"])
+            calls.extend(row["model_calls"] + row.get("judge_calls", []))
         save(args.output / "api_calls.json", calls)
         run.update(completion_status="completed", completed_at=datetime.now(timezone.utc).isoformat(),
                    selected_mode=selected, api_errors=sum(c["status"] != "ok" for c in calls),

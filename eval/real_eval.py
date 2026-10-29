@@ -9,6 +9,7 @@ import os
 import re
 import subprocess
 import time
+import uuid
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
@@ -21,7 +22,10 @@ MODES = ("bm25", "dense", "hybrid", "hybrid_rerank")
 
 
 def save(path, value):
-    Path(path).write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False), encoding="utf-8")
+    path = Path(path)
+    temporary = path.with_name(path.name + "." + uuid.uuid4().hex + ".writing")
+    temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False), encoding="utf-8")
+    temporary.replace(path)
 
 
 def error_info(exc):
@@ -46,6 +50,9 @@ class EvaluationEmbeddings:
     def __init__(self, provider, path):
         self.provider, self.path = provider, path
         self.cache = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+        self.call_path = path.with_name("embedding_calls.json")
+        if self.call_path.exists():
+            self.provider.calls = json.loads(self.call_path.read_text(encoding="utf-8"))
 
     def embed(self, texts):
         keys = [hashlib.sha256(f"{self.provider.model}:{self.provider.dim}:{t}".encode()).hexdigest() for t in texts]
@@ -56,6 +63,7 @@ class EvaluationEmbeddings:
             for key, vector in zip(batch, vectors, strict=True):
                 self.cache[key] = vector
             save(self.path, self.cache)
+            save(self.call_path, self.provider.calls)
         return [self.cache[k] for k in keys]
 
 
@@ -73,14 +81,20 @@ def document_hits(hits, top_k=5):
 def retrieval_rows(container, questions, reranker, output):
     from eval.metrics import mrr_at_k, recall_at_k
 
-    rows = []
+    row_path = output / "retrieval.json"
+    rows = json.loads(row_path.read_text(encoding="utf-8")) if row_path.exists() else []
+    completed = {(r["id"], r["mode"]) for r in rows}
     for index, q in enumerate(questions):
         if q["task_type"] not in ("retrieval", "abstain"):
+            continue
+        if all((q["id"], mode) in completed for mode in MODES):
             continue
         started = time.perf_counter()
         container.embedder.embed([q["question"]])
         embedding_ms = (time.perf_counter() - started) * 1000
         for mode in MODES:
+            if (q["id"], mode) in completed:
+                continue
             row = {"id": q["id"], "split": q["split"], "task_type": q["task_type"], "mode": mode,
                    "status": "error", "query_embedding_ms": embedding_ms, "recall": None, "mrr": None, "hits": []}
             started = time.perf_counter()
@@ -101,6 +115,7 @@ def retrieval_rows(container, questions, reranker, output):
             row["search_with_warm_query_vector_ms"] = (time.perf_counter() - started) * 1000
             rows.append(row)
         save(output / "retrieval.json", rows)
+        save(output / "rerank_calls.json", reranker.calls)
         if (index + 1) % 10 == 0:
             print(f"检索 {index + 1}/{len(questions)}", flush=True)
     return rows
@@ -173,9 +188,13 @@ def behavior_rows(client, container, questions, is_ops, output):
         resp = client.post("/auth/login", json={"username": username, "password": password})
         resp.raise_for_status()
         headers[role] = {"Authorization": "Bearer " + resp.json()["access_token"]}
-    rows = []
+    row_path = output / "behavior.json"
+    rows = json.loads(row_path.read_text(encoding="utf-8")) if row_path.exists() else []
+    completed = {r["id"] for r in rows}
     for q in questions:
         if q["task_type"] in ("retrieval", "abstain"):
+            continue
+        if q["id"] in completed:
             continue
         row = {"id": q["id"], "split": q["split"], "task_type": q["task_type"], "status": "error"}
         before_calls = len(container.llm._api.calls)
@@ -330,6 +349,7 @@ def write_report(output, run, summary, answers, behaviors, calls):
         lines.append(f"- {row['id']}：{reason}")
     lines += ["", "## 用量与限制", "", "```json", json.dumps(usage, ensure_ascii=False, indent=2), "```", "",
         "题库为资料驱动的合成题，human_reviewed=false；商家政策、错误码与阈值包含演示设定。",
+        f"调用用量覆盖说明：{run.get('usage_coverage', '本次成功运行已记录的 API usage')}。",
         "本报告没有验证真实订单/生产监控接入，也不替代 MySQL/PostgreSQL、Redis、Milvus 独立服务部署与负载测试。",
         "不得将这些结果表述为线上用户准确率、业务耗时降低或生产规模收益。", "",
         "复现：在进程环境提供 DASHSCOPE_API_KEY、DASHSCOPE_BASE_URL 后，运行：", "",
@@ -345,8 +365,9 @@ def main():
     parser.add_argument("--judge-model", default="deepseek-v4-flash-0731")
     parser.add_argument("--workers", type=int, default=2)
     parser.add_argument("--smoke", action="store_true")
+    parser.add_argument("--resume", action="store_true", help="只续跑该目录尚未保存的用例，保留已有结果")
     args = parser.parse_args()
-    if args.output.exists():
+    if args.output.exists() and not args.resume:
         raise ValueError("输出目录已存在，请使用新目录保存实验，避免覆盖证据")
     api_key = os.getenv("DASHSCOPE_API_KEY") or os.getenv("OPENAI_API_KEY")
     base_url = os.getenv("DASHSCOPE_BASE_URL") or os.getenv("OPENAI_BASE_URL")
@@ -357,7 +378,7 @@ def main():
         LLM_PROVIDER="openai", CHAT_MODEL=args.chat_model, MODEL_STRICT="true", QDRANT_MODE="memory",
         MILVUS_MODE="memory", RERANK_ENABLED="false", REDIS_URL="redis://127.0.0.1:1/0",
         LANGFUSE_PUBLIC_KEY="", LANGFUSE_SECRET_KEY="")
-    args.output.mkdir(parents=True)
+    args.output.mkdir(parents=True, exist_ok=args.resume)
     manifest = json.loads((args.dataset / "manifest.json").read_text(encoding="utf-8"))
     for file, expected_hash in manifest["artifact_sha256"].items():
         if hashlib.sha256((args.dataset / file).read_bytes()).hexdigest() != expected_hash:
@@ -392,6 +413,16 @@ def main():
         "tools": "project simulation tools, not live business/monitoring systems", "smoke": args.smoke,
         "workers": args.workers, "question_counts": dict(Counter(q["split"] for q in questions)),
         "completion_status": "running", "credential_saved": False}
+    if args.resume:
+        previous = json.loads((args.output / "run_manifest.json").read_text(encoding="utf-8"))
+        for field in ("dataset_manifest_sha256", "chat_model", "judge_model", "embedding_model", "embedding_dim", "smoke"):
+            if previous[field] != run[field]:
+                raise ValueError(f"续跑配置发生变化：{field}")
+        save(args.output / f"run_manifest.before_resume_{uuid.uuid4().hex[:8]}.json", previous)
+        run["resume_history"] = previous.get("resume_history", []) + [{"previous_started_at": previous["started_at"],
+            "previous_git_head": previous["git_head"], "previous_code_sha256": previous["code_sha256"],
+            "reason": "本地缓存完整但直接重写出现 OSError，改为独立临时文件后替换；计分、模型、题库与参数不变"}]
+        run["usage_coverage"] = "包含续跑后及已保存用例的 usage；首段中断前未保存的 Embedding/重排用量无法完整恢复，不是账户总耗用"
     save(args.output / "run_manifest.json", run)
     with TestClient(app) as client:
         container = get_container()
@@ -408,15 +439,21 @@ def main():
                 kwargs = {"source": doc["source"].get("url", doc["source"].get("path", "project"))} if is_ops else {"category": doc["scope"]}
                 ingest_document(db, container, Document(id=doc["doc_id"], tenant_id="default", title=doc["title"], content=content, **kwargs))
         reranker = RerankAPI(api_key, base_url, "qwen3.7-text-rerank")
+        call_path = args.output / "rerank_calls.json"
+        if call_path.exists():
+            reranker.calls = json.loads(call_path.read_text(encoding="utf-8"))
         retrieved = retrieval_rows(container, questions, reranker, args.output)
         lookup = {(r["id"], r["mode"]): r for r in retrieved}
-        answers = []
+        answer_path = args.output / "answers.json"
+        answers = json.loads(answer_path.read_text(encoding="utf-8")) if answer_path.exists() else []
+        completed_answers = {(r["id"], r["mode"]) for r in answers}
         selected = None
         for split in ("dev", "test"):
             modes = MODES if split == "dev" else (selected,)
             with ThreadPoolExecutor(max_workers=args.workers) as pool:
                 jobs = [pool.submit(generate_and_judge, q, lookup[q["id"], mode], container.settings, is_ops, args.judge_model)
-                        for q in questions if q["split"] == split and q["task_type"] in ("retrieval", "abstain") for mode in modes]
+                        for q in questions if q["split"] == split and q["task_type"] in ("retrieval", "abstain")
+                        for mode in modes if (q["id"], mode) not in completed_answers]
                 for job in as_completed(jobs):
                     answers.append(job.result())
                     save(args.output / "answers.json", sorted(answers, key=lambda r: (r["id"], r["mode"])))

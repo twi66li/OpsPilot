@@ -73,3 +73,27 @@ def test_chunks_keep_heading_with_body_and_parent_context():
     assert all("Kafka 排查" in chunk for chunk in chunks)
     assert all("消费延迟" in chunk or "下游变慢" in chunk for chunk in chunks)
     assert any("下游变慢" in chunk for chunk in chunks)
+
+
+def test_resume_does_not_reissue_completed_retrieval(tmp_path):
+    from eval.real_eval import MODES, retrieval_rows, save
+    rows = [{"id": "q1", "mode": mode, "status": "ok"} for mode in MODES]
+    save(tmp_path / "retrieval.json", rows)
+    # 完成的用例不应再访问模型或检索器。
+    assert retrieval_rows(None, [{"id": "q1", "task_type": "retrieval"}], None, tmp_path) == rows
+
+
+def test_failed_snapshot_replace_preserves_previous_result(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    from eval.real_eval import save
+    path = tmp_path / "result.json"
+    save(path, {"completed": 10})
+
+    def fail(*args):
+        raise OSError("模拟替换失败")
+
+    monkeypatch.setattr(Path, "replace", fail)
+    with pytest.raises(OSError):
+        save(path, {"completed": 11})
+    assert '"completed": 10' in path.read_text(encoding="utf-8")

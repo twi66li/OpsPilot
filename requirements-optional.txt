@@ -1,0 +1,7 @@
+# 可选增强依赖：按需安装，不影响核心功能
+# 1) Cross-Encoder 重排序（首次运行会下载模型，约 90MB）
+sentence-transformers>=2.7
+# 2) Langfuse 全链路追踪（也可直接使用 Langfuse Cloud，无需本地部署）
+langfuse>=2.50
+# 3) LangGraph 持久化 Checkpoint（多进程部署时建议替换 MemorySaver）
+langgraph-checkpoint-sqlite>=2.0

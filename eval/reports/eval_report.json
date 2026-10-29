@@ -1,0 +1,612 @@
+{
+  "generated_at": "2026-10-29T16:43:36.382302+00:00",
+  "top_k": 5,
+  "summary": {
+    "dense": {
+      "n_questions": 11,
+      "recall_at_5": 1.0,
+      "mrr": 1.0,
+      "keyword_coverage": 0.6,
+      "faithfulness": 0.5567,
+      "avg_ms": 2.8,
+      "p95_ms": 3.7
+    },
+    "bm25": {
+      "n_questions": 11,
+      "recall_at_5": 1.0,
+      "mrr": 0.9545,
+      "keyword_coverage": 0.65,
+      "faithfulness": 0.5738,
+      "avg_ms": 1.2,
+      "p95_ms": 1.7
+    },
+    "hybrid": {
+      "n_questions": 11,
+      "recall_at_5": 1.0,
+      "mrr": 1.0,
+      "keyword_coverage": 0.65,
+      "faithfulness": 0.5561,
+      "avg_ms": 3.4,
+      "p95_ms": 4.4
+    }
+  },
+  "detail": {
+    "dense": [
+      {
+        "id": "q_err_5003",
+        "question": "ERR_5003 连接池耗尽怎么处理？",
+        "category": "错误码",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.5,
+        "faithfulness": 0.5714,
+        "latency_ms": 2.7,
+        "hit_titles": [
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "order-service 接口超时排查 SOP",
+          "order-service 接口超时排查 SOP",
+          "Kafka 消费积压处理"
+        ]
+      },
+      {
+        "id": "q_err_7010",
+        "question": "支付服务对账失败 ERR_7010 是什么原因？",
+        "category": "错误码+服务名",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.625,
+        "latency_ms": 2.5,
+        "hit_titles": [
+          "payment-service 对账失败处理手册",
+          "payment-service 对账失败处理手册",
+          "Redis 集群主从切换 SOP",
+          "磁盘空间不足处理 SOP",
+          "Pod OOMKilled 处理指南"
+        ]
+      },
+      {
+        "id": "q_err_8001",
+        "question": "Redis 报 ERR_8001 连接重置如何处理？",
+        "category": "错误码",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.5,
+        "faithfulness": 0.7143,
+        "latency_ms": 2.4,
+        "hit_titles": [
+          "Redis 集群主从切换 SOP",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "网关 502 排查手册",
+          "payment-service 对账失败处理手册",
+          "MySQL 慢查询治理"
+        ]
+      },
+      {
+        "id": "q_err_502",
+        "question": "网关大量 502 是怎么回事？",
+        "category": "错误码",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.0,
+        "faithfulness": 0.4286,
+        "latency_ms": 3.7,
+        "hit_titles": [
+          "网关 502 排查手册",
+          "网关 502 排查手册",
+          "Redis 集群主从切换 SOP",
+          "order-service 接口超时排查 SOP",
+          "日志平台使用指南"
+        ]
+      },
+      {
+        "id": "q_svc_order",
+        "question": "order-service 大量接口超时，怎么排查？",
+        "category": "服务名",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.8182,
+        "latency_ms": 2.7,
+        "hit_titles": [
+          "order-service 接口超时排查 SOP",
+          "order-service 接口超时排查 SOP",
+          "order-service 接口超时排查 SOP",
+          "日志平台使用指南",
+          "MySQL 慢查询治理"
+        ]
+      },
+      {
+        "id": "q_nl_disk",
+        "question": "服务器磁盘快满了应该怎么清理？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.625,
+        "latency_ms": 2.7,
+        "hit_titles": [
+          "磁盘空间不足处理 SOP",
+          "服务熔断与限流说明",
+          "磁盘空间不足处理 SOP",
+          "payment-service 对账失败处理手册",
+          "日志平台使用指南"
+        ]
+      },
+      {
+        "id": "q_nl_oom",
+        "question": "应用容器一直重启，日志里有 OutOfMemoryError，可能是什么问题？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.7857,
+        "latency_ms": 2.9,
+        "hit_titles": [
+          "Pod OOMKilled 处理指南",
+          "Redis 集群主从切换 SOP",
+          "磁盘空间不足处理 SOP",
+          "日志平台使用指南",
+          "磁盘空间不足处理 SOP"
+        ]
+      },
+      {
+        "id": "q_nl_kafka",
+        "question": "Kafka 消息消费不过来，延迟很大怎么办？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.5,
+        "latency_ms": 3.5,
+        "hit_titles": [
+          "Kafka 消费积压处理",
+          "Kafka 消费积压处理",
+          "MySQL 慢查询治理",
+          "Kafka 消费积压处理",
+          "Kafka 消费积压处理"
+        ]
+      },
+      {
+        "id": "q_nl_mysql",
+        "question": "MySQL 数据库 CPU 很高，怎么找出有问题的 SQL？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.0,
+        "faithfulness": 0.5556,
+        "latency_ms": 2.7,
+        "hit_titles": [
+          "MySQL 慢查询治理",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "磁盘空间不足处理 SOP",
+          "payment-service 对账失败处理手册"
+        ]
+      },
+      {
+        "id": "q_nl_circuit",
+        "question": "怎么防止一个服务挂了把调用它的其他服务也拖垮？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.0,
+        "faithfulness": 0.5,
+        "latency_ms": 2.7,
+        "hit_titles": [
+          "服务熔断与限流说明",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "网关 502 排查手册",
+          "order-service 接口超时排查 SOP",
+          "order-service 接口超时排查 SOP"
+        ]
+      },
+      {
+        "id": "q_irrelevant",
+        "question": "今天午饭吃什么比较好？",
+        "category": "无关问题",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": null,
+        "faithfulness": 0.0,
+        "latency_ms": 2.6,
+        "hit_titles": [
+          "payment-service 对账失败处理手册",
+          "order-service 接口超时排查 SOP",
+          "磁盘空间不足处理 SOP",
+          "payment-service 对账失败处理手册",
+          "Kafka 消费积压处理"
+        ]
+      }
+    ],
+    "bm25": [
+      {
+        "id": "q_err_5003",
+        "question": "ERR_5003 连接池耗尽怎么处理？",
+        "category": "错误码",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.5,
+        "faithfulness": 0.5714,
+        "latency_ms": 1.7,
+        "hit_titles": [
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "order-service 接口超时排查 SOP",
+          "order-service 接口超时排查 SOP",
+          "ERR_5003 数据库连接池耗尽处理手册"
+        ]
+      },
+      {
+        "id": "q_err_7010",
+        "question": "支付服务对账失败 ERR_7010 是什么原因？",
+        "category": "错误码+服务名",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.625,
+        "latency_ms": 1.4,
+        "hit_titles": [
+          "payment-service 对账失败处理手册",
+          "payment-service 对账失败处理手册",
+          "payment-service 对账失败处理手册",
+          "order-service 接口超时排查 SOP",
+          "payment-service 对账失败处理手册"
+        ]
+      },
+      {
+        "id": "q_err_8001",
+        "question": "Redis 报 ERR_8001 连接重置如何处理？",
+        "category": "错误码",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.5,
+        "faithfulness": 0.6667,
+        "latency_ms": 1.1,
+        "hit_titles": [
+          "Redis 集群主从切换 SOP",
+          "Redis 集群主从切换 SOP",
+          "Kafka 消费积压处理",
+          "Redis 集群主从切换 SOP",
+          "服务熔断与限流说明"
+        ]
+      },
+      {
+        "id": "q_err_502",
+        "question": "网关大量 502 是怎么回事？",
+        "category": "错误码",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.0,
+        "faithfulness": 0.4286,
+        "latency_ms": 1.0,
+        "hit_titles": [
+          "网关 502 排查手册",
+          "网关 502 排查手册",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "order-service 接口超时排查 SOP",
+          "网关 502 排查手册"
+        ]
+      },
+      {
+        "id": "q_svc_order",
+        "question": "order-service 大量接口超时，怎么排查？",
+        "category": "服务名",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.5,
+        "faithfulness": 0.8182,
+        "latency_ms": 1.2,
+        "hit_titles": [
+          "order-service 接口超时排查 SOP",
+          "order-service 接口超时排查 SOP",
+          "日志平台使用指南",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "order-service 接口超时排查 SOP"
+        ]
+      },
+      {
+        "id": "q_nl_disk",
+        "question": "服务器磁盘快满了应该怎么清理？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.5,
+        "latency_ms": 1.2,
+        "hit_titles": [
+          "磁盘空间不足处理 SOP",
+          "磁盘空间不足处理 SOP",
+          "网关 502 排查手册",
+          "服务熔断与限流说明",
+          "磁盘空间不足处理 SOP"
+        ]
+      },
+      {
+        "id": "q_nl_oom",
+        "question": "应用容器一直重启，日志里有 OutOfMemoryError，可能是什么问题？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.75,
+        "latency_ms": 1.7,
+        "hit_titles": [
+          "Pod OOMKilled 处理指南",
+          "磁盘空间不足处理 SOP",
+          "Pod OOMKilled 处理指南",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "Redis 集群主从切换 SOP"
+        ]
+      },
+      {
+        "id": "q_nl_kafka",
+        "question": "Kafka 消息消费不过来，延迟很大怎么办？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.5,
+        "latency_ms": 1.2,
+        "hit_titles": [
+          "Kafka 消费积压处理",
+          "Kafka 消费积压处理",
+          "Kafka 消费积压处理",
+          "Kafka 消费积压处理",
+          "Kafka 消费积压处理"
+        ]
+      },
+      {
+        "id": "q_nl_mysql",
+        "question": "MySQL 数据库 CPU 很高，怎么找出有问题的 SQL？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.7857,
+        "latency_ms": 1.5,
+        "hit_titles": [
+          "MySQL 慢查询治理",
+          "MySQL 慢查询治理",
+          "MySQL 慢查询治理",
+          "order-service 接口超时排查 SOP",
+          "ERR_5003 数据库连接池耗尽处理手册"
+        ]
+      },
+      {
+        "id": "q_nl_circuit",
+        "question": "怎么防止一个服务挂了把调用它的其他服务也拖垮？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 0.5,
+        "keyword_coverage": 0.0,
+        "faithfulness": 0.6667,
+        "latency_ms": 1.4,
+        "hit_titles": [
+          "网关 502 排查手册",
+          "服务熔断与限流说明",
+          "order-service 接口超时排查 SOP",
+          "order-service 接口超时排查 SOP",
+          "磁盘空间不足处理 SOP"
+        ]
+      },
+      {
+        "id": "q_irrelevant",
+        "question": "今天午饭吃什么比较好？",
+        "category": "无关问题",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": null,
+        "faithfulness": 0.0,
+        "latency_ms": 0.3,
+        "hit_titles": []
+      }
+    ],
+    "hybrid": [
+      {
+        "id": "q_err_5003",
+        "question": "ERR_5003 连接池耗尽怎么处理？",
+        "category": "错误码",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.5,
+        "faithfulness": 0.5714,
+        "latency_ms": 3.6,
+        "hit_titles": [
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "order-service 接口超时排查 SOP",
+          "order-service 接口超时排查 SOP",
+          "Kafka 消费积压处理"
+        ]
+      },
+      {
+        "id": "q_err_7010",
+        "question": "支付服务对账失败 ERR_7010 是什么原因？",
+        "category": "错误码+服务名",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.625,
+        "latency_ms": 4.4,
+        "hit_titles": [
+          "payment-service 对账失败处理手册",
+          "payment-service 对账失败处理手册",
+          "Redis 集群主从切换 SOP",
+          "payment-service 对账失败处理手册",
+          "磁盘空间不足处理 SOP"
+        ]
+      },
+      {
+        "id": "q_err_8001",
+        "question": "Redis 报 ERR_8001 连接重置如何处理？",
+        "category": "错误码",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.5,
+        "faithfulness": 0.5714,
+        "latency_ms": 2.9,
+        "hit_titles": [
+          "Redis 集群主从切换 SOP",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "Redis 集群主从切换 SOP",
+          "网关 502 排查手册",
+          "Kafka 消费积压处理"
+        ]
+      },
+      {
+        "id": "q_err_502",
+        "question": "网关大量 502 是怎么回事？",
+        "category": "错误码",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.0,
+        "faithfulness": 0.4286,
+        "latency_ms": 3.2,
+        "hit_titles": [
+          "网关 502 排查手册",
+          "网关 502 排查手册",
+          "Redis 集群主从切换 SOP",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "order-service 接口超时排查 SOP"
+        ]
+      },
+      {
+        "id": "q_svc_order",
+        "question": "order-service 大量接口超时，怎么排查？",
+        "category": "服务名",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.5,
+        "faithfulness": 0.8182,
+        "latency_ms": 3.2,
+        "hit_titles": [
+          "order-service 接口超时排查 SOP",
+          "order-service 接口超时排查 SOP",
+          "日志平台使用指南",
+          "order-service 接口超时排查 SOP",
+          "ERR_5003 数据库连接池耗尽处理手册"
+        ]
+      },
+      {
+        "id": "q_nl_disk",
+        "question": "服务器磁盘快满了应该怎么清理？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.625,
+        "latency_ms": 3.2,
+        "hit_titles": [
+          "磁盘空间不足处理 SOP",
+          "磁盘空间不足处理 SOP",
+          "服务熔断与限流说明",
+          "网关 502 排查手册",
+          "payment-service 对账失败处理手册"
+        ]
+      },
+      {
+        "id": "q_nl_oom",
+        "question": "应用容器一直重启，日志里有 OutOfMemoryError，可能是什么问题？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.75,
+        "latency_ms": 3.8,
+        "hit_titles": [
+          "Pod OOMKilled 处理指南",
+          "Redis 集群主从切换 SOP",
+          "磁盘空间不足处理 SOP",
+          "磁盘空间不足处理 SOP",
+          "Pod OOMKilled 处理指南"
+        ]
+      },
+      {
+        "id": "q_nl_kafka",
+        "question": "Kafka 消息消费不过来，延迟很大怎么办？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.5,
+        "latency_ms": 3.1,
+        "hit_titles": [
+          "Kafka 消费积压处理",
+          "Kafka 消费积压处理",
+          "Kafka 消费积压处理",
+          "MySQL 慢查询治理",
+          "Kafka 消费积压处理"
+        ]
+      },
+      {
+        "id": "q_nl_mysql",
+        "question": "MySQL 数据库 CPU 很高，怎么找出有问题的 SQL？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 1.0,
+        "faithfulness": 0.7273,
+        "latency_ms": 3.7,
+        "hit_titles": [
+          "MySQL 慢查询治理",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "MySQL 慢查询治理",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "MySQL 慢查询治理"
+        ]
+      },
+      {
+        "id": "q_nl_circuit",
+        "question": "怎么防止一个服务挂了把调用它的其他服务也拖垮？",
+        "category": "自然语言",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": 0.0,
+        "faithfulness": 0.5,
+        "latency_ms": 3.5,
+        "hit_titles": [
+          "服务熔断与限流说明",
+          "网关 502 排查手册",
+          "order-service 接口超时排查 SOP",
+          "ERR_5003 数据库连接池耗尽处理手册",
+          "order-service 接口超时排查 SOP"
+        ]
+      },
+      {
+        "id": "q_irrelevant",
+        "question": "今天午饭吃什么比较好？",
+        "category": "无关问题",
+        "recall": 1.0,
+        "mrr": 1.0,
+        "keyword_coverage": null,
+        "faithfulness": 0.0,
+        "latency_ms": 2.7,
+        "hit_titles": [
+          "payment-service 对账失败处理手册",
+          "order-service 接口超时排查 SOP",
+          "磁盘空间不足处理 SOP",
+          "payment-service 对账失败处理手册",
+          "Kafka 消费积压处理"
+        ]
+      }
+    ]
+  },
+  "workflow": {
+    "id": "q_workflow_ticket",
+    "interrupt_triggered": {
+      "approval_id": "3955c48f37944f8aa196c93c6275bf99",
+      "ticket_draft": {
+        "title": "[P2] order-service 故障：order-service 又出现超时了，帮我创建工单跟进处理。",
+        "description": "问题描述：order-service 又出现超时了，帮我创建工单跟进处理。\n\n初步诊断：\n针对问题「order-service 又出现超时了，帮我创建工单跟进处理。」，基于知识库检索到 5 篇相关文档：\n[1] 《order-service 接口超时排查 SOP》 # order-service 接口超时排查 SOP…\n[2] 《payment-service 对账失败处理手册》 ## 处理方案 - 应急：手工触发补单任务，按渠道查询结果修复订单状态。 - 治理：对账任务增加重试与告警；回调处理保证幂等。 - 升级：涉及资金差异时立即创建 P1 工单并通知财务值班。…\n[3] 《order-service 接口超时排查 SOP》 ## 适用场景 订单服务（order-service）对外接口 P99 延迟超过 1s，或出现大量 `Read timed out`。…\n\n历史相似故障：《订单服务连接池耗尽导致大面积超时》（order-service / ERR_5003）：临时上调 max_connections 与连接池；治理慢 SQL 后恢复\n\n实时指标异常（order-service）：P99 延迟 607.97ms 超过 300ms 阈值；错误率 4.21% 超过 1%",
+        "severity": "P2",
+        "service": "order-service"
+      },
+      "session_id": "e0313ea41a464380a838ea16d1013763"
+    },
+    "ticket_created": true,
+    "approval_closed": true,
+    "latency_ms": 72.5
+  }
+}

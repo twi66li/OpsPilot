@@ -1,0 +1,70 @@
+questions:
+  # ---- 错误码类 ----
+  - id: q_err_5003
+    question: "ERR_5003 连接池耗尽怎么处理？"
+    category: 错误码
+    expected_docs: ["ERR_5003 数据库连接池耗尽处理手册"]
+    expected_keywords: ["连接池", "KILL"]
+  - id: q_err_7010
+    question: "支付服务对账失败 ERR_7010 是什么原因？"
+    category: 错误码+服务名
+    expected_docs: ["payment-service 对账失败处理手册"]
+    expected_keywords: ["对账"]
+  - id: q_err_8001
+    question: "Redis 报 ERR_8001 连接重置如何处理？"
+    category: 错误码
+    expected_docs: ["Redis 集群主从切换 SOP"]
+    expected_keywords: ["主从", "客户端"]
+  - id: q_err_502
+    question: "网关大量 502 是怎么回事？"
+    category: 错误码
+    expected_docs: ["网关 502 排查手册"]
+    expected_keywords: ["上游"]
+
+  # ---- 服务名类 ----
+  - id: q_svc_order
+    question: "order-service 大量接口超时，怎么排查？"
+    category: 服务名
+    expected_docs: ["order-service 接口超时排查 SOP"]
+    expected_keywords: ["超时", "熔断"]
+
+  # ---- 自然语言类 ----
+  - id: q_nl_disk
+    question: "服务器磁盘快满了应该怎么清理？"
+    category: 自然语言
+    expected_docs: ["磁盘空间不足处理 SOP"]
+    expected_keywords: ["日志"]
+  - id: q_nl_oom
+    question: "应用容器一直重启，日志里有 OutOfMemoryError，可能是什么问题？"
+    category: 自然语言
+    expected_docs: ["Pod OOMKilled 处理指南"]
+    expected_keywords: ["内存"]
+  - id: q_nl_kafka
+    question: "Kafka 消息消费不过来，延迟很大怎么办？"
+    category: 自然语言
+    expected_docs: ["Kafka 消费积压处理"]
+    expected_keywords: ["消费"]
+  - id: q_nl_mysql
+    question: "MySQL 数据库 CPU 很高，怎么找出有问题的 SQL？"
+    category: 自然语言
+    expected_docs: ["MySQL 慢查询治理"]
+    expected_keywords: ["EXPLAIN"]
+  - id: q_nl_circuit
+    question: "怎么防止一个服务挂了把调用它的其他服务也拖垮？"
+    category: 自然语言
+    expected_docs: ["服务熔断与限流说明"]
+    expected_keywords: ["熔断"]
+
+  # ---- 无关问题（应拒答 / 低置信） ----
+  - id: q_irrelevant
+    question: "今天午饭吃什么比较好？"
+    category: 无关问题
+    expected_docs: []
+    expected_keywords: []
+
+  # ---- 工单审批端到端流程（workflow 评测） ----
+  - id: q_workflow_ticket
+    question: "order-service 又出现超时了，帮我创建工单跟进处理。"
+    category: 工单流程
+    type: workflow
+    expected_keywords: ["工单"]

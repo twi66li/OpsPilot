@@ -49,7 +49,7 @@ python scripts/smoke_test.py
 # 4) 检索方案对比评测（dense / bm25 / hybrid）
 python -m eval.run_eval            # 报告输出 eval/reports/eval_report.md
 
-# 5) 全量回归测试（43 个用例）
+# 5) 全量回归测试（57 个用例）
 pytest -q
 ```
 
@@ -122,7 +122,7 @@ aiops-diagnosis-agent/
 │   └── services/             # 会话/知识库/工单/指标服务、Redis 缓存限流、Langfuse 追踪
 ├── eval/                     # 固定问题集 + 指标 + 评测脚本（生成 reports/）
 ├── scripts/                  # 种子数据 + 知识库文档 + 冒烟测试
-├── tests/                    # 43 个 pytest 用例（认证/RAG/Agent/审批/SSE/缓存/评测）
+├── tests/                    # 57 个 pytest 用例（认证/RAG/Agent/审批/SSE/缓存/评测）
 ├── docker-compose.yml        # mysql + redis + qdrant + api
 ├── Dockerfile
 └── .github/workflows/ci.yml  # ruff + pytest
@@ -138,7 +138,7 @@ aiops-diagnosis-agent/
 ## 7. 测试与 CI
 
 ```bash
-pytest -q              # 43 passed
+pytest -q              # 57 passed
 ruff check app scripts eval tests
 ```
 
@@ -158,3 +158,11 @@ GitHub Actions（`.github/workflows/ci.yml`）：Python 3.11 + `pip install` + `
 ## 9. 简历描述
 
 见 [RESUME.md](RESUME.md)。
+
+
+## 真实模型离线评测（2026-10-30）
+
+固定题库位于 `eval/datasets/v1`，每项目 20 篇资料、100 题（dev20/test80）。
+本轮报告：[`report.md`](eval/reports/real_ops_20261029T221616/report.md)，包含四方案检索对照、模型裁判、工具/审批结果和失败明细。
+通过进程环境提供 `DASHSCOPE_API_KEY`、`DASHSCOPE_BASE_URL` 后，运行 `python -m eval.real_eval --output eval/reports/<新实验目录>`；中断可对原目录加 `--resume`。
+旧 `eval/reports/eval_report.md` 是早期 Mock 结果，不作为真实模型成绩。正式报告区分真实模型调用、本地向量后端、模拟业务工具和未验证的外部服务，不代表线上业务收益。

@@ -13,7 +13,7 @@ import uuid
 from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from copy import deepcopy
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import yaml
@@ -323,7 +323,11 @@ def summarize(retrieval, answers, behaviors, selected):
             "generation": distribution([r.get("generation_ms") for r in rows if r["status"] == "ok"]),
             "model_first_token": distribution([r.get("model_first_token_ms") for r in rows if r["status"] == "ok"])}
         summary["behavior"] = {"n": len(workflow), "passed": sum(r.get("passed", False) for r in workflow),
-            "errors": sum(r["status"] != "ok" for r in workflow)}
+            "errors": sum(r["status"] != "ok" for r in workflow),
+            "functional_passed": sum(r["status"] == "ok" and all(v for k, v in r.get("checks", {}).items() if k != "simulation_scope_disclosed") for r in workflow),
+            "tool_cases": sum(r["task_type"] == "tool" for r in workflow),
+            "tool_answer_consistent": sum(r.get("checks", {}).get("answer_matches_tool_output", False) for r in workflow),
+            "simulation_disclosed": sum(r.get("checks", {}).get("simulation_scope_disclosed", False) for r in workflow)}
         result["splits"][split] = summary
     return result
 
@@ -347,7 +351,7 @@ def write_report(output, run, summary, answers, behaviors, calls):
         dev_rows.append({"mode": mode, "n": len(rows), "correct": correct,
                          "rate": correct / len(rows) if rows else None})
     save(output / "development_comparison.json", dev_rows)
-    lines = ["# 真实模型离线评测报告", "", f"- 完成时间（UTC）：{run['completed_at']}",
+    lines = ["# 真实模型离线评测报告", "", f"- 完成时间（北京时间）：{datetime.fromisoformat(run['completed_at']).astimezone(timezone(timedelta(hours=8))).isoformat()}",
         f"- 数据集：{run['dataset_id']}；分区题数：{run['question_counts']}",
         f"- 对话模型：{run['chat_model']}；Embedding：{run['embedding_model']}（1024 维）",
         f"- 重排模型：{run['rerank_model']}；模型裁判：{run['judge_model']}",
@@ -378,7 +382,9 @@ def write_report(output, run, summary, answers, behaviors, calls):
         f"- 无答案问题正确拒答率：{percentage(a['correct_abstention_rate'])}。",
         f"- 生成耗时：{a['generation']}。",
         f"- 模型首个非空内容 token 耗时：{a['model_first_token']}。",
-        f"- 应用行为契约：{b['passed']}/{b['n']} 通过；运行错误：{b['errors']}。", "",
+        f"- 含模拟数据声明要求的完整行为契约：{b['passed']}/{b['n']} 通过；运行错误：{b['errors']}。",
+        f"- 功能及工具证据契约（不含来源声明）：{b['functional_passed']}/{b['n']}。",
+        f"- 工具回答与实际输出一致：{b['tool_answer_consistent']}/{b['tool_cases']}；明确声明模拟来源：{b['simulation_disclosed']}/{b['tool_cases']}。", "",
         "模型首 token 与应用 SSE 的首个回答事件分别计时：当前应用按节点发送回答，不把节点流声称为逐 token UI 流。",
         "行为事件及审批状态见 behavior.json；逐题回答、证据、裁判理由与调用用量见 answers.json。", "",
         "## 失败明细", ""]

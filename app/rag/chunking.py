@@ -5,11 +5,13 @@ def split_into_chunks(text: str, chunk_size: int = 500, overlap: int = 80) -> li
     text = text.strip()
     if not text:
         return []
+    root_title = next((line for line in text.splitlines() if line.startswith("# ")), "")
     sections: list[str] = []
     current: list[str] = []
 
     for line in text.splitlines():
-        if line.startswith("#") and current:
+        has_body = any(part.strip() and not part.startswith("#") for part in current)
+        if line.startswith("#") and current and has_body:
             sections.append("\n".join(current))
             current = [line]
         else:
@@ -22,6 +24,8 @@ def split_into_chunks(text: str, chunk_size: int = 500, overlap: int = 80) -> li
         section = section.strip()
         if not section:
             continue
+        if root_title and not section.startswith(root_title):
+            section = root_title + "\n" + section
         if len(section) <= chunk_size:
             chunks.append(section)
             continue

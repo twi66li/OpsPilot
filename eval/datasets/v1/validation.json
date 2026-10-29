@@ -1,0 +1,419 @@
+{
+  "checked_at": "2026-10-29T21:55:23.262Z",
+  "validation_status": "passed_structural_and_model_review_human_review_pending",
+  "structural_checks": {
+    "documents": 20,
+    "questions": 100,
+    "unique_question_ids": true,
+    "unique_question_text": true,
+    "dev": 20,
+    "test": 80,
+    "all_retrieval_reference_ids_resolve": true,
+    "all_retrieval_quotes_are_exact_substrings": true,
+    "credential_scan": "passed"
+  },
+  "review_coverage": [
+    {
+      "model": "deepseek-v4-flash-0731",
+      "checked_ids": [
+        "ops-q-001-1",
+        "ops-q-001-2",
+        "ops-q-001-3",
+        "ops-q-001-4",
+        "ops-q-002-1",
+        "ops-q-002-2",
+        "ops-q-002-3",
+        "ops-q-002-4",
+        "ops-q-003-1",
+        "ops-q-003-2",
+        "ops-q-003-3",
+        "ops-q-003-4",
+        "ops-q-004-1",
+        "ops-q-004-2",
+        "ops-q-004-3",
+        "ops-q-004-4",
+        "ops-q-005-1",
+        "ops-q-005-2",
+        "ops-q-005-3",
+        "ops-q-005-4",
+        "ops-q-006-1",
+        "ops-q-006-2",
+        "ops-q-006-3",
+        "ops-q-006-4",
+        "ops-q-007-1",
+        "ops-q-007-2",
+        "ops-q-007-3",
+        "ops-q-007-4",
+        "ops-q-008-1",
+        "ops-q-008-2",
+        "ops-q-008-3",
+        "ops-q-008-4",
+        "ops-q-009-1",
+        "ops-q-009-2",
+        "ops-q-009-3",
+        "ops-q-009-4",
+        "ops-q-010-1",
+        "ops-q-010-2",
+        "ops-q-010-3",
+        "ops-q-010-4",
+        "ops-q-011-1",
+        "ops-q-011-2",
+        "ops-q-011-3",
+        "ops-q-011-4",
+        "ops-q-012-1",
+        "ops-q-012-2",
+        "ops-q-012-3",
+        "ops-q-012-4",
+        "ops-q-013-1",
+        "ops-q-013-2"
+      ],
+      "issues": [
+        {
+          "id": "ops-q-001-3",
+          "severity": "warning",
+          "issue": "题目假设Threads_connected占比90%触发告警，但文档仅给出阈值85%，未明确90%是否触发（可能因其他条件未满足），且未说明告警名称。",
+          "suggestion": "建议将题目改为“Threads_connected占比超过85%时，根据文档会触发什么预警？”以避免假设性数字带来的歧义。"
+        },
+        {
+          "id": "ops-q-005-3",
+          "severity": "warning",
+          "issue": "题目假设内存使用率达到85%，但文档预防措施是“超过80%提前扩容”，未明确85%时的具体动作，答案推断“应提前扩容”可能过度。",
+          "suggestion": "建议将题目改为“Redis内存使用率超过80%时，根据SOP应采取什么预防措施？”以直接对应文档。"
+        },
+        {
+          "id": "ops-q-008-4",
+          "severity": "warning",
+          "issue": "答案推断viewer可以保存查询，但文档权限说明仅列出viewer为“只读检索”，未明确是否包含保存查询功能，存在推断成分。",
+          "suggestion": "建议将题目改为“日志平台中保存常用排查语句为快捷入口的功能是否受权限限制？”并基于文档明确回答，或调整答案以注明推断。"
+        },
+        {
+          "id": "ops-q-010-1",
+          "severity": "warning",
+          "issue": "题目询问“超过多少百分比触发DiskUsageHigh告警”，文档明确为85%，但答案额外提及80%和90%告警，可能造成混淆，且未说明80%是预防告警而非DiskUsageHigh。",
+          "suggestion": "建议答案聚焦85%触发DiskUsageHigh，并明确80%是预防告警，避免数字混淆。"
+        },
+        {
+          "id": "ops-q-010-4",
+          "severity": "warning",
+          "issue": "题目假设“磁盘使用率达到90%时，是否只需自动清理7天前日志”，文档仅说90%升级告警并人工审核，未明确是否禁止自动清理，答案推断“需更谨慎”可能过度。",
+          "suggestion": "建议将题目改为“磁盘使用率达到90%时，根据文档应如何处理？”并直接引用升级告警和人工审核，避免假设自动清理。"
+        }
+      ]
+    },
+    {
+      "model": "deepseek-v4-flash-0731",
+      "checked_ids": [
+        "ops-q-013-3",
+        "ops-q-013-4",
+        "ops-q-014-1",
+        "ops-q-014-2",
+        "ops-q-014-3",
+        "ops-q-014-4",
+        "ops-q-015-1",
+        "ops-q-015-2",
+        "ops-q-015-3",
+        "ops-q-015-4",
+        "ops-q-016-1",
+        "ops-q-016-2",
+        "ops-q-016-3",
+        "ops-q-016-4",
+        "ops-q-017-1",
+        "ops-q-017-2",
+        "ops-q-017-3",
+        "ops-q-017-4",
+        "ops-q-018-1",
+        "ops-q-018-2",
+        "ops-q-018-3",
+        "ops-q-018-4",
+        "ops-q-019-1",
+        "ops-q-019-2",
+        "ops-q-019-3",
+        "ops-q-019-4",
+        "ops-q-020-1",
+        "ops-q-020-2",
+        "ops-q-020-3",
+        "ops-q-020-4",
+        "ops-abstain-01",
+        "ops-abstain-02",
+        "ops-abstain-03",
+        "ops-abstain-04",
+        "ops-abstain-05",
+        "ops-abstain-06",
+        "ops-abstain-07",
+        "ops-abstain-08",
+        "ops-abstain-09",
+        "ops-abstain-10",
+        "ops-tool-01",
+        "ops-tool-02",
+        "ops-tool-03",
+        "ops-tool-04",
+        "ops-tool-05",
+        "ops-workflow-01",
+        "ops-workflow-02",
+        "ops-workflow-03",
+        "ops-workflow-04",
+        "ops-workflow-05"
+      ],
+      "issues": [
+        {
+          "id": "ops-q-015-4",
+          "severity": "warning",
+          "issue": "参考答案称EXPLAIN ANALYZE能反映真实运行时性能，但文档仅说明其输出迭代器统计，未明确声称反映真实性能，且实际运行可能受环境因素影响。",
+          "suggestion": "建议将答案改为：EXPLAIN ANALYZE会实际运行语句并输出迭代器统计，可观察估计与实际行数、执行时间等，但需注意其非只读特性带来的风险。"
+        },
+        {
+          "id": "ops-q-019-1",
+          "severity": "warning",
+          "issue": "参考答案中“适用于本项目实现场景”表述模糊，可能暗示工具已接入真实系统，但文档明确工具结果是样例。",
+          "suggestion": "建议删除“适用于本项目实现场景”，改为：该工具提供近一小时QPS、P99延迟、错误率和CPU的演示指标，一次最多查询两个服务。"
+        },
+        {
+          "id": "ops-q-019-3",
+          "severity": "warning",
+          "issue": "参考答案中“非真实监控系统接入”表述可能过度，文档仅说工具结果是样例，未明确说明监控系统接入状态。",
+          "suggestion": "建议改为：但需注意，这些最近记录不能冒充同一故障的已确认根因，且工具结果仅为样例。"
+        },
+        {
+          "id": "ops-q-019-4",
+          "severity": "warning",
+          "issue": "参考答案中“仅适用于本项目实现的虚构演示场景”表述可能过度，文档未明确说明场景虚构，仅说工具结果是样例。",
+          "suggestion": "建议改为：不是。工具结果是样例，不是已接入真实监控系统。其提供的指标均为演示指标。"
+        },
+        {
+          "id": "ops-abstain-09",
+          "severity": "warning",
+          "issue": "参考答案中“公开文档的默认值不等于当前生产配置”表述可能暗示文档是公开的，但文档未明确说明公开性。",
+          "suggestion": "建议改为：文档中的默认值不等于当前生产配置；需要读取经授权的实际配置。"
+        }
+      ]
+    }
+  ],
+  "adjudication": [
+    {
+      "id": "ops-q-008-4",
+      "decision": "corrected",
+      "reason": "原题对 viewer 保存查询的权限作了资料未定义的推断，改为直接支持的角色边界。"
+    },
+    {
+      "id": "ops-q-010-1",
+      "decision": "corrected",
+      "reason": "聚焦题目对应的 85% 触发条件，去掉其他级别阈值造成的混淆。"
+    },
+    {
+      "id": "ops-q-005-3",
+      "decision": "corrected",
+      "reason": "保留正确数值推理，去掉资料无法保证的避免故障效果。"
+    },
+    {
+      "id": "ops-q-015-4",
+      "decision": "corrected",
+      "reason": "明确是本次执行统计，不把其概括成生产性能保证。"
+    },
+    {
+      "id": "ops-q-019-1",
+      "decision": "corrected",
+      "reason": "明确指标为演示样例。"
+    },
+    {
+      "id": "ops-q-001-3",
+      "decision": "retained_with_reason",
+      "reason": "对照原文后保留：阈值大小比较、人工审核要求、演示工具和公开来源边界均有明确依据，不采纳模型的过度保守或矛盾建议。"
+    },
+    {
+      "id": "ops-q-010-4",
+      "decision": "retained_with_reason",
+      "reason": "对照原文后保留：阈值大小比较、人工审核要求、演示工具和公开来源边界均有明确依据，不采纳模型的过度保守或矛盾建议。"
+    },
+    {
+      "id": "ops-q-019-3",
+      "decision": "retained_with_reason",
+      "reason": "对照原文后保留：阈值大小比较、人工审核要求、演示工具和公开来源边界均有明确依据，不采纳模型的过度保守或矛盾建议。"
+    },
+    {
+      "id": "ops-q-019-4",
+      "decision": "retained_with_reason",
+      "reason": "对照原文后保留：阈值大小比较、人工审核要求、演示工具和公开来源边界均有明确依据，不采纳模型的过度保守或矛盾建议。"
+    },
+    {
+      "id": "ops-abstain-09",
+      "decision": "retained_with_reason",
+      "reason": "对照原文后保留：阈值大小比较、人工审核要求、演示工具和公开来源边界均有明确依据，不采纳模型的过度保守或矛盾建议。"
+    }
+  ],
+  "api_smoke_tests": [
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 661,
+      "usage": {
+        "prompt_tokens": 37,
+        "total_tokens": 42,
+        "completion_tokens": 5,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 37
+        }
+      },
+      "content": "{\"ok\":true}"
+    },
+    {
+      "kind": "embedding",
+      "model": "qwen3.7-text-embedding-flash",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 134,
+      "usage": {
+        "prompt_tokens": 51,
+        "total_tokens": 51
+      },
+      "count": 2,
+      "dimensions": 256
+    },
+    {
+      "kind": "rerank",
+      "model": "qwen3.7-text-rerank",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 423,
+      "usage": {
+        "prompt_tokens": 60,
+        "total_tokens": 60
+      },
+      "ranking": [
+        {
+          "index": 0,
+          "relevance_score": 0.8666453483408947
+        },
+        {
+          "index": 1,
+          "relevance_score": 0.0011512075839786307
+        }
+      ]
+    },
+    {
+      "kind": "embedding_default_dimensions",
+      "model": "qwen3.7-text-embedding-flash",
+      "ok": true,
+      "status": 200,
+      "elapsed_ms": 319,
+      "usage": {
+        "prompt_tokens": 20,
+        "total_tokens": 20
+      },
+      "dimensions": 1024
+    }
+  ],
+  "model_usage_this_whole_generation_session": {
+    "qwen3.8-flash": {
+      "requests": 9,
+      "prompt_tokens": 9697,
+      "completion_tokens": 22346,
+      "total_tokens": 32043
+    },
+    "qwen3.7-text-embedding-flash": {
+      "requests": 2,
+      "prompt_tokens": 71,
+      "completion_tokens": 0,
+      "total_tokens": 71
+    },
+    "qwen3.7-text-rerank": {
+      "requests": 1,
+      "prompt_tokens": 60,
+      "completion_tokens": 0,
+      "total_tokens": 60
+    },
+    "deepseek-v4-flash-0731": {
+      "requests": 4,
+      "prompt_tokens": 37293,
+      "completion_tokens": 3698,
+      "total_tokens": 40991
+    }
+  },
+  "usage_note": "用量为本轮 API 响应 usage 的汇总，跨两个项目共享，不能将两份 validation.json 重复相加；不是账户剩余额度或账单核验。",
+  "generation_runs": [
+    {
+      "kind": "question_generation",
+      "project": "ops",
+      "start": 0,
+      "model": "qwen3.8-flash",
+      "usage": {
+        "prompt_tokens": 1766,
+        "total_tokens": 5207,
+        "completion_tokens": 3441,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 1766
+        }
+      },
+      "elapsed_ms": 31715,
+      "finish_reason": "stop"
+    },
+    {
+      "kind": "question_generation",
+      "project": "ops",
+      "start": 5,
+      "model": "qwen3.8-flash",
+      "usage": {
+        "prompt_tokens": 1719,
+        "total_tokens": 4716,
+        "completion_tokens": 2997,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 1719
+        }
+      },
+      "elapsed_ms": 25242,
+      "finish_reason": "stop"
+    },
+    {
+      "kind": "question_generation",
+      "project": "ops",
+      "start": 10,
+      "model": "qwen3.8-flash",
+      "usage": {
+        "prompt_tokens": 1035,
+        "total_tokens": 3778,
+        "completion_tokens": 2743,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 1035
+        }
+      },
+      "elapsed_ms": 23243,
+      "finish_reason": "stop"
+    },
+    {
+      "kind": "question_generation",
+      "project": "ops",
+      "start": 15,
+      "model": "qwen3.8-flash",
+      "usage": {
+        "prompt_tokens": 927,
+        "total_tokens": 3677,
+        "completion_tokens": 2750,
+        "prompt_tokens_details": {
+          "cached_tokens": 0,
+          "text_tokens": 927
+        }
+      },
+      "elapsed_ms": 20994,
+      "finish_reason": "stop"
+    }
+  ],
+  "limitations": [
+    "题目是资料驱动的合成评测，不是企业真实流量。",
+    "模型复核与原文匹配不能替代领域人员审核。",
+    "尚未对新题库运行检索或问答效果测量，没有生成或声称任何提升百分比。",
+    "实际业务外部服务和全套模型名单没有在本次逐一测试。"
+  ],
+  "persisted_file_checks": {
+    "yaml_parse": "passed",
+    "source_paths": "passed",
+    "reference_title_mapping": "passed",
+    "reference_quotes": "passed",
+    "split_group_overlap": 0,
+    "existing_tracked_files_changed": false
+  }
+}

@@ -1,0 +1,336 @@
+{
+  "dataset_id": "ops-rag-v1",
+  "version": "1.0.0",
+  "created_at": "2026-10-29T21:55:23.262Z",
+  "project": "ops",
+  "repository_base_commit": "0ec8182",
+  "status": "pilot_dataset_human_review_pending",
+  "benchmark_status": "not_run",
+  "knowledge_path": "knowledge/",
+  "questions_path": "questions.yaml",
+  "counts": {
+    "project": "ops",
+    "documents": 20,
+    "questions": 100,
+    "dev": 20,
+    "test": 80,
+    "types": {
+      "retrieval": 80,
+      "abstain": 10,
+      "tool": 5,
+      "workflow": 5
+    },
+    "multi_document": 4,
+    "exact_evidence_valid": true
+  },
+  "question_origin": "模型基于资料生成并复核，部分多文档和行为题由 Codex 编排；不是历史真实用户问题。",
+  "intended_use": "公开资料与演示规则上的可复现离线检索/问答/行为评测。",
+  "split_policy": "每项目 dev=20、test=80；同一知识文档问题族保持同一分区，多文档题在测试分区。工具实体与审批行为按独立用例分区。v1 固定后不根据测试结果改题；如纠错需新版本。",
+  "metric_policy": {
+    "retrieval": "只对 task_type=retrieval 且有参考文档的题计算 Recall/MRR；将检索块映射到稳定 source doc_id，先按文档去重再取 Top-K。多文档题需要覆盖全部 expected_doc_ids。",
+    "abstain": "无参考文档题仅计正确拒答率，不以 expected_docs=[] 自动记 Recall/MRR 满分。",
+    "tools": "核对实际工具事件和参数，不把模拟工具返回当真实订单/生产监控。",
+    "workflow": "按 workflow 中的角色和审批动作驱动接口；ticket_created 以实际数据库/API 结果确认。",
+    "generation": "分别评估答案正确性与证据支撑；关键词命中或词面重合不能当作语义忠实度。",
+    "performance": "正式实验分开记录检索、生成、首个回答内容和总耗时，说明冷/热缓存、并发、模型、样本量及重复次数。",
+    "failures": "真实模型或服务失败应记录 error/fallback 并单列；不可把回退到 Mock 的结果混入真实模型成绩。"
+  },
+  "usage_notes": [
+    "导入 knowledge/ 的正文及标题，并保留 doc_id 到数据库文档ID的映射；不要将题目、参考答案或 validation.json 导入知识库。",
+    "当前旧 eval.run_eval 固定读取旧 questions.yaml 且没有分类型计分；本次没有改业务代码或旧评测器，正式评测前需增加数据路径、分区与类型处理。",
+    "两项目现有资料中的错误码、阈值和客服金额/期限为演示设定；不是行业标准、法律规定或真实商家承诺。",
+    "Stripe/Shopify 为产品范围明确的官方资料摘要，不表示演示商家已接入，也不可覆盖演示政策。",
+    "向量模型实测显式256维请求与默认1024维请求均成功；正式接入时索引维度和文档/问题向量必须统一，更换模型后重新向量化。",
+    "建议先使用开发分区调试，冻结配置后只在测试分区汇报结果；仍需领域人员抽查参考答案，当前 human_reviewed 全为 false。"
+  ],
+  "documents": [
+    {
+      "doc_id": "ops-kb-001",
+      "title": "ERR_5003 数据库连接池耗尽处理手册",
+      "file": "knowledge/ops-kb-001.md",
+      "scope": "project_demo",
+      "source": {
+        "kind": "repository_snapshot",
+        "path": "scripts/knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+        "commit": "0ec8182"
+      },
+      "curation_note": "原有演示资料快照；清理、KILL、扩容建议补充人工授权和容量核对边界；错误码/阈值不是行业统一标准。"
+    },
+    {
+      "doc_id": "ops-kb-002",
+      "title": "Kafka 消费积压处理",
+      "file": "knowledge/ops-kb-002.md",
+      "scope": "project_demo",
+      "source": {
+        "kind": "repository_snapshot",
+        "path": "scripts/knowledge/Kafka消费积压处理.md",
+        "commit": "0ec8182"
+      },
+      "curation_note": "原有演示资料快照；清理、KILL、扩容建议补充人工授权和容量核对边界；错误码/阈值不是行业统一标准。"
+    },
+    {
+      "doc_id": "ops-kb-003",
+      "title": "MySQL 慢查询治理",
+      "file": "knowledge/ops-kb-003.md",
+      "scope": "project_demo",
+      "source": {
+        "kind": "repository_snapshot",
+        "path": "scripts/knowledge/MySQL慢查询治理.md",
+        "commit": "0ec8182"
+      },
+      "curation_note": "原有演示资料快照；清理、KILL、扩容建议补充人工授权和容量核对边界；错误码/阈值不是行业统一标准。"
+    },
+    {
+      "doc_id": "ops-kb-004",
+      "title": "Pod OOMKilled 处理指南",
+      "file": "knowledge/ops-kb-004.md",
+      "scope": "project_demo",
+      "source": {
+        "kind": "repository_snapshot",
+        "path": "scripts/knowledge/Pod_OOMKilled处理指南.md",
+        "commit": "0ec8182"
+      },
+      "curation_note": "原有演示资料快照；清理、KILL、扩容建议补充人工授权和容量核对边界；错误码/阈值不是行业统一标准。"
+    },
+    {
+      "doc_id": "ops-kb-005",
+      "title": "Redis 集群主从切换 SOP",
+      "file": "knowledge/ops-kb-005.md",
+      "scope": "project_demo",
+      "source": {
+        "kind": "repository_snapshot",
+        "path": "scripts/knowledge/Redis集群主从切换SOP.md",
+        "commit": "0ec8182"
+      },
+      "curation_note": "原有演示资料快照；清理、KILL、扩容建议补充人工授权和容量核对边界；错误码/阈值不是行业统一标准。"
+    },
+    {
+      "doc_id": "ops-kb-006",
+      "title": "order-service 接口超时排查 SOP",
+      "file": "knowledge/ops-kb-006.md",
+      "scope": "project_demo",
+      "source": {
+        "kind": "repository_snapshot",
+        "path": "scripts/knowledge/order-service_接口超时排查SOP.md",
+        "commit": "0ec8182"
+      },
+      "curation_note": "原有演示资料快照；清理、KILL、扩容建议补充人工授权和容量核对边界；错误码/阈值不是行业统一标准。"
+    },
+    {
+      "doc_id": "ops-kb-007",
+      "title": "payment-service 对账失败处理手册",
+      "file": "knowledge/ops-kb-007.md",
+      "scope": "project_demo",
+      "source": {
+        "kind": "repository_snapshot",
+        "path": "scripts/knowledge/payment-service_对账失败处理手册.md",
+        "commit": "0ec8182"
+      },
+      "curation_note": "原有演示资料快照；清理、KILL、扩容建议补充人工授权和容量核对边界；错误码/阈值不是行业统一标准。"
+    },
+    {
+      "doc_id": "ops-kb-008",
+      "title": "日志平台使用指南",
+      "file": "knowledge/ops-kb-008.md",
+      "scope": "project_demo",
+      "source": {
+        "kind": "repository_snapshot",
+        "path": "scripts/knowledge/日志平台使用指南.md",
+        "commit": "0ec8182"
+      },
+      "curation_note": "原有演示资料快照；清理、KILL、扩容建议补充人工授权和容量核对边界；错误码/阈值不是行业统一标准。"
+    },
+    {
+      "doc_id": "ops-kb-009",
+      "title": "服务熔断与限流说明",
+      "file": "knowledge/ops-kb-009.md",
+      "scope": "project_demo",
+      "source": {
+        "kind": "repository_snapshot",
+        "path": "scripts/knowledge/服务熔断与限流说明.md",
+        "commit": "0ec8182"
+      },
+      "curation_note": "原有演示资料快照；清理、KILL、扩容建议补充人工授权和容量核对边界；错误码/阈值不是行业统一标准。"
+    },
+    {
+      "doc_id": "ops-kb-010",
+      "title": "磁盘空间不足处理 SOP",
+      "file": "knowledge/ops-kb-010.md",
+      "scope": "project_demo",
+      "source": {
+        "kind": "repository_snapshot",
+        "path": "scripts/knowledge/磁盘空间不足处理SOP.md",
+        "commit": "0ec8182"
+      },
+      "curation_note": "原有演示资料快照；清理、KILL、扩容建议补充人工授权和容量核对边界；错误码/阈值不是行业统一标准。"
+    },
+    {
+      "doc_id": "ops-kb-011",
+      "title": "网关 502 排查手册",
+      "file": "knowledge/ops-kb-011.md",
+      "scope": "project_demo",
+      "source": {
+        "kind": "repository_snapshot",
+        "path": "scripts/knowledge/网关502排查手册.md",
+        "commit": "0ec8182"
+      },
+      "curation_note": "原有演示资料快照；清理、KILL、扩容建议补充人工授权和容量核对边界；错误码/阈值不是行业统一标准。"
+    },
+    {
+      "doc_id": "ops-kb-012",
+      "title": "Kubernetes 资源 requests 与 limits 的区别",
+      "file": "knowledge/ops-kb-012.md",
+      "scope": "official_reference",
+      "source": {
+        "kind": "official_documentation_summary",
+        "url": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+        "accessed_at": "2026-10-30",
+        "summary_language": "zh-CN"
+      },
+      "curation_note": "基于官方原文整理的中文摘要；以注明的产品范围为准，不表示本项目已接入该产品。"
+    },
+    {
+      "doc_id": "ops-kb-013",
+      "title": "Kubernetes 三种健康探针",
+      "file": "knowledge/ops-kb-013.md",
+      "scope": "official_reference",
+      "source": {
+        "kind": "official_documentation_summary",
+        "url": "https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/",
+        "accessed_at": "2026-10-30",
+        "summary_language": "zh-CN"
+      },
+      "curation_note": "基于官方原文整理的中文摘要；以注明的产品范围为准，不表示本项目已接入该产品。"
+    },
+    {
+      "doc_id": "ops-kb-014",
+      "title": "MySQL 8.4 慢查询日志判断条件",
+      "file": "knowledge/ops-kb-014.md",
+      "scope": "official_reference",
+      "source": {
+        "kind": "official_documentation_summary",
+        "url": "https://dev.mysql.com/doc/refman/8.4/en/slow-query-log.html",
+        "accessed_at": "2026-10-30",
+        "summary_language": "zh-CN"
+      },
+      "curation_note": "基于官方原文整理的中文摘要；以注明的产品范围为准，不表示本项目已接入该产品。"
+    },
+    {
+      "doc_id": "ops-kb-015",
+      "title": "MySQL EXPLAIN 与 EXPLAIN ANALYZE",
+      "file": "knowledge/ops-kb-015.md",
+      "scope": "official_reference",
+      "source": {
+        "kind": "official_documentation_summary",
+        "url": "https://dev.mysql.com/doc/refman/8.4/en/explain.html",
+        "accessed_at": "2026-10-30",
+        "summary_language": "zh-CN"
+      },
+      "curation_note": "基于官方原文整理的中文摘要；以注明的产品范围为准，不表示本项目已接入该产品。"
+    },
+    {
+      "doc_id": "ops-kb-016",
+      "title": "Redis 复制与 WAIT 的一致性边界",
+      "file": "knowledge/ops-kb-016.md",
+      "scope": "official_reference",
+      "source": {
+        "kind": "official_documentation_summary",
+        "url": "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/",
+        "accessed_at": "2026-10-30",
+        "summary_language": "zh-CN"
+      },
+      "curation_note": "基于官方原文整理的中文摘要；以注明的产品范围为准，不表示本项目已接入该产品。"
+    },
+    {
+      "doc_id": "ops-kb-017",
+      "title": "NGINX 上游读取超时与缓冲",
+      "file": "knowledge/ops-kb-017.md",
+      "scope": "official_reference",
+      "source": {
+        "kind": "official_documentation_summary",
+        "url": "https://nginx.org/en/docs/http/ngx_http_proxy_module.html",
+        "accessed_at": "2026-10-30",
+        "summary_language": "zh-CN"
+      },
+      "curation_note": "基于官方原文整理的中文摘要；以注明的产品范围为准，不表示本项目已接入该产品。"
+    },
+    {
+      "doc_id": "ops-kb-018",
+      "title": "Prometheus 告警状态与通知分工",
+      "file": "knowledge/ops-kb-018.md",
+      "scope": "official_reference",
+      "source": {
+        "kind": "official_documentation_summary",
+        "url": "https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/",
+        "accessed_at": "2026-10-30",
+        "summary_language": "zh-CN"
+      },
+      "curation_note": "基于官方原文整理的中文摘要；以注明的产品范围为准，不表示本项目已接入该产品。"
+    },
+    {
+      "doc_id": "ops-kb-019",
+      "title": "诊断工具的输入与证据边界",
+      "file": "knowledge/ops-kb-019.md",
+      "scope": "project_implementation",
+      "source": {
+        "kind": "repository_implementation_summary",
+        "paths": [
+          "app/agent/tools.py",
+          "app/services/metrics_service.py"
+        ],
+        "commit": "0ec8182"
+      },
+      "curation_note": "按当前提交代码整理，功能与示例数据仅反映项目实现。"
+    },
+    {
+      "doc_id": "ops-kb-020",
+      "title": "运维工单审批与恢复边界",
+      "file": "knowledge/ops-kb-020.md",
+      "scope": "project_implementation",
+      "source": {
+        "kind": "repository_implementation_summary",
+        "paths": [
+          "app/services/agent_service.py",
+          "app/agent/graph.py",
+          "app/api/router_agent.py"
+        ],
+        "commit": "0ec8182"
+      },
+      "curation_note": "按当前提交代码整理，功能与示例数据仅反映项目实现。"
+    }
+  ],
+  "model_plan": {
+    "generation": "qwen3.8-flash",
+    "review": "deepseek-v4-flash-0731",
+    "embedding": "qwen3.7-text-embedding-flash",
+    "optional_reranker": "qwen3.7-text-rerank",
+    "provider": "aliyun-model-studio",
+    "region": "cn-beijing",
+    "credentials_saved": false
+  },
+  "artifact_sha256": {
+    "questions.yaml": "1507569e45815eaa996fd899d8faa463bf44e2d175978559fe5bbcd3fa4ffd69",
+    "validation.json": "bfba1ca345ff7485a98cac87045ac3c65f507bb851a4f5dd00e356f545005c3a",
+    "knowledge/ops-kb-001.md": "6d215a5f17324e8ab6970954fdb377cedc8d668071f5ca9fe5ba6960a2b8ad39",
+    "knowledge/ops-kb-002.md": "372ef110fa7d382fb58651cbb572db85517b279b1a13692c80445faeefb3db2b",
+    "knowledge/ops-kb-003.md": "ec0d4fddbb90a45ad71a75ad0f4e22d2ad19d81a822893bb8bec55f598906be1",
+    "knowledge/ops-kb-004.md": "07f646150c8a937f35be0953ca400f00d9a53839975f268f232fe0b14a54e81b",
+    "knowledge/ops-kb-005.md": "1939020df3279bc27087003e8ca548e5b885673329fe3ca731470d255c4d39f8",
+    "knowledge/ops-kb-006.md": "07ecf99ed8493fca09c0948fae25685bd63f1b413c2265bc1c826d843224e149",
+    "knowledge/ops-kb-007.md": "e49bca47c15f96aa761bb54efac3a82ce6476a02fad39b09b0a76dac7d5d8c45",
+    "knowledge/ops-kb-008.md": "60c7b42bf96495ceec825c3aa4eecab55bd375b9ad4b603c74ae435097638920",
+    "knowledge/ops-kb-009.md": "2205fe5e6e26845946c80de4cf00b536a4a24529ceaae32e19ecabfba975b051",
+    "knowledge/ops-kb-010.md": "288910322038651487abea5e54178f168e0602ef66f123f124a436bd36c2b320",
+    "knowledge/ops-kb-011.md": "fab06b9383c98c1bdbd76d23dad7050a0ec3826709f3887bc319bd518f739a91",
+    "knowledge/ops-kb-012.md": "a544ea85bc30d1480a0f482f3a5fb36bd76d698fe11f82ce299247aca9fe24f8",
+    "knowledge/ops-kb-013.md": "d91412678cf6ac2b98919b0f4d30f0ff96e5b1abe73ac8233dd04b1f4e181748",
+    "knowledge/ops-kb-014.md": "636221a3d3aafcdb625559c9c2b57469102390022e7ea3661e0bf733224557fa",
+    "knowledge/ops-kb-015.md": "95750ecfbf6f97edb541c424f619a4cc582011f3e33890a366673d610bd7ca11",
+    "knowledge/ops-kb-016.md": "6bf2b2fc945356391ef657ce39200d66daf764b2a589d312247f1b8bdb691a3b",
+    "knowledge/ops-kb-017.md": "84693f070f6b9eab2cc475c260dcb7c36f9893e1aafef4d8ed0e047e1ac10474",
+    "knowledge/ops-kb-018.md": "baa8f692ffd9f648cf4f390945f577688e5edd5b551f7d86860597e26d5e89c5",
+    "knowledge/ops-kb-019.md": "67c9ba399e0d7331b60c3a4ce884f093892c4873636c64ca2c22abd066f0ed53",
+    "knowledge/ops-kb-020.md": "38cdadc0c8483f56f9f34577ed15d35bf9b96dc95e3fe62be91852536a94a7f5"
+  },
+  "frozen_at": "2026-10-29T21:56:41.483Z"
+}

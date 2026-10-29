@@ -4,19 +4,19 @@ import re
 from app.rag.embeddings import tokenize
 
 
-def recall_at_k(expected: list[str], hit_titles: list[str], k: int) -> float:
-    """期望文档出现在 Top-K 命中的比例。无期望文档时记 1.0。"""
+def recall_at_k(expected: list[str], hit_titles: list[str], k: int) -> float | None:
+    """期望文档出现在 Top-K 命中的比例。无参考文档时不适用，不能记满分。"""
     if not expected:
-        return 1.0
-    top = set(hit_titles[:k])
+        return None
+    top = set(list(dict.fromkeys(hit_titles))[:k])
     return sum(1 for doc in expected if doc in top) / len(expected)
 
 
-def mrr_at_k(expected: list[str], hit_titles: list[str], k: int) -> float:
-    """首个期望文档的倒数排名均值。无期望文档时记 1.0。"""
+def mrr_at_k(expected: list[str], hit_titles: list[str], k: int) -> float | None:
+    """首个期望文档的倒数排名均值。无参考文档时不适用，不能记满分。"""
     if not expected:
-        return 1.0
-    for rank, title in enumerate(hit_titles[:k], start=1):
+        return None
+    for rank, title in enumerate(list(dict.fromkeys(hit_titles))[:k], start=1):
         if title in expected:
             return 1.0 / rank
     return 0.0
@@ -66,16 +66,16 @@ def latency_stats(latencies_ms: list[float]) -> dict:
 
 def aggregate(rows: list[dict], k: int) -> dict:
     """把逐条评测结果聚合为方案级指标。"""
-    n = len(rows) or 1
-    recalls = [r["recall"] for r in rows]
-    mrrs = [r["mrr"] for r in rows]
+    recalls = [r["recall"] for r in rows if r["recall"] is not None]
+    mrrs = [r["mrr"] for r in rows if r["mrr"] is not None]
     covs = [r["keyword_coverage"] for r in rows if r["keyword_coverage"] is not None]
     faiths = [r["faithfulness"] for r in rows]
     stats = latency_stats([r["latency_ms"] for r in rows])
     return {
         "n_questions": len(rows),
-        f"recall_at_{k}": round(sum(recalls) / n, 4),
-        "mrr": round(sum(mrrs) / n, 4),
+        "n_retrieval_questions": len(recalls),
+        f"recall_at_{k}": round(sum(recalls) / len(recalls), 4) if recalls else None,
+        "mrr": round(sum(mrrs) / len(mrrs), 4) if mrrs else None,
         "keyword_coverage": round(sum(covs) / len(covs), 4) if covs else None,
         "faithfulness": round(sum(faiths) / len(faiths), 4),
         **stats,

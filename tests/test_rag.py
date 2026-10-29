@@ -96,7 +96,7 @@ def test_metrics_recall_mrr():
 
     assert recall_at_k(["A"], ["A", "B"], 5) == 1.0
     assert recall_at_k(["A", "C"], ["A", "B"], 5) == 0.5
-    assert recall_at_k([], ["A"], 5) == 1.0
+    assert recall_at_k([], ["A"], 5) is None
     assert mrr_at_k(["B"], ["A", "B"], 5) == 0.5
     assert mrr_at_k(["Z"], ["A", "B"], 5) == 0.0
 

@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     embedding_provider: str = "mock"  # mock | openai
     embedding_dim: int = 256
     llm_provider: str = "mock"  # mock | openai
+    model_strict: bool = False  # 真实评测失败直接报错，不回退 Mock
     openai_api_key: str = ""
     openai_base_url: str = "https://api.openai.com/v1"
     chat_model: str = "gpt-4o-mini"

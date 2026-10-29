@@ -101,20 +101,16 @@ def extract_error_code_hint(question: str) -> str | None:
 class OpenAIChatLLM(BaseLLM):
     """OpenAI 兼容 API 实现；调用失败时回退到规则式，保证服务不中断。"""
 
-    def __init__(self, api_key: str, base_url: str, model: str):
-        from openai import OpenAI
+    def __init__(self, api_key: str, base_url: str, model: str, strict: bool = False):
+        from app.services.model_api import ChatAPI
 
-        self._client = OpenAI(api_key=api_key, base_url=base_url or None)
+        self._api = ChatAPI(api_key, base_url, model)
         self.model = model
+        self.strict = strict
         self._fallback = MockLLM()
 
     def _chat(self, system: str, user: str) -> str:
-        resp = self._client.chat.completions.create(
-            model=self.model,
-            messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
-            temperature=0.2,
-        )
-        return resp.choices[0].message.content or ""
+        return self._api.chat(system, user)
 
     @staticmethod
     def _parse_json(text: str):
@@ -135,16 +131,23 @@ class OpenAIChatLLM(BaseLLM):
             data = self._parse_json(self._chat("你是运维知识库检索相关性判断助手，只输出 JSON。", prompt))
             return bool(data and any(data.get("relevant", [])))
         except Exception as exc:
+            if self.strict:
+                raise
             logger.warning("LLM 相关性判断失败，回退规则: %s", exc)
             return self._fallback.is_sufficient(question, hits)
 
     def rewrite_query(self, question: str) -> str:
         try:
-            return self._chat(
+            rewritten = self._chat(
                 "你是运维检索查询改写助手。把用户问题改写为更适合知识库检索的短查询（补充同义词与关键术语），直接输出改写后的查询。",
                 question,
-            ).strip() or self._fallback.rewrite_query(question)
+            ).strip()
+            if not rewritten and self.strict:
+                raise ValueError("模型返回空查询改写")
+            return rewritten or self._fallback.rewrite_query(question)
         except Exception as exc:
+            if self.strict:
+                raise
             logger.warning("LLM 查询改写失败，回退规则: %s", exc)
             return self._fallback.rewrite_query(question)
 
@@ -160,6 +163,8 @@ class OpenAIChatLLM(BaseLLM):
         try:
             return self._chat(system, user)
         except Exception as exc:
+            if self.strict:
+                raise
             logger.warning("LLM 生成失败，回退规则: %s", exc)
             return self._fallback.generate_answer(question, hits, tool_events, fault_records, history)
 
@@ -171,11 +176,17 @@ class OpenAIChatLLM(BaseLLM):
             if data and data.get("title"):
                 return data
         except Exception as exc:
+            if self.strict:
+                raise
             logger.warning("LLM 工单起草失败，回退规则: %s", exc)
+        if self.strict:
+            raise ValueError("模型没有返回有效工单草稿")
         return self._fallback.draft_ticket(question, answer)
 
 
 def get_llm(settings):
     if settings.llm_provider == "openai" and settings.openai_api_key:
-        return OpenAIChatLLM(settings.openai_api_key, settings.openai_base_url, settings.chat_model)
+        return OpenAIChatLLM(settings.openai_api_key, settings.openai_base_url, settings.chat_model, getattr(settings, "model_strict", False))
+    if getattr(settings, "model_strict", False):
+        raise ValueError("真实评测必须配置对话模型和密钥")
     return MockLLM()

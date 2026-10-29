@@ -1,0 +1,3145 @@
+dataset_id: ops-rag-v1
+questions:
+- id: ops-q-001-1
+  question: 在演示环境中，当应用日志出现 ERR_5003 错误时，监控指标通常会有何表现？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-001
+  expected_docs:
+  - ERR_5003 数据库连接池耗尽处理手册
+  expected_keywords: []
+  reference_answer: 监控显示数据库活跃连接数长期等于 max_connections。此外，接口大量返回 500 或超时，堆栈中包含 ERR_5003，且 SHOW PROCESSLIST
+    中可见大量 Sleep 连接。
+  answer_points:
+  - 数据库活跃连接数长期等于 max_connections
+  - 接口大量 500/超时
+  - SHOW PROCESSLIST 中大量 Sleep 连接
+  evidence:
+  - doc_id: ops-kb-001
+    quote: '监控显示数据库活跃连接数长期等于 max_connections。
+
+
+      ## 典型症状
+
+      - 接口大量 500/超时，堆栈中包含 `ERR_5003`
+
+      - `SHOW PROCESSLIST` 中大量 Sleep 连接'
+  should_abstain: false
+  group_id: ops-kb-001
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-001-2
+  question: 如果演示环境的数据库连接池满了，能不能直接把所有空闲连接都杀掉来应急？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-001
+  expected_docs:
+  - ERR_5003 数据库连接池耗尽处理手册
+  expected_keywords: []
+  reference_answer: 不能批量 KILL 所有 Sleep 连接。应急处理时需先确认连接归属、事务与业务影响，并经值班负责人批准后，才可处置选定连接。
+  answer_points:
+  - 不能批量 KILL 所有 Sleep 连接
+  - 需确认连接归属及业务影响
+  - 需经值班负责人批准
+  evidence:
+  - doc_id: ops-kb-001
+    quote: '- 应急：先确认连接归属、事务与业务影响，经值班负责人批准后才可处置选定连接；不能批量 KILL 所有 Sleep 连接。'
+  should_abstain: false
+  group_id: ops-kb-001
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-001-3
+  question: 假设演示环境 MySQL 的 Threads_connected 占 max_connections 比例达到 90%，这触发了什么预警？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-001
+  expected_docs:
+  - ERR_5003 数据库连接池耗尽处理手册
+  expected_keywords: []
+  reference_answer: 这触发了“MySQL Threads_connected / max_connections > 85%”的告警。该阈值用于预警连接池耗尽风险，此时应检查慢查询或连接泄漏情况。
+  answer_points:
+  - 触发 MySQL Threads_connected / max_connections > 85% 告警
+  - 提示连接池耗尽风险
+  evidence:
+  - doc_id: ops-kb-001
+    quote: '## 预警指标
+
+      - MySQL Threads_connected / max_connections > 85% 告警'
+  should_abstain: false
+  group_id: ops-kb-001
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-001-4
+  question: 演示环境同时出现 ERR_5003 和大量慢 SQL，该怎样结合连接池与 SQL 排查，是否能直接批量清理 Sleep 连接？
+  category: multi_document
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-001
+  - ops-kb-003
+  expected_docs:
+  - ERR_5003 数据库连接池耗尽处理手册
+  - MySQL 慢查询治理
+  expected_keywords: []
+  reference_answer: 先核对连接池参数、慢查询占用和连接泄漏，再聚合慢 SQL 并用 EXPLAIN 看执行计划；不能批量清理所有 Sleep 连接，处置需确认业务影响与授权。
+  answer_points:
+  - 核对连接池、慢查询与泄漏
+  - 聚合慢 SQL 并用 EXPLAIN
+  - 禁止无差别批量 KILL
+  evidence:
+  - doc_id: ops-kb-001
+    quote: '1. 确认连接池配置：`maxPoolSize`、`idleTimeout`、`maxWait` 是否与 DB 的 `max_connections` 匹配。
+
+      2. 检查是否存在慢查询占用连接：`SELECT * FROM information_schema.processlist WHERE time > 5;`
+
+      3. 检查是否有连接泄漏：连接未在 finally 中归还、事务未提交/回滚。
+
+      4. 检查是否发生流量突增或下游抖动导致的线程堆积。
+
+
+      ## 处理方案
+
+      - 应急：先确认连接归属、事务与业务影响，经值班负责人批准后才可处置选定连接；不能批量 KILL 所有 Sleep 连接。
+
+      - 扩容：将 `max_connections` 上调 20%~50%，同时调大应用连接池 `maxPoolSize`。
+
+      - 治理：为慢 SQL 建立索引或加缓存；连接池开启 `leakDetectionThreshold`。'
+  - doc_id: ops-kb-003
+    quote: '1. `pt-query-digest` 或云监控聚合 top 慢 SQL。
+
+      2. `EXPLAIN` 检查执行计划：全表扫描、文件排序、索引失效。
+
+      3. 检查锁等待：`information_schema.innodb_trx`、`data_locks`。'
+  should_abstain: false
+  group_id: ops-q-001-4-multidoc
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-002-1
+  question: 演示环境中 Kafka 消费积压的常见根因有哪些？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-002
+  expected_docs:
+  - Kafka 消费积压处理
+  expected_keywords: []
+  reference_answer: 常见根因包括：消费逻辑变慢（如下游 DB/Redis 抖动）、消费者实例数少于分区数或发生 rebalance 风暴、以及单条消息处理触发异常反复重试。
+  answer_points:
+  - 消费逻辑变慢
+  - 消费者实例数不足或 rebalance 风暴
+  - 消息处理异常反复重试
+  evidence:
+  - doc_id: ops-kb-002
+    quote: '## 常见根因
+
+      1. 消费逻辑变慢：下游 DB/Redis 抖动。
+
+      2. 消费者实例数少于分区数或发生 rebalance 风暴。
+
+      3. 单条消息处理触发异常反复重试。'
+  should_abstain: false
+  group_id: ops-kb-002
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-002-2
+  question: 演示环境里遇到一直失败的消息卡住队列，该怎么快速恢复消费？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-002
+  expected_docs:
+  - Kafka 消费积压处理
+  expected_keywords: []
+  reference_answer: 应急方案是扩容消费者实例，并对反复失败的消息进行跳过处理，将其投递到死信队列，从而避免阻塞正常消息的消费流程。
+  answer_points:
+  - 扩容消费者实例
+  - 跳过反复失败的消息
+  - 投递至死信队列
+  evidence:
+  - doc_id: ops-kb-002
+    quote: '- 应急：扩容消费者实例；对反复失败的消息跳过并投递死信队列。'
+  should_abstain: false
+  group_id: ops-kb-002
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-002-3
+  question: 若演示环境消费组 Lag 持续增长且伴随订单状态更新延迟，应优先检查哪些指标？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-002
+  expected_docs:
+  - Kafka 消费积压处理
+  expected_keywords: []
+  reference_answer: 应查看消费组各分区的 Lag 分布是否倾斜，检查消费者处理耗时 P99 与错误日志，并确认是否有毒消息（poison message）导致反复失败。
+  answer_points:
+  - Lag 分布是否倾斜
+  - 消费者处理耗时 P99 与错误日志
+  - 是否存在毒消息
+  evidence:
+  - doc_id: ops-kb-002
+    quote: '## 排查步骤
+
+      1. 查看消费组各分区的 Lag 分布是否倾斜。
+
+      2. 检查消费者处理耗时 P99 与错误日志。
+
+      3. 确认是否有毒消息（poison message）反复失败。'
+  should_abstain: false
+  group_id: ops-kb-002
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-002-4
+  question: 在演示环境预防 Kafka 积压时，是否建议通过增加单次拉取消息数量来替代幂等性设计？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-002
+  expected_docs:
+  - Kafka 消费积压处理
+  expected_keywords: []
+  reference_answer: 不建议。文档指出预防措施包括 Lag 超阈值告警和确保消费逻辑幂等。批量拉取属于治理方案而非预防核心，且幂等性是防止重复处理的关键，不可被替代。
+  answer_points:
+  - 不建议
+  - 预防措施强调消费逻辑幂等
+  - 批量拉取属于治理方案
+  evidence:
+  - doc_id: ops-kb-002
+    quote: '- 治理：批量拉取 + 批量写库；优化下游调用。
+
+      - 预防：Lag 超阈值告警；消费逻辑幂等。'
+  should_abstain: false
+  group_id: ops-kb-002
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-003-1
+  question: 演示环境中 MySQL 慢查询治理的排查步骤是什么？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-003
+  expected_docs:
+  - MySQL 慢查询治理
+  expected_keywords: []
+  reference_answer: 首先使用 pt-query-digest 或云监控聚合 top 慢 SQL；其次通过 EXPLAIN 检查执行计划（如全表扫描、索引失效）；最后检查锁等待情况。
+  answer_points:
+  - 聚合 top 慢 SQL
+  - EXPLAIN 检查执行计划
+  - 检查锁等待
+  evidence:
+  - doc_id: ops-kb-003
+    quote: '## 排查步骤
+
+      1. `pt-query-digest` 或云监控聚合 top 慢 SQL。
+
+      2. `EXPLAIN` 检查执行计划：全表扫描、文件排序、索引失效。
+
+      3. 检查锁等待：`information_schema.innodb_trx`、`data_locks`。'
+  should_abstain: false
+  group_id: ops-kb-003
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-003-2
+  question: 演示环境数据库 CPU 高了，能不能直接杀掉正在跑的慢 SQL？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-003
+  expected_docs:
+  - MySQL 慢查询治理
+  expected_keywords: []
+  reference_answer: 不能随意杀。应急时需核对目标 SQL 与业务影响，经批准后方可处置高代价查询。同时可对被打穿的接口临时限流，以缓解压力。
+  answer_points:
+  - 需核对业务影响并获批准
+  - 仅处置高代价查询
+  - 可配合接口限流
+  evidence:
+  - doc_id: ops-kb-003
+    quote: '- 应急：核对目标 SQL 与业务影响，经批准后处置高代价查询；对被打穿的接口临时限流。'
+  should_abstain: false
+  group_id: ops-kb-003
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-003-3
+  question: 假设演示环境新上线一个功能后接口 RT 上涨，为了预防此类问题，上线前必须做什么？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-003
+  expected_docs:
+  - MySQL 慢查询治理
+  expected_keywords: []
+  reference_answer: 上线前 SQL 审核必须通过 EXPLAIN 评审。这是文档规定的预防措施，旨在提前发现全表扫描、文件排序等潜在性能问题，避免生产环境出现慢查询。
+  answer_points:
+  - SQL 审核
+  - 必须通过 EXPLAIN 评审
+  evidence:
+  - doc_id: ops-kb-003
+    quote: '- 预防：上线前 SQL 审核必须通过 EXPLAIN 评审。'
+  should_abstain: false
+  group_id: ops-kb-003
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-003-4
+  question: 在演示环境处理 MySQL 慢查询时，引入读写分离属于应急措施还是治理手段？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-003
+  expected_docs:
+  - MySQL 慢查询治理
+  expected_keywords: []
+  reference_answer: 属于治理手段。文档将补充索引、改写 SQL、大事务拆小以及引入读写分离均归类为治理方案，而应急方案主要涉及批准后的查询处置和接口限流。
+  answer_points:
+  - 属于治理手段
+  - 非应急措施
+  evidence:
+  - doc_id: ops-kb-003
+    quote: '- 治理：补充索引、改写 SQL、大事务拆小；引入读写分离。'
+  should_abstain: false
+  group_id: ops-kb-003
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-004-1
+  question: 演示环境中 Pod OOMKilled 的适用场景特征是什么？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-004
+  expected_docs:
+  - Pod OOMKilled 处理指南
+  expected_keywords: []
+  reference_answer: 特征是 Kubernetes 中应用容器反复重启，kubectl describe pod 显示 OOMKilled，或应用日志中出现 java.lang.OutOfMemoryError
+    或 Python MemoryError。
+  answer_points:
+  - 容器反复重启
+  - 显示 OOMKilled
+  - 日志出现 OutOfMemoryError/MemoryError
+  evidence:
+  - doc_id: ops-kb-004
+    quote: '## 适用场景
+
+      Kubernetes 中应用容器反复重启，`kubectl describe pod` 显示 `OOMKilled`，
+
+      或应用日志出现 `java.lang.OutOfMemoryError` / Python `MemoryError`。'
+  should_abstain: false
+  group_id: ops-kb-004
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-004-2
+  question: 演示环境内存爆了，是不是只要把 limit 调大一点就行了？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-004
+  expected_docs:
+  - Pod OOMKilled 处理指南
+  expected_keywords: []
+  reference_answer: 不是机械调整。应急时需核对节点余量和工作负载，经批准后调整 limit；流量大时应评估扩容副本，而非单纯增加固定百分比的内存限制。
+  answer_points:
+  - 需核对节点余量与工作负载
+  - 需经批准
+  - 流量大时评估扩容副本
+  - 不能机械增加固定百分比
+  evidence:
+  - doc_id: ops-kb-004
+    quote: '- 应急：核对节点余量和工作负载后，经批准调整内存 limit；流量大时评估扩容副本，不能机械增加固定百分比。'
+  should_abstain: false
+  group_id: ops-kb-004
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-004-3
+  question: 若演示环境怀疑 Java 应用存在内存泄漏，排查步骤中应如何定位大对象？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-004
+  expected_docs:
+  - Pod OOMKilled 处理指南
+  expected_keywords: []
+  reference_answer: 应导出内存快照（heap dump）以定位大对象。同时需确认容器内存 limit 与实际使用曲线，判断是泄漏还是配额不足，并检查近期发布变更。
+  answer_points:
+  - 导出内存快照 (heap dump)
+  - 定位大对象
+  - 对比 limit 与实际使用曲线
+  evidence:
+  - doc_id: ops-kb-004
+    quote: '1. 确认容器内存 limit 与实际使用曲线，判断是泄漏还是配额不足。
+
+      2. 导出内存快照（heap dump / tracemalloc）定位大对象。'
+  should_abstain: false
+  group_id: ops-kb-004
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-004-4
+  question: 演示容器反复 OOMKilled，能否只看到应用内存异常就断定触发了 Kubernetes 内存限制？应核对什么？
+  category: multi_document
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-004
+  - ops-kb-012
+  expected_docs:
+  - Pod OOMKilled 处理指南
+  - Kubernetes 资源 requests 与 limits 的区别
+  expected_keywords: []
+  reference_answer: 不能仅凭异常文本确认容器 OOM；应核对容器事件、内存 limit 和实际曲线，判断泄漏或配额不足，并理解内存限制由内核在压力下执行。
+  answer_points:
+  - 异常文本不足以确认容器 OOM
+  - 核对 limit 与实际曲线
+  - 区分泄漏与配额
+  evidence:
+  - doc_id: ops-kb-004
+    quote: 1. 确认容器内存 limit 与实际使用曲线，判断是泄漏还是配额不足。
+  - doc_id: ops-kb-012
+    quote: requests 用于调度时的资源需求判断；limits 描述容器资源使用限制。CPU limit 通常通过节流约束；内存 limit 由内核在内存压力下以 OOM 终止等方式执行，不保证越界瞬间立刻终止。内存用量应与配置和实际曲线一起核对，不能把应用异常文本直接等同于容器
+      OOM。
+  should_abstain: false
+  group_id: ops-q-004-4-multidoc
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-005-1
+  question: 演示环境中 Redis 集群主从切换的适用场景有哪些报错表现？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-005
+  expected_docs:
+  - Redis 集群主从切换 SOP
+  expected_keywords: []
+  reference_answer: 应用批量出现 Redis connection reset 或 MOVED 报错，或者监控显示某分片 master 发生了切换。这些现象表明集群拓扑或连接状态发生了变化。
+  answer_points:
+  - Redis connection reset 报错
+  - MOVED 报错
+  - 监控显示 master 切换
+  evidence:
+  - doc_id: ops-kb-005
+    quote: '## 适用场景
+
+      应用批量出现 `Redis connection reset` / `MOVED` 报错，或监控显示某分片 master 发生切换。'
+  should_abstain: false
+  group_id: ops-kb-005
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-005-2
+  question: 演示环境 Redis 主从切换后客户端连不上，除了重启应用还有什么办法？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-005
+  expected_docs:
+  - Redis 集群主从切换 SOP
+  expected_keywords: []
+  reference_answer: 可以触发客户端强制刷新拓扑。部分客户端需要手动刷新映射才能识别新的主节点地址，这是应急处理方案之一，旨在恢复连接可用性。
+  answer_points:
+  - 触发客户端强制刷新拓扑
+  - 解决客户端拓扑刷新策略未启用问题
+  evidence:
+  - doc_id: ops-kb-005
+    quote: '- 应急：重启报错应用实例，或触发客户端强制刷新拓扑。'
+  should_abstain: false
+  group_id: ops-kb-005
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-005-3
+  question: 假设演示环境 Redis 内存使用率达到 85%，根据 SOP 应采取什么预防措施？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-005
+  expected_docs:
+  - Redis 集群主从切换 SOP
+  expected_keywords: []
+  reference_answer: 按演示 SOP，超过 80% 时应提前评估扩容，并禁止在 master 上执行大 key 删除；具体处置仍需核对容量与业务影响。
+  answer_points:
+  - 85% 超过演示阈值 80%
+  - 评估扩容
+  - 避免在 master 上删除大 key
+  evidence:
+  - doc_id: ops-kb-005
+    quote: '- 预防：内存使用率超过 80% 提前扩容，禁止在 master 上执行大 key 删除。'
+  should_abstain: false
+  group_id: ops-kb-005
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-005-4
+  question: 演示 Redis 主从切换后客户端报错，除了拓扑刷新，还能用 WAIT 保证故障切换完全不丢写入吗？
+  category: multi_document
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-005
+  - ops-kb-016
+  expected_docs:
+  - Redis 集群主从切换 SOP
+  - Redis 复制与 WAIT 的一致性边界
+  expected_keywords: []
+  reference_answer: 应检查客户端拓扑刷新和切换日志。WAIT 只能等待副本确认，不能保证强一致或所有故障切换场景都不丢写入，还要评估复制与持久化配置。
+  answer_points:
+  - 检查拓扑刷新
+  - WAIT 不保证强一致或绝不丢写
+  evidence:
+  - doc_id: ops-kb-005
+    quote: 3. 确认客户端拓扑刷新策略是否启用（部分客户端需手动刷新映射）。
+  - doc_id: ops-kb-016
+    quote: Redis 默认采用异步复制，主节点通常不等待每次写入都被副本处理才继续。副本会周期性确认收到的数据进度。WAIT 可以等待指定数量的副本确认写入，但不会把 Redis 变成强一致系统；在特定持久化和故障切换条件下，已确认写入仍可能丢失。评估切换风险时应同时考虑复制进度与持久化配置。
+  should_abstain: false
+  group_id: ops-q-005-4-multidoc
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-006-1
+  question: 演示环境中，order-service接口出现大量Read timed out时，常见的数据库相关根因是什么？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-006
+  expected_docs:
+  - order-service 接口超时排查 SOP
+  expected_keywords: []
+  reference_answer: 常见根因为数据库连接池耗尽。该情况对应错误码ERR_5003，在排查步骤中需抓取线程dump确认线程是否阻塞在数据库或HTTP客户端上。
+  answer_points:
+  - 数据库连接池耗尽
+  - 对应错误码ERR_5003
+  evidence:
+  - doc_id: ops-kb-006
+    quote: 1. 数据库连接池耗尽（见 ERR_5003 手册）。
+  should_abstain: false
+  group_id: ops-kb-006
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-006-2
+  question: 在大促期间，如果演示商家的订单服务QPS突然暴涨导致线程池打满，这属于哪种超时场景的常见原因？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-006
+  expected_docs:
+  - order-service 接口超时排查 SOP
+  expected_keywords: []
+  reference_answer: 这属于order-service接口P99延迟超过1s或出现大量Read timed out时的常见根因之一。此时应查看实时指标并检查下游依赖熔断状态，必要时手动降级非核心依赖。
+  answer_points:
+  - 大促期间QPS突增
+  - 线程池打满
+  evidence:
+  - doc_id: ops-kb-006
+    quote: 3. 大促期间 QPS 突增，线程池打满。
+  should_abstain: false
+  group_id: ops-kb-006
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-006-3
+  question: 假设演示环境发现order-service响应变慢，且Full GC频繁导致STW，这符合文档中列出的哪类常见根因？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-006
+  expected_docs:
+  - order-service 接口超时排查 SOP
+  expected_keywords: []
+  reference_answer: 这符合GC停顿这一常见根因。针对此类超时问题，治理方案包括为下游调用设置200ms~1s超时并启用熔断，以及优化慢SQL，应急时可扩容实例数。
+  answer_points:
+  - GC停顿
+  - Full GC频繁导致STW
+  evidence:
+  - doc_id: ops-kb-006
+    quote: 4. GC 停顿：Full GC 频繁导致 STW。
+  should_abstain: false
+  group_id: ops-kb-006
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-006-4
+  question: 若演示环境中库存服务抖动但未配置合理超时与熔断，这是否属于order-service超时的常见根因？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-006
+  expected_docs:
+  - order-service 接口超时排查 SOP
+  expected_keywords: []
+  reference_answer: 是的，这属于常见根因之二。文档指出下游依赖（如库存、支付服务）抖动且未配置合理超时与熔断会导致接口超时，排查时需检查其熔断/限流状态。
+  answer_points:
+  - 是常见根因
+  - 下游依赖抖动
+  evidence:
+  - doc_id: ops-kb-006
+    quote: 2. 下游依赖（库存服务、支付服务）抖动，未配置合理超时与熔断。
+  should_abstain: false
+  group_id: ops-kb-006
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-007-1
+  question: 演示环境中payment-service对账任务失败日志出现ERR_7010时，网络抖动可能导致订单状态停滞在哪里？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-007
+  expected_docs:
+  - payment-service 对账失败处理手册
+  expected_keywords: []
+  reference_answer: 网络抖动导致部分支付通知丢失，可能使状态机停滞在PROCESSING。排查时需查询本地订单表中状态为PROCESSING超过30分钟的差异明细。
+  answer_points:
+  - PROCESSING
+  - 状态机停滞
+  evidence:
+  - doc_id: ops-kb-007
+    quote: 2. 网络抖动导致部分支付通知丢失，状态机停滞在 PROCESSING。
+  should_abstain: false
+  group_id: ops-kb-007
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-007-2
+  question: 财务反馈演示商家订单状态和渠道账单不一致，除了文件延迟外，还有什么回调相关的原因会导致对账失败？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-007
+  expected_docs:
+  - payment-service 对账失败处理手册
+  expected_keywords: []
+  reference_answer: 重复回调引起的幂等冲突也是常见根因之一。处理方案要求回调处理保证幂等，涉及资金差异时需立即创建P1工单并通知财务值班。
+  answer_points:
+  - 重复回调
+  - 幂等冲突
+  evidence:
+  - doc_id: ops-kb-007
+    quote: 3. 重复回调引起的幂等冲突。
+  should_abstain: false
+  group_id: ops-kb-007
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-007-3
+  question: 如果在演示环境排查时发现渠道账单文件格式变更导致对账失败，应急处理时应如何修复订单状态？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-007
+  expected_docs:
+  - payment-service 对账失败处理手册
+  expected_keywords: []
+  reference_answer: 应急处理应手工触发补单任务，并按渠道查询结果修复订单状态。同时需确认对账文件下载是否成功及行数是否与渠道后台一致。
+  answer_points:
+  - 手工触发补单任务
+  - 按渠道查询结果修复
+  evidence:
+  - doc_id: ops-kb-007
+    quote: '- 应急：手工触发补单任务，按渠道查询结果修复订单状态。'
+  should_abstain: false
+  group_id: ops-kb-007
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-007-4
+  question: 演示环境中，若对账差异订单涉及资金差异，是否仅需执行常规重试即可解决？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-007
+  expected_docs:
+  - payment-service 对账失败处理手册
+  expected_keywords: []
+  reference_answer: 不是。涉及资金差异时必须立即创建P1工单并通知财务值班，而不仅仅是常规重试。治理层面才建议对账任务增加重试与告警。
+  answer_points:
+  - 否
+  - 需创建P1工单
+  evidence:
+  - doc_id: ops-kb-007
+    quote: '- 升级：涉及资金差异时立即创建 P1 工单并通知财务值班。'
+  should_abstain: false
+  group_id: ops-kb-007
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-008-1
+  question: 在演示环境的日志平台中，检索order-service错误日志的标准语法是什么？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-008
+  expected_docs:
+  - 日志平台使用指南
+  expected_keywords: []
+  reference_answer: 标准检索语法为`service:order-service AND level:ERROR`。该平台支持时间范围选择，命中日志可展开前后50行以便定位调用链。
+  answer_points:
+  - service:order-service AND level:ERROR
+  evidence:
+  - doc_id: ops-kb-008
+    quote: 1. 检索语法：`service:order-service AND level:ERROR`，支持时间范围选择。
+  should_abstain: false
+  group_id: ops-kb-008
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-008-2
+  question: 演示环境排查故障时，如何利用trace_id来辅助定位问题？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-008
+  expected_docs:
+  - 日志平台使用指南
+  expected_keywords: []
+  reference_answer: 应先通过错误率曲线定位时间点，然后使用trace_id串联网关、服务和DB日志。此外，关注发布窗口也很重要，因为多数故障与变更多条记录时间吻合。
+  answer_points:
+  - 串联网关/服务/DB日志
+  - 先定位时间点
+  evidence:
+  - doc_id: ops-kb-008
+    quote: '- 先看错误率曲线定位时间点，再用 trace_id 串联网关/服务/DB 日志。'
+  should_abstain: false
+  group_id: ops-kb-008
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-008-3
+  question: 假设演示环境某工程师需要导出日志并添加临时告警，他需要具备什么权限角色？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-008
+  expected_docs:
+  - 日志平台使用指南
+  expected_keywords: []
+  reference_answer: 需要具备engineer权限角色。viewer仅支持只读检索，admin负责管理索引与保留策略，只有engineer可导出日志和添加临时告警。
+  answer_points:
+  - engineer
+  - 可导出日志
+  evidence:
+  - doc_id: ops-kb-008
+    quote: '- engineer：可导出日志、添加临时告警。'
+  should_abstain: false
+  group_id: ops-kb-008
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-008-4
+  question: 在演示日志平台中，viewer 要导出日志并添加临时告警，应由什么角色处理？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-008
+  expected_docs:
+  - 日志平台使用指南
+  expected_keywords: []
+  reference_answer: viewer 仅有只读检索权限；导出日志和添加临时告警属于 engineer 权限，应由具备该角色的人员处理。
+  answer_points:
+  - viewer 只读检索
+  - engineer 可导出日志并添加临时告警
+  evidence:
+  - doc_id: ops-kb-008
+    quote: '- viewer：只读检索。
+
+      - engineer：可导出日志、添加临时告警。'
+  should_abstain: false
+  group_id: ops-kb-008
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-009-1
+  question: 演示环境中，核心接口的限流阈值通常按压测容量的多少比例设置？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-009
+  expected_docs:
+  - 服务熔断与限流说明
+  expected_keywords: []
+  reference_answer: 通常按压测容量的80%设置。这是为了优先保障核心接口可用，防止雪崩。若多实例本地限流导致总放行量超标，建议使用Redis集中式限流。
+  answer_points:
+  - 80%
+  - 压测容量
+  evidence:
+  - doc_id: ops-kb-009
+    quote: 1. 核心接口优先保可用：限流阈值按压测容量的 80% 设置。
+  should_abstain: false
+  group_id: ops-kb-009
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-009-2
+  question: 如果演示环境下游依赖是非核心的，熔断策略建议怎么处理？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-009
+  expected_docs:
+  - 服务熔断与限流说明
+  expected_keywords: []
+  reference_answer: 建议直接降级。文档指出下游依赖应按重要性分级，核心依赖采用重试加熔断，而非核心依赖则直接执行降级逻辑，以避免资源浪费。
+  answer_points:
+  - 直接降级
+  - 非核心依赖
+  evidence:
+  - doc_id: ops-kb-009
+    quote: 2. 下游依赖按重要性分级：核心依赖重试+熔断，非核心依赖直接降级。
+  should_abstain: false
+  group_id: ops-kb-009
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-009-3
+  question: 演示环境中，若熔断恢复瞬间打挂了下游服务，应采用什么机制避免此问题？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-009
+  expected_docs:
+  - 服务熔断与限流说明
+  expected_keywords: []
+  reference_answer: 应采用半开探测机制。熔断恢复时通过半开探测逐步放量，避免恢复瞬间流量激增打挂下游。同时需注意阈值过敏感可能导致误伤。
+  answer_points:
+  - 半开探测
+  - 避免恢复瞬间打挂
+  evidence:
+  - doc_id: ops-kb-009
+    quote: 3. 熔断恢复采用半开探测，避免恢复瞬间打挂下游。
+  should_abstain: false
+  group_id: ops-kb-009
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-009-4
+  question: 在演示环境的多实例部署下，仅使用本地限流是否能保证总放行量不超标？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-009
+  expected_docs:
+  - 服务熔断与限流说明
+  expected_keywords: []
+  reference_answer: 不能。常见问题指出多实例本地限流会导致总放行量超标，因此建议使用Redis集中式限流来统一控制入口流量，确保符合容量约束。
+  answer_points:
+  - 不能
+  - 建议使用Redis集中式限流
+  evidence:
+  - doc_id: ops-kb-009
+    quote: '- 限流不均：多实例本地限流导致总放行量超标 → 使用 Redis 集中式限流。'
+  should_abstain: false
+  group_id: ops-kb-009
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-010-1
+  question: 演示环境中，主机磁盘使用率超过多少百分比会触发DiskUsageHigh告警？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-010
+  expected_docs:
+  - 磁盘空间不足处理 SOP
+  expected_keywords: []
+  reference_answer: 演示环境主机或容器节点磁盘使用率超过 85% 时，适用场景中对应 DiskUsageHigh 告警。该值是项目演示阈值。
+  answer_points:
+  - 85%
+  - DiskUsageHigh
+  evidence:
+  - doc_id: ops-kb-010
+    quote: '## 适用场景
+
+      主机或容器节点磁盘使用率超过 85%，告警平台报 `DiskUsageHigh`；'
+  should_abstain: false
+  group_id: ops-kb-010
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-010-2
+  question: 演示环境里，如果怀疑是历史日志没压缩导致磁盘满，应该用什么命令找大目录？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-010
+  expected_docs:
+  - 磁盘空间不足处理 SOP
+  expected_keywords: []
+  reference_answer: 应使用`du -sh /var/log/* | sort -h`命令查找大目录。排查步骤还包括用df -h定位满载挂载点，并检查日志滚动配置是否生效。
+  answer_points:
+  - du -sh /var/log/* | sort -h
+  - 找大目录
+  evidence:
+  - doc_id: ops-kb-010
+    quote: 1. `df -h` 定位满载的挂载点；`du -sh /var/log/* | sort -h` 找大目录。
+  should_abstain: false
+  group_id: ops-kb-010
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-010-3
+  question: 假设演示环境数据库节点磁盘空间不足，除了清理日志外，还需额外检查哪些文件的保留策略？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-010
+  expected_docs:
+  - 磁盘空间不足处理 SOP
+  expected_keywords: []
+  reference_answer: 需额外检查binlog、慢日志和WAL的保留策略。处理方案中治理措施包括统一日志滚动策略，上传目录挂独立盘并配置生命周期清理。
+  answer_points:
+  - binlog
+  - 慢日志
+  - WAL
+  evidence:
+  - doc_id: ops-kb-010
+    quote: 4. 数据库节点额外检查 binlog/慢日志/WAL 的保留策略。
+  should_abstain: false
+  group_id: ops-kb-010
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-010-4
+  question: 演示环境中，磁盘使用率达到90%时，是否只需自动清理7天前的历史日志即可？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-010
+  expected_docs:
+  - 磁盘空间不足处理 SOP
+  expected_keywords: []
+  reference_answer: 不是。达到90%时会触发升级告警并需人工审核清理范围。应急清理7天前历史日志适用于一般情况，但高水位需更谨慎的人工介入。
+  answer_points:
+  - 不是
+  - 需人工审核清理范围
+  evidence:
+  - doc_id: ops-kb-010
+    quote: '- 预防：磁盘使用率 80% 告警、90% 升级告警并人工审核清理范围；容量规划纳入季度评审。'
+  should_abstain: false
+  group_id: ops-kb-010
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-011-1
+  question: 在演示环境中，网关返回502错误的常见根因有哪些？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-011
+  expected_docs:
+  - 网关 502 排查手册
+  expected_keywords: []
+  reference_answer: 常见根因包括上游服务实例重启或发布中导致连接被拒绝、上游处理超时超过网关read timeout、以及上游keepalive配置不一致导致连接被对端关闭。
+  answer_points:
+  - 上游实例重启/发布中连接拒绝
+  - 上游超时超过网关配置
+  - Keepalive配置不一致
+  evidence:
+  - doc_id: ops-kb-011
+    quote: '1. 上游服务实例重启或发布中，连接被拒绝。
+
+      2. 上游处理超时超过网关 read timeout。
+
+      3. 上游 keepalive 配置不一致导致连接被对端关闭。'
+  should_abstain: false
+  group_id: ops-kb-011
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-011-2
+  question: 演示商家遇到网关报错时，应急处理方案是什么？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-011
+  expected_docs:
+  - 网关 502 排查手册
+  expected_keywords: []
+  reference_answer: 应急方案包括摘除异常实例并进行滚动重启，或者临时调大网关的超时配置以缓解问题。
+  answer_points:
+  - 摘除异常实例并滚动重启
+  - 临时调大网关超时
+  evidence:
+  - doc_id: ops-kb-011
+    quote: '- 应急：摘除异常实例，滚动重启；临时调大网关超时。'
+  should_abstain: false
+  group_id: ops-kb-011
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-011-3
+  question: 若演示环境某路由错误率突增且怀疑是超时引起，排查步骤中应对比哪两个指标？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-011
+  expected_docs:
+  - 网关 502 排查手册
+  expected_keywords: []
+  reference_answer: 应查看该服务实例的存活与发布状态，并对比网关超时配置与服务P99延迟，以确认是否因上游处理超时导致。
+  answer_points:
+  - 对比网关超时配置
+  - 对比服务P99延迟
+  evidence:
+  - doc_id: ops-kb-011
+    quote: 3. 对比网关超时配置与服务 P99 延迟。
+  should_abstain: false
+  group_id: ops-kb-011
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-011-4
+  question: 演示发布期间网关因上游实例连接拒绝报错，应先检查哪些状态？readiness 与 liveness 各能帮助什么？
+  category: multi_document
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-011
+  - ops-kb-013
+  expected_docs:
+  - 网关 502 排查手册
+  - Kubernetes 三种健康探针
+  expected_keywords: []
+  reference_answer: 先定位上游实例并检查存活和发布状态。readiness 控制是否接收 Service 流量，失败本身不意味着重启；liveness 达到连续失败阈值才触发重启，不能混为一种机制。
+  answer_points:
+  - 检查上游存活与发布状态
+  - readiness 控制流量
+  - liveness 连续失败达到阈值重启
+  evidence:
+  - doc_id: ops-kb-011
+    quote: '1. 定位报错路由对应的上游服务与实例。
+
+      2. 查看该服务实例的存活与发布状态。'
+  - doc_id: ops-kb-013
+    quote: readiness 失败会使 Pod 未就绪，停止接受对应 Service 的流量，不代表容器一定被重启。liveness 连续失败达到阈值会触发重启。配置 startup 探针时，启动探针成功前不会执行其他探针；它适合慢启动应用。排查时先看
+      Pod 事件和探针失败原因，再区分启动慢、不能接流量与进程失活。
+  should_abstain: false
+  group_id: ops-q-011-4-multidoc
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-012-1
+  question: Kubernetes中requests和limits分别用于什么目的？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-012
+  expected_docs:
+  - Kubernetes 资源 requests 与 limits 的区别
+  expected_keywords: []
+  reference_answer: requests用于调度时的资源需求判断，而limits描述容器资源使用限制。CPU limit通常通过节流约束，内存limit由内核执行。
+  answer_points:
+  - Requests用于调度判断
+  - Limits描述资源使用限制
+  evidence:
+  - doc_id: ops-kb-012
+    quote: requests 用于调度时的资源需求判断；limits 描述容器资源使用限制。
+  should_abstain: false
+  group_id: ops-kb-012
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-012-2
+  question: Kubernetes里内存超限一定会立刻杀掉进程吗？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-012
+  expected_docs:
+  - Kubernetes 资源 requests 与 limits 的区别
+  expected_keywords: []
+  reference_answer: 不一定。内存limit由内核在内存压力下以OOM终止等方式执行，但不保证越界瞬间立刻终止，需结合配置和实际曲线核对。
+  answer_points:
+  - 不保证越界瞬间立刻终止
+  - 由内核在压力下执行
+  evidence:
+  - doc_id: ops-kb-012
+    quote: 内存 limit 由内核在内存压力下以 OOM 终止等方式执行，不保证越界瞬间立刻终止。
+  should_abstain: false
+  group_id: ops-kb-012
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-012-3
+  question: 在Kubernetes排障时，能否仅凭应用异常文本判定容器发生了OOM？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-012
+  expected_docs:
+  - Kubernetes 资源 requests 与 limits 的区别
+  expected_keywords: []
+  reference_answer: 不能。文档指出不能把应用异常文本直接等同于容器OOM，内存用量应与配置和实际曲线一起核对才能得出结论。
+  answer_points:
+  - 不能直接等同
+  - 需核对配置和实际曲线
+  evidence:
+  - doc_id: ops-kb-012
+    quote: 内存用量应与配置和实际曲线一起核对，不能把应用异常文本直接等同于容器 OOM。
+  should_abstain: false
+  group_id: ops-kb-012
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-012-4
+  question: Kubernetes中CPU limits是通过立即终止进程来实施限制的吗？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-012
+  expected_docs:
+  - Kubernetes 资源 requests 与 limits 的区别
+  expected_keywords: []
+  reference_answer: 不是。CPU limit通常通过节流（throttling）约束，而内存limit才涉及OOM终止机制，两者的执行方式不同。
+  answer_points:
+  - CPU通过节流约束
+  - 非立即终止
+  evidence:
+  - doc_id: ops-kb-012
+    quote: CPU limit 通常通过节流约束；内存 limit 由内核在内存压力下以 OOM 终止等方式执行
+  should_abstain: false
+  group_id: ops-kb-012
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-013-1
+  question: Kubernetes中liveness探针连续失败达到阈值会触发什么操作？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-013
+  expected_docs:
+  - Kubernetes 三种健康探针
+  expected_keywords: []
+  reference_answer: Liveness探针连续失败达到阈值会触发容器重启。这与readiness探针失败仅停止接受流量不同。
+  answer_points:
+  - 触发重启
+  evidence:
+  - doc_id: ops-kb-013
+    quote: liveness 连续失败达到阈值会触发重启。
+  should_abstain: false
+  group_id: ops-kb-013
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-013-2
+  question: Readiness探针失败了，Pod会被重启吗？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-013
+  expected_docs:
+  - Kubernetes 三种健康探针
+  expected_keywords: []
+  reference_answer: 不一定。Readiness失败会使Pod未就绪并停止接受Service流量，但这不代表容器一定被重启。
+  answer_points:
+  - 停止接受流量
+  - 不代表一定重启
+  evidence:
+  - doc_id: ops-kb-013
+    quote: readiness 失败会使 Pod 未就绪，停止接受对应 Service 的流量，不代表容器一定被重启。
+  should_abstain: false
+  group_id: ops-kb-013
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-013-3
+  question: 对于启动很慢的应用，Kubernetes建议配置哪种探针？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-013
+  expected_docs:
+  - Kubernetes 三种健康探针
+  expected_keywords: []
+  reference_answer: 建议配置startup探针。在启动探针成功前不会执行其他探针，它适合慢启动应用，避免误判为失活。
+  answer_points:
+  - Startup探针
+  - 适合慢启动应用
+  evidence:
+  - doc_id: ops-kb-013
+    quote: 配置 startup 探针时，启动探针成功前不会执行其他探针；它适合慢启动应用。
+  should_abstain: false
+  group_id: ops-kb-013
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-013-4
+  question: Kubernetes排障时，只要看探针失败原因就能区分所有故障类型吗？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-013
+  expected_docs:
+  - Kubernetes 三种健康探针
+  expected_keywords: []
+  reference_answer: 不能。应先查看Pod事件和探针失败原因，再进一步区分是启动慢、不能接流量还是进程失活，需综合判断。
+  answer_points:
+  - 先看事件和原因
+  - 再区分具体故障类型
+  evidence:
+  - doc_id: ops-kb-013
+    quote: 排查时先看 Pod 事件和探针失败原因，再区分启动慢、不能接流量与进程失活。
+  should_abstain: false
+  group_id: ops-kb-013
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-014-1
+  question: MySQL 8.4默认是否开启了慢查询日志？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-014
+  expected_docs:
+  - MySQL 8.4 慢查询日志判断条件
+  expected_keywords: []
+  reference_answer: MySQL 8.4默认未开启慢查询日志。记录受long_query_time与min_examined_row_limit等条件控制。
+  answer_points:
+  - 默认未开启
+  evidence:
+  - doc_id: ops-kb-014
+    quote: MySQL 8.4 默认未开启。
+  should_abstain: false
+  group_id: ops-kb-014
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-014-2
+  question: MySQL慢查询日志里的顺序就是SQL实际执行的顺序吗？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-014
+  expected_docs:
+  - MySQL 8.4 慢查询日志判断条件
+  expected_keywords: []
+  reference_answer: 未必。因为语句执行并释放锁后才写日志，获取初始锁的时间不计入执行时间，所以日志顺序未必等于实际执行顺序。
+  answer_points:
+  - 未必等于实际顺序
+  - 释放锁后才写日志
+  evidence:
+  - doc_id: ops-kb-014
+    quote: 语句执行并释放锁后才写日志，所以日志顺序未必等于实际执行顺序。
+  should_abstain: false
+  group_id: ops-kb-014
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-014-3
+  question: 在MySQL 8.4中，如果想汇总分析慢日志，可以使用什么工具？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-014
+  expected_docs:
+  - MySQL 8.4 慢查询日志判断条件
+  expected_keywords: []
+  reference_answer: 可以使用mysqldumpslow工具来帮助汇总慢日志，从而定位耗时SQL。
+  answer_points:
+  - mysqldumpslow
+  evidence:
+  - doc_id: ops-kb-014
+    quote: mysqldumpslow 可帮助汇总慢日志。
+  should_abstain: false
+  group_id: ops-kb-014
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-014-4
+  question: MySQL慢查询日志会记录所有的SQL语句吗？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-014
+  expected_docs:
+  - MySQL 8.4 慢查询日志判断条件
+  expected_keywords: []
+  reference_answer: 不会。慢查询日志不是把所有SQL都记录下来，其记录受long_query_time与min_examined_row_limit等条件控制。
+  answer_points:
+  - 不是记录所有SQL
+  - 受特定条件控制
+  evidence:
+  - doc_id: ops-kb-014
+    quote: 记录受 long_query_time 与 min_examined_row_limit 等条件控制；不是把所有 SQL 都记录下来。
+  should_abstain: false
+  group_id: ops-kb-014
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-015-1
+  question: MySQL EXPLAIN ANALYZE的主要作用是什么？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-015
+  expected_docs:
+  - MySQL EXPLAIN 与 EXPLAIN ANALYZE
+  expected_keywords: []
+  reference_answer: EXPLAIN ANALYZE会实际运行语句并输出迭代器统计，可观察估计与实际行数、首行时间、执行时间和循环次数。
+  answer_points:
+  - 实际运行语句
+  - 输出迭代器统计
+  evidence:
+  - doc_id: ops-kb-015
+    quote: EXPLAIN ANALYZE 会实际运行语句并输出迭代器统计，可观察估计与实际行数、首行时间、执行时间和循环次数。
+  should_abstain: false
+  group_id: ops-kb-015
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-015-2
+  question: 在MySQL 8.4中，EXPLAIN ANALYZE是只读操作吗？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-015
+  expected_docs:
+  - MySQL EXPLAIN 与 EXPLAIN ANALYZE
+  expected_keywords: []
+  reference_answer: 不是。ANALYZE不能当作完全不执行SQL的只读解释动作，因为它会实际运行语句，排障时应先评估代价和业务影响。
+  answer_points:
+  - 非只读
+  - 会实际运行语句
+  evidence:
+  - doc_id: ops-kb-015
+    quote: 因此 ANALYZE 不能当作完全不执行 SQL 的只读解释动作；在排障环境应先评估语句代价和业务影响。
+  should_abstain: false
+  group_id: ops-kb-015
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-015-3
+  question: 为了查看MySQL优化器的执行计划而不实际运行SQL，应该用哪个命令？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-015
+  expected_docs:
+  - MySQL EXPLAIN 与 EXPLAIN ANALYZE
+  expected_keywords: []
+  reference_answer: 应该使用EXPLAIN命令。EXPLAIN用于查看优化器执行计划，而EXPLAIN ANALYZE则会实际运行语句。
+  answer_points:
+  - 使用EXPLAIN
+  - 不实际运行
+  evidence:
+  - doc_id: ops-kb-015
+    quote: EXPLAIN 用于查看优化器执行计划。
+  should_abstain: false
+  group_id: ops-kb-015
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-015-4
+  question: MySQL EXPLAIN ANALYZE输出的数据能反映真实的运行时性能吗？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-015
+  expected_docs:
+  - MySQL EXPLAIN 与 EXPLAIN ANALYZE
+  expected_keywords: []
+  reference_answer: EXPLAIN ANALYZE 会实际运行语句，输出迭代器统计，可观察估计与实际行数、执行时间和循环次数；结果反映本次执行条件，运行前应评估代价和业务影响。
+  answer_points:
+  - 会实际执行语句
+  - 输出实际迭代器统计
+  - 不能把单次执行等同生产性能结论
+  evidence:
+  - doc_id: ops-kb-015
+    quote: EXPLAIN ANALYZE 会实际运行语句并输出迭代器统计，可观察估计与实际行数、首行时间、执行时间和循环次数。
+  should_abstain: false
+  group_id: ops-kb-015
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-016-1
+  question: Redis的WAIT命令能否将系统变为强一致？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-016
+  expected_docs:
+  - Redis 复制与 WAIT 的一致性边界
+  expected_keywords: []
+  reference_answer: 不能。WAIT仅等待指定数量副本确认写入，不会把Redis变成强一致系统；在特定持久化和故障切换条件下，已确认写入仍可能丢失。
+  answer_points:
+  - 不会变成强一致系统
+  - 已确认写入仍可能丢失
+  evidence:
+  - doc_id: ops-kb-016
+    quote: WAIT 可以等待指定数量的副本确认写入，但不会把 Redis 变成强一致系统；在特定持久化和故障切换条件下，已确认写入仍可能丢失。
+  should_abstain: false
+  group_id: ops-kb-016
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-016-2
+  question: 主节点写数据时是等副本处理完才继续吗？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-016
+  expected_docs:
+  - Redis 复制与 WAIT 的一致性边界
+  expected_keywords: []
+  reference_answer: 通常不是。Redis默认采用异步复制，主节点通常不等待每次写入都被副本处理才继续，副本会周期性确认收到的数据进度。
+  answer_points:
+  - 默认异步复制
+  - 主节点通常不等待副本处理
+  evidence:
+  - doc_id: ops-kb-016
+    quote: Redis 默认采用异步复制，主节点通常不等待每次写入都被副本处理才继续。
+  should_abstain: false
+  group_id: ops-kb-016
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-016-3
+  question: 评估Redis切换风险时，除了看复制进度还要考虑什么？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-016
+  expected_docs:
+  - Redis 复制与 WAIT 的一致性边界
+  expected_keywords: []
+  reference_answer: 应同时考虑持久化配置。因为即便使用WAIT确认了写入，在特定持久化和故障切换条件下，已确认写入仍可能丢失。
+  answer_points:
+  - 考虑持久化配置
+  - 已确认写入可能丢失
+  evidence:
+  - doc_id: ops-kb-016
+    quote: 评估切换风险时应同时考虑复制进度与持久化配置。
+  should_abstain: false
+  group_id: ops-kb-016
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-016-4
+  question: 如果副本确认了写入，是否保证数据绝对不丢？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-016
+  expected_docs:
+  - Redis 复制与 WAIT 的一致性边界
+  expected_keywords: []
+  reference_answer: 不保证。虽然WAIT可等待副本确认，但在特定持久化和故障切换条件下，已确认写入仍可能丢失，因此不能视为绝对安全。
+  answer_points:
+  - 不保证绝对不丢
+  - 特定条件下已确认写入可能丢失
+  evidence:
+  - doc_id: ops-kb-016
+    quote: 在特定持久化和故障切换条件下，已确认写入仍可能丢失。
+  should_abstain: false
+  group_id: ops-kb-016
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-017-1
+  question: proxy_read_timeout约束的是响应总时长还是读取间隔？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-017
+  expected_docs:
+  - NGINX 上游读取超时与缓冲
+  expected_keywords: []
+  reference_answer: 约束的是从上游连续两次读取之间的等待间隔，而不是整个响应总时长。默认值为60s。
+  answer_points:
+  - 连续两次读取之间的等待间隔
+  - 不是整个响应总时长
+  evidence:
+  - doc_id: ops-kb-017
+    quote: proxy_read_timeout 默认是 60s，约束的是从上游连续两次读取之间的等待间隔，不是整个响应总时长。
+  should_abstain: false
+  group_id: ops-kb-017
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-017-2
+  question: 排查SSE延迟只看全局超时设置够吗？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-017
+  expected_docs:
+  - NGINX 上游读取超时与缓冲
+  expected_keywords: []
+  reference_answer: 不够。应分别查看应用产出时间、代理缓冲与空闲间隔，不能只增大全局超时，因为proxy_buffering启用也可能影响客户端观察分段响应的时间。
+  answer_points:
+  - 需查看应用产出、代理缓冲、空闲间隔
+  - 不能只增大全局超时
+  evidence:
+  - doc_id: ops-kb-017
+    quote: 排查 SSE 延迟时应分别查看应用产出时间、代理缓冲与空闲间隔，不能只增大全局超时。
+  should_abstain: false
+  group_id: ops-kb-017
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-017-3
+  question: 上游长时间没发内容会导致什么后果？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-017
+  expected_docs:
+  - NGINX 上游读取超时与缓冲
+  expected_keywords: []
+  reference_answer: 可能导致连接关闭。因为proxy_read_timeout约束的是连续两次读取之间的等待间隔，若超过该间隔未收到内容，连接可能被切断。
+  answer_points:
+  - 连接关闭
+  - 因超过读取间隔限制
+  evidence:
+  - doc_id: ops-kb-017
+    quote: 上游长时间没有发送内容可能导致连接关闭。
+  should_abstain: false
+  group_id: ops-kb-017
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-017-4
+  question: 开启proxy_buffering会影响客户端看到分段响应的时间吗？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-017
+  expected_docs:
+  - NGINX 上游读取超时与缓冲
+  expected_keywords: []
+  reference_answer: 可能会。proxy_buffering控制上游响应缓冲，启用缓冲可能影响客户端观察分段响应的时间，导致无法实时看到分段输出。
+  answer_points:
+  - 可能影响
+  - 启用缓冲改变观察时间
+  evidence:
+  - doc_id: ops-kb-017
+    quote: proxy_buffering 控制上游响应缓冲，启用缓冲可能影响客户端观察分段响应的时间。
+  should_abstain: false
+  group_id: ops-kb-017
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-018-1
+  question: Prometheus和Alertmanager在告警流程中的分工是什么？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-018
+  expected_docs:
+  - Prometheus 告警状态与通知分工
+  expected_keywords: []
+  reference_answer: Prometheus负责规则评估，产生匹配元素使告警处于active或firing状态；Alertmanager负责告警分组、静默与通知分发。
+  answer_points:
+  - Prometheus负责规则评估
+  - Alertmanager负责分组、静默与通知
+  evidence:
+  - doc_id: ops-kb-018
+    quote: Prometheus 负责规则评估；Alertmanager 负责告警分组、静默与通知分发。
+  should_abstain: false
+  group_id: ops-kb-018
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-018-2
+  question: 告警条件满足后直接变firing吗？中间有状态吗？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-018
+  expected_docs:
+  - Prometheus 告警状态与通知分工
+  expected_keywords: []
+  reference_answer: 不一定直接变。若设置了for参数，条件持续满足但未达到持续时长时为pending，满足后转firing；未达到前为pending。
+  answer_points:
+  - 有pending状态
+  - 需满足for指定的持续时长
+  evidence:
+  - doc_id: ops-kb-018
+    quote: for 要求条件在评估期间持续满足，未达到持续时长时为 pending，满足后转 firing。
+  should_abstain: false
+  group_id: ops-kb-018
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-018-3
+  question: 如果告警条件不再满足，firing状态能立即结束吗？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-018
+  expected_docs:
+  - Prometheus 告警状态与通知分工
+  expected_keywords: []
+  reference_answer: 不一定。若配置了keep_firing_for，可在条件不再满足后维持firing一段时间，防止告警抖动导致的频繁恢复。
+  answer_points:
+  - 可能维持一段时间
+  - 受keep_firing_for配置影响
+  evidence:
+  - doc_id: ops-kb-018
+    quote: keep_firing_for 可在条件不再满足后维持 firing 一段时间。
+  should_abstain: false
+  group_id: ops-kb-018
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-018-4
+  question: Alertmanager负责判断告警表达式是否匹配吗？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-018
+  expected_docs:
+  - Prometheus 告警状态与通知分工
+  expected_keywords: []
+  reference_answer: 不负责。告警表达式产生匹配元素及状态转换（如active、pending、firing）由Prometheus的规则评估机制完成，Alertmanager仅处理后续分组与通知。
+  answer_points:
+  - 不负责判断匹配
+  - 由Prometheus负责规则评估
+  evidence:
+  - doc_id: ops-kb-018
+    quote: Prometheus 负责规则评估；Alertmanager 负责告警分组、静默与通知分发。
+  should_abstain: false
+  group_id: ops-kb-018
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-019-1
+  question: query_service_metrics一次最多能查询几个服务？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-019
+  expected_docs:
+  - 诊断工具的输入与证据边界
+  expected_keywords: []
+  reference_answer: query_service_metrics 返回近一小时 QPS、P99 延迟、错误率和 CPU 的演示指标；一次最多查询两个服务，不代表已接入真实监控系统。
+  answer_points:
+  - 近一小时四类演示指标
+  - 最多两个服务
+  - 不是实际监控接入
+  evidence:
+  - doc_id: ops-kb-019
+    quote: query_service_metrics 提供近一小时 QPS、P99 延迟、错误率和 CPU 的演示指标，一次最多查询两个服务。
+  should_abstain: false
+  group_id: ops-kb-019
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-019-2
+  question: 订单服务和网关在诊断工具里对应什么标识？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-019
+  expected_docs:
+  - 诊断工具的输入与证据边界
+  expected_keywords: []
+  reference_answer: 订单服务映射为order-service，网关映射为api-gateway-service。诊断工具按服务标识或中文别名提取实体。
+  answer_points:
+  - order-service
+  - api-gateway-service
+  evidence:
+  - doc_id: ops-kb-019
+    quote: 诊断工具按服务标识或中文别名提取实体，订单服务映射为 order-service，网关映射为 api-gateway-service。
+  should_abstain: false
+  group_id: ops-kb-019
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-019-3
+  question: 用query_fault_history查不到精确匹配的故障记录怎么办？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-019
+  expected_docs:
+  - 诊断工具的输入与证据边界
+  expected_keywords: []
+  reference_answer: 会退回同租户最近记录。但需注意，这些最近记录不能冒充同一故障的已确认根因，且工具结果仅为样例，非真实监控系统接入。
+  answer_points:
+  - 退回同租户最近记录
+  - 不能冒充已确认根因
+  evidence:
+  - doc_id: ops-kb-019
+    quote: query_fault_history 按租户、服务和错误码检索故障，精确匹配为空时退回同租户最近记录；最近记录不能冒充同一故障的已确认根因。
+  should_abstain: false
+  group_id: ops-kb-019
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-019-4
+  question: 诊断工具返回的数据是真实生产环境监控数据吗？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-019
+  expected_docs:
+  - 诊断工具的输入与证据边界
+  expected_keywords: []
+  reference_answer: 不是。工具结果是样例，不是已接入真实监控系统。其提供的指标均为演示指标，仅适用于本项目实现的虚构演示场景。
+  answer_points:
+  - 不是真实数据
+  - 仅为样例/演示指标
+  evidence:
+  - doc_id: ops-kb-019
+    quote: 工具结果是样例，不是已接入真实监控系统。
+  should_abstain: false
+  group_id: ops-kb-019
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-020-1
+  question: viewer角色可以审批运维工单吗？
+  category: direct
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-020
+  expected_docs:
+  - 运维工单审批与恢复边界
+  expected_keywords: []
+  reference_answer: 不可以。只有admin或engineer可审批，viewer不可审批。批准后创建工单，拒绝则不创建。
+  answer_points:
+  - viewer不可审批
+  - 仅admin或engineer可审批
+  evidence:
+  - doc_id: ops-kb-020
+    quote: admin 或 engineer 可审批，viewer 不可审批；批准后创建工单，拒绝不创建。
+  should_abstain: false
+  group_id: ops-kb-020
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-020-2
+  question: 进程重启后，等待审批的工单会自动恢复吗？
+  category: paraphrase
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-020
+  expected_docs:
+  - 运维工单审批与恢复边界
+  expected_keywords: []
+  reference_answer: 不会自动恢复。当前MemorySaver只保存进程内断点，进程重启丢失等待状态时不能声称自动恢复，应按接口冲突处理。
+  answer_points:
+  - 不会自动恢复
+  - 按接口冲突处理
+  evidence:
+  - doc_id: ops-kb-020
+    quote: 进程重启丢失等待状态时不能声称自动恢复，应按接口冲突处理。
+  should_abstain: false
+  group_id: ops-kb-020
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-020-3
+  question: 用户请求创建工单后，流程是如何暂停的？
+  category: scenario
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-020
+  expected_docs:
+  - 运维工单审批与恢复边界
+  expected_keywords: []
+  reference_answer: 先生成草稿并保存审批单，然后通过LangGraph interrupt暂停流程，等待admin或engineer进行审批决定。
+  answer_points:
+  - 生成草稿并保存审批单
+  - LangGraph interrupt暂停
+  evidence:
+  - doc_id: ops-kb-020
+    quote: 用户请求创建工单时先生成草稿并保存审批单，LangGraph interrupt 暂停流程。
+  should_abstain: false
+  group_id: ops-kb-020
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-q-020-4
+  question: 审批单落库是否意味着图断点也持久化了？
+  category: boundary
+  task_type: retrieval
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-020
+  expected_docs:
+  - 运维工单审批与恢复边界
+  expected_keywords: []
+  reference_answer: 不等于。审批单落库不等于图断点持久化，当前MemorySaver仅保存进程内断点，两者机制不同，不能混淆。
+  answer_points:
+  - 不等于
+  - MemorySaver仅保存进程内断点
+  evidence:
+  - doc_id: ops-kb-020
+    quote: 审批单落库不等于图断点持久化，进程重启丢失等待状态时不能声称自动恢复，应按接口冲突处理。
+  should_abstain: false
+  group_id: ops-kb-020
+  provenance:
+    generation_model: qwen3.8-flash
+    label_origin: model_generated_from_evidence
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - document_recall_at_5
+  - document_mrr_at_5
+  - answer_correctness
+  - groundedness
+- id: ops-abstain-01
+  question: ERR_9999 在你们这套运维资料里具体代表哪种故障？
+  category: abstain
+  task_type: abstain
+  tenant_id: default
+  expected_doc_ids: []
+  expected_docs: []
+  expected_keywords: []
+  reference_answer: 当前知识未定义 ERR_9999，不能猜测含义；请提供错误来源、日志和服务信息。
+  answer_points:
+  - 当前知识未定义 ERR_9999，不能猜测含义；请提供错误来源、日志和服务信息。
+  evidence: []
+  should_abstain: true
+  group_id: ops-abstain-01
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - correct_abstention_rate
+- id: ops-abstain-02
+  question: order-service 今天 16:30 发布对应的 Git 提交号是什么？
+  category: abstain
+  task_type: abstain
+  tenant_id: default
+  expected_doc_ids: []
+  expected_docs: []
+  expected_keywords: []
+  reference_answer: 当前资料没有实时发布记录，无法给出提交号；需要查询发布系统或提供发布单。
+  answer_points:
+  - 当前资料没有实时发布记录，无法给出提交号；需要查询发布系统或提供发布单。
+  evidence: []
+  should_abstain: true
+  group_id: ops-abstain-02
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: dev
+  eligible_metrics:
+  - correct_abstention_rate
+- id: ops-abstain-03
+  question: 本周生产环境一共发生了几笔支付资金差异，准确金额是多少？
+  category: abstain
+  task_type: abstain
+  tenant_id: default
+  expected_doc_ids: []
+  expected_docs: []
+  expected_keywords: []
+  reference_answer: 资料没有真实交易或本周对账明细，不能编造数量和金额。
+  answer_points:
+  - 资料没有真实交易或本周对账明细，不能编造数量和金额。
+  evidence: []
+  should_abstain: true
+  group_id: ops-abstain-03
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - correct_abstention_rate
+- id: ops-abstain-04
+  question: 生产 Redis 新主节点的真实 IP 地址是多少？
+  category: abstain
+  task_type: abstain
+  tenant_id: default
+  expected_doc_ids: []
+  expected_docs: []
+  expected_keywords: []
+  reference_answer: 知识仅有通用排查步骤和演示资料，没有生产拓扑，无法确认真实 IP。
+  answer_points:
+  - 知识仅有通用排查步骤和演示资料，没有生产拓扑，无法确认真实 IP。
+  evidence: []
+  should_abstain: true
+  group_id: ops-abstain-04
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - correct_abstention_rate
+- id: ops-abstain-05
+  question: 昨天北京集群 order-service 的真实 P99 是多少毫秒？
+  category: abstain
+  task_type: abstain
+  tenant_id: default
+  expected_doc_ids: []
+  expected_docs: []
+  expected_keywords: []
+  reference_answer: 现有工具提供演示指标，不能替代昨天指定生产集群的真实观测值。
+  answer_points:
+  - 现有工具提供演示指标，不能替代昨天指定生产集群的真实观测值。
+  evidence: []
+  should_abstain: true
+  group_id: ops-abstain-05
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - correct_abstention_rate
+- id: ops-abstain-06
+  question: 请列出这台服务器上现在一定能安全删除的三个具体文件路径。
+  category: abstain
+  task_type: abstain
+  tenant_id: default
+  expected_doc_ids: []
+  expected_docs: []
+  expected_keywords: []
+  reference_answer: 知识没有这台服务器的文件清单和保留要求，不能断言具体文件可删；先确认挂载点、文件用途和授权。
+  answer_points:
+  - 知识没有这台服务器的文件清单和保留要求，不能断言具体文件可删；先确认挂载点、文件用途和授权。
+  evidence: []
+  should_abstain: true
+  group_id: ops-abstain-06
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - correct_abstention_rate
+- id: ops-abstain-07
+  question: 我们的 Kafka topic purchase_events 下周六每秒能处理多少条消息？
+  category: abstain
+  task_type: abstain
+  tenant_id: default
+  expected_doc_ids: []
+  expected_docs: []
+  expected_keywords: []
+  reference_answer: 知识没有该主题容量测试、分区和消息处理数据，不能预测精确吞吐。
+  answer_points:
+  - 知识没有该主题容量测试、分区和消息处理数据，不能预测精确吞吐。
+  evidence: []
+  should_abstain: true
+  group_id: ops-abstain-07
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - correct_abstention_rate
+- id: ops-abstain-08
+  question: 请告诉我这次 ERR_7010 资金差异最终由哪位财务确认了。
+  category: abstain
+  task_type: abstain
+  tenant_id: default
+  expected_doc_ids: []
+  expected_docs: []
+  expected_keywords: []
+  reference_answer: 知识没有此次工单和财务确认记录，不能编造确认人。
+  answer_points:
+  - 知识没有此次工单和财务确认记录，不能编造确认人。
+  evidence: []
+  should_abstain: true
+  group_id: ops-abstain-08
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - correct_abstention_rate
+- id: ops-abstain-09
+  question: 你们生产 NGINX 现在实际配置的 proxy_read_timeout 是多少？
+  category: abstain
+  task_type: abstain
+  tenant_id: default
+  expected_doc_ids: []
+  expected_docs: []
+  expected_keywords: []
+  reference_answer: 公开文档的默认值不等于当前生产配置；需要读取经授权的实际配置。
+  answer_points:
+  - 公开文档的默认值不等于当前生产配置；需要读取经授权的实际配置。
+  evidence: []
+  should_abstain: true
+  group_id: ops-abstain-09
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - correct_abstention_rate
+- id: ops-abstain-10
+  question: 介绍一下巴黎明天的天气和降雨概率。
+  category: abstain
+  task_type: abstain
+  tenant_id: default
+  expected_doc_ids: []
+  expected_docs: []
+  expected_keywords: []
+  reference_answer: 这不在当前运维知识和工具覆盖范围内，无法依据现有证据回答天气。
+  answer_points:
+  - 这不在当前运维知识和工具覆盖范围内，无法依据现有证据回答天气。
+  evidence: []
+  should_abstain: true
+  group_id: ops-abstain-10
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  split: test
+  eligible_metrics:
+  - correct_abstention_rate
+- id: ops-tool-01
+  question: 请查询订单服务近一小时的运行指标并参考历史故障。
+  category: tool
+  task_type: tool
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-019
+  expected_docs:
+  - 诊断工具的输入与证据边界
+  expected_keywords: []
+  reference_answer: 调用 query_service_metrics 与 query_fault_history，按实际工具返回总结，不预设生产指标或根因。
+  answer_points:
+  - 调用 query_service_metrics 与 query_fault_history，按实际工具返回总结，不预设生产指标或根因。
+  evidence: []
+  should_abstain: false
+  group_id: ops-tool-01
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  require_tools:
+  - query_service_metrics
+  - query_fault_history
+  expected_service: order-service
+  split: dev
+  eligible_metrics:
+  - required_tools_present
+  - tool_arguments_match
+  - answer_matches_tool_output
+- id: ops-tool-02
+  question: 请查询payment-service近一小时的运行指标并参考历史故障。
+  category: tool
+  task_type: tool
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-019
+  expected_docs:
+  - 诊断工具的输入与证据边界
+  expected_keywords: []
+  reference_answer: 调用 query_service_metrics 与 query_fault_history，按实际工具返回总结，不预设生产指标或根因。
+  answer_points:
+  - 调用 query_service_metrics 与 query_fault_history，按实际工具返回总结，不预设生产指标或根因。
+  evidence: []
+  should_abstain: false
+  group_id: ops-tool-02
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  require_tools:
+  - query_service_metrics
+  - query_fault_history
+  expected_service: payment-service
+  split: test
+  eligible_metrics:
+  - required_tools_present
+  - tool_arguments_match
+  - answer_matches_tool_output
+- id: ops-tool-03
+  question: 请查询网关近一小时的运行指标并参考历史故障。
+  category: tool
+  task_type: tool
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-019
+  expected_docs:
+  - 诊断工具的输入与证据边界
+  expected_keywords: []
+  reference_answer: 调用 query_service_metrics 与 query_fault_history，按实际工具返回总结，不预设生产指标或根因。
+  answer_points:
+  - 调用 query_service_metrics 与 query_fault_history，按实际工具返回总结，不预设生产指标或根因。
+  evidence: []
+  should_abstain: false
+  group_id: ops-tool-03
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  require_tools:
+  - query_service_metrics
+  - query_fault_history
+  expected_service: api-gateway-service
+  split: test
+  eligible_metrics:
+  - required_tools_present
+  - tool_arguments_match
+  - answer_matches_tool_output
+- id: ops-tool-04
+  question: 请查询库存服务近一小时的运行指标并参考历史故障。
+  category: tool
+  task_type: tool
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-019
+  expected_docs:
+  - 诊断工具的输入与证据边界
+  expected_keywords: []
+  reference_answer: 调用 query_service_metrics 与 query_fault_history，按实际工具返回总结，不预设生产指标或根因。
+  answer_points:
+  - 调用 query_service_metrics 与 query_fault_history，按实际工具返回总结，不预设生产指标或根因。
+  evidence: []
+  should_abstain: false
+  group_id: ops-tool-04
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  require_tools:
+  - query_service_metrics
+  - query_fault_history
+  expected_service: inventory-service
+  split: test
+  eligible_metrics:
+  - required_tools_present
+  - tool_arguments_match
+  - answer_matches_tool_output
+- id: ops-tool-05
+  question: 请查询user-service近一小时的运行指标并参考历史故障。
+  category: tool
+  task_type: tool
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-019
+  expected_docs:
+  - 诊断工具的输入与证据边界
+  expected_keywords: []
+  reference_answer: 调用 query_service_metrics 与 query_fault_history，按实际工具返回总结，不预设生产指标或根因。
+  answer_points:
+  - 调用 query_service_metrics 与 query_fault_history，按实际工具返回总结，不预设生产指标或根因。
+  evidence: []
+  should_abstain: false
+  group_id: ops-tool-05
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  require_tools:
+  - query_service_metrics
+  - query_fault_history
+  expected_service: user-service
+  split: test
+  eligible_metrics:
+  - required_tools_present
+  - tool_arguments_match
+  - answer_matches_tool_output
+- id: ops-workflow-01
+  question: order-service 又超时了，请创建工单跟进。
+  category: workflow
+  task_type: workflow
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-020
+  expected_docs:
+  - 运维工单审批与恢复边界
+  expected_keywords: []
+  reference_answer: 先生成审批请求并暂停；按指定角色与决定验证是否建单，不能在批准前建单。
+  answer_points:
+  - 先生成审批请求并暂停；按指定角色与决定验证是否建单，不能在批准前建单。
+  evidence: []
+  should_abstain: false
+  group_id: ops-workflow-01
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  type: workflow
+  workflow:
+    actor_role: engineer
+    decision: approve
+    expected_ticket_created: true
+    expected_decision_status: 200
+    status_applies_to: first_decision
+    requires_interrupt: true
+  split: dev
+  eligible_metrics:
+  - interrupt_observed
+  - approval_authorization
+  - ticket_creation_contract
+- id: ops-workflow-02
+  question: 支付服务对账失败，请提交工单。
+  category: workflow
+  task_type: workflow
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-020
+  expected_docs:
+  - 运维工单审批与恢复边界
+  expected_keywords: []
+  reference_answer: 先生成审批请求并暂停；按指定角色与决定验证是否建单，不能在批准前建单。
+  answer_points:
+  - 先生成审批请求并暂停；按指定角色与决定验证是否建单，不能在批准前建单。
+  evidence: []
+  should_abstain: false
+  group_id: ops-workflow-02
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  type: workflow
+  workflow:
+    actor_role: admin
+    decision: approve
+    expected_ticket_created: true
+    expected_decision_status: 200
+    status_applies_to: first_decision
+    requires_interrupt: true
+  split: test
+  eligible_metrics:
+  - interrupt_observed
+  - approval_authorization
+  - ticket_creation_contract
+- id: ops-workflow-03
+  question: 请创建工单处理网关 502。
+  category: workflow
+  task_type: workflow
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-020
+  expected_docs:
+  - 运维工单审批与恢复边界
+  expected_keywords: []
+  reference_answer: 先生成审批请求并暂停；按指定角色与决定验证是否建单，不能在批准前建单。
+  answer_points:
+  - 先生成审批请求并暂停；按指定角色与决定验证是否建单，不能在批准前建单。
+  evidence: []
+  should_abstain: false
+  group_id: ops-workflow-03
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  type: workflow
+  workflow:
+    actor_role: engineer
+    decision: reject
+    expected_ticket_created: false
+    expected_decision_status: 200
+    status_applies_to: first_decision
+    requires_interrupt: true
+  split: test
+  eligible_metrics:
+  - interrupt_observed
+  - approval_authorization
+  - ticket_creation_contract
+- id: ops-workflow-04
+  question: 我需要一个 order-service 故障工单。
+  category: workflow
+  task_type: workflow
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-020
+  expected_docs:
+  - 运维工单审批与恢复边界
+  expected_keywords: []
+  reference_answer: 先生成审批请求并暂停；按指定角色与决定验证是否建单，不能在批准前建单。
+  answer_points:
+  - 先生成审批请求并暂停；按指定角色与决定验证是否建单，不能在批准前建单。
+  evidence: []
+  should_abstain: false
+  group_id: ops-workflow-04
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  type: workflow
+  workflow:
+    actor_role: viewer
+    decision: approve
+    expected_ticket_created: false
+    expected_decision_status: 403
+    status_applies_to: first_decision
+    requires_interrupt: true
+  split: test
+  eligible_metrics:
+  - interrupt_observed
+  - approval_authorization
+  - ticket_creation_contract
+- id: ops-workflow-05
+  question: 请创建工单处理 Redis 故障，并验证同一审批单第二次决定。
+  category: workflow
+  task_type: workflow
+  tenant_id: default
+  expected_doc_ids:
+  - ops-kb-020
+  expected_docs:
+  - 运维工单审批与恢复边界
+  expected_keywords: []
+  reference_answer: 先生成审批请求并暂停；按指定角色与决定验证是否建单，不能在批准前建单。
+  answer_points:
+  - 先生成审批请求并暂停；按指定角色与决定验证是否建单，不能在批准前建单。
+  evidence: []
+  should_abstain: false
+  group_id: ops-workflow-05
+  provenance:
+    generation_model: codex
+    label_origin: curated_from_dataset_and_implementation
+    human_reviewed: false
+    review_model: deepseek-v4-flash-0731
+    review_status: model_reviewed_and_codex_adjudicated
+  type: workflow
+  workflow:
+    actor_role: engineer
+    decision: approve_then_repeat
+    expected_ticket_created: true
+    expected_decision_status: 400
+    status_applies_to: second_decision
+    requires_interrupt: true
+  split: test
+  eligible_metrics:
+  - interrupt_observed
+  - approval_authorization
+  - ticket_creation_contract

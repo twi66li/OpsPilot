@@ -37,18 +37,31 @@ class MockEmbedding:
 
 
 class OpenAIEmbedding:
-    def __init__(self, api_key: str, base_url: str, model: str):
+    def __init__(self, api_key: str, base_url: str, model: str, dim: int | None = None):
         from openai import OpenAI
 
-        self._client = OpenAI(api_key=api_key, base_url=base_url or None)
+        self._client = OpenAI(api_key=api_key, base_url=base_url or None, timeout=60, max_retries=0)
         self.model = model
+        self.dim = dim
+        self.calls: list[dict] = []
 
     def embed(self, texts: list[str]) -> list[list[float]]:
-        resp = self._client.embeddings.create(model=self.model, input=texts)
-        return [item.embedding for item in resp.data]
+        import time
+
+        started = time.perf_counter()
+        params = {"dimensions": self.dim} if self.dim is not None else {}
+        resp = self._client.embeddings.create(model=self.model, input=texts, **params)
+        vectors = [item.embedding for item in sorted(resp.data, key=lambda item: item.index)]
+        if self.dim is not None and any(len(v) != self.dim for v in vectors):
+            raise ValueError("向量模型输出维度与索引配置不一致")
+        self.calls.append({"model": self.model, "status": "ok", "elapsed_ms": (time.perf_counter() - started) * 1000,
+                           "usage": resp.usage.model_dump()})
+        return vectors
 
 
 def get_embedding_provider(settings):
     if settings.embedding_provider == "openai" and settings.openai_api_key:
-        return OpenAIEmbedding(settings.openai_api_key, settings.openai_base_url, settings.embedding_model)
+        return OpenAIEmbedding(settings.openai_api_key, settings.openai_base_url, settings.embedding_model, settings.embedding_dim)
+    if getattr(settings, "model_strict", False):
+        raise ValueError("真实评测必须配置 Embedding 服务和密钥")
     return MockEmbedding(settings.embedding_dim)

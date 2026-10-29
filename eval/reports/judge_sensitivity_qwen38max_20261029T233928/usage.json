@@ -1,0 +1,10 @@
+{
+  "model": "qwen3.8-max",
+  "requests": 72,
+  "retries": 0,
+  "errors": 0,
+  "prompt_tokens": 85682,
+  "completion_tokens": 4506,
+  "total_tokens": 90188,
+  "unresolved_requests": []
+}

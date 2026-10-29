@@ -1,0 +1,54 @@
+{
+  "expected": 72,
+  "comparable": 72,
+  "errors": 0,
+  "coverage": 1.0,
+  "all_three": {
+    "agree": 69,
+    "rate": 0.9583333333333334,
+    "over_all_expected": 0.9583333333333334
+  },
+  "dimensions": {
+    "answer_correct": {
+      "agree": 69,
+      "comparable": 72,
+      "rate": 0.9583333333333334,
+      "disagreements": [
+        "ops-q-001-4",
+        "ops-q-003-3",
+        "ops-q-019-1"
+      ],
+      "decision_table": {
+        "old_true_new_true": 68,
+        "old_true_new_false": 2,
+        "old_false_new_true": 1,
+        "old_false_new_false": 1
+      }
+    },
+    "grounded": {
+      "agree": 72,
+      "comparable": 72,
+      "rate": 1.0,
+      "disagreements": [],
+      "decision_table": {
+        "old_true_new_true": 72,
+        "old_true_new_false": 0,
+        "old_false_new_true": 0,
+        "old_false_new_false": 0
+      }
+    },
+    "abstained": {
+      "agree": 72,
+      "comparable": 72,
+      "rate": 1.0,
+      "disagreements": [],
+      "decision_table": {
+        "old_true_new_true": 8,
+        "old_true_new_false": 0,
+        "old_false_new_true": 0,
+        "old_false_new_false": 64
+      }
+    }
+  },
+  "unresolved": []
+}

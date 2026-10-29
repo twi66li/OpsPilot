@@ -1,0 +1,3530 @@
+[
+  {
+    "id": "ops-abstain-03",
+    "task_type": "abstain",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答明确表示无法回答，并说明资料缺乏实际交易数据、工具无相关统计功能，未捏造数量或金额，符合预期弃权要求；关键事实（资料不含交易数据、工具为样例）受检索内容支持。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答正确识别资料中无真实交易或本周对账明细，明确拒绝编造数量和金额，并引用了检索内容（如工具结果是样例、不代表生产系统能力）作为依据，符合预期拒答要求。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 2491.287699987879,
+        "usage": {
+          "completion_tokens": 66,
+          "prompt_tokens": 1165,
+          "total_tokens": 1231,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1165
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 4743.771099994774
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "1aae9e0b49ee3e9f5d529c8966b1bf2ff1ace0d8413e058db72234a423b183d5",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":true,\"reason\":\"回答正确识别资料中无真实交易或本周对账明细，明确拒绝编造数量和金额，并引用了检索内容（如工具结果是样例、不代表生产系统能力）作为依据，符合预期拒答要求。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-abstain-04",
+    "task_type": "abstain",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "答案明确表示无法确定真实IP，并基于检索内容说明缺乏具体数据源、工具结果为空且仅为样例，符合预期弃权要求；未捏造事实，关键判断受检索内容支持。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答明确表示无法确定真实IP，指出知识库仅有通用排查步骤和演示资料、无生产拓扑，并建议通过CLUSTER INFO等命令获取，完全覆盖必要要点且与检索内容一致。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 2462.413599991123,
+        "usage": {
+          "completion_tokens": 61,
+          "prompt_tokens": 1296,
+          "total_tokens": 1357,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1296
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 3522.294399997918
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "f2a8bba925cb43a2a4a5231a8a2c0386a672affefe3792b04b10af93bc00264c",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":true,\"reason\":\"回答明确表示无法确定真实IP，指出知识库仅有通用排查步骤和演示资料、无生产拓扑，并建议通过CLUSTER INFO等命令获取，完全覆盖必要要点且与检索内容一致。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-abstain-05",
+    "task_type": "abstain",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "答案明确表示无法回答，并引用检索内容说明工具提供演示指标而非真实监控数据，符合预期弃权要求，未捏造事实。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答正确指出工具仅提供演示指标而非真实监控数据，无法获取昨天北京集群order-service的真实P99，覆盖了必要要点且明确拒绝捏造数据，关键事实受检索内容支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 610.6400999997277,
+        "usage": {
+          "completion_tokens": 61,
+          "prompt_tokens": 975,
+          "total_tokens": 1036,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 975
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1898.76959999674
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "9e9afe9cf9398926dcc8bd4b5643ab3303f1aab30a941e82e460590c21716438",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":true,\"reason\":\"回答正确指出工具仅提供演示指标而非真实监控数据，无法获取昨天北京集群order-service的真实P99，覆盖了必要要点且明确拒绝捏造数据，关键事实受检索内容支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-abstain-06",
+    "task_type": "abstain",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "答案明确表示无法列出具体文件路径，并说明缺乏上下文、无工具输出及安全风险，符合预期弃权；关键事实（如知识库无具体文件清单）受检索内容支持，未捏造信息，且建议操作基于文档且需人工审核。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答正确拒绝了列出具体文件路径的请求，明确指出缺乏服务器文件清单和上下文信息，并依据检索到的SOP文档给出了合理的排查建议，符合预期拒绝要求。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 954.1776000114623,
+        "usage": {
+          "completion_tokens": 55,
+          "prompt_tokens": 1280,
+          "total_tokens": 1335,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1280
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2024.4160000002012
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "4d5be8850aa2c3d6199d69b6246dd70587858277342e2499abfcbe0b2d38af1f",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":true,\"reason\":\"回答正确拒绝了列出具体文件路径的请求，明确指出缺乏服务器文件清单和上下文信息，并依据检索到的SOP文档给出了合理的排查建议，符合预期拒绝要求。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-abstain-07",
+    "task_type": "abstain",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答明确表示无法回答，并基于检索内容说明缺乏具体吞吐量数据、预测能力及相关文档，未捏造事实，符合预期弃权要求。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答明确表示无法预测该topic下周六的吞吐量，指出缺乏容量测试、分区和消息处理数据，与参考答案要点一致；所有论据均基于检索内容，未捏造事实，且正确进行了拒绝回答。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 760.655999998562,
+        "usage": {
+          "completion_tokens": 66,
+          "prompt_tokens": 1115,
+          "total_tokens": 1181,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1115
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2014.5703999878606
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "ec6d80340ceae1b4633f51c6b77f1da2e404b7406571abab2e791f40f3b293cf",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":true,\"reason\":\"回答明确表示无法预测该topic下周六的吞吐量，指出缺乏容量测试、分区和消息处理数据，与参考答案要点一致；所有论据均基于检索内容，未捏造事实，且正确进行了拒绝回答。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-abstain-08",
+    "task_type": "abstain",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答明确表示无法回答该问题，并基于检索内容说明缺乏具体工单、日志和人员记录，未捏造确认人，符合预期弃权要求；关键事实（资料中无相关记录）受检索内容支持。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答明确表示无法提供确认人信息，指出知识库中缺乏具体工单和财务确认记录，未编造事实，并给出了合理的下一步建议，符合预期拒绝要求。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 820.5123000079766,
+        "usage": {
+          "completion_tokens": 56,
+          "prompt_tokens": 1288,
+          "total_tokens": 1344,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1288
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2022.2022000089055
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "4d06d654844ebbc1e07a1f099051e6aaa28fe1e169b4d37ac2cd480e474435a9",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":true,\"reason\":\"回答明确表示无法提供确认人信息，指出知识库中缺乏具体工单和财务确认记录，未编造事实，并给出了合理的下一步建议，符合预期拒绝要求。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-abstain-09",
+    "task_type": "abstain",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答明确表示无法提供生产环境实际配置值，指出文档仅含默认值且不代表本项目，并给出查询建议，符合预期弃权要求；关键事实（默认值60s、文档适用范围）受检索内容支持，无捏造。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答明确表示无法提供生产环境实际配置值，正确引用了检索内容中默认值60s的信息并指出其不代表本项目已集成，同时给出了合理的下一步操作建议，完全符合预期。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1037.7857999992557,
+        "usage": {
+          "completion_tokens": 61,
+          "prompt_tokens": 1356,
+          "total_tokens": 1417,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1356
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2165.7749000005424
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "442800389a3ac491d8f012bff7da71ade0a79d08aa3cfd80c64272c8315b54d9",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":true,\"reason\":\"回答明确表示无法提供生产环境实际配置值，正确引用了检索内容中默认值60s的信息并指出其不代表本项目已集成，同时给出了合理的下一步操作建议，完全符合预期。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-abstain-10",
+    "task_type": "abstain",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "答案明确说明无法回答天气问题，指出职责范围仅限IT运维，并依据检索内容说明系统不具备气象数据查询能力，未捏造事实，符合预期弃权要求。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答正确拒绝了天气查询请求，明确指出当前系统仅覆盖IT运维领域（微服务指标、故障历史等），不具备查询天气的能力，与参考答案要求一致，且关键事实受检索内容支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1048.4243999962928,
+        "usage": {
+          "completion_tokens": 62,
+          "prompt_tokens": 1282,
+          "total_tokens": 1344,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1282
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2290.6240000011167
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "dbd3cceb34b6467597bc8e342aa8e2caef70d6ce9d62db3349ec934f2344e8d0",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":true,\"reason\":\"回答正确拒绝了天气查询请求，明确指出当前系统仅覆盖IT运维领域（微服务指标、故障历史等），不具备查询天气的能力，与参考答案要求一致，且关键事实受检索内容支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-001-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": false,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案覆盖了接口500/超时和SHOW PROCESSLIST大量Sleep连接两个要点，但遗漏了关键要点“数据库活跃连接数长期等于max_connections”，因此未完全满足必要要点，判为不正确；关键事实均受检索内容支持，grounded为true；未明确表示信息不足，abstained为false。"
+    },
+    "new": {
+      "answer_correct": false,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案覆盖了'接口大量500/超时'和'SHOW PROCESSLIST中大量Sleep连接'两个要点，但遗漏了必要要点'数据库活跃连接数长期等于max_connections'。所有陈述均受检索内容支持，无幻觉。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1088.1869999866467,
+        "usage": {
+          "completion_tokens": 71,
+          "prompt_tokens": 1094,
+          "total_tokens": 1165,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1094
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1729.6513999899616
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "7fcc48dd9d0deb46783cfaacd36399b904cff77a2a0b5d4c6bb887c41ca94024",
+    "raw_response": "{\"answer_correct\":false,\"grounded\":true,\"abstained\":false,\"reason\":\"答案覆盖了'接口大量500/超时'和'SHOW PROCESSLIST中大量Sleep连接'两个要点，但遗漏了必要要点'数据库活跃连接数长期等于max_connections'。所有陈述均受检索内容支持，无幻觉。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-001-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确回答不能批量KILL所有Sleep连接，并覆盖了确认连接归属与业务影响、经值班负责人批准两个必要要点，且关键事实均来自检索到的ERR_5003手册，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答完整覆盖了三个必要要点：不能批量KILL所有Sleep连接、需确认连接归属及业务影响、需经值班负责人批准，且额外补充的扩容和治理建议也均来自检索内容，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 928.636099997675,
+        "usage": {
+          "completion_tokens": 66,
+          "prompt_tokens": 862,
+          "total_tokens": 928,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 862
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 3085.201399997459
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "b2b7f30283ba812f74027653d962a43baff75e9c2f0d78a7cd040068163f3be4",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答完整覆盖了三个必要要点：不能批量KILL所有Sleep连接、需确认连接归属及业务影响、需经值班负责人批准，且额外补充的扩容和治理建议也均来自检索内容，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-001-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确识别出触发“MySQL Threads_connected / max_connections > 85%”告警，并关联到ERR_5003数据库连接池耗尽，覆盖必要要点且无实质错误；关键事实受检索内容支持。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出触发了 MySQL Threads_connected / max_connections > 85% 告警，并关联到 ERR_5003 数据库连接池耗尽预警，关键事实均受检索内容支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 750.2307999966433,
+        "usage": {
+          "completion_tokens": 64,
+          "prompt_tokens": 1218,
+          "total_tokens": 1282,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1218
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1866.2808999943081
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "96e312e3b541bfbed5a250215be4e40e4130951bb9a7da2d2ed6b77432e9ec23",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出触发了 MySQL Threads_connected / max_connections > 85% 告警，并关联到 ERR_5003 数据库连接池耗尽预警，关键事实均受检索内容支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-001-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案覆盖了所有必要要点：核对连接池、慢查询与泄漏，聚合慢SQL并使用EXPLAIN，明确禁止无差别批量KILL Sleep连接；关键事实均受检索内容支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": false,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案覆盖了'核对连接池、慢查询与泄漏'和'禁止无差别批量KILL'两个要点，但遗漏了必要要点'聚合慢SQL并用EXPLAIN'。虽然提到了用mysqldumpslow汇总和上线前EXPLAIN评审，但未明确在排查过程中对慢SQL进行聚合并用EXPLAIN分析执行计划，与参考答案要求不符。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 812.6627000019653,
+        "usage": {
+          "completion_tokens": 97,
+          "prompt_tokens": 1644,
+          "total_tokens": 1741,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1644
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2585.725299999467
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "b4b758c8667af86b93b095110c23ada16039db6925ff16da74c1f7b971da268c",
+    "raw_response": "{\"answer_correct\":false,\"grounded\":true,\"abstained\":false,\"reason\":\"答案覆盖了'核对连接池、慢查询与泄漏'和'禁止无差别批量KILL'两个要点，但遗漏了必要要点'聚合慢SQL并用EXPLAIN'。虽然提到了用mysqldumpslow汇总和上线前EXPLAIN评审，但未明确在排查过程中对慢SQL进行聚合并用EXPLAIN分析执行计划，与参考答案要求不符。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": false,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": false
+  },
+  {
+    "id": "ops-q-003-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了三个必要要点（聚合top慢SQL、EXPLAIN检查执行计划、检查锁等待），且关键事实均来自检索内容，无实质错误；额外补充的EXPLAIN ANALYZE说明有文档支持，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了三个必要要点（聚合top慢SQL、EXPLAIN检查执行计划、检查锁等待），且所有关键事实均来源于检索内容，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 998.6056000052486,
+        "usage": {
+          "completion_tokens": 55,
+          "prompt_tokens": 1399,
+          "total_tokens": 1454,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1399
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1931.5032000013161
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "71df2bfd4a6dfc70fbf0f483381f335ab334a4141c0b8158e5d03282d1e575c7",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案完整覆盖了三个必要要点（聚合top慢SQL、EXPLAIN检查执行计划、检查锁等待），且所有关键事实均来源于检索内容，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-003-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确回答不能随意杀，覆盖了核对业务影响并获批准、仅处置高代价查询、配合接口限流三个必要要点，且关键事实均来自检索内容，无实质错误或捏造。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了三个必要要点：需核对业务影响并获批准、仅处置高代价查询、可配合接口限流。所有关键事实均有检索内容支持，引用准确，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 850.7766999973683,
+        "usage": {
+          "completion_tokens": 62,
+          "prompt_tokens": 1483,
+          "total_tokens": 1545,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1483
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1947.1706000040285
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "9d5482ced115495639495cec715ee96e7626cc02e8fcbc0ae525cdacc9811770",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案完整覆盖了三个必要要点：需核对业务影响并获批准、仅处置高代价查询、可配合接口限流。所有关键事实均有检索内容支持，引用准确，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-003-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确覆盖了必要要点（SQL审核和EXPLAIN评审），并补充了压测验证资源余量，均受检索内容支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": false,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案包含了必要要点（SQL审核、必须通过EXPLAIN评审），但额外添加了'压测验证资源余量'作为预防接口RT上涨的措施，该点来自OOMKilled文档，与题目所问的接口RT上涨场景不匹配，属于不当扩展。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 809.7811000043293,
+        "usage": {
+          "completion_tokens": 76,
+          "prompt_tokens": 1142,
+          "total_tokens": 1218,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1142
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2319.3630000023404
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "c334b9aa4e2e509a907dcf5a9bc9a27a96041e6e17df50862a9fbbfac8c8c2a9",
+    "raw_response": "{\"answer_correct\":false,\"grounded\":true,\"abstained\":false,\"reason\":\"答案包含了必要要点（SQL审核、必须通过EXPLAIN评审），但额外添加了'压测验证资源余量'作为预防接口RT上涨的措施，该点来自OOMKilled文档，与题目所问的接口RT上涨场景不匹配，属于不当扩展。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": false,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": false
+  },
+  {
+    "id": "ops-q-003-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确指出引入读写分离属于治理手段而非应急措施，覆盖了必要要点，且关键事实（文档将引入读写分离归类为治理方案）受检索内容支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出引入读写分离属于治理手段而非应急措施，并完整列出了应急和治理的具体内容，与检索文档完全一致。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1231.3327000010759,
+        "usage": {
+          "completion_tokens": 49,
+          "prompt_tokens": 1265,
+          "total_tokens": 1314,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1265
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2103.3736999961548
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "e227a3f243f6b3d2b52aa5522df9f1fff673cfcc6ac3bdeb15068209ff7d1993",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出引入读写分离属于治理手段而非应急措施，并完整列出了应急和治理的具体内容，与检索文档完全一致。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-004-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了参考答案中的三个必要要点（容器反复重启、显示OOMKilled、日志出现OutOfMemoryError/MemoryError），且所有关键事实均直接来源于检索到的ops-kb-004文档，无实质错误或捏造内容。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了三个必要要点（容器反复重启、显示OOMKilled、日志出现OutOfMemoryError/MemoryError），且内容完全来源于检索到的ops-kb-004文档，无事实错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 972.8184000123292,
+        "usage": {
+          "completion_tokens": 64,
+          "prompt_tokens": 1211,
+          "total_tokens": 1275,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1211
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2067.232600005809
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "998af7ccbb7055cc68e320b56b28f501056ce62189db89ce5b1958194a901704",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案完整覆盖了三个必要要点（容器反复重启、显示OOMKilled、日志出现OutOfMemoryError/MemoryError），且内容完全来源于检索到的ops-kb-004文档，无事实错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-004-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确覆盖了所有必要要点：强调不能机械调大limit、需核对节点余量与工作负载、需经批准、流量大时评估扩容副本，并补充了治理与预防措施。关键事实均受检索内容支持（ops-kb-004和ops-kb-012），无捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确否定了机械调大limit的做法，完整覆盖了所有必要要点：核对节点余量与工作负载、需经批准、流量大时评估扩容副本、不能机械增加固定百分比。额外补充的治理和预防建议（修复内存泄漏、缓存TTL、80%告警、压测验证等）以及关于内存limit执行机制的说明均直接来源于检索内容，无实质错误和幻觉。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1021.4173999993363,
+        "usage": {
+          "completion_tokens": 107,
+          "prompt_tokens": 1818,
+          "total_tokens": 1925,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1818
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 3035.2391000051284
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "cdcc4584778bd453565e20799c5f80e411b44f71ca4df74cb33656c36a334c39",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确否定了机械调大limit的做法，完整覆盖了所有必要要点：核对节点余量与工作负载、需经批准、流量大时评估扩容副本、不能机械增加固定百分比。额外补充的治理和预防建议（修复内存泄漏、缓存TTL、80%告警、压测验证等）以及关于内存limit执行机制的说明均直接来源于检索内容，无实质错误和幻觉。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-004-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确覆盖了所有必要要点（导出heap dump、定位大对象、对比limit与实际使用曲线），且关键事实均受检索内容支持，无实质错误或捏造。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了所有必要要点：导出内存快照(heap dump)定位大对象、对比limit与实际使用曲线，且内容均来源于检索文档ops-kb-004，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 893.7581999925897,
+        "usage": {
+          "completion_tokens": 61,
+          "prompt_tokens": 1201,
+          "total_tokens": 1262,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1201
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2058.4891000034986
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "18ca82a2177831b315758c1db47b7b655330580464ea82a0a614b9f11e299949",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案完整覆盖了所有必要要点：导出内存快照(heap dump)定位大对象、对比limit与实际使用曲线，且内容均来源于检索文档ops-kb-004，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-004-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确否定了仅凭应用内存异常文本断定容器 OOM 的做法，并覆盖了核对 limit 与实际曲线、区分泄漏与配额等必要要点，且关键事实均受检索内容支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案覆盖了所有必要要点：明确指出不能仅凭应用异常文本确认容器OOM，强调核对内存limit与实际使用曲线以区分泄漏与配额不足，并说明内存限制由内核在压力下执行。所有关键事实均有检索内容支持，未捏造信息。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 906.1718000011751,
+        "usage": {
+          "completion_tokens": 74,
+          "prompt_tokens": 1423,
+          "total_tokens": 1497,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1423
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2366.8421000038506
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "e9b48ed990fb13ca7e6cfe5e899660f79ee3abd4f4bc41d41ffd72a4cfbb3659",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案覆盖了所有必要要点：明确指出不能仅凭应用异常文本确认容器OOM，强调核对内存limit与实际使用曲线以区分泄漏与配额不足，并说明内存限制由内核在压力下执行。所有关键事实均有检索内容支持，未捏造信息。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-005-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了参考答案中的三个必要要点（connection reset、MOVED、监控显示master切换），且关键事实均直接来源于检索到的ops-kb-005文档，无实质错误或捏造内容。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了三个必要要点（Redis connection reset报错、MOVED报错、监控显示master切换），且内容完全来源于检索文档ops-kb-005，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 951.7558999941684,
+        "usage": {
+          "completion_tokens": 58,
+          "prompt_tokens": 1077,
+          "total_tokens": 1135,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1077
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1914.2796999949496
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "aff3fecda7eed4ab3d57d753cec218192fbde1818c581dd8011912ddcc0e3eb8",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案完整覆盖了三个必要要点（Redis connection reset报错、MOVED报错、监控显示master切换），且内容完全来源于检索文档ops-kb-005，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-005-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确覆盖了必要要点（触发客户端强制刷新拓扑），并补充了长期治理措施（自动拓扑刷新与重试、读写分离兜底），均受检索内容支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确覆盖了'触发客户端强制刷新拓扑'这一核心要点，并基于检索内容补充了开启自动拓扑刷新与重试、配置读写分离兜底等治理方案，所有关键事实均有检索文档支持，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 856.5299000038067,
+        "usage": {
+          "completion_tokens": 68,
+          "prompt_tokens": 1150,
+          "total_tokens": 1218,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1150
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2213.297900001635
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "f218edac9d0fa268c14c5d49f4feda750921352692ccaf15d9b85aadd298777c",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确覆盖了'触发客户端强制刷新拓扑'这一核心要点，并基于检索内容补充了开启自动拓扑刷新与重试、配置读写分离兜底等治理方案，所有关键事实均有检索文档支持，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-005-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确覆盖了所有必要要点：85%超过80%阈值、评估扩容、禁止在master上删除大key，且关键事实均来自检索到的SOP文档，无捏造内容。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确覆盖了所有必要要点：指出85%超过80%阈值、提前扩容、禁止在master上删除大key，且关键事实均受检索内容支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 624.3923000001814,
+        "usage": {
+          "completion_tokens": 57,
+          "prompt_tokens": 846,
+          "total_tokens": 903,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 846
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1630.5879000137793
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "d45a3f7980c28c509bce97539088757b17d233068185e6766904a2753c18a692",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确覆盖了所有必要要点：指出85%超过80%阈值、提前扩容、禁止在master上删除大key，且关键事实均受检索内容支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-005-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确回答不能仅靠WAIT保证不丢写入，覆盖了WAIT不保证强一致或绝不丢写的必要要点，并引用了检索内容中关于异步复制、WAIT边界及持久化配置的说明；同时提及拓扑刷新作为客户端报错处理建议，符合参考答案要求，无实质错误且关键事实均有资料支撑。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确否定了WAIT能保证不丢写入，指出其不能使Redis变成强一致系统且已确认写入仍可能丢失，同时提及了客户端拓扑刷新和SOP中的应急/治理措施，覆盖了所有必要要点且关键事实均受检索内容支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 985.0073999987217,
+        "usage": {
+          "completion_tokens": 75,
+          "prompt_tokens": 1272,
+          "total_tokens": 1347,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1272
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2603.012600011425
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "81b7098fc59f46d4b6836a8828ccf3ad9c9afed95195bbeda51c571f540203b7",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确否定了WAIT能保证不丢写入，指出其不能使Redis变成强一致系统且已确认写入仍可能丢失，同时提及了客户端拓扑刷新和SOP中的应急/治理措施，覆盖了所有必要要点且关键事实均受检索内容支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-006-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确识别了数据库连接池耗尽这一根因，并正确关联了ERR_5003错误码，覆盖了所有必要要点；关键事实均来自检索到的知识库文档，有充分依据，无实质错误或捏造。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出了数据库连接池耗尽这一根因，并关联了错误码ERR_5003，覆盖了所有必要要点；关键事实均有检索内容支持，无幻觉。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 717.5844000012148,
+        "usage": {
+          "completion_tokens": 58,
+          "prompt_tokens": 1079,
+          "total_tokens": 1137,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1079
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1826.0996000026353
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "f161f1d1c2c470703453ac4841418f78d5d3e762722306d36259c2e9134d6cde",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出了数据库连接池耗尽这一根因，并关联了错误码ERR_5003，覆盖了所有必要要点；关键事实均有检索内容支持，无幻觉。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-006-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确识别出该场景属于order-service接口超时的常见原因，并引用了检索文档中明确列出的‘大促期间QPS突增，线程池打满’作为依据，覆盖了必要要点且无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出属于order-service接口超时场景的常见原因，并正确引用了检索内容中'大促期间QPS突增，线程池打满'作为依据，覆盖了所有必要要点且无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 820.5996000033338,
+        "usage": {
+          "completion_tokens": 65,
+          "prompt_tokens": 1161,
+          "total_tokens": 1226,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1161
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2300.0426000071457
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "e1679aea39304a68e976855545f9f9affb775c3770bb0611b3e4e955896b2b64",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出属于order-service接口超时场景的常见原因，并正确引用了检索内容中'大促期间QPS突增，线程池打满'作为依据，覆盖了所有必要要点且无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-006-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确识别出根因为GC停顿（Full GC频繁导致STW），与参考要点一致，且引用了检索文档ops-kb-006中的明确内容，事实有据可依。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出符合第4类常见根因'GC停顿：Full GC频繁导致STW'，覆盖了所有必要要点，且关键事实完全由检索内容[1]支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 835.0616999960039,
+        "usage": {
+          "completion_tokens": 59,
+          "prompt_tokens": 1081,
+          "total_tokens": 1140,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1081
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1887.4167999892961
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "707c01b3b2de300c1028baeceb0bda10b90861112c572afa0c99263df9286bd9",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出符合第4类常见根因'GC停顿：Full GC频繁导致STW'，覆盖了所有必要要点，且关键事实完全由检索内容[1]支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-006-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确回答“是常见根因”，并准确引用检索文档中“下游依赖（库存服务、支付服务）抖动，未配置合理超时与熔断”的要点，覆盖了必要要点且无实质错误，关键事实受检索内容支持。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确肯定这是常见根因，并准确引用了检索内容中'下游依赖（库存服务、支付服务）抖动，未配置合理超时与熔断'这一条，覆盖了所有必要要点且无事实错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 613.6967999918852,
+        "usage": {
+          "completion_tokens": 66,
+          "prompt_tokens": 975,
+          "total_tokens": 1041,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 975
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1860.233999992488
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "5133d19eedb5e337fd00f2da4497efa3e60ec8cf3383bab5aa80e337e1d6053b",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确肯定这是常见根因，并准确引用了检索内容中'下游依赖（库存服务、支付服务）抖动，未配置合理超时与熔断'这一条，覆盖了所有必要要点且无事实错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-007-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确指出状态机停滞在PROCESSING，覆盖了必要要点，且关键事实直接来源于检索到的《payment-service 对账失败处理手册》文本，无捏造或实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出网络抖动导致状态机停滞在PROCESSING，覆盖了所有必要要点，且关键事实完全受检索内容ops-kb-007支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 803.376500000013,
+        "usage": {
+          "completion_tokens": 54,
+          "prompt_tokens": 663,
+          "total_tokens": 717,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 663
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1827.9484999948181
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "971809768d317a7214dfdea3338fa452365c7ec79007f8df091ae98c3de85128",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出网络抖动导致状态机停滞在PROCESSING，覆盖了所有必要要点，且关键事实完全受检索内容ops-kb-007支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-007-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确覆盖了必要要点（重复回调、幂等冲突），并额外补充了网络抖动导致通知丢失的原因，均受检索内容支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确指出了'重复回调引起的幂等冲突'这一核心要点，覆盖了所有必要得分点。同时补充了网络抖动导致支付通知丢失的原因，该信息同样来源于检索文档且与回调相关，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 741.7800000112038,
+        "usage": {
+          "completion_tokens": 67,
+          "prompt_tokens": 944,
+          "total_tokens": 1011,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 944
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1940.7517000072403
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "d89833d31a15e8c883f91ee824ec75f3192fdb0d3c9025ce6927430274d40bc9",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案准确指出了'重复回调引起的幂等冲突'这一核心要点，覆盖了所有必要得分点。同时补充了网络抖动导致支付通知丢失的原因，该信息同样来源于检索文档且与回调相关，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-007-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确覆盖了必要要点（手工触发补单任务、按渠道查询结果修复订单状态），且关键事实直接来源于检索到的知识库文档，无实质错误或捏造。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确覆盖了两个必要要点（手工触发补单任务、按渠道查询结果修复），且关键事实完全受检索内容ops-kb-007支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 962.4065000098199,
+        "usage": {
+          "completion_tokens": 55,
+          "prompt_tokens": 853,
+          "total_tokens": 908,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 853
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1982.3053000000073
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "64ecbd9e1667be73b53b4e09456385fdc2ed74e78521e9e9a59d3243e1e205a8",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案准确覆盖了两个必要要点（手工触发补单任务、按渠道查询结果修复），且关键事实完全受检索内容ops-kb-007支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-007-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确否定仅需常规重试，指出资金差异需立即创建P1工单并通知财务值班，覆盖必要要点且无实质错误；关键事实（P1工单、通知财务值班、常规重试属治理层面）均受检索内容支持。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确否定了仅需常规重试，指出需立即创建P1工单并通知财务值班，且正确区分了治理层面的重试与升级流程，所有关键事实均受检索内容支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 788.3415999967838,
+        "usage": {
+          "completion_tokens": 61,
+          "prompt_tokens": 1066,
+          "total_tokens": 1127,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1066
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2088.3879000029992
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "df73137bba8c86732b51f43f2401f724d98e0e151be5016cb952243e6b50f759",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确否定了仅需常规重试，指出需立即创建P1工单并通知财务值班，且正确区分了治理层面的重试与升级流程，所有关键事实均受检索内容支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-009-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确指出限流阈值按压测容量的80%设置，覆盖必要要点，且关键事实受检索内容支持，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出核心接口限流阈值按压测容量的80%设置，覆盖了所有必要要点，且关键事实完全由检索内容[1]支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 782.7409999881638,
+        "usage": {
+          "completion_tokens": 53,
+          "prompt_tokens": 895,
+          "total_tokens": 948,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 895
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1934.0798999910476
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "a4db57bd3c7b8ac9ae6e593d81af2125ed827b7a3f28b23f02d0c3cd5445457d",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出核心接口限流阈值按压测容量的80%设置，覆盖了所有必要要点，且关键事实完全由检索内容[1]支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-009-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确覆盖了必要要点（直接降级、非核心依赖），且关键事实受检索内容支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出非核心依赖建议直接降级，与检索内容完全一致，覆盖了所有必要要点。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 963.188399997307,
+        "usage": {
+          "completion_tokens": 41,
+          "prompt_tokens": 827,
+          "total_tokens": 868,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 827
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1845.558600005461
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "68ad2bb4206ea90a2962822553d4fda2d4b21198eb3d428b77350a5a4f94ac3c",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出非核心依赖建议直接降级，与检索内容完全一致，覆盖了所有必要要点。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-009-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确指出采用半开探测机制，覆盖了必要要点（半开探测、避免恢复瞬间打挂），且该关键事实受检索内容（ops-kb-009）支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出应采用半开探测机制，与检索内容完全一致，覆盖了必要要点。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 942.6219000015408,
+        "usage": {
+          "completion_tokens": 39,
+          "prompt_tokens": 1005,
+          "total_tokens": 1044,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1005
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1675.0353000097675
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "6a968ca3b2980dc1e18bdcb6af2f70480507c946eb18e53a6a3b6de6f0a383a2",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出应采用半开探测机制，与检索内容完全一致，覆盖了必要要点。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-009-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确回答“不能保证”，并指出本地限流导致总放行量超标，建议使用Redis集中式限流，覆盖了必要要点且无实质错误；关键事实受检索内容支持，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确指出不能保证，并建议使用Redis集中式限流，覆盖了所有必要要点，且关键事实均受检索内容ops-kb-009支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 931.5809999970952,
+        "usage": {
+          "completion_tokens": 54,
+          "prompt_tokens": 1136,
+          "total_tokens": 1190,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1136
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2006.78360000893
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "64eca7781369e366c6c2851f4a91aafa65291f8ba797ca7145ee8818a074f911",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确指出不能保证，并建议使用Redis集中式限流，覆盖了所有必要要点，且关键事实均受检索内容ops-kb-009支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-010-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确给出85%和DiskUsageHigh，且关键事实受检索内容支持，无虚构或缺失。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出磁盘使用率超过85%会触发DiskUsageHigh告警，与检索内容完全一致，覆盖了所有必要要点。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 946.0639000026276,
+        "usage": {
+          "completion_tokens": 49,
+          "prompt_tokens": 1031,
+          "total_tokens": 1080,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1031
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1994.3726000055904
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "fac7e5424d30ce4b65859f6bf80e33ba880660c4b7b27bc6c487bb326ec86ead",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出磁盘使用率超过85%会触发DiskUsageHigh告警，与检索内容完全一致，覆盖了所有必要要点。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-010-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确给出了所需命令`du -sh /var/log/* | sort -h`，并明确用于找大目录，覆盖了必要要点且无实质错误；关键事实受检索内容支持，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确给出了检索内容中指定的命令`du -sh /var/log/* | sort -h`用于找大目录，完全覆盖必要要点且与资料一致。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1159.507099990151,
+        "usage": {
+          "completion_tokens": 55,
+          "prompt_tokens": 1138,
+          "total_tokens": 1193,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1138
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2121.365999992122
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "af6ff48b69ba97246b56f0639ca8944adff7e15b3201e1ceee1e237ecb57f8eb",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确给出了检索内容中指定的命令`du -sh /var/log/* | sort -h`用于找大目录，完全覆盖必要要点且与资料一致。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-010-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确覆盖了参考答案中的必要要点（binlog、慢日志、WAL），且关键事实直接受检索内容中《磁盘空间不足处理 SOP》支持，未出现实质错误或捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了binlog、慢日志、WAL三个必要要点，且关键事实直接来源于检索内容ops-kb-010::1，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 802.6372000022093,
+        "usage": {
+          "completion_tokens": 56,
+          "prompt_tokens": 1008,
+          "total_tokens": 1064,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1008
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1869.3741000024602
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "223a0cdcd11c02ab869eed383c639eb1722b66746e5f4fa087d13b74f6a9f314",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案完整覆盖了binlog、慢日志、WAL三个必要要点，且关键事实直接来源于检索内容ops-kb-010::1，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-010-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确回答“不能”仅自动清理7天前日志，并指出需人工审核清理范围，覆盖了必要要点；关键事实（90%升级告警、人工审核、清理范围含容器与镜像）均受检索内容支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确否定了仅自动清理7天前日志的做法，指出90%触发升级告警并需人工审核清理范围，同时补充了应急方案中还包括清理已退出容器与悬空镜像，所有关键信息均来源于检索内容ops-kb-010，覆盖必要要点且无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 929.7387999977218,
+        "usage": {
+          "completion_tokens": 86,
+          "prompt_tokens": 1177,
+          "total_tokens": 1263,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1177
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2675.5211999989115
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "c2428df050d6287ef2f36b0d27e110570b0ba0037c2362b0f16f0d9365a9bd93",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确否定了仅自动清理7天前日志的做法，指出90%触发升级告警并需人工审核清理范围，同时补充了应急方案中还包括清理已退出容器与悬空镜像，所有关键信息均来源于检索内容ops-kb-010，覆盖必要要点且无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-011-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了参考答案中的三个必要要点（上游实例重启/发布中连接拒绝、上游超时超过网关read timeout、Keepalive配置不一致），且无实质错误；关键事实均直接来源于检索到的《网关 502 排查手册》内容，grounded为true；未出现捏造或回避，abstained为false。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了三个必要要点（上游实例重启/发布中连接拒绝、上游超时超过网关read timeout、Keepalive配置不一致），且所有关键事实均直接来源于检索内容ops-kb-011，无幻觉或捏造。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 959.9201999953948,
+        "usage": {
+          "completion_tokens": 71,
+          "prompt_tokens": 1022,
+          "total_tokens": 1093,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1022
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2302.235600000131
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "4a38cca8c9ac12eee195246394b0e748697af41494da977de3b9c89da8aee351",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案完整覆盖了三个必要要点（上游实例重启/发布中连接拒绝、上游超时超过网关read timeout、Keepalive配置不一致），且所有关键事实均直接来源于检索内容ops-kb-011，无幻觉或捏造。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-011-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确覆盖了参考答案中的两个必要要点（摘除异常实例并滚动重启、临时调大网关超时），且关键事实均来自检索到的《网关 502 排查手册》内容，无实质错误或捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了两个必要要点（摘除异常实例并滚动重启、临时调大网关超时），且关键事实均来源于检索到的《网关502排查手册》，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 774.1679000027943,
+        "usage": {
+          "completion_tokens": 60,
+          "prompt_tokens": 877,
+          "total_tokens": 937,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 877
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1824.5127000118373
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "1fc555c355aa9c6bd0998829248f678f255d314617ed5df1b712bf5aa805863f",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案完整覆盖了两个必要要点（摘除异常实例并滚动重启、临时调大网关超时），且关键事实均来源于检索到的《网关502排查手册》，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-011-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确指出应对比网关超时配置与服务P99延迟，覆盖了必要要点，且关键事实受检索内容（网关502排查手册）支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出了应对比网关超时配置与服务P99延迟，完全覆盖必要要点，且关键事实受检索内容ops-kb-011::2支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 665.9080999961589,
+        "usage": {
+          "completion_tokens": 56,
+          "prompt_tokens": 984,
+          "total_tokens": 1040,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 984
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1736.9617999938782
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "811fc6fe173e9c8eaffa08f4fec107e96724502b4b944ec7b3b974e71451587c",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出了应对比网关超时配置与服务P99延迟，完全覆盖必要要点，且关键事实受检索内容ops-kb-011::2支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-011-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案覆盖了必要要点：检查上游存活与发布状态（提及Pod事件、发布窗口、服务指标），readiness控制流量（失败不重启），liveness连续失败达到阈值触发重启。关键事实均受检索内容支持，无实质错误，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案覆盖了所有必要要点：检查上游存活与发布状态（引用了网关502排查手册和探针文档）、readiness控制流量且不触发重启、liveness连续失败达到阈值才触发重启。关键事实均有检索内容支持，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 892.6128000020981,
+        "usage": {
+          "completion_tokens": 74,
+          "prompt_tokens": 1517,
+          "total_tokens": 1591,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1517
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2407.628400003887
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "4869b02e3d59a644aa87bf60a4f3bf25af7da2f2903fb654b216bd168cfca8b5",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案覆盖了所有必要要点：检查上游存活与发布状态（引用了网关502排查手册和探针文档）、readiness控制流量且不触发重启、liveness连续失败达到阈值才触发重启。关键事实均有检索内容支持，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-012-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确覆盖了必要要点：requests用于调度判断，limits描述资源使用限制，并正确说明了CPU limit通过节流、内存limit由内核执行，且关键事实均受检索内容支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答完整覆盖了requests用于调度判断和limits描述资源使用限制两个必要要点，并准确补充了CPU节流和内存OOM等细节，所有关键事实均受检索内容[1]支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 865.3544000117108,
+        "usage": {
+          "completion_tokens": 61,
+          "prompt_tokens": 1264,
+          "total_tokens": 1325,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1264
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2108.4868000034476
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "364d89ab0b4978efbef5bb05ee6eb89714a4627255f819435942c61a0e9fbae7",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答完整覆盖了requests用于调度判断和limits描述资源使用限制两个必要要点，并准确补充了CPU节流和内存OOM等细节，所有关键事实均受检索内容[1]支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-012-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确指出内存超限不保证立刻终止，由内核在内存压力下以OOM方式执行，覆盖了必要要点且无实质错误；关键事实均受检索内容支持，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确覆盖了两个必要要点：不保证越界瞬间立刻终止、由内核在内存压力下执行。关键事实均受检索内容[1]支持，补充的OOMKilled处理建议也来自检索内容[2]，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 721.5327000012621,
+        "usage": {
+          "completion_tokens": 72,
+          "prompt_tokens": 1394,
+          "total_tokens": 1466,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1394
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2053.8246000069194
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "e28366fa05de12bae9f63f0dc11e5b99cb0099e040737c606faff79ca8f78313",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确覆盖了两个必要要点：不保证越界瞬间立刻终止、由内核在内存压力下执行。关键事实均受检索内容[1]支持，补充的OOMKilled处理建议也来自检索内容[2]，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-012-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确回答不能仅凭应用异常文本判定OOM，并引用检索内容说明需核对配置和实际曲线，覆盖了必要要点且无实质错误；关键事实均受检索内容支持，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确指出不能仅凭应用异常文本判定OOM，并强调需核对配置和实际曲线，覆盖了所有必要要点。关键事实均有检索内容支持（chunk 012、004、013），无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1662.1551999996882,
+        "usage": {
+          "completion_tokens": 70,
+          "prompt_tokens": 1232,
+          "total_tokens": 1302,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1232
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2921.785500002443
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "7be47fdd93b27a3e68681b9c266e444c1efe8e2892b281468789f30cbd8a2b90",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确指出不能仅凭应用异常文本判定OOM，并强调需核对配置和实际曲线，覆盖了所有必要要点。关键事实均有检索内容支持（chunk 012、004、013），无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-012-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确指出CPU limits通过节流而非立即终止进程，并区分了内存limit的OOM机制，覆盖必要要点且与检索内容一致。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出CPU limits通过节流约束而非立即终止进程，并正确区分了内存limits的OOM机制，所有关键事实均受检索内容[1]支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 856.97049999726,
+        "usage": {
+          "completion_tokens": 55,
+          "prompt_tokens": 1265,
+          "total_tokens": 1320,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1265
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1897.333000000799
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "f62038d4f6a6b4aa1ab94150569cf29eab089e7f95ab4e2b39b4d57803334996",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出CPU limits通过节流约束而非立即终止进程，并正确区分了内存limits的OOM机制，所有关键事实均受检索内容[1]支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-013-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确指出liveness探针连续失败达到阈值会触发重启，覆盖必要要点且无实质错误；关键事实直接受检索内容支持，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出liveness探针连续失败达到阈值会触发重启，与检索内容完全一致，覆盖了必要要点。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 973.7408999935724,
+        "usage": {
+          "completion_tokens": 44,
+          "prompt_tokens": 1132,
+          "total_tokens": 1176,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1132
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1742.8890000010142
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "605961767afe511930370c060dbd45eac3b83628528c21472898fef15458c5a1",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出liveness探针连续失败达到阈值会触发重启，与检索内容完全一致，覆盖了必要要点。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-013-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确覆盖了必要要点：Readiness失败停止接受流量且不代表一定重启，并补充了Liveness触发重启的区分；关键事实均受检索内容支持，无幻觉。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答覆盖了两个必要要点：停止接受流量、不代表一定重启。虽然开头用'不会'略显绝对，但后文立即补充了'并不代表容器一定会被重启'，与参考答案语义一致且无实质错误。关键事实均有检索内容[1]支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 705.0869000086095,
+        "usage": {
+          "completion_tokens": 76,
+          "prompt_tokens": 1065,
+          "total_tokens": 1141,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1065
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2119.586500004516
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "492b8efd494947d531709938a824d3efb60a61af5f1375c1f7d4128060dbdb7e",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答覆盖了两个必要要点：停止接受流量、不代表一定重启。虽然开头用'不会'略显绝对，但后文立即补充了'并不代表容器一定会被重启'，与参考答案语义一致且无实质错误。关键事实均有检索内容[1]支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-013-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确指出配置startup探针，并说明其适合慢启动应用及在启动成功前不执行其他探针，覆盖了必要要点且无实质错误；关键事实均受检索内容支持。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确指出应配置startup探针，并说明其适合慢启动应用、成功前不执行其他探针，覆盖所有必要要点且完全受检索内容支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 929.7546000016155,
+        "usage": {
+          "completion_tokens": 54,
+          "prompt_tokens": 1174,
+          "total_tokens": 1228,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1174
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1962.0432000083383
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "5568d8b229d1c29d8bff9e50f1f22a3be6f87a387602edf0a1c29bc8d3b2a7ba",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案正确指出应配置startup探针，并说明其适合慢启动应用、成功前不执行其他探针，覆盖所有必要要点且完全受检索内容支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-013-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确回答“不能”，并覆盖了“先看Pod事件和探针失败原因”及“再区分具体故障类型”两个必要要点，且无实质错误；关键事实（如探针作用、OOMKilled需结合Pod事件确认、综合判断）均受检索内容支持，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答正确指出不能仅看探针失败原因，并覆盖了必要要点：先看Pod事件和探针失败原因，再区分启动慢、不能接流量与进程失活。引用的OOMKilled、网关502等扩展内容均有检索资料支持，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1283.0340000073193,
+        "usage": {
+          "completion_tokens": 77,
+          "prompt_tokens": 1798,
+          "total_tokens": 1875,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1798
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2666.933100001188
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "9bbfe0c64a213d94a4ca70f1475c1d9b7709806cb7adbfd33c5188e1d102858f",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答正确指出不能仅看探针失败原因，并覆盖了必要要点：先看Pod事件和探针失败原因，再区分启动慢、不能接流量与进程失活。引用的OOMKilled、网关502等扩展内容均有检索资料支持，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-014-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确指出MySQL 8.4默认未开启慢查询日志，与参考答案和检索内容一致，且关键事实有文档支持，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确指出MySQL 8.4默认未开启慢查询日志，覆盖了必要要点，且关键事实直接来源于检索内容。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 907.3528000008082,
+        "usage": {
+          "completion_tokens": 46,
+          "prompt_tokens": 1224,
+          "total_tokens": 1270,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1224
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1681.2758000014583
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "7cc4ee941874009b5c45e12acddaef9af812b3ff69ad77218ea3e605471dc40e",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确指出MySQL 8.4默认未开启慢查询日志，覆盖了必要要点，且关键事实直接来源于检索内容。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-014-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确指出日志顺序未必等于实际执行顺序，并覆盖了释放锁后才写日志和获取初始锁时间不计入执行时间两个必要要点，关键事实均受检索内容支持，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确覆盖了两个必要要点：日志顺序未必等于实际执行顺序，以及语句执行并释放锁后才写日志。所有关键事实均有检索内容（ops-kb-014）支持，补充的pt-query-digest建议也来自ops-kb-003，无幻觉。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 863.5572000057437,
+        "usage": {
+          "completion_tokens": 82,
+          "prompt_tokens": 1298,
+          "total_tokens": 1380,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1298
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2310.121699993033
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "5d2bcf6d8e3ebae1f8ad07e54673b39b06490d13a752d5505347681517e255a2",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确覆盖了两个必要要点：日志顺序未必等于实际执行顺序，以及语句执行并释放锁后才写日志。所有关键事实均有检索内容（ops-kb-014）支持，补充的pt-query-digest建议也来自ops-kb-003，无幻觉。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-014-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确指出mysqldumpslow工具，覆盖必要要点且无实质错误；关键事实受检索内容支持（ops-kb-014明确提及mysqldumpslow可帮助汇总慢日志）；未出现捏造或信息不足的情况。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确指出使用mysqldumpslow工具汇总慢日志，与检索内容完全一致。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 730.1517000014428,
+        "usage": {
+          "completion_tokens": 40,
+          "prompt_tokens": 1223,
+          "total_tokens": 1263,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1223
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1475.9931000007782
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "44d4cce6c3a60cb983ab350776c130d1c3aeb838fada461e884a352e59b76b28",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案正确指出使用mysqldumpslow工具汇总慢日志，与检索内容完全一致。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-014-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确指出慢查询日志不会记录所有SQL，并说明受long_query_time和min_examined_row_limit等条件控制，覆盖必要要点且无实质错误；关键事实均来自检索内容，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确覆盖了两个必要要点：不是记录所有SQL、受特定条件控制。关键事实（long_query_time、min_examined_row_limit、默认未开启、锁时间不计入等）均来源于检索内容[1]，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 983.6455000040587,
+        "usage": {
+          "completion_tokens": 72,
+          "prompt_tokens": 1316,
+          "total_tokens": 1388,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1316
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2237.080999999307
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "28870f3eae573854b6635fc750a42a483811dac67c4884ef8719b6bf8fc51e71",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确覆盖了两个必要要点：不是记录所有SQL、受特定条件控制。关键事实（long_query_time、min_examined_row_limit、默认未开启、锁时间不计入等）均来源于检索内容[1]，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-015-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确覆盖了必要要点（实际运行语句、输出迭代器统计），并补充了具体指标和注意事项，所有关键事实均受检索内容支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答完整覆盖了两个必要要点（实际运行语句、输出迭代器统计），并准确补充了估计与实际行数、首行时间、执行时间、循环次数等细节，所有信息均来自检索内容ops-kb-015。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1016.2972999969497,
+        "usage": {
+          "completion_tokens": 69,
+          "prompt_tokens": 1367,
+          "total_tokens": 1436,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1367
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2407.135500005097
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "0a40c4293bcaa4bc1f4f91e5858e11e84e25fc573ca05d5ba26bd5af4950339b",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答完整覆盖了两个必要要点（实际运行语句、输出迭代器统计），并准确补充了估计与实际行数、首行时间、执行时间、循环次数等细节，所有信息均来自检索内容ops-kb-015。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-015-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确指出EXPLAIN ANALYZE不是只读操作，并说明会实际运行语句，覆盖了必要要点且无实质错误；关键事实（非只读、实际运行语句）均受检索内容支持，且未出现捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确指出EXPLAIN ANALYZE不是只读操作，会实际运行语句，并补充了排障前需评估代价的建议，完全覆盖必要要点且与检索内容一致。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 775.2223000134109,
+        "usage": {
+          "completion_tokens": 59,
+          "prompt_tokens": 1364,
+          "total_tokens": 1423,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1364
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1920.9899000125006
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "65ae44275d4c5f32303a7907af4d863caf6a0d6b922ee1e45c2f5cec62493254",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确指出EXPLAIN ANALYZE不是只读操作，会实际运行语句，并补充了排障前需评估代价的建议，完全覆盖必要要点且与检索内容一致。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-015-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确指出使用EXPLAIN命令，并强调EXPLAIN ANALYZE会实际运行，覆盖了必要要点且无实质错误；关键事实（EXPLAIN用于查看执行计划、EXPLAIN ANALYZE实际运行）均受检索内容支持。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确指出应使用EXPLAIN命令查看执行计划而不实际运行SQL，并准确区分了EXPLAIN ANALYZE会实际执行语句，所有关键事实均受检索内容支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1038.4293999959482,
+        "usage": {
+          "completion_tokens": 59,
+          "prompt_tokens": 1249,
+          "total_tokens": 1308,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1249
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2027.9704999993555
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "80f6f504373a57671d96182d59c014140a6da6377e333a18cc9918a3261cd2c8",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案正确指出应使用EXPLAIN命令查看执行计划而不实际运行SQL，并准确区分了EXPLAIN ANALYZE会实际执行语句，所有关键事实均受检索内容支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-015-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确覆盖了必要要点：会实际执行语句、输出迭代器统计、不能将单次执行等同于生产性能结论（需评估代价和业务影响），且关键事实均受检索内容支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案覆盖了三个必要要点：实际执行语句、输出迭代器统计（估计与实际行数、执行时间、循环次数等）、以及使用前需评估代价和业务影响（不能简单等同于生产性能结论）。所有关键事实均来源于检索内容ops-kb-015，无幻觉。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 789.0658999967854,
+        "usage": {
+          "completion_tokens": 79,
+          "prompt_tokens": 1554,
+          "total_tokens": 1633,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1554
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2127.73589999415
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "560e5d4b72827a5242e2af544b9dfde3283fa5ab24ee865994625085d38a6a34",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案覆盖了三个必要要点：实际执行语句、输出迭代器统计（估计与实际行数、执行时间、循环次数等）、以及使用前需评估代价和业务影响（不能简单等同于生产性能结论）。所有关键事实均来源于检索内容ops-kb-015，无幻觉。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-016-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确指出WAIT不能使Redis变为强一致，并覆盖了已确认写入仍可能丢失的要点，关键事实均受检索内容支持，无捏造或实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确说明WAIT不能将Redis变为强一致系统，并指出在特定持久化和故障切换条件下已确认写入仍可能丢失，完整覆盖两个必要要点，且所有关键事实均受检索内容支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1088.3180999953765,
+        "usage": {
+          "completion_tokens": 64,
+          "prompt_tokens": 1149,
+          "total_tokens": 1213,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1149
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2333.663199999137
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "7218f6b3b2c07baeebb450d361e7a2e6b212d0edec7c762169076b9de4dc69f4",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确说明WAIT不能将Redis变为强一致系统，并指出在特定持久化和故障切换条件下已确认写入仍可能丢失，完整覆盖两个必要要点，且所有关键事实均受检索内容支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-016-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确覆盖了必要要点（默认异步复制、主节点通常不等待副本处理），并补充了WAIT命令的边界说明，无实质错误；关键事实均受检索内容支持，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答准确覆盖了默认异步复制和主节点通常不等待副本处理两个必要要点，且所有关键事实均受检索内容支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1011.697699999786,
+        "usage": {
+          "completion_tokens": 48,
+          "prompt_tokens": 1142,
+          "total_tokens": 1190,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1142
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1743.71580001025
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "d1688d079b18fbd097fe6e613a8fd1504a7c12a9cc534eea6eb7d23006fb439a",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答准确覆盖了默认异步复制和主节点通常不等待副本处理两个必要要点，且所有关键事实均受检索内容支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-016-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确覆盖了必要要点（考虑持久化配置、已确认写入可能丢失），且关键事实受检索内容支持，未捏造信息。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答完整覆盖了两个必要要点：考虑持久化配置、已确认写入可能丢失，且所有关键事实均来源于检索内容ops-kb-016。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 805.1565000059782,
+        "usage": {
+          "completion_tokens": 54,
+          "prompt_tokens": 1120,
+          "total_tokens": 1174,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1120
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1721.469199997955
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "a36f60844ede21c6090b3a533db538e8e0805c8d582eb0f4967e479b718a9590",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答完整覆盖了两个必要要点：考虑持久化配置、已确认写入可能丢失，且所有关键事实均来源于检索内容ops-kb-016。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-016-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确回答“不保证”，并指出WAIT等待副本确认后，在特定持久化和故障切换条件下已确认写入仍可能丢失，覆盖了必要要点且无实质错误；关键事实（异步复制、WAIT不改变强一致性、特定条件下数据可能丢失）均受检索内容支持。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确指出了不保证绝对不丢，并说明了在特定持久化和故障切换条件下已确认写入仍可能丢失，完全覆盖了必要要点且与检索内容一致。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1219.5285999914631,
+        "usage": {
+          "completion_tokens": 55,
+          "prompt_tokens": 1176,
+          "total_tokens": 1231,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1176
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2300.710199997411
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "492999b02b60c131e2497000d2937d0d993ec5651408e7a62f3155853f2b7a49",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确指出了不保证绝对不丢，并说明了在特定持久化和故障切换条件下已确认写入仍可能丢失，完全覆盖了必要要点且与检索内容一致。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-019-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": false,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确指出最多查询两个服务，但遗漏了必要要点：近一小时四类演示指标（QPS、P99延迟、错误率、CPU）以及不是实际监控接入。因此未覆盖全部必要要点，answer_correct为false；关键事实受检索内容支持，grounded为true；未明确表示不足或需查询，abstained为false。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案正确指出一次最多查询两个服务，关键事实受检索内容支持。虽然未提及近一小时四类演示指标和不是实际监控接入等补充要点，但针对问题核心已准确回答，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 1073.6516999895684,
+        "usage": {
+          "completion_tokens": 65,
+          "prompt_tokens": 1130,
+          "total_tokens": 1195,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1130
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2436.545299991849
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "3e3a22b50f9ae55df9cac29c76943c23e063f011f6c53dba79c4ecb98016e8b9",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案正确指出一次最多查询两个服务，关键事实受检索内容支持。虽然未提及近一小时四类演示指标和不是实际监控接入等补充要点，但针对问题核心已准确回答，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": false,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": false
+  },
+  {
+    "id": "ops-q-019-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确覆盖了必要要点order-service和api-gateway-service，且关键事实直接来源于检索内容ops-kb-019，无实质错误或捏造。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案准确给出了订单服务对应order-service、网关对应api-gateway-service，覆盖了所有必要要点，且关键事实完全由检索内容[ops-kb-019]支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 904.3774999881862,
+        "usage": {
+          "completion_tokens": 59,
+          "prompt_tokens": 1068,
+          "total_tokens": 1127,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1068
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1918.2405999890761
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "91f61c87e2e665a44ef183afea5cf89ea82af03d35fad3f18d72a1014916deb5",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案准确给出了订单服务对应order-service、网关对应api-gateway-service，覆盖了所有必要要点，且关键事实完全由检索内容[ops-kb-019]支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-019-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案覆盖了必要要点：退回同租户最近记录、不能冒充已确认根因，并补充了工具结果为样例的说明；关键事实均受检索内容支持，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了两个必要要点（退回同租户最近记录、不能冒充已确认根因），并补充了工具结果为样例的说明，所有关键事实均受检索内容支持。结合日志平台指南的建议也来源于检索资料，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 853.6017000005813,
+        "usage": {
+          "completion_tokens": 72,
+          "prompt_tokens": 1414,
+          "total_tokens": 1486,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1414
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2170.863300008932
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "d7682f06378e23612e5fb4b95977a744686e87e0c061987bff3697479e3dc029",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"答案完整覆盖了两个必要要点（退回同租户最近记录、不能冒充已确认根因），并补充了工具结果为样例的说明，所有关键事实均受检索内容支持。结合日志平台指南的建议也来源于检索资料，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-019-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确回答“不是真实数据”，并指出是演示指标/样例，覆盖了必要要点；关键事实（工具结果是样例、未接入真实监控系统）直接受检索内容ops-kb-019支持，且引用其他文档佐证，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确指出不是真实数据，并说明是样例/演示指标，覆盖了所有必要要点。关键事实均有检索内容支持（ops-kb-019明确提到'工具结果是样例，不是已接入真实监控系统'及'演示指标'），无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 956.2306000007084,
+        "usage": {
+          "completion_tokens": 76,
+          "prompt_tokens": 1333,
+          "total_tokens": 1409,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1333
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2442.8440000046976
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "98632368440c6b3e8238352b7dbe452e8c0b83363958d665a6ad3d78454d7e6f",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确指出不是真实数据，并说明是样例/演示指标，覆盖了所有必要要点。关键事实均有检索内容支持（ops-kb-019明确提到'工具结果是样例，不是已接入真实监控系统'及'演示指标'），无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-020-1",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确回答viewer不可审批，并指出仅admin或engineer可审批，覆盖必要要点且无实质错误；关键事实受检索内容支持。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确指出viewer不可审批，且仅admin或engineer可审批，覆盖所有必要要点，关键事实均受检索内容ops-kb-020支持。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 924.1470999986632,
+        "usage": {
+          "completion_tokens": 55,
+          "prompt_tokens": 1160,
+          "total_tokens": 1215,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1160
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1879.938800004311
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "435f3e0bdfea444bc9c92613c7f97419b7b56086e8656bed505e7379e826dd8b",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确指出viewer不可审批，且仅admin或engineer可审批，覆盖所有必要要点，关键事实均受检索内容ops-kb-020支持。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-020-2",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确回答“不会自动恢复”，并准确指出应按接口冲突处理，覆盖了必要要点且无实质错误；关键事实（MemorySaver仅保存进程内断点、进程重启丢失等待状态、按接口冲突处理）均受检索内容支持。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确指出不会自动恢复，并说明应按接口冲突处理，覆盖了所有必要要点；关键事实均来源于检索内容ops-kb-020，无幻觉，未回避问题。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 977.1037000027718,
+        "usage": {
+          "completion_tokens": 59,
+          "prompt_tokens": 1301,
+          "total_tokens": 1360,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1301
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2140.374700000393
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "64b24f201d9ab4c188d1faaf2fae98e42640e57e52a3377add6e5e30f0b63d8d",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确指出不会自动恢复，并说明应按接口冲突处理，覆盖了所有必要要点；关键事实均来源于检索内容ops-kb-020，无幻觉，未回避问题。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-020-3",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案覆盖了必要要点（生成草稿并保存审批单、LangGraph interrupt暂停），并补充了审批角色与恢复边界等细节，均与检索内容一致，无实质错误。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答完整覆盖了必要要点（生成草稿并保存审批单、LangGraph interrupt暂停），且所有细节均来源于检索内容ops-kb-020，无实质错误。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 852.8254999982892,
+        "usage": {
+          "completion_tokens": 57,
+          "prompt_tokens": 1242,
+          "total_tokens": 1299,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1242
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1830.6308000028366
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "6dedc547743f1a03bd5b4906117b45e12e522e9552f7d77275667aa7e90bb624",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答完整覆盖了必要要点（生成草稿并保存审批单、LangGraph interrupt暂停），且所有细节均来源于检索内容ops-kb-020，无实质错误。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  },
+  {
+    "id": "ops-q-020-4",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "old": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案明确回答“不等于”，并准确引用检索内容指出MemorySaver仅保存进程内断点，覆盖了必要要点且无实质错误，关键事实受检索内容支持。"
+    },
+    "new": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "回答明确指出审批单落库不等于图断点持久化，并说明当前MemorySaver仅保存进程内断点，完全覆盖必要要点且与检索内容一致。"
+    },
+    "status": "ok",
+    "calls": [
+      {
+        "model": "qwen3.8-max",
+        "status": "ok",
+        "first_token_ms": 725.9901000070386,
+        "usage": {
+          "completion_tokens": 56,
+          "prompt_tokens": 1227,
+          "total_tokens": 1283,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1227
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1707.9865999985486
+      }
+    ],
+    "attempt_errors": [],
+    "input_sha256": "eab5cceb4b6e67b1044a9d56985c2c9bf9ebae255500e3930079c08f6ff50060",
+    "raw_response": "{\"answer_correct\":true,\"grounded\":true,\"abstained\":false,\"reason\":\"回答明确指出审批单落库不等于图断点持久化，并说明当前MemorySaver仅保存进程内断点，完全覆盖必要要点且与检索内容一致。\"}",
+    "retries": 0,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true
+    },
+    "all_agree": true
+  }
+]

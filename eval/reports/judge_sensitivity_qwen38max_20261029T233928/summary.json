@@ -1,0 +1,29 @@
+{
+  "answer_correctness": {
+    "n": 64,
+    "old_pass": 62,
+    "new_pass": 61,
+    "old_rate": 0.96875,
+    "new_rate": 0.953125,
+    "difference_pp": -1.5625,
+    "unresolved": 0
+  },
+  "groundedness": {
+    "n": 64,
+    "old_pass": 64,
+    "new_pass": 64,
+    "old_rate": 1.0,
+    "new_rate": 1.0,
+    "difference_pp": 0.0,
+    "unresolved": 0
+  },
+  "correct_abstention": {
+    "n": 8,
+    "old_pass": 8,
+    "new_pass": 8,
+    "old_rate": 1.0,
+    "new_rate": 1.0,
+    "difference_pp": 0.0,
+    "unresolved": 0
+  }
+}

@@ -1,7 +1,7 @@
 """知识库接口测试：入库 / 三种模式检索 / 删除 / 租户隔离。"""
 import uuid
 
-from tests.conftest import register
+from tests.conftest import seed_tenant_admin
 
 DOC_TITLE = "测试连接池手册"
 
@@ -54,7 +54,7 @@ def test_tenant_isolation_kb(client, admin_headers):
     """租户 B 无法检索/列出租户 A 的文档（业务数据与向量检索双重隔离）。"""
     doc_id = _ingest_pool_doc(client, admin_headers)
     tenant_b = uuid.uuid4().hex[:8]
-    headers_b = register(client, f"user_{tenant_b}", "pass123456", tenant_id=f"t-{tenant_b}")
+    headers_b = seed_tenant_admin(client, f"t-{tenant_b}", f"admin_{tenant_b}", "pass123456")
 
     listed = client.get("/api/kb/documents", headers=headers_b).json()
     assert all(d["id"] != doc_id for d in listed)

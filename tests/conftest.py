@@ -39,10 +39,39 @@ def login(client: TestClient, username: str, password: str) -> dict:
     return {"Authorization": f"Bearer {resp.json()['access_token']}"}
 
 
-def register(client: TestClient, username: str, password: str, tenant_id: str = "default") -> dict:
-    resp = client.post("/auth/register", json={"username": username, "password": password, "tenant_id": tenant_id})
+def register(client: TestClient, username: str, password: str) -> dict:
+    """公开注册：服务端创建隔离租户，不再接受租户参数（修复后不能注册进既有租户）。"""
+    resp = client.post("/auth/register", json={"username": username, "password": password})
     assert resp.status_code == 200, resp.text
     return {"Authorization": f"Bearer {resp.json()['access_token']}"}
+
+
+def admin_create_user(
+    client: TestClient, admin_headers: dict, username: str, password: str, role: str, tenant_id: str = "default"
+) -> dict:
+    """管理员在本租户内建号（加入既有租户的唯一途径，跨租户建号已被拒绝）。"""
+    resp = client.post(
+        "/api/admin/users",
+        json={"username": username, "password": password, "role": role, "tenant_id": tenant_id},
+        headers=admin_headers,
+    )
+    assert resp.status_code == 200, resp.text
+    return login(client, username, password)
+
+
+def seed_tenant_admin(client: TestClient, tenant_id: str, username: str, password: str) -> dict:
+    """测试专用：直接建独立租户与管理员（等价于 scripts/seed.py 的开通路径），随后走登录。"""
+    from app.auth.security import hash_password
+    from app.db.base import SessionLocal
+    from app.db.models import Tenant, User
+
+    with SessionLocal() as db:
+        if not db.get(Tenant, tenant_id):
+            db.add(Tenant(id=tenant_id, name=f"测试租户 {tenant_id}"))
+        if not db.query(User).filter(User.username == username).first():
+            db.add(User(tenant_id=tenant_id, username=username, password_hash=hash_password(password), role="admin"))
+        db.commit()
+    return login(client, username, password)
 
 
 @pytest.fixture(scope="session")
@@ -62,8 +91,8 @@ def engineer_headers(client, admin_headers) -> dict:
 
 
 @pytest.fixture(scope="session")
-def viewer_headers(client) -> dict:
-    return register(client, "viewer_e2e", "view123456", tenant_id="default")
+def viewer_headers(client, admin_headers) -> dict:
+    return admin_create_user(client, admin_headers, "viewer_e2e", "view123456", role="viewer")
 
 
 def new_session(client: TestClient, headers: dict, title: str = "测试会话") -> str:

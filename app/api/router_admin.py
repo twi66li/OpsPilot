@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.auth.deps import require_roles
+from app.auth.deps import AuthUser, require_roles
 from app.auth.security import hash_password
 from app.db.base import get_db
 from app.db.models import Tenant, User
@@ -19,10 +19,12 @@ class UserIn(BaseModel):
 
 
 @router.post("/users")
-def create_user(body: UserIn, _: object = Depends(require_roles("admin")), db: Session = Depends(get_db)):
-    """管理员创建用户（可指定角色与租户）。"""
+def create_user(body: UserIn, admin: AuthUser = Depends(require_roles("admin")), db: Session = Depends(get_db)):
+    """管理员创建用户：仅限本租户（跨租户建号一律拒绝）。"""
     if body.role not in ("admin", "engineer", "viewer"):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "role 必须是 admin/engineer/viewer")
+    if body.tenant_id != admin.tenant_id:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "不能为其他租户创建用户")
     if db.query(User).filter(User.username == body.username).first():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "用户名已存在")
     if not db.get(Tenant, body.tenant_id):

@@ -17,7 +17,8 @@ def _sse(data: dict) -> str:
     return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
-def _emit_graph_events(graph, chunk_iter, events: list[dict]) -> None:
+def _iter_graph_events(chunk_iter):
+    """把 graph.stream(updates) 增量映射为事件流：节点更新到达即产出，不做整图缓存。"""
     for chunk in chunk_iter:
         for node, delta in chunk.items():
             if node == "__interrupt__":
@@ -27,13 +28,18 @@ def _emit_graph_events(graph, chunk_iter, events: list[dict]) -> None:
                     if value is None and isinstance(intr, dict):
                         value = intr
                     if value:
-                        events.append({"type": "approval_required", **value})
+                        yield {"type": "approval_required", **value}
                 continue
             if delta is None:
                 continue
-            events.append({"type": "node_status", "node": node, "status": "completed"})
+            yield {"type": "node_status", "node": node, "status": "completed"}
             for event in delta.get("events", []) or []:
-                events.append(event)
+                yield event
+
+
+def _emit_graph_events(graph, chunk_iter, events: list[dict]) -> None:
+    """非流式路径：一次性收集全部事件（供返回值与测试使用）。"""
+    events.extend(_iter_graph_events(chunk_iter))
 
 
 def _final_snapshot(container, config: dict) -> dict:
@@ -102,12 +108,14 @@ def chat_stream(container, tenant_id: str, user_id: str, username: str, session_
             "history": history,
         }
         yield _sse({"type": "start", "session_id": session_id, "question": question})
-        events: list[dict] = []
-        _emit_graph_events(container.graph, container.graph.stream(input_state, config, stream_mode="updates"), events)
+        stream = container.graph.stream(input_state, config, stream_mode="updates")
+        for event in _iter_graph_events(stream):
+            yield _sse(event)  # 到达即推送，避免先耗尽整图再补发
         with container.db_session() as db:
+            events: list[dict] = []
             _ensure_approval_event(container, db, config, tenant_id, session_id, events)
-        for event in events:
-            yield _sse(event)
+            for event in events:
+                yield _sse(event)
         result = _final_snapshot(container, config)
         with container.db_session() as db:
             approval = _pending_approval_payload(db, tenant_id, session_id)

@@ -1,4 +1,6 @@
 """认证接口：注册 / 登录 / 当前用户。"""
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -14,7 +16,6 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 class RegisterRequest(BaseModel):
     username: str = Field(min_length=3, max_length=64)
     password: str = Field(min_length=6, max_length=64)
-    tenant_id: str = "default"
 
 
 class LoginRequest(BaseModel):
@@ -32,13 +33,16 @@ class TokenResponse(BaseModel):
 
 @router.post("/register", response_model=TokenResponse)
 def register(body: RegisterRequest, db: Session = Depends(get_db)):
-    """注册新用户（默认 viewer 角色，所属租户不存在则自动创建）。"""
+    """公开注册：服务端创建全新隔离租户（默认 viewer 角色）。
+
+    公开注册不能加入任何既有租户；加入既有组织仅限管理员在本租户内建号。
+    """
     if db.query(User).filter(User.username == body.username).first():
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "用户名已存在")
-    if not db.get(Tenant, body.tenant_id):
-        db.add(Tenant(id=body.tenant_id, name=body.tenant_id))
+    tenant_id = uuid.uuid4().hex
+    db.add(Tenant(id=tenant_id, name=f"{body.username} 的组织"))
     user = User(
-        tenant_id=body.tenant_id,
+        tenant_id=tenant_id,
         username=body.username,
         password_hash=hash_password(body.password),
         role="viewer",

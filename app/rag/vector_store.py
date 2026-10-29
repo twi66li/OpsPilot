@@ -5,6 +5,7 @@
   - 内存版: 按 tenant 分桶
 """
 import logging
+import uuid
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
@@ -90,6 +91,15 @@ class InMemoryVectorStore:
         return sum(1 for p in self._points.values() if p["payload"].get("tenant_id") == tenant_id)
 
 
+def _point_id(chunk_id: str) -> str:
+    """由逻辑 chunk_id 派生确定性合法 UUID 作为 Qdrant point id（重复入库幂等覆盖）。
+
+    chunk_id（如 "doc-uuid::0"）不是合法 Qdrant point id（须为 UUID/整数），
+    但仍作为 payload 字段保留，供 BM25/引用/按文档删除使用同一分块标识。
+    """
+    return str(uuid.uuid5(uuid.NAMESPACE_URL, f"kb-chunk:{chunk_id}"))
+
+
 class QdrantVectorStore:
     """Qdrant 封装：memory（进程内）/ local（磁盘）/ remote（独立服务）。"""
 
@@ -111,7 +121,7 @@ class QdrantVectorStore:
         from qdrant_client.models import PointStruct
 
         points = [
-            PointStruct(id=chunk["chunk_id"], vector=vec, payload={**chunk, "tenant_id": tenant_id})
+            PointStruct(id=_point_id(chunk["chunk_id"]), vector=vec, payload={**chunk, "tenant_id": tenant_id})
             for chunk, vec in zip(chunks, vectors)
         ]
         self.client.upsert(self.collection, points=points)

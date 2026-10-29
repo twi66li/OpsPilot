@@ -166,3 +166,5 @@ GitHub Actions（`.github/workflows/ci.yml`）：Python 3.11 + `pip install` + `
 本轮报告：[`report.md`](eval/reports/real_ops_20261029T221616/report.md)，包含四方案检索对照、模型裁判、工具/审批结果和失败明细。
 通过进程环境提供 `DASHSCOPE_API_KEY`、`DASHSCOPE_BASE_URL` 后，运行 `python -m eval.real_eval --output eval/reports/<新实验目录>`；中断可对原目录加 `--resume`。
 旧 `eval/reports/eval_report.md` 是早期 Mock 结果，不作为真实模型成绩。正式报告区分真实模型调用、本地向量后端、模拟业务工具和未验证的外部服务，不代表线上业务收益。
+
+数据集 manifest/validation 是生成时的冻结快照；实测是否完成及运行范围以本轮 run_manifest.json 和 report.md 为准。

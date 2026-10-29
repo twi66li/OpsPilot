@@ -1,0 +1,26 @@
+[
+  {
+    "mode": "bm25",
+    "n": 18,
+    "correct": 17,
+    "rate": 0.9444444444444444
+  },
+  {
+    "mode": "dense",
+    "n": 18,
+    "correct": 17,
+    "rate": 0.9444444444444444
+  },
+  {
+    "mode": "hybrid",
+    "n": 18,
+    "correct": 16,
+    "rate": 0.8888888888888888
+  },
+  {
+    "mode": "hybrid_rerank",
+    "n": 18,
+    "correct": 18,
+    "rate": 1.0
+  }
+]

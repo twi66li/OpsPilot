@@ -1,0 +1,93 @@
+开发集方案冻结：bm25
+行为 ops-tool-01：True
+行为 ops-workflow-01：True
+{"output": "eval\\reports\\smoke_ops_20261029T221411", "selected": "bm25", "test": {"retrieval": {"bm25": {"n": 0, "errors": 0, "recall_at_5": null, "mrr_at_5": null, "search_with_warm_query_vector": {"n": 0, "mean_ms": null, "p50_ms": null, "p95_ms": null}}, "dense": {"n": 0, "errors": 0, "recall_at_5": null, "mrr_at_5": null, "search_with_warm_query_vector": {"n": 0, "mean_ms": null, "p50_ms": null, "p95_ms": null}}, "hybrid": {"n": 0, "errors": 0, "recall_at_5": null, "mrr_at_5": null, "search_with_warm_query_vector": {"n": 0, "mean_ms": null, "p50_ms": null, "p95_ms": null}}, "hybrid_rerank": {"n": 0, "errors": 0, "recall_at_5": null, "mrr_at_5": null, "search_with_warm_query_vector": {"n": 0, "mean_ms": null, "p50_ms": null, "p95_ms": null}}}, "answers": {"n": 0, "errors": 0, "judge_answer_correct_rate": null, "judge_grounded_rate": null, "correct_abstention_rate": null, "generation": {"n": 0, "mean_ms": null, "p50_ms": null, "p95_ms": null}, "model_first_token": {"n": 0, "mean_ms": null, "p50_ms": null, "p95_ms": null}}, "behavior": {"n": 0, "passed": 0, "errors": 0}}, "errors": 0}
+
+STDERR:
+2026-10-30 06:14:18,834 WARNING app.services.cache: Redis 不可达(Timeout connecting to server)，使用进程内缓存
+2026-10-30 06:14:18,845 INFO app.main: 启动完成：索引已就绪，共 0 个分块
+2026-10-30 06:14:21,794 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:22,668 INFO app.services.kb_service: 文档 ops-kb-001 入库完成，6 个分块（租户 default）
+2026-10-30 06:14:23,032 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:23,049 INFO app.services.kb_service: 文档 ops-kb-002 入库完成，5 个分块（租户 default）
+2026-10-30 06:14:23,411 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:23,435 INFO app.services.kb_service: 文档 ops-kb-003 入库完成，4 个分块（租户 default）
+2026-10-30 06:14:23,808 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:23,832 INFO app.services.kb_service: 文档 ops-kb-004 入库完成，4 个分块（租户 default）
+2026-10-30 06:14:24,358 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:24,391 INFO app.services.kb_service: 文档 ops-kb-005 入库完成，4 个分块（租户 default）
+2026-10-30 06:14:24,573 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:24,608 INFO app.services.kb_service: 文档 ops-kb-006 入库完成，5 个分块（租户 default）
+2026-10-30 06:14:24,808 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:24,848 INFO app.services.kb_service: 文档 ops-kb-007 入库完成，5 个分块（租户 default）
+2026-10-30 06:14:24,977 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:25,020 INFO app.services.kb_service: 文档 ops-kb-008 入库完成，3 个分块（租户 default）
+2026-10-30 06:14:25,303 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:25,375 INFO app.services.kb_service: 文档 ops-kb-009 入库完成，4 个分块（租户 default）
+2026-10-30 06:14:25,640 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:25,716 INFO app.services.kb_service: 文档 ops-kb-010 入库完成，4 个分块（租户 default）
+2026-10-30 06:14:25,971 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:26,054 INFO app.services.kb_service: 文档 ops-kb-011 入库完成，5 个分块（租户 default）
+2026-10-30 06:14:26,260 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:26,321 INFO app.services.kb_service: 文档 ops-kb-012 入库完成，1 个分块（租户 default）
+2026-10-30 06:14:26,526 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:26,597 INFO app.services.kb_service: 文档 ops-kb-013 入库完成，1 个分块（租户 default）
+2026-10-30 06:14:26,835 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:26,919 INFO app.services.kb_service: 文档 ops-kb-014 入库完成，1 个分块（租户 default）
+2026-10-30 06:14:27,151 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:27,232 INFO app.services.kb_service: 文档 ops-kb-015 入库完成，1 个分块（租户 default）
+2026-10-30 06:14:27,477 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:27,544 INFO app.services.kb_service: 文档 ops-kb-016 入库完成，1 个分块（租户 default）
+2026-10-30 06:14:27,876 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:27,965 INFO app.services.kb_service: 文档 ops-kb-017 入库完成，1 个分块（租户 default）
+2026-10-30 06:14:28,524 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:28,594 INFO app.services.kb_service: 文档 ops-kb-018 入库完成，1 个分块（租户 default）
+2026-10-30 06:14:29,161 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:29,237 INFO app.services.kb_service: 文档 ops-kb-019 入库完成，1 个分块（租户 default）
+2026-10-30 06:14:29,844 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:29,916 INFO app.services.kb_service: 文档 ops-kb-020 入库完成，1 个分块（租户 default）
+2026-10-30 06:14:30,587 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:32,562 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-10-30 06:14:33,136 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:33,777 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-10-30 06:14:35,247 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:35,382 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:37,621 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:37,764 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:38,897 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:39,151 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:41,199 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:41,715 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:42,514 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:42,850 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:45,113 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:45,492 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:46,291 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:46,588 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:49,263 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:49,336 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  return self._jws.encode(
+2026-10-30 06:14:50,204 INFO httpx2: HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+2026-10-30 06:14:50,299 INFO httpx2: HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+2026-10-30 06:14:50,397 INFO httpx2: HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:370: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  decoded = self.decode_complete(
+2026-10-30 06:14:50,409 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-10-30 06:14:50,751 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:50,810 INFO app.services.observability: [trace] span=retrieval dur=387.1ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': False, 'latency_ms': 384.9}
+2026-10-30 06:14:51,334 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:51,521 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 2, 'tools': ['query_service_metrics', 'query_fault_history']}
+2026-10-30 06:14:52,008 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:56,074 INFO app.services.observability: [trace] span=generate dur=4549.6ms meta={'answer_chars': 740, 'tokens_in': 584, 'tokens_out': 458}
+2026-10-30 06:14:56,085 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-10-30 06:14:56,456 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:14:56,524 INFO app.services.observability: [trace] span=retrieval dur=432.1ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': False, 'latency_ms': 431.1}
+2026-10-30 06:14:57,208 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:14:57,364 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 2, 'tools': ['query_service_metrics', 'query_fault_history']}
+2026-10-30 06:14:58,208 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:15:02,677 INFO app.services.observability: [trace] span=generate dur=5311.2ms meta={'answer_chars': 931, 'tokens_in': 502, 'tokens_out': 557}
+2026-10-30 06:15:03,279 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:370: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  decoded = self.decode_complete(
+2026-10-30 06:15:04,557 INFO httpx2: HTTP Request: POST http://testserver/api/agent/approvals/a14e51167f8c4f929f4d4ee6da79424c/decide "HTTP/1.1 200 OK"

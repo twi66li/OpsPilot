@@ -1,0 +1,181 @@
+检索 70/100
+检索 80/100
+检索 90/100
+dev 回答与裁判：累计 10
+dev 回答与裁判：累计 20
+dev 回答与裁判：累计 30
+dev 回答与裁判：累计 40
+dev 回答与裁判：累计 50
+dev 回答与裁判：累计 60
+dev 回答与裁判：累计 70
+开发集方案冻结：hybrid_rerank
+test 回答与裁判：累计 80
+test 回答与裁判：累计 90
+test 回答与裁判：累计 100
+test 回答与裁判：累计 110
+test 回答与裁判：累计 120
+test 回答与裁判：累计 130
+test 回答与裁判：累计 140
+行为 ops-tool-01：True
+行为 ops-tool-02：True
+行为 ops-tool-03：True
+行为 ops-tool-04：True
+行为 ops-tool-05：True
+行为 ops-workflow-01：True
+行为 ops-workflow-02：True
+行为 ops-workflow-03：True
+行为 ops-workflow-04：True
+行为 ops-workflow-05：True
+{"output": "eval\\reports\\real_ops_20261029T221616", "selected": "hybrid_rerank", "test": {"retrieval": {"bm25": {"n": 64, "errors": 0, "recall_at_5": 1.0, "mrr_at_5": 0.9921875, "search_with_warm_query_vector": {"n": 64, "mean_ms": 1.32, "p50_ms": 1.16, "p95_ms": 2.19}}, "dense": {"n": 64, "errors": 0, "recall_at_5": 1.0, "mrr_at_5": 0.9765625, "search_with_warm_query_vector": {"n": 64, "mean_ms": 1.78, "p50_ms": 1.59, "p95_ms": 2.87}}, "hybrid": {"n": 64, "errors": 0, "recall_at_5": 1.0, "mrr_at_5": 0.9765625, "search_with_warm_query_vector": {"n": 64, "mean_ms": 2.77, "p50_ms": 2.46, "p95_ms": 3.9}}, "hybrid_rerank": {"n": 64, "errors": 0, "recall_at_5": 1.0, "mrr_at_5": 1.0, "search_with_warm_query_vector": {"n": 64, "mean_ms": 238.44, "p50_ms": 222.36, "p95_ms": 359.02}}}, "answers": {"n": 72, "errors": 0, "judge_answer_correct_rate": 0.96875, "judge_grounded_rate": 1.0, "correct_abstention_rate": 1.0, "generation": {"n": 72, "mean_ms": 2419.92, "p50_ms": 1849.27, "p95_ms": 6857.19}, "model_first_token": {"n": 72, "mean_ms": 877.26, "p50_ms": 649.95, "p95_ms": 1913.71}}, "behavior": {"n": 8, "passed": 8, "errors": 0}}, "errors": 0}
+
+STDERR:
+FO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:11,099 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:14,291 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:16,260 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:19,062 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:19,271 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:20,423 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:21,132 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:24,544 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:24,953 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:26,983 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:27,001 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:29,798 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:29,840 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:30,769 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:31,014 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:32,890 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:33,245 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:34,131 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:34,449 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:36,835 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:37,726 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:37,904 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:39,146 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:40,573 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:42,220 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:42,245 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:43,648 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:44,611 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:45,813 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:46,250 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:47,973 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:48,443 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:50,258 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:52,690 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:53,967 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:54,433 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:55,875 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:57,937 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:28:58,922 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:00,052 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:01,121 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:01,245 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:02,573 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:03,775 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:04,829 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:06,203 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:07,482 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:08,451 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:09,621 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:09,760 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:10,724 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:13,295 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:14,715 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:14,923 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:16,834 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:19,365 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:20,587 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:20,977 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:24,152 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  return self._jws.encode(
+2026-10-30 06:29:24,974 INFO httpx2: HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+2026-10-30 06:29:25,133 INFO httpx2: HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+2026-10-30 06:29:25,260 INFO httpx2: HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:370: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  decoded = self.decode_complete(
+2026-10-30 06:29:25,310 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-10-30 06:29:26,323 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:29:26,530 INFO app.services.observability: [trace] span=retrieval dur=1202.4ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': False, 'latency_ms': 1199.0}
+2026-10-30 06:29:27,670 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:27,818 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 2, 'tools': ['query_service_metrics', 'query_fault_history']}
+2026-10-30 06:29:28,936 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:32,056 INFO app.services.observability: [trace] span=generate dur=4232.1ms meta={'answer_chars': 654, 'tokens_in': 584, 'tokens_out': 412}
+2026-10-30 06:29:32,071 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-10-30 06:29:32,453 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:29:32,674 INFO app.services.observability: [trace] span=retrieval dur=598.4ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': False, 'latency_ms': 597.6}
+2026-10-30 06:29:33,181 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:33,322 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 2, 'tools': ['query_service_metrics', 'query_fault_history']}
+2026-10-30 06:29:33,842 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:39,050 INFO app.services.observability: [trace] span=generate dur=5725.3ms meta={'answer_chars': 1134, 'tokens_in': 638, 'tokens_out': 702}
+2026-10-30 06:29:39,066 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-10-30 06:29:39,495 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:29:39,705 INFO app.services.observability: [trace] span=retrieval dur=631.5ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': False, 'latency_ms': 630.6}
+2026-10-30 06:29:40,208 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:40,346 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 2, 'tools': ['query_service_metrics', 'query_fault_history']}
+2026-10-30 06:29:40,835 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:45,054 INFO app.services.observability: [trace] span=generate dur=4703.8ms meta={'answer_chars': 696, 'tokens_in': 552, 'tokens_out': 442}
+2026-10-30 06:29:45,063 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-10-30 06:29:45,367 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:29:45,555 INFO app.services.observability: [trace] span=retrieval dur=486.9ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': False, 'latency_ms': 485.7}
+2026-10-30 06:29:46,094 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:46,335 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 2, 'tools': ['query_service_metrics', 'query_fault_history']}
+2026-10-30 06:29:47,023 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:52,314 INFO app.services.observability: [trace] span=generate dur=5976.8ms meta={'answer_chars': 1069, 'tokens_in': 668, 'tokens_out': 721}
+2026-10-30 06:29:52,322 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-10-30 06:29:52,886 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:29:53,022 INFO app.services.observability: [trace] span=retrieval dur=694.9ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': False, 'latency_ms': 694.3}
+2026-10-30 06:29:54,065 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:29:54,260 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 2, 'tools': ['query_service_metrics', 'query_fault_history']}
+2026-10-30 06:29:55,951 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:02,070 INFO app.services.observability: [trace] span=generate dur=7807.8ms meta={'answer_chars': 1198, 'tokens_in': 635, 'tokens_out': 735}
+2026-10-30 06:30:02,081 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-10-30 06:30:02,580 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:30:02,838 INFO app.services.observability: [trace] span=retrieval dur=754.6ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': False, 'latency_ms': 753.6}
+2026-10-30 06:30:03,433 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:03,570 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 2, 'tools': ['query_service_metrics', 'query_fault_history']}
+2026-10-30 06:30:04,690 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:09,378 INFO app.services.observability: [trace] span=generate dur=5802.2ms meta={'answer_chars': 853, 'tokens_in': 502, 'tokens_out': 541}
+2026-10-30 06:30:09,920 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:370: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  decoded = self.decode_complete(
+2026-10-30 06:30:11,508 INFO httpx2: HTTP Request: POST http://testserver/api/agent/approvals/effed3e9bbed4242a530fdd0eb7b8b8a/decide "HTTP/1.1 200 OK"
+2026-10-30 06:30:11,516 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-10-30 06:30:11,937 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:30:12,080 INFO app.services.observability: [trace] span=retrieval dur=560.0ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': False, 'latency_ms': 559.2}
+2026-10-30 06:30:12,640 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:12,809 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 2, 'tools': ['query_service_metrics', 'query_fault_history']}
+2026-10-30 06:30:13,362 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:17,437 INFO app.services.observability: [trace] span=generate dur=4625.1ms meta={'answer_chars': 775, 'tokens_in': 425, 'tokens_out': 498}
+2026-10-30 06:30:17,948 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:19,566 INFO httpx2: HTTP Request: POST http://testserver/api/agent/approvals/791a659a67e54d4ea147007704ee2e7d/decide "HTTP/1.1 200 OK"
+2026-10-30 06:30:19,578 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-10-30 06:30:20,008 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:30:20,142 INFO app.services.observability: [trace] span=retrieval dur=559.6ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': False, 'latency_ms': 559.0}
+2026-10-30 06:30:20,833 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:21,059 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 2, 'tools': ['query_service_metrics', 'query_fault_history']}
+2026-10-30 06:30:21,878 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:25,938 INFO app.services.observability: [trace] span=generate dur=4875.1ms meta={'answer_chars': 681, 'tokens_in': 320, 'tokens_out': 436}
+2026-10-30 06:30:27,817 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:29,852 INFO httpx2: HTTP Request: POST http://testserver/api/agent/approvals/970aeb7dbf3b41efa6a2917531a2f44f/decide "HTTP/1.1 200 OK"
+2026-10-30 06:30:29,860 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-10-30 06:30:31,241 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:30:31,446 INFO app.services.observability: [trace] span=retrieval dur=1581.3ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': False, 'latency_ms': 1580.2}
+2026-10-30 06:30:33,784 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:33,938 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 2, 'tools': ['query_service_metrics', 'query_fault_history']}
+2026-10-30 06:30:35,089 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:39,372 INFO app.services.observability: [trace] span=generate dur=5432.2ms meta={'answer_chars': 857, 'tokens_in': 388, 'tokens_out': 482}
+2026-10-30 06:30:40,704 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:41,927 INFO httpx2: HTTP Request: POST http://testserver/api/agent/approvals/fee1d3a400b7407b8ba64cd5bceba41f/decide "HTTP/1.1 403 Forbidden"
+2026-10-30 06:30:41,936 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-10-30 06:30:42,260 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-10-30 06:30:42,428 INFO app.services.observability: [trace] span=retrieval dur=487.9ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': False, 'latency_ms': 487.1}
+2026-10-30 06:30:42,898 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:43,077 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 1, 'tools': ['query_fault_history']}
+2026-10-30 06:30:43,578 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:46,686 INFO app.services.observability: [trace] span=generate dur=3607.6ms meta={'answer_chars': 659, 'tokens_in': 509, 'tokens_out': 455}
+2026-10-30 06:30:47,230 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-10-30 06:30:48,546 INFO httpx2: HTTP Request: POST http://testserver/api/agent/approvals/a094a255e88643d88b1eae09b1071def/decide "HTTP/1.1 200 OK"
+2026-10-30 06:30:48,553 INFO httpx2: HTTP Request: POST http://testserver/api/agent/approvals/a094a255e88643d88b1eae09b1071def/decide "HTTP/1.1 400 Bad Request"

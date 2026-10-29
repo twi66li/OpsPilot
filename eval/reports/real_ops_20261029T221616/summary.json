@@ -1,0 +1,165 @@
+{
+  "selected_on_dev": "hybrid_rerank",
+  "splits": {
+    "dev": {
+      "retrieval": {
+        "bm25": {
+          "n": 16,
+          "errors": 0,
+          "recall_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "search_with_warm_query_vector": {
+            "n": 16,
+            "mean_ms": 1.18,
+            "p50_ms": 1.17,
+            "p95_ms": 2.11
+          }
+        },
+        "dense": {
+          "n": 16,
+          "errors": 0,
+          "recall_at_5": 1.0,
+          "mrr_at_5": 0.96875,
+          "search_with_warm_query_vector": {
+            "n": 16,
+            "mean_ms": 1.8,
+            "p50_ms": 1.55,
+            "p95_ms": 3.19
+          }
+        },
+        "hybrid": {
+          "n": 16,
+          "errors": 0,
+          "recall_at_5": 1.0,
+          "mrr_at_5": 0.96875,
+          "search_with_warm_query_vector": {
+            "n": 16,
+            "mean_ms": 2.42,
+            "p50_ms": 2.16,
+            "p95_ms": 4.0
+          }
+        },
+        "hybrid_rerank": {
+          "n": 16,
+          "errors": 0,
+          "recall_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "search_with_warm_query_vector": {
+            "n": 16,
+            "mean_ms": 368.02,
+            "p50_ms": 228.35,
+            "p95_ms": 1554.08
+          }
+        }
+      },
+      "answers": {
+        "n": 18,
+        "errors": 0,
+        "judge_answer_correct_rate": 1.0,
+        "judge_grounded_rate": 1.0,
+        "correct_abstention_rate": 1.0,
+        "generation": {
+          "n": 18,
+          "mean_ms": 2009.25,
+          "p50_ms": 1939.28,
+          "p95_ms": 3792.55
+        },
+        "model_first_token": {
+          "n": 18,
+          "mean_ms": 687.74,
+          "p50_ms": 541.55,
+          "p95_ms": 1472.81
+        }
+      },
+      "behavior": {
+        "n": 2,
+        "passed": 2,
+        "errors": 0,
+        "functional_passed": 2,
+        "tool_cases": 1,
+        "tool_answer_consistent": 1,
+        "simulation_disclosed": 1
+      }
+    },
+    "test": {
+      "retrieval": {
+        "bm25": {
+          "n": 64,
+          "errors": 0,
+          "recall_at_5": 1.0,
+          "mrr_at_5": 0.9921875,
+          "search_with_warm_query_vector": {
+            "n": 64,
+            "mean_ms": 1.32,
+            "p50_ms": 1.16,
+            "p95_ms": 2.19
+          }
+        },
+        "dense": {
+          "n": 64,
+          "errors": 0,
+          "recall_at_5": 1.0,
+          "mrr_at_5": 0.9765625,
+          "search_with_warm_query_vector": {
+            "n": 64,
+            "mean_ms": 1.78,
+            "p50_ms": 1.59,
+            "p95_ms": 2.87
+          }
+        },
+        "hybrid": {
+          "n": 64,
+          "errors": 0,
+          "recall_at_5": 1.0,
+          "mrr_at_5": 0.9765625,
+          "search_with_warm_query_vector": {
+            "n": 64,
+            "mean_ms": 2.77,
+            "p50_ms": 2.46,
+            "p95_ms": 3.9
+          }
+        },
+        "hybrid_rerank": {
+          "n": 64,
+          "errors": 0,
+          "recall_at_5": 1.0,
+          "mrr_at_5": 1.0,
+          "search_with_warm_query_vector": {
+            "n": 64,
+            "mean_ms": 238.44,
+            "p50_ms": 222.36,
+            "p95_ms": 359.02
+          }
+        }
+      },
+      "answers": {
+        "n": 72,
+        "errors": 0,
+        "judge_answer_correct_rate": 0.96875,
+        "judge_grounded_rate": 1.0,
+        "correct_abstention_rate": 1.0,
+        "generation": {
+          "n": 72,
+          "mean_ms": 2419.92,
+          "p50_ms": 1849.27,
+          "p95_ms": 6857.19
+        },
+        "model_first_token": {
+          "n": 72,
+          "mean_ms": 877.26,
+          "p50_ms": 649.95,
+          "p95_ms": 1913.71
+        }
+      },
+      "behavior": {
+        "n": 8,
+        "passed": 6,
+        "errors": 0,
+        "functional_passed": 8,
+        "tool_cases": 4,
+        "tool_answer_consistent": 4,
+        "simulation_disclosed": 2
+      }
+    }
+  }
+}

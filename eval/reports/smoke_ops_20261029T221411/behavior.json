@@ -1,0 +1,431 @@
+[
+  {
+    "id": "ops-tool-01",
+    "split": "dev",
+    "task_type": "tool",
+    "status": "ok",
+    "passed": true,
+    "checks": {
+      "stream_start": true,
+      "stream_done": true,
+      "required_tools": true,
+      "tool_arguments": true
+    },
+    "events": [
+      {
+        "type": "start",
+        "session_id": "c6242aa3fc2747e6b01ebe30b21ceda6",
+        "question": "请查询订单服务近一小时的运行指标并参考历史故障。"
+      },
+      {
+        "type": "node_status",
+        "node": "route_intent",
+        "status": "completed"
+      },
+      {
+        "type": "node_status",
+        "node": "retrieve",
+        "status": "completed"
+      },
+      {
+        "type": "retrieval",
+        "mode": "hybrid",
+        "query": "请查询订单服务近一小时的运行指标并参考历史故障。",
+        "latency_ms": 384.9,
+        "reranked": false,
+        "hits": [
+          {
+            "chunk_id": "ops-kb-019::0",
+            "doc_id": "ops-kb-019",
+            "doc_title": "诊断工具的输入与证据边界",
+            "text": "# 诊断工具的输入与证据边界\n\n诊断工具按服务标识或中文别名提取实体，订单服务映射为 order-service，网关映射为 api-gateway-service。query_service_metrics 提供近一小时 QPS、P99 延迟、错误率和 CPU 的演示指标，一次最多查询两个服务。query_fault_history 按租户、服务和错误码检索故障，精确匹配为空时退回同租户最近记录；最近记录不能冒充同一故障的已确认根因。工具结果是样例，不是已接入真实监控系统。\n\n---\n资料编号：ops-kb-019\n适用范围：当前代码实现摘要；不代表生产系统能力。\n来源：app/agent/tools.py、app/services/metrics_service.py\n整理日期：2026-10-30",
+            "source": "project",
+            "score": 0.0328
+          },
+          {
+            "chunk_id": "ops-kb-006::2",
+            "doc_id": "ops-kb-006",
+            "doc_title": "order-service 接口超时排查 SOP",
+            "text": "# order-service 接口超时排查 SOP\n## 排查步骤\n1. 查看实时指标：QPS、P99、错误率、CPU（Agent 可通过 `query_service_metrics` 工具自动获取）。\n2. 确认是否集中在某个接口：结合网关访问日志聚合 top 慢接口。\n3. 检查下游依赖的熔断/限流状态，必要时手动降级非核心依赖。\n4. 抓取线程 dump，确认线程是否阻塞在数据库或 HTTP 客户端上。",
+            "source": "scripts/knowledge/order-service_接口超时排查SOP.md",
+            "score": 0.0161
+          },
+          {
+            "chunk_id": "ops-kb-007::2",
+            "doc_id": "ops-kb-007",
+            "doc_title": "payment-service 对账失败处理手册",
+            "text": "# payment-service 对账失败处理手册\n## 排查步骤\n1. 确认对账文件下载是否成功，行数与渠道后台是否一致。\n2. 查询差异明细：本地订单表中状态为 PROCESSING 超过 30 分钟的订单。\n3. 对差异订单调用渠道查询接口核实真实支付状态。",
+            "source": "scripts/knowledge/payment-service_对账失败处理手册.md",
+            "score": 0.0161
+          },
+          {
+            "chunk_id": "ops-kb-006::0",
+            "doc_id": "ops-kb-006",
+            "doc_title": "order-service 接口超时排查 SOP",
+            "text": "# order-service 接口超时排查 SOP\n\n## 适用场景\n订单服务（order-service）对外接口 P99 延迟超过 1s，或出现大量 `Read timed out`。",
+            "source": "scripts/knowledge/order-service_接口超时排查SOP.md",
+            "score": 0.0159
+          },
+          {
+            "chunk_id": "ops-kb-007::3",
+            "doc_id": "ops-kb-007",
+            "doc_title": "payment-service 对账失败处理手册",
+            "text": "# payment-service 对账失败处理手册\n## 处理方案\n- 应急：手工触发补单任务，按渠道查询结果修复订单状态。\n- 治理：对账任务增加重试与告警；回调处理保证幂等。\n- 升级：涉及资金差异时立即创建 P1 工单并通知财务值班。",
+            "source": "scripts/knowledge/payment-service_对账失败处理手册.md",
+            "score": 0.0159
+          }
+        ],
+        "round": 1
+      },
+      {
+        "type": "node_status",
+        "node": "grade",
+        "status": "completed"
+      },
+      {
+        "type": "grade",
+        "docs_sufficient": true,
+        "iteration": 1
+      },
+      {
+        "type": "node_status",
+        "node": "call_tools",
+        "status": "completed"
+      },
+      {
+        "type": "tool",
+        "name": "query_service_metrics",
+        "args": {
+          "service": "order-service",
+          "window_minutes": 60
+        },
+        "summary": "QPS=421.74, P99=607.97ms, 错误率=4.21%",
+        "anomalies": [
+          "P99 延迟 607.97ms 超过 300ms 阈值",
+          "错误率 4.21% 超过 1% 阈值",
+          "CPU 使用率 90.35% 超过 85% 阈值"
+        ]
+      },
+      {
+        "type": "tool",
+        "name": "query_fault_history",
+        "args": {
+          "service": [
+            "order-service"
+          ],
+          "error_codes": []
+        },
+        "summary": "命中 0 条历史故障",
+        "anomalies": []
+      },
+      {
+        "type": "node_status",
+        "node": "generate",
+        "status": "completed"
+      },
+      {
+        "type": "answer",
+        "answer": "根据工具输出和知识库文档，订单服务（order-service）近一小时的运行指标及历史故障查询结果如下：\n\n**1. 运行指标现状**\n*   **QPS**: 421.74\n*   **P99 延迟**: 607.97ms\n*   **错误率**: 4.21%\n    *   *注：以上数据由 `query_service_metrics` 工具提供 [1]。*\n\n**2. 历史故障参考**\n*   **查询结果**: 命中 0 条历史故障记录。\n*   **相似故障**: 无。\n    *   *注：`query_fault_history` 在精确匹配为空时退回同租户最近记录，但本次未检索到相关记录 [1]。*\n\n**3. 诊断建议与排查方向**\n虽然当前 P99 延迟（607.97ms）尚未达到《order-service 接口超时排查 SOP》中定义的“超过 1s”的严重阈值 [4]，但 **4.21% 的错误率** 值得关注。建议按照以下 SOP 步骤进行进一步排查 [2]：\n\n1.  **确认接口分布**: 结合网关访问日志，聚合查看是否集中在某个特定接口导致高错误率或延迟 [2]。\n2.  **检查下游依赖**: 检查订单服务的下游依赖是否存在熔断或限流状态，必要时考虑手动降级非核心依赖 [2]。\n3.  **线程分析**: 如果问题持续，抓取线程 dump，确认线程是否阻塞在数据库或 HTTP 客户端调用上 [2]。\n\n**重要提示**：\n*   当前工具返回的结果为演示/样例数据，并非已接入真实生产监控系统的数据 [1]。\n*   由于未命中历史故障，不能将任何通用经验直接作为已确认根因，需依据实时日志和监控数据进行独立判断 [1]。",
+        "citations": [
+          "诊断工具的输入与证据边界",
+          "order-service 接口超时排查 SOP",
+          "payment-service 对账失败处理手册"
+        ]
+      },
+      {
+        "status": "answered",
+        "answer": "根据工具输出和知识库文档，订单服务（order-service）近一小时的运行指标及历史故障查询结果如下：\n\n**1. 运行指标现状**\n*   **QPS**: 421.74\n*   **P99 延迟**: 607.97ms\n*   **错误率**: 4.21%\n    *   *注：以上数据由 `query_service_metrics` 工具提供 [1]。*\n\n**2. 历史故障参考**\n*   **查询结果**: 命中 0 条历史故障记录。\n*   **相似故障**: 无。\n    *   *注：`query_fault_history` 在精确匹配为空时退回同租户最近记录，但本次未检索到相关记录 [1]。*\n\n**3. 诊断建议与排查方向**\n虽然当前 P99 延迟（607.97ms）尚未达到《order-service 接口超时排查 SOP》中定义的“超过 1s”的严重阈值 [4]，但 **4.21% 的错误率** 值得关注。建议按照以下 SOP 步骤进行进一步排查 [2]：\n\n1.  **确认接口分布**: 结合网关访问日志，聚合查看是否集中在某个特定接口导致高错误率或延迟 [2]。\n2.  **检查下游依赖**: 检查订单服务的下游依赖是否存在熔断或限流状态，必要时考虑手动降级非核心依赖 [2]。\n3.  **线程分析**: 如果问题持续，抓取线程 dump，确认线程是否阻塞在数据库或 HTTP 客户端调用上 [2]。\n\n**重要提示**：\n*   当前工具返回的结果为演示/样例数据，并非已接入真实生产监控系统的数据 [1]。\n*   由于未命中历史故障，不能将任何通用经验直接作为已确认根因，需依据实时日志和监控数据进行独立判断 [1]。",
+        "citations": [
+          "诊断工具的输入与证据边界",
+          "order-service 接口超时排查 SOP",
+          "payment-service 对账失败处理手册"
+        ],
+        "intent": "diagnose",
+        "ticket_id": null,
+        "docs_sufficient": true,
+        "type": "final"
+      },
+      {
+        "type": "done"
+      }
+    ],
+    "first_answer_event_ms": 5663.430300002801,
+    "elapsed_ms": 5680.790200000047,
+    "model_calls": [
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 523.7444000085816,
+        "usage": {
+          "completion_tokens": 19,
+          "prompt_tokens": 569,
+          "total_tokens": 588,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 569
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 687.7529000048526
+      },
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 484.1392999951495,
+        "usage": {
+          "completion_tokens": 419,
+          "prompt_tokens": 669,
+          "total_tokens": 1088,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 669
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 4549.378099996829
+      }
+    ]
+  },
+  {
+    "id": "ops-workflow-01",
+    "split": "dev",
+    "task_type": "workflow",
+    "status": "ok",
+    "decision_status": 200,
+    "passed": true,
+    "checks": {
+      "stream_start": true,
+      "stream_done": true,
+      "interrupt": true,
+      "no_ticket_before_approval": true,
+      "decision_status": true,
+      "ticket_creation": true
+    },
+    "events": [
+      {
+        "type": "start",
+        "session_id": "89adf0c2f3234ab5a02aa4bda40a63a2",
+        "question": "order-service 又超时了，请创建工单跟进。"
+      },
+      {
+        "type": "node_status",
+        "node": "route_intent",
+        "status": "completed"
+      },
+      {
+        "type": "node_status",
+        "node": "retrieve",
+        "status": "completed"
+      },
+      {
+        "type": "retrieval",
+        "mode": "hybrid",
+        "query": "order-service 又超时了，请创建工单跟进。",
+        "latency_ms": 431.1,
+        "reranked": false,
+        "hits": [
+          {
+            "chunk_id": "ops-kb-006::0",
+            "doc_id": "ops-kb-006",
+            "doc_title": "order-service 接口超时排查 SOP",
+            "text": "# order-service 接口超时排查 SOP\n\n## 适用场景\n订单服务（order-service）对外接口 P99 延迟超过 1s，或出现大量 `Read timed out`。",
+            "source": "scripts/knowledge/order-service_接口超时排查SOP.md",
+            "score": 0.0325
+          },
+          {
+            "chunk_id": "ops-kb-006::3",
+            "doc_id": "ops-kb-006",
+            "doc_title": "order-service 接口超时排查 SOP",
+            "text": "# order-service 接口超时排查 SOP\n## 处理方案\n- 应急：对非核心下游执行降级；扩容 order-service 实例数。\n- 治理：为下游调用设置 200ms~1s 超时并启用熔断；优化慢 SQL。\n- 复盘：将根因与处理步骤录入故障知识库。",
+            "source": "scripts/knowledge/order-service_接口超时排查SOP.md",
+            "score": 0.032
+          },
+          {
+            "chunk_id": "ops-kb-006::1",
+            "doc_id": "ops-kb-006",
+            "doc_title": "order-service 接口超时排查 SOP",
+            "text": "# order-service 接口超时排查 SOP\n## 常见根因\n1. 数据库连接池耗尽（见 ERR_5003 手册）。\n2. 下游依赖（库存服务、支付服务）抖动，未配置合理超时与熔断。\n3. 大促期间 QPS 突增，线程池打满。\n4. GC 停顿：Full GC 频繁导致 STW。",
+            "source": "scripts/knowledge/order-service_接口超时排查SOP.md",
+            "score": 0.0313
+          },
+          {
+            "chunk_id": "ops-kb-020::0",
+            "doc_id": "ops-kb-020",
+            "doc_title": "运维工单审批与恢复边界",
+            "text": "# 运维工单审批与恢复边界\n\n用户请求创建工单时先生成草稿并保存审批单，LangGraph interrupt 暂停流程。admin 或 engineer 可审批，viewer 不可审批；批准后创建工单，拒绝不创建。相同审批单不允许重复决定。当前 MemorySaver 只保存进程内断点；审批单落库不等于图断点持久化，进程重启丢失等待状态时不能声称自动恢复，应按接口冲突处理。\n\n---\n资料编号：ops-kb-020\n适用范围：当前代码实现摘要；不代表生产系统能力。\n来源：app/services/agent_service.py、app/agent/graph.py、app/api/router_agent.py\n整理日期：2026-10-30",
+            "source": "project",
+            "score": 0.0161
+          },
+          {
+            "chunk_id": "ops-kb-007::3",
+            "doc_id": "ops-kb-007",
+            "doc_title": "payment-service 对账失败处理手册",
+            "text": "# payment-service 对账失败处理手册\n## 处理方案\n- 应急：手工触发补单任务，按渠道查询结果修复订单状态。\n- 治理：对账任务增加重试与告警；回调处理保证幂等。\n- 升级：涉及资金差异时立即创建 P1 工单并通知财务值班。",
+            "source": "scripts/knowledge/payment-service_对账失败处理手册.md",
+            "score": 0.0159
+          }
+        ],
+        "round": 1
+      },
+      {
+        "type": "node_status",
+        "node": "grade",
+        "status": "completed"
+      },
+      {
+        "type": "grade",
+        "docs_sufficient": true,
+        "iteration": 1
+      },
+      {
+        "type": "node_status",
+        "node": "call_tools",
+        "status": "completed"
+      },
+      {
+        "type": "tool",
+        "name": "query_service_metrics",
+        "args": {
+          "service": "order-service",
+          "window_minutes": 60
+        },
+        "summary": "QPS=421.74, P99=607.97ms, 错误率=4.21%",
+        "anomalies": [
+          "P99 延迟 607.97ms 超过 300ms 阈值",
+          "错误率 4.21% 超过 1% 阈值",
+          "CPU 使用率 90.35% 超过 85% 阈值"
+        ]
+      },
+      {
+        "type": "tool",
+        "name": "query_fault_history",
+        "args": {
+          "service": [
+            "order-service"
+          ],
+          "error_codes": []
+        },
+        "summary": "命中 0 条历史故障",
+        "anomalies": []
+      },
+      {
+        "type": "node_status",
+        "node": "generate",
+        "status": "completed"
+      },
+      {
+        "type": "answer",
+        "answer": "针对 order-service 超时问题，根据当前工具输出和知识库文档，建议采取以下措施并创建工单跟进：\n\n### 1. 现状分析\n*   **指标异常**：`query_service_metrics` 显示 P99 延迟为 607.97ms（虽未超过 SOP 中定义的 1s 阈值 [1]，但错误率高达 4.21%，且用户反馈“又超时”，可能存在间歇性严重超时或特定接口超时）。\n*   **历史故障**：`query_fault_history` 命中 0 条记录，无直接可复用的历史根因。\n*   **潜在根因**：根据《order-service 接口超时排查 SOP》，常见根因包括数据库连接池耗尽、下游依赖（库存/支付）抖动、QPS 突增导致线程池打满或 GC 停顿 [3]。\n\n### 2. 处理建议（依据 SOP）\n在创建工单前或工单处理过程中，建议执行以下标准操作 [2]：\n*   **应急措施**：\n    *   对非核心下游服务执行降级。\n    *   扩容 order-service 实例数以缓解压力。\n*   **治理措施**：\n    *   检查并为下游调用设置合理的超时时间（200ms~1s）并启用熔断机制。\n    *   排查并优化慢 SQL。\n*   **复盘要求**：\n    *   故障解决后，需将根因与处理步骤录入故障知识库 [2]。\n\n### 3. 工单创建流程\n根据《运维工单审批与恢复边界》[4]，创建工单的流程如下：\n1.  **生成草稿**：系统将先生成工单草稿并保存为审批单。\n2.  **暂停等待审批**：流程将通过 LangGraph interrupt 暂停，等待人工审批。\n3.  **审批权限**：仅 `admin` 或 `engineer` 角色可审批；`viewer` 不可审批。\n4.  **最终状态**：\n    *   **批准**：正式创建工单。\n    *   **拒绝**：不创建工单。\n    *   **注意**：相同审批单不允许重复决定。若进程重启导致断点丢失，不能声称自动恢复，应按接口冲突处理 [4]。\n\n**请确认是否继续执行“生成工单草稿”操作？**",
+        "citations": [
+          "order-service 接口超时排查 SOP",
+          "运维工单审批与恢复边界",
+          "payment-service 对账失败处理手册"
+        ]
+      },
+      {
+        "type": "approval_required",
+        "approval_id": "a14e51167f8c4f929f4d4ee6da79424c",
+        "ticket_draft": {
+          "title": "order-service 间歇性超时及高错误率故障跟进",
+          "description": "用户反馈 order-service 出现超时现象。监控数据显示 P99 延迟为 607.97ms，错误率高达 4.21%。虽未触发 SOP 定义的 1s 阈值，但存在间歇性严重超时风险。历史无直接根因记录。建议执行应急措施（非核心下游降级、实例扩容）并排查潜在根因（数据库连接池耗尽、下游依赖抖动、线程池打满或 GC 停顿）。后续需优化下游调用超时设置、启用熔断机制及排查慢 SQL，并在故障解决后录入知识库。",
+          "severity": "P2",
+          "service": "order-service"
+        },
+        "session_id": "89adf0c2f3234ab5a02aa4bda40a63a2"
+      },
+      {
+        "status": "approval_required",
+        "answer": "针对 order-service 超时问题，根据当前工具输出和知识库文档，建议采取以下措施并创建工单跟进：\n\n### 1. 现状分析\n*   **指标异常**：`query_service_metrics` 显示 P99 延迟为 607.97ms（虽未超过 SOP 中定义的 1s 阈值 [1]，但错误率高达 4.21%，且用户反馈“又超时”，可能存在间歇性严重超时或特定接口超时）。\n*   **历史故障**：`query_fault_history` 命中 0 条记录，无直接可复用的历史根因。\n*   **潜在根因**：根据《order-service 接口超时排查 SOP》，常见根因包括数据库连接池耗尽、下游依赖（库存/支付）抖动、QPS 突增导致线程池打满或 GC 停顿 [3]。\n\n### 2. 处理建议（依据 SOP）\n在创建工单前或工单处理过程中，建议执行以下标准操作 [2]：\n*   **应急措施**：\n    *   对非核心下游服务执行降级。\n    *   扩容 order-service 实例数以缓解压力。\n*   **治理措施**：\n    *   检查并为下游调用设置合理的超时时间（200ms~1s）并启用熔断机制。\n    *   排查并优化慢 SQL。\n*   **复盘要求**：\n    *   故障解决后，需将根因与处理步骤录入故障知识库 [2]。\n\n### 3. 工单创建流程\n根据《运维工单审批与恢复边界》[4]，创建工单的流程如下：\n1.  **生成草稿**：系统将先生成工单草稿并保存为审批单。\n2.  **暂停等待审批**：流程将通过 LangGraph interrupt 暂停，等待人工审批。\n3.  **审批权限**：仅 `admin` 或 `engineer` 角色可审批；`viewer` 不可审批。\n4.  **最终状态**：\n    *   **批准**：正式创建工单。\n    *   **拒绝**：不创建工单。\n    *   **注意**：相同审批单不允许重复决定。若进程重启导致断点丢失，不能声称自动恢复，应按接口冲突处理 [4]。\n\n**请确认是否继续执行“生成工单草稿”操作？**",
+        "citations": [
+          "order-service 接口超时排查 SOP",
+          "运维工单审批与恢复边界",
+          "payment-service 对账失败处理手册"
+        ],
+        "intent": "create_ticket",
+        "ticket_id": null,
+        "docs_sufficient": true,
+        "approval": {
+          "approval_id": "a14e51167f8c4f929f4d4ee6da79424c",
+          "ticket_draft": {
+            "title": "order-service 间歇性超时及高错误率故障跟进",
+            "description": "用户反馈 order-service 出现超时现象。监控数据显示 P99 延迟为 607.97ms，错误率高达 4.21%。虽未触发 SOP 定义的 1s 阈值，但存在间歇性严重超时风险。历史无直接根因记录。建议执行应急措施（非核心下游降级、实例扩容）并排查潜在根因（数据库连接池耗尽、下游依赖抖动、线程池打满或 GC 停顿）。后续需优化下游调用超时设置、启用熔断机制及排查慢 SQL，并在故障解决后录入知识库。",
+            "severity": "P2",
+            "service": "order-service"
+          },
+          "session_id": "89adf0c2f3234ab5a02aa4bda40a63a2"
+        },
+        "type": "final"
+      },
+      {
+        "type": "done"
+      }
+    ],
+    "first_answer_event_ms": 8445.750300001237,
+    "elapsed_ms": 8478.227699990384,
+    "model_calls": [
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 683.0098999926122,
+        "usage": {
+          "completion_tokens": 19,
+          "prompt_tokens": 551,
+          "total_tokens": 570,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 551
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 836.021900002379
+      },
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 842.1530999912648,
+        "usage": {
+          "completion_tokens": 528,
+          "prompt_tokens": 644,
+          "total_tokens": 1172,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 644
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 5311.063899993314
+      },
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 601.6824999969685,
+        "usage": {
+          "completion_tokens": 170,
+          "prompt_tokens": 537,
+          "total_tokens": 707,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 537
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1855.1108999963617
+      }
+    ]
+  }
+]

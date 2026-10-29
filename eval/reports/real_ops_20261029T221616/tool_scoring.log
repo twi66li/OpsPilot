@@ -1,0 +1,3 @@
+{"output": "eval\\reports\\real_ops_20261029T221616", "tool_scoring": "completed", "test_behavior": {"n": 8, "passed": 6, "errors": 0, "functional_passed": 8, "tool_cases": 4, "tool_answer_consistent": 4, "simulation_disclosed": 2}}
+
+STDERR:

@@ -1,0 +1,22 @@
+{
+  "qwen3.7-text-embedding-flash": {
+    "requests": 43,
+    "total_tokens": 1260,
+    "errors": 0
+  },
+  "qwen3.7-text-rerank": {
+    "requests": 32,
+    "total_tokens": 31020,
+    "errors": 0
+  },
+  "qwen3.8-flash": {
+    "requests": 169,
+    "total_tokens": 126601,
+    "errors": 0
+  },
+  "deepseek-v4-flash-0731": {
+    "requests": 149,
+    "total_tokens": 178463,
+    "errors": 0
+  }
+}

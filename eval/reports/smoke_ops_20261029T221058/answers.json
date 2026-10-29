@@ -1,0 +1,114 @@
+[
+  {
+    "id": "ops-abstain-01",
+    "split": "dev",
+    "task_type": "abstain",
+    "status": "ok",
+    "answer": "根据提供的知识库文档、工具输出和历史故障记录，**没有任何资料提及或定义 `ERR_9999` 具体代表哪种故障**。\n\n现有文档仅涉及以下通用运维概念，未包含特定错误码映射表：\n*   Redis 复制与 WAIT 的一致性边界 [1]\n*   诊断工具的输入与证据边界（提到按错误码检索历史，但未列举具体错误码含义）[2]\n*   Prometheus 告警状态与通知分工 [3]\n*   Kubernetes 资源 requests 与 limits 的区别 [4]\n*   MySQL EXPLAIN 与 EXPLAIN ANALYZE [5]\n\n因此，无法依据给定资料回答 `ERR_9999` 的具体故障类型。",
+    "judgment": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "答案明确指出知识库未定义 ERR_9999，未捏造含义，并列出检索到的文档说明缺乏相关信息，符合预期弃权要求；关键事实受检索内容支持，无实质错误。"
+    },
+    "generation_ms": 2003.8531999889528,
+    "model_first_token_ms": 558.014499998535,
+    "model_calls": [
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 558.014499998535,
+        "usage": {
+          "completion_tokens": 157,
+          "prompt_tokens": 936,
+          "total_tokens": 1093,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 936
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2003.807399989455
+      }
+    ],
+    "judge_calls": [
+      {
+        "model": "deepseek-v4-flash-0731",
+        "status": "ok",
+        "first_token_ms": 1248.6538000084693,
+        "usage": {
+          "completion_tokens": 67,
+          "prompt_tokens": 1535,
+          "total_tokens": 1602,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1880.8454000100028
+      }
+    ]
+  },
+  {
+    "id": "ops-q-002-1",
+    "split": "dev",
+    "task_type": "retrieval",
+    "status": "ok",
+    "answer": "根据提供的知识库文档，**无法直接回答**演示环境中 Kafka 消费积压的常见根因。\n\n原因如下：\n1. 文档 **[1] 《Kafka 消费积压处理》** 仅提供了标题，未包含具体的“常见根因”内容或排查步骤 [1]。\n2. 其他文档（[2]-[5]）分别涉及网关 502、支付对账失败、数据库连接池耗尽和订单服务超时，均与 Kafka 消费积压无直接关联 [2][3][4][5]。\n\n建议补充文档 [1] 的具体内容以获取准确答案。",
+    "judgment": {
+      "answer_correct": false,
+      "grounded": true,
+      "abstained": true,
+      "reason": "答案明确表示无法从检索内容中获取Kafka消费积压根因，并指出相关文档仅含标题、其他文档不相关，未捏造事实，符合abstained要求；但未覆盖参考答案中的必要要点，故answer_correct为false；关键判断基于检索内容，grounded为true。"
+    },
+    "generation_ms": 1511.015199997928,
+    "model_first_token_ms": 433.04129999887664,
+    "model_calls": [
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 433.04129999887664,
+        "usage": {
+          "completion_tokens": 133,
+          "prompt_tokens": 454,
+          "total_tokens": 587,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 454
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1510.9775000019
+      }
+    ],
+    "judge_calls": [
+      {
+        "model": "deepseek-v4-flash-0731",
+        "status": "ok",
+        "first_token_ms": 1553.0796000093687,
+        "usage": {
+          "completion_tokens": 93,
+          "prompt_tokens": 1044,
+          "total_tokens": 1137,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2464.7922000003746
+      }
+    ]
+  }
+]

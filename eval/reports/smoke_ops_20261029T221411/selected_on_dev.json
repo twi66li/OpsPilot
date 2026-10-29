@@ -1,0 +1,5 @@
+{
+  "mode": "bm25",
+  "frozen_before_test_answers": true,
+  "criterion": "development judge answer correctness, retrieval metrics, simpler mode"
+}

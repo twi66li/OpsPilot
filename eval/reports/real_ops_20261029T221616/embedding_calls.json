@@ -1,0 +1,389 @@
+[
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 1340.102800008026,
+    "usage": {
+      "prompt_tokens": 35,
+      "total_tokens": 35
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 133.62940000661183,
+    "usage": {
+      "prompt_tokens": 33,
+      "total_tokens": 33
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 148.84609999717213,
+    "usage": {
+      "prompt_tokens": 31,
+      "total_tokens": 31
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 203.25700000103097,
+    "usage": {
+      "prompt_tokens": 27,
+      "total_tokens": 27
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 160.65429999434855,
+    "usage": {
+      "prompt_tokens": 30,
+      "total_tokens": 30
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 166.23189998790622,
+    "usage": {
+      "prompt_tokens": 30,
+      "total_tokens": 30
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 291.0746999987168,
+    "usage": {
+      "prompt_tokens": 29,
+      "total_tokens": 29
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 2343.858599997475,
+    "usage": {
+      "prompt_tokens": 28,
+      "total_tokens": 28
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 498.0189000052633,
+    "usage": {
+      "prompt_tokens": 27,
+      "total_tokens": 27
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 135.8375999989221,
+    "usage": {
+      "prompt_tokens": 25,
+      "total_tokens": 25
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 141.5621999913128,
+    "usage": {
+      "prompt_tokens": 28,
+      "total_tokens": 28
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 119.93400000210386,
+    "usage": {
+      "prompt_tokens": 29,
+      "total_tokens": 29
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 109.69769999792334,
+    "usage": {
+      "prompt_tokens": 32,
+      "total_tokens": 32
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 110.22139999840874,
+    "usage": {
+      "prompt_tokens": 31,
+      "total_tokens": 31
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 138.2776999962516,
+    "usage": {
+      "prompt_tokens": 27,
+      "total_tokens": 27
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 132.03690000227652,
+    "usage": {
+      "prompt_tokens": 26,
+      "total_tokens": 26
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 123.75369999790564,
+    "usage": {
+      "prompt_tokens": 27,
+      "total_tokens": 27
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 124.38759999349713,
+    "usage": {
+      "prompt_tokens": 28,
+      "total_tokens": 28
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 117.31390000204556,
+    "usage": {
+      "prompt_tokens": 28,
+      "total_tokens": 28
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 124.68589999480173,
+    "usage": {
+      "prompt_tokens": 25,
+      "total_tokens": 25
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 138.46999999077525,
+    "usage": {
+      "prompt_tokens": 29,
+      "total_tokens": 29
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 123.59129999822471,
+    "usage": {
+      "prompt_tokens": 28,
+      "total_tokens": 28
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 125.3735000063898,
+    "usage": {
+      "prompt_tokens": 29,
+      "total_tokens": 29
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 138.6757000000216,
+    "usage": {
+      "prompt_tokens": 34,
+      "total_tokens": 34
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 125.87750000238884,
+    "usage": {
+      "prompt_tokens": 35,
+      "total_tokens": 35
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 174.23620000772644,
+    "usage": {
+      "prompt_tokens": 31,
+      "total_tokens": 31
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 137.9458000010345,
+    "usage": {
+      "prompt_tokens": 28,
+      "total_tokens": 28
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 259.2486999928951,
+    "usage": {
+      "prompt_tokens": 30,
+      "total_tokens": 30
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 156.69980000529904,
+    "usage": {
+      "prompt_tokens": 29,
+      "total_tokens": 29
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 115.89539999840781,
+    "usage": {
+      "prompt_tokens": 31,
+      "total_tokens": 31
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 111.60930000187363,
+    "usage": {
+      "prompt_tokens": 35,
+      "total_tokens": 35
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 118.6675000062678,
+    "usage": {
+      "prompt_tokens": 31,
+      "total_tokens": 31
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 131.67329999851063,
+    "usage": {
+      "prompt_tokens": 24,
+      "total_tokens": 24
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 996.0411000065506,
+    "usage": {
+      "prompt_tokens": 30,
+      "total_tokens": 30
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 377.0598999981303,
+    "usage": {
+      "prompt_tokens": 30,
+      "total_tokens": 30
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 422.7495999948587,
+    "usage": {
+      "prompt_tokens": 29,
+      "total_tokens": 29
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 299.78770000161603,
+    "usage": {
+      "prompt_tokens": 30,
+      "total_tokens": 30
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 559.8849000089103,
+    "usage": {
+      "prompt_tokens": 30,
+      "total_tokens": 30
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 496.575600001961,
+    "usage": {
+      "prompt_tokens": 29,
+      "total_tokens": 29
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 418.1781000079354,
+    "usage": {
+      "prompt_tokens": 27,
+      "total_tokens": 27
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 425.36310000286903,
+    "usage": {
+      "prompt_tokens": 27,
+      "total_tokens": 27
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 1376.955400002771,
+    "usage": {
+      "prompt_tokens": 25,
+      "total_tokens": 25
+    }
+  },
+  {
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 320.45559999824036,
+    "usage": {
+      "prompt_tokens": 33,
+      "total_tokens": 33
+    }
+  }
+]

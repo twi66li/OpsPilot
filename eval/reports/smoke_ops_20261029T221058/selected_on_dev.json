@@ -1,0 +1,4 @@
+{
+  "mode": "bm25",
+  "frozen_before_answer_evaluation": true
+}

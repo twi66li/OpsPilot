@@ -1,0 +1,13 @@
+{
+  "unique_questions": 100,
+  "retrieval_rows": 360,
+  "answer_and_judge_rows": 144,
+  "behavior_cases": 10,
+  "heldout_unique_cases": 80,
+  "dataset_hashes": "passed",
+  "application_source_hashes": "passed",
+  "tool_answer_scoring": "completed",
+  "tests": "57 passed per project",
+  "ruff": "passed",
+  "input_labels_and_test_model_outputs_changed": false
+}

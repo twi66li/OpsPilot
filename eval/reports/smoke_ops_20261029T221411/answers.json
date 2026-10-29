@@ -1,0 +1,458 @@
+[
+  {
+    "id": "ops-abstain-01",
+    "split": "dev",
+    "task_type": "abstain",
+    "mode": "bm25",
+    "status": "ok",
+    "answer": "根据提供的知识库文档、工具输出和历史故障记录，**没有任何资料提及或定义 `ERR_9999` 具体代表哪种故障**。\n\n具体分析如下：\n1. **知识库文档 [1]-[5]**：分别涉及 Redis 复制一致性、诊断工具边界、Prometheus 告警状态、Kubernetes 资源限制以及 MySQL EXPLAIN 用法，均未包含错误码 `ERR_9999` 的定义。\n2. **工具输出**：无数据。\n3. **历史相似故障**：无数据。\n\n因此，依据现有资料无法确定 `ERR_9999` 的具体含义。",
+    "judgment": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答明确指出知识库未定义 ERR_9999，未捏造含义，符合预期弃权要求；关键事实（无资料提及该错误码）受检索内容支持，且明确说明无法确定具体含义。"
+    },
+    "generation_ms": 2091.046400004416,
+    "model_first_token_ms": 670.1611000025878,
+    "model_calls": [
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 670.1611000025878,
+        "usage": {
+          "completion_tokens": 136,
+          "prompt_tokens": 936,
+          "total_tokens": 1072,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 936
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2090.98670000094
+      }
+    ],
+    "judge_calls": [
+      {
+        "model": "deepseek-v4-flash-0731",
+        "status": "ok",
+        "first_token_ms": 1177.9959999985294,
+        "usage": {
+          "completion_tokens": 70,
+          "prompt_tokens": 1517,
+          "total_tokens": 1587,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1832.0550000062212
+      }
+    ]
+  },
+  {
+    "id": "ops-abstain-01",
+    "split": "dev",
+    "task_type": "abstain",
+    "mode": "dense",
+    "status": "ok",
+    "answer": "根据提供的知识库文档，**ERR_9999** 并未在任何资料中出现。\n\n现有文档中定义的错误码包括：\n*   **ERR_9001**：容器 OOMKilled [1]\n*   **ERR_9002**：JVM Old 区使用率超阈值 [1]\n*   **ERR_5003**：连接池耗尽 [2]\n*   **ERR_5004**：连接获取超时 [2]\n*   **ERR_6002**：上游连接被拒绝 [3]\n*   **ERR_6003**：上游响应超时 [3]\n*   **ERR_6004**：熔断触发 [4]\n*   **ERR_6005**：请求被限流 [4]\n*   **ERR_8001**：Redis 连接重置 [5]\n*   **ERR_8002**：集群槽位迁移中 [5]\n\n因此，在当前运维资料范围内，无法确定 ERR_9999 代表哪种故障。",
+    "judgment": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "答案明确指出ERR_9999未在资料中定义，并列出已有错误码作为佐证，未捏造含义，符合预期弃权要求；关键事实（未定义）受检索内容支持，且明确说明无法确定，无实质错误。"
+    },
+    "generation_ms": 2281.267600003048,
+    "model_first_token_ms": 499.1966999950819,
+    "model_calls": [
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 499.1966999950819,
+        "usage": {
+          "completion_tokens": 241,
+          "prompt_tokens": 633,
+          "total_tokens": 874,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 633
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2281.2218999897595
+      }
+    ],
+    "judge_calls": [
+      {
+        "model": "deepseek-v4-flash-0731",
+        "status": "ok",
+        "first_token_ms": 860.056599995005,
+        "usage": {
+          "completion_tokens": 78,
+          "prompt_tokens": 1229,
+          "total_tokens": 1307,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1473.3986999926856
+      }
+    ]
+  },
+  {
+    "id": "ops-abstain-01",
+    "split": "dev",
+    "task_type": "abstain",
+    "mode": "hybrid",
+    "status": "ok",
+    "answer": "根据提供的知识库文档，**ERR_9999 并未在现有资料中定义或提及**。\n\n具体分析如下：\n1.  **文档 [1]** 仅定义了 `ERR_9001`（容器 OOMKilled）和 `ERR_9002`（JVM Old 区使用率超阈值）。\n2.  **文档 [3]** 仅定义了 `ERR_5003`（连接池耗尽）和 `ERR_5004`（连接获取超时）。\n3.  其他文档（[2], [4], [5]）涉及 Redis 一致性、诊断工具边界及 Prometheus 告警机制，均未包含 `ERR_9999` 的定义。\n\n因此，依据当前给定的运维资料，无法确定 `ERR_9999` 代表哪种具体故障。",
+    "judgment": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答明确指出 ERR_9999 未在现有资料中定义，并列举了检索到的相关错误码（ERR_9001、ERR_9002、ERR_5003、ERR_5004）作为依据，未捏造含义，符合预期弃权要求；关键事实受检索内容支持，且明确表示无法确定故障类型。"
+    },
+    "generation_ms": 1860.612599994056,
+    "model_first_token_ms": 499.29969999357127,
+    "model_calls": [
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 499.29969999357127,
+        "usage": {
+          "completion_tokens": 184,
+          "prompt_tokens": 791,
+          "total_tokens": 975,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 791
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1860.5708999966737
+      }
+    ],
+    "judge_calls": [
+      {
+        "model": "deepseek-v4-flash-0731",
+        "status": "ok",
+        "first_token_ms": 1610.817099994165,
+        "usage": {
+          "completion_tokens": 97,
+          "prompt_tokens": 1380,
+          "total_tokens": 1477,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2301.8293999921298
+      }
+    ]
+  },
+  {
+    "id": "ops-abstain-01",
+    "split": "dev",
+    "task_type": "abstain",
+    "mode": "hybrid_rerank",
+    "status": "ok",
+    "answer": "根据提供的知识库文档，**ERR_9999 在现有资料中没有任何定义或记录**。\n\n具体分析如下：\n1.  **文档 [1]** 仅定义了 `ERR_9001`（容器 OOMKilled）和 `ERR_9002`（JVM Old 区使用率超阈值）。\n2.  **文档 [3]** 仅定义了 `ERR_6002`（上游连接被拒绝）和 `ERR_6003`（上游响应超时）。\n3.  **文档 [4]** 涉及的是 `ERR_5003`（数据库连接池耗尽）。\n4.  **文档 [2]** 和 **[5]** 为通用诊断边界说明及 Kubernetes 资源概念，未包含具体错误码映射。\n\n因此，依据当前给定的运维资料，无法确定 ERR_9999 代表哪种故障。",
+    "judgment": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": true,
+      "reason": "回答明确指出ERR_9999在现有资料中无定义，并列举了检索到的错误码（ERR_9001、ERR_9002、ERR_6002、ERR_6003、ERR_5003）作为依据，未捏造含义，符合预期弃权要求；关键事实均受检索内容支持。"
+    },
+    "generation_ms": 2198.8543000043137,
+    "model_first_token_ms": 459.400400010054,
+    "model_calls": [
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 459.400400010054,
+        "usage": {
+          "completion_tokens": 195,
+          "prompt_tokens": 769,
+          "total_tokens": 964,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 769
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2198.813099996187
+      }
+    ],
+    "judge_calls": [
+      {
+        "model": "deepseek-v4-flash-0731",
+        "status": "ok",
+        "first_token_ms": 1007.9216000012821,
+        "usage": {
+          "completion_tokens": 93,
+          "prompt_tokens": 1346,
+          "total_tokens": 1439,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1767.225799994776
+      }
+    ]
+  },
+  {
+    "id": "ops-q-002-1",
+    "split": "dev",
+    "task_type": "retrieval",
+    "mode": "bm25",
+    "status": "ok",
+    "answer": "根据知识库文档 [1]，演示环境中 Kafka 消费积压的常见根因主要包括以下三点：\n\n1. **消费逻辑变慢**：通常由下游依赖服务（如 DB 或 Redis）出现抖动导致 [1]。\n2. **消费者配置或状态异常**：包括消费者实例数少于分区数，或者发生了 rebalance 风暴 [1]。\n3. **消息处理异常重试**：单条消息在处理过程中触发异常，导致反复重试从而阻塞消费进度 [1]。",
+    "judgment": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了参考答案中的三个必要要点（消费逻辑变慢、消费者实例数不足或rebalance风暴、消息处理异常反复重试），且每个要点均与检索内容中的相关文本一致，无实质错误或捏造信息。"
+    },
+    "generation_ms": 2649.1909999895142,
+    "model_first_token_ms": 1577.3036000027787,
+    "model_calls": [
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 1577.3036000027787,
+        "usage": {
+          "completion_tokens": 108,
+          "prompt_tokens": 451,
+          "total_tokens": 559,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 451
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2649.1411000024527
+      }
+    ],
+    "judge_calls": [
+      {
+        "model": "deepseek-v4-flash-0731",
+        "status": "ok",
+        "first_token_ms": 1310.4428999940865,
+        "usage": {
+          "completion_tokens": 77,
+          "prompt_tokens": 946,
+          "total_tokens": 1023,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1939.3160000036005
+      }
+    ]
+  },
+  {
+    "id": "ops-q-002-1",
+    "split": "dev",
+    "task_type": "retrieval",
+    "mode": "dense",
+    "status": "ok",
+    "answer": "根据知识库文档 [1]《Kafka 消费积压处理》，演示环境中 Kafka 消费积压的常见根因主要包括以下三点：\n\n1. **消费逻辑变慢**：通常由下游依赖服务（如 DB 或 Redis）出现抖动导致 [1]。\n2. **消费者配置或状态异常**：包括消费者实例数少于分区数，或者发生了 rebalance 风暴 [1]。\n3. **消息处理异常重试**：单条消息在处理过程中触发异常，导致反复重试从而阻塞消费进度 [1]。",
+    "judgment": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了参考答案中的三个必要要点（消费逻辑变慢、消费者实例数不足或rebalance风暴、消息处理异常反复重试），且每个要点均明确引用检索到的知识库文档[1]作为依据，关键事实与检索内容一致，无实质错误或捏造信息。"
+    },
+    "generation_ms": 2364.3483000050765,
+    "model_first_token_ms": 1443.1286999897566,
+    "model_calls": [
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 1443.1286999897566,
+        "usage": {
+          "completion_tokens": 115,
+          "prompt_tokens": 402,
+          "total_tokens": 517,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 402
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2364.2963000020245
+      }
+    ],
+    "judge_calls": [
+      {
+        "model": "deepseek-v4-flash-0731",
+        "status": "ok",
+        "first_token_ms": 1448.954399995273,
+        "usage": {
+          "completion_tokens": 89,
+          "prompt_tokens": 901,
+          "total_tokens": 990,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2070.442899988848
+      }
+    ]
+  },
+  {
+    "id": "ops-q-002-1",
+    "split": "dev",
+    "task_type": "retrieval",
+    "mode": "hybrid",
+    "status": "ok",
+    "answer": "在演示环境中，Kafka 消费积压的常见根因主要包含以下三点 [1]：\n\n1. **消费逻辑变慢**：通常由下游依赖服务（如 DB 或 Redis）出现抖动导致 [1]。\n2. **消费者配置或状态异常**：包括消费者实例数少于分区数，或者发生了 rebalance 风暴 [1]。\n3. **消息处理异常重试**：单条消息处理触发异常，导致反复重试从而阻塞消费进度 [1]。",
+    "judgment": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了参考答案中的三个必要要点（消费逻辑变慢、消费者实例数不足或rebalance风暴、消息处理异常反复重试），且每个要点均与检索内容中的相关文本一致，无实质错误或捏造信息。"
+    },
+    "generation_ms": 1582.3527999891667,
+    "model_first_token_ms": 629.6542000054615,
+    "model_calls": [
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 629.6542000054615,
+        "usage": {
+          "completion_tokens": 107,
+          "prompt_tokens": 402,
+          "total_tokens": 509,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 402
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1582.3116999963531
+      }
+    ],
+    "judge_calls": [
+      {
+        "model": "deepseek-v4-flash-0731",
+        "status": "ok",
+        "first_token_ms": 1349.0561999933561,
+        "usage": {
+          "completion_tokens": 77,
+          "prompt_tokens": 891,
+          "total_tokens": 968,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1968.1724999973085
+      }
+    ]
+  },
+  {
+    "id": "ops-q-002-1",
+    "split": "dev",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "status": "ok",
+    "answer": "在演示环境中，Kafka 消费积压的常见根因主要包括以下三点 [1]：\n\n1. **消费逻辑变慢**：通常由下游依赖服务（如 DB 或 Redis）出现抖动导致。\n2. **消费者配置或状态异常**：包括消费者实例数少于分区数，或者发生了 rebalance 风暴。\n3. **消息处理异常**：单条消息处理触发异常，导致反复重试从而阻塞后续消费。",
+    "judgment": {
+      "answer_correct": true,
+      "grounded": true,
+      "abstained": false,
+      "reason": "答案完整覆盖了三个必要要点（消费逻辑变慢、消费者实例数不足或rebalance风暴、消息处理异常反复重试），且关键事实均直接来自检索到的ops-kb-002文档，无实质错误或捏造内容。"
+    },
+    "generation_ms": 1727.2689000092214,
+    "model_first_token_ms": 733.2093000004534,
+    "model_calls": [
+      {
+        "model": "qwen3.8-flash",
+        "status": "ok",
+        "first_token_ms": 733.2093000004534,
+        "usage": {
+          "completion_tokens": 96,
+          "prompt_tokens": 402,
+          "total_tokens": 498,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 402
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 1727.235099999234
+      }
+    ],
+    "judge_calls": [
+      {
+        "model": "deepseek-v4-flash-0731",
+        "status": "ok",
+        "first_token_ms": 1569.137900005444,
+        "usage": {
+          "completion_tokens": 77,
+          "prompt_tokens": 880,
+          "total_tokens": 957,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0
+          }
+        },
+        "finish_reason": "stop",
+        "elapsed_ms": 2179.32280000241
+      }
+    ]
+  }
+]

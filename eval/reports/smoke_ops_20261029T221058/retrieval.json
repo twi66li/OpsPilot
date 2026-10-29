@@ -1,0 +1,418 @@
+[
+  {
+    "id": "ops-q-002-1",
+    "split": "dev",
+    "task_type": "retrieval",
+    "mode": "bm25",
+    "status": "ok",
+    "query_embedding_ms": 182.88680000114255,
+    "recall": 1.0,
+    "mrr": 1.0,
+    "hits": [
+      {
+        "chunk_id": "ops-kb-002::0",
+        "doc_id": "ops-kb-002",
+        "doc_title": "Kafka 消费积压处理",
+        "text": "# Kafka 消费积压处理",
+        "source": "scripts/knowledge/Kafka消费积压处理.md",
+        "score": 22.7026
+      },
+      {
+        "chunk_id": "ops-kb-011::2",
+        "doc_id": "ops-kb-011",
+        "doc_title": "网关 502 排查手册",
+        "text": "## 常见根因\n1. 上游服务实例重启或发布中，连接被拒绝。\n2. 上游处理超时超过网关 read timeout。\n3. 上游 keepalive 配置不一致导致连接被对端关闭。",
+        "source": "scripts/knowledge/网关502排查手册.md",
+        "score": 8.1837
+      },
+      {
+        "chunk_id": "ops-kb-007::2",
+        "doc_id": "ops-kb-007",
+        "doc_title": "payment-service 对账失败处理手册",
+        "text": "## 常见根因\n1. 渠道账单文件延迟到达或格式变更。\n2. 网络抖动导致部分支付通知丢失，状态机停滞在 PROCESSING。\n3. 重复回调引起的幂等冲突。",
+        "source": "scripts/knowledge/payment-service_对账失败处理手册.md",
+        "score": 6.4657
+      },
+      {
+        "chunk_id": "ops-kb-001::3",
+        "doc_id": "ops-kb-001",
+        "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+        "text": "## 排查步骤\n1. 确认连接池配置：`maxPoolSize`、`idleTimeout`、`maxWait` 是否与 DB 的 `max_connections` 匹配。\n2. 检查是否存在慢查询占用连接：`SELECT * FROM information_schema.processlist WHERE time > 5;`\n3. 检查是否有连接泄漏：连接未在 finally 中归还、事务未提交/回滚。\n4. 检查是否发生流量突增或下游抖动导致的线程堆积。",
+        "source": "scripts/knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+        "score": 5.7534
+      },
+      {
+        "chunk_id": "ops-kb-006::2",
+        "doc_id": "ops-kb-006",
+        "doc_title": "order-service 接口超时排查 SOP",
+        "text": "## 常见根因\n1. 数据库连接池耗尽（见 ERR_5003 手册）。\n2. 下游依赖（库存服务、支付服务）抖动，未配置合理超时与熔断。\n3. 大促期间 QPS 突增，线程池打满。\n4. GC 停顿：Full GC 频繁导致 STW。",
+        "source": "scripts/knowledge/order-service_接口超时排查SOP.md",
+        "score": 4.5821
+      }
+    ],
+    "search_with_warm_query_vector_ms": 2.1047000045655295
+  },
+  {
+    "id": "ops-q-002-1",
+    "split": "dev",
+    "task_type": "retrieval",
+    "mode": "dense",
+    "status": "ok",
+    "query_embedding_ms": 182.88680000114255,
+    "recall": 1.0,
+    "mrr": 1.0,
+    "hits": [
+      {
+        "chunk_id": "ops-kb-002::0",
+        "doc_id": "ops-kb-002",
+        "doc_title": "Kafka 消费积压处理",
+        "text": "# Kafka 消费积压处理",
+        "source": "scripts/knowledge/Kafka消费积压处理.md",
+        "score": 0.7839
+      },
+      {
+        "chunk_id": "ops-kb-007::2",
+        "doc_id": "ops-kb-007",
+        "doc_title": "payment-service 对账失败处理手册",
+        "text": "## 常见根因\n1. 渠道账单文件延迟到达或格式变更。\n2. 网络抖动导致部分支付通知丢失，状态机停滞在 PROCESSING。\n3. 重复回调引起的幂等冲突。",
+        "source": "scripts/knowledge/payment-service_对账失败处理手册.md",
+        "score": 0.5551
+      },
+      {
+        "chunk_id": "ops-kb-011::2",
+        "doc_id": "ops-kb-011",
+        "doc_title": "网关 502 排查手册",
+        "text": "## 常见根因\n1. 上游服务实例重启或发布中，连接被拒绝。\n2. 上游处理超时超过网关 read timeout。\n3. 上游 keepalive 配置不一致导致连接被对端关闭。",
+        "source": "scripts/knowledge/网关502排查手册.md",
+        "score": 0.5368
+      },
+      {
+        "chunk_id": "ops-kb-004::1",
+        "doc_id": "ops-kb-004",
+        "doc_title": "Pod OOMKilled 处理指南",
+        "text": "## 适用场景\nKubernetes 中应用容器反复重启，`kubectl describe pod` 显示 `OOMKilled`，\n或应用日志出现 `java.lang.OutOfMemoryError` / Python `MemoryError`。",
+        "source": "scripts/knowledge/Pod_OOMKilled处理指南.md",
+        "score": 0.4991
+      }
+    ],
+    "search_with_warm_query_vector_ms": 6.188400002429262
+  },
+  {
+    "id": "ops-q-002-1",
+    "split": "dev",
+    "task_type": "retrieval",
+    "mode": "hybrid",
+    "status": "ok",
+    "query_embedding_ms": 182.88680000114255,
+    "recall": 1.0,
+    "mrr": 1.0,
+    "hits": [
+      {
+        "chunk_id": "ops-kb-002::0",
+        "doc_id": "ops-kb-002",
+        "doc_title": "Kafka 消费积压处理",
+        "text": "# Kafka 消费积压处理",
+        "source": "scripts/knowledge/Kafka消费积压处理.md",
+        "score": 0.0328
+      },
+      {
+        "chunk_id": "ops-kb-007::2",
+        "doc_id": "ops-kb-007",
+        "doc_title": "payment-service 对账失败处理手册",
+        "text": "## 常见根因\n1. 渠道账单文件延迟到达或格式变更。\n2. 网络抖动导致部分支付通知丢失，状态机停滞在 PROCESSING。\n3. 重复回调引起的幂等冲突。",
+        "source": "scripts/knowledge/payment-service_对账失败处理手册.md",
+        "score": 0.031
+      },
+      {
+        "chunk_id": "ops-kb-011::2",
+        "doc_id": "ops-kb-011",
+        "doc_title": "网关 502 排查手册",
+        "text": "## 常见根因\n1. 上游服务实例重启或发布中，连接被拒绝。\n2. 上游处理超时超过网关 read timeout。\n3. 上游 keepalive 配置不一致导致连接被对端关闭。",
+        "source": "scripts/knowledge/网关502排查手册.md",
+        "score": 0.031
+      },
+      {
+        "chunk_id": "ops-kb-004::1",
+        "doc_id": "ops-kb-004",
+        "doc_title": "Pod OOMKilled 处理指南",
+        "text": "## 适用场景\nKubernetes 中应用容器反复重启，`kubectl describe pod` 显示 `OOMKilled`，\n或应用日志出现 `java.lang.OutOfMemoryError` / Python `MemoryError`。",
+        "source": "scripts/knowledge/Pod_OOMKilled处理指南.md",
+        "score": 0.0152
+      },
+      {
+        "chunk_id": "ops-kb-001::3",
+        "doc_id": "ops-kb-001",
+        "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+        "text": "## 排查步骤\n1. 确认连接池配置：`maxPoolSize`、`idleTimeout`、`maxWait` 是否与 DB 的 `max_connections` 匹配。\n2. 检查是否存在慢查询占用连接：`SELECT * FROM information_schema.processlist WHERE time > 5;`\n3. 检查是否有连接泄漏：连接未在 finally 中归还、事务未提交/回滚。\n4. 检查是否发生流量突增或下游抖动导致的线程堆积。",
+        "source": "scripts/knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+        "score": 0.0152
+      }
+    ],
+    "search_with_warm_query_vector_ms": 4.927899994072504
+  },
+  {
+    "id": "ops-q-002-1",
+    "split": "dev",
+    "task_type": "retrieval",
+    "mode": "hybrid_rerank",
+    "status": "ok",
+    "query_embedding_ms": 182.88680000114255,
+    "recall": 1.0,
+    "mrr": 1.0,
+    "hits": [
+      {
+        "chunk_id": "ops-kb-002::2",
+        "doc_id": "ops-kb-002",
+        "doc_title": "Kafka 消费积压处理",
+        "text": "## 常见根因\n1. 消费逻辑变慢：下游 DB/Redis 抖动。\n2. 消费者实例数少于分区数或发生 rebalance 风暴。\n3. 单条消息处理触发异常反复重试。",
+        "source": "scripts/knowledge/Kafka消费积压处理.md",
+        "score": 1.0
+      },
+      {
+        "chunk_id": "ops-kb-011::2",
+        "doc_id": "ops-kb-011",
+        "doc_title": "网关 502 排查手册",
+        "text": "## 常见根因\n1. 上游服务实例重启或发布中，连接被拒绝。\n2. 上游处理超时超过网关 read timeout。\n3. 上游 keepalive 配置不一致导致连接被对端关闭。",
+        "source": "scripts/knowledge/网关502排查手册.md",
+        "score": 0.8608
+      },
+      {
+        "chunk_id": "ops-kb-007::2",
+        "doc_id": "ops-kb-007",
+        "doc_title": "payment-service 对账失败处理手册",
+        "text": "## 常见根因\n1. 渠道账单文件延迟到达或格式变更。\n2. 网络抖动导致部分支付通知丢失，状态机停滞在 PROCESSING。\n3. 重复回调引起的幂等冲突。",
+        "source": "scripts/knowledge/payment-service_对账失败处理手册.md",
+        "score": 0.6756
+      },
+      {
+        "chunk_id": "ops-kb-001::3",
+        "doc_id": "ops-kb-001",
+        "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+        "text": "## 排查步骤\n1. 确认连接池配置：`maxPoolSize`、`idleTimeout`、`maxWait` 是否与 DB 的 `max_connections` 匹配。\n2. 检查是否存在慢查询占用连接：`SELECT * FROM information_schema.processlist WHERE time > 5;`\n3. 检查是否有连接泄漏：连接未在 finally 中归还、事务未提交/回滚。\n4. 检查是否发生流量突增或下游抖动导致的线程堆积。",
+        "source": "scripts/knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+        "score": 0.2119
+      },
+      {
+        "chunk_id": "ops-kb-004::1",
+        "doc_id": "ops-kb-004",
+        "doc_title": "Pod OOMKilled 处理指南",
+        "text": "## 适用场景\nKubernetes 中应用容器反复重启，`kubectl describe pod` 显示 `OOMKilled`，\n或应用日志出现 `java.lang.OutOfMemoryError` / Python `MemoryError`。",
+        "source": "scripts/knowledge/Pod_OOMKilled处理指南.md",
+        "score": 0.0879
+      }
+    ],
+    "search_with_warm_query_vector_ms": 356.9952999969246
+  },
+  {
+    "id": "ops-abstain-01",
+    "split": "dev",
+    "task_type": "abstain",
+    "mode": "bm25",
+    "status": "ok",
+    "query_embedding_ms": 210.7220000034431,
+    "recall": null,
+    "mrr": null,
+    "hits": [
+      {
+        "chunk_id": "ops-kb-016::0",
+        "doc_id": "ops-kb-016",
+        "doc_title": "Redis 复制与 WAIT 的一致性边界",
+        "text": "# Redis 复制与 WAIT 的一致性边界\n\nRedis 默认采用异步复制，主节点通常不等待每次写入都被副本处理才继续。副本会周期性确认收到的数据进度。WAIT 可以等待指定数量的副本确认写入，但不会把 Redis 变成强一致系统；在特定持久化和故障切换条件下，已确认写入仍可能丢失。评估切换风险时应同时考虑复制进度与持久化配置。\n\n---\n资料编号：ops-kb-016\n适用范围：官方资料中文摘要；仅适用于标题产品，不代表本项目已集成。\n来源：https://redis.io/docs/latest/operate/oss_and_stack/management/replication/\n整理日期：2026-10-30",
+        "source": "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/",
+        "score": 4.6811
+      },
+      {
+        "chunk_id": "ops-kb-019::0",
+        "doc_id": "ops-kb-019",
+        "doc_title": "诊断工具的输入与证据边界",
+        "text": "# 诊断工具的输入与证据边界\n\n诊断工具按服务标识或中文别名提取实体，订单服务映射为 order-service，网关映射为 api-gateway-service。query_service_metrics 提供近一小时 QPS、P99 延迟、错误率和 CPU 的演示指标，一次最多查询两个服务。query_fault_history 按租户、服务和错误码检索故障，精确匹配为空时退回同租户最近记录；最近记录不能冒充同一故障的已确认根因。工具结果是样例，不是已接入真实监控系统。\n\n---\n资料编号：ops-kb-019\n适用范围：当前代码实现摘要；不代表生产系统能力。\n来源：app/agent/tools.py、app/services/metrics_service.py\n整理日期：2026-10-30",
+        "source": "project",
+        "score": 4.0792
+      },
+      {
+        "chunk_id": "ops-kb-018::0",
+        "doc_id": "ops-kb-018",
+        "doc_title": "Prometheus 告警状态与通知分工",
+        "text": "# Prometheus 告警状态与通知分工\n\n告警表达式产生匹配元素时，对应标签集合的告警处于 active。for 要求条件在评估期间持续满足，未达到持续时长时为 pending，满足后转 firing。keep_firing_for 可在条件不再满足后维持 firing 一段时间。Prometheus 负责规则评估；Alertmanager 负责告警分组、静默与通知分发。\n\n---\n资料编号：ops-kb-018\n适用范围：官方资料中文摘要；仅适用于标题产品，不代表本项目已集成。\n来源：https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/\n整理日期：2026-10-30",
+        "source": "https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/",
+        "score": 3.9797
+      },
+      {
+        "chunk_id": "ops-kb-012::0",
+        "doc_id": "ops-kb-012",
+        "doc_title": "Kubernetes 资源 requests 与 limits 的区别",
+        "text": "# Kubernetes 资源 requests 与 limits 的区别\n\nrequests 用于调度时的资源需求判断；limits 描述容器资源使用限制。CPU limit 通常通过节流约束；内存 limit 由内核在内存压力下以 OOM 终止等方式执行，不保证越界瞬间立刻终止。内存用量应与配置和实际曲线一起核对，不能把应用异常文本直接等同于容器 OOM。\n\n---\n资料编号：ops-kb-012\n适用范围：官方资料中文摘要；仅适用于标题产品，不代表本项目已集成。\n来源：https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/\n整理日期：2026-10-30",
+        "source": "https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/",
+        "score": 3.2819
+      },
+      {
+        "chunk_id": "ops-kb-015::0",
+        "doc_id": "ops-kb-015",
+        "doc_title": "MySQL EXPLAIN 与 EXPLAIN ANALYZE",
+        "text": "# MySQL EXPLAIN 与 EXPLAIN ANALYZE\n\nEXPLAIN 用于查看优化器执行计划。EXPLAIN ANALYZE 会实际运行语句并输出迭代器统计，可观察估计与实际行数、首行时间、执行时间和循环次数。因此 ANALYZE 不能当作完全不执行 SQL 的只读解释动作；在排障环境应先评估语句代价和业务影响。这里讨论的是 MySQL 8.4 的语义。\n\n---\n资料编号：ops-kb-015\n适用范围：官方资料中文摘要；仅适用于标题产品，不代表本项目已集成。\n来源：https://dev.mysql.com/doc/refman/8.4/en/explain.html\n整理日期：2026-10-30",
+        "source": "https://dev.mysql.com/doc/refman/8.4/en/explain.html",
+        "score": 3.1383
+      }
+    ],
+    "search_with_warm_query_vector_ms": 0.9907000057864934
+  },
+  {
+    "id": "ops-abstain-01",
+    "split": "dev",
+    "task_type": "abstain",
+    "mode": "dense",
+    "status": "ok",
+    "query_embedding_ms": 210.7220000034431,
+    "recall": null,
+    "mrr": null,
+    "hits": [
+      {
+        "chunk_id": "ops-kb-004::4",
+        "doc_id": "ops-kb-004",
+        "doc_title": "Pod OOMKilled 处理指南",
+        "text": "## 相关错误码\n- ERR_9001：容器 OOMKilled\n- ERR_9002：JVM Old 区使用率超阈值\n\n---\n资料编号：ops-kb-004\n适用范围：项目演示资料；期限、金额、错误码、阈值仅适用于本虚构场景。\n来源：scripts/knowledge/Pod_OOMKilled处理指南.md\n整理日期：2026-10-30",
+        "source": "scripts/knowledge/Pod_OOMKilled处理指南.md",
+        "score": 0.5479
+      },
+      {
+        "chunk_id": "ops-kb-001::0",
+        "doc_id": "ops-kb-001",
+        "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+        "text": "# ERR_5003 数据库连接池耗尽处理手册",
+        "source": "scripts/knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+        "score": 0.5377
+      },
+      {
+        "chunk_id": "ops-kb-009::4",
+        "doc_id": "ops-kb-009",
+        "doc_title": "服务熔断与限流说明",
+        "text": "## 相关错误码\n- ERR_6004：熔断触发\n- ERR_6005：请求被限流\n\n---\n资料编号：ops-kb-009\n适用范围：项目演示资料；期限、金额、错误码、阈值仅适用于本虚构场景。\n来源：scripts/knowledge/服务熔断与限流说明.md\n整理日期：2026-10-30",
+        "source": "scripts/knowledge/服务熔断与限流说明.md",
+        "score": 0.4711
+      },
+      {
+        "chunk_id": "ops-kb-005::4",
+        "doc_id": "ops-kb-005",
+        "doc_title": "Redis 集群主从切换 SOP",
+        "text": "## 相关错误码\n- ERR_8001：Redis 连接重置\n- ERR_8002：集群槽位迁移中\n\n---\n资料编号：ops-kb-005\n适用范围：项目演示资料；期限、金额、错误码、阈值仅适用于本虚构场景。\n来源：scripts/knowledge/Redis集群主从切换SOP.md\n整理日期：2026-10-30",
+        "source": "scripts/knowledge/Redis集群主从切换SOP.md",
+        "score": 0.4707
+      },
+      {
+        "chunk_id": "ops-kb-011::5",
+        "doc_id": "ops-kb-011",
+        "doc_title": "网关 502 排查手册",
+        "text": "## 相关错误码\n- ERR_6002：上游连接被拒绝\n- ERR_6003：上游响应超时\n\n---\n资料编号：ops-kb-011\n适用范围：项目演示资料；期限、金额、错误码、阈值仅适用于本虚构场景。\n来源：scripts/knowledge/网关502排查手册.md\n整理日期：2026-10-30",
+        "source": "scripts/knowledge/网关502排查手册.md",
+        "score": 0.466
+      }
+    ],
+    "search_with_warm_query_vector_ms": 1.4789999986533076
+  },
+  {
+    "id": "ops-abstain-01",
+    "split": "dev",
+    "task_type": "abstain",
+    "mode": "hybrid",
+    "status": "ok",
+    "query_embedding_ms": 210.7220000034431,
+    "recall": null,
+    "mrr": null,
+    "hits": [
+      {
+        "chunk_id": "ops-kb-003::4",
+        "doc_id": "ops-kb-003",
+        "doc_title": "MySQL 慢查询治理",
+        "text": "## 相关错误码\n- ERR_5001：查询超时\n- ERR_5002：锁等待超时\n\n---\n资料编号：ops-kb-003\n适用范围：项目演示资料；期限、金额、错误码、阈值仅适用于本虚构场景。\n来源：scripts/knowledge/MySQL慢查询治理.md\n整理日期：2026-10-30",
+        "source": "scripts/knowledge/MySQL慢查询治理.md",
+        "score": 0.0296
+      },
+      {
+        "chunk_id": "ops-kb-004::4",
+        "doc_id": "ops-kb-004",
+        "doc_title": "Pod OOMKilled 处理指南",
+        "text": "## 相关错误码\n- ERR_9001：容器 OOMKilled\n- ERR_9002：JVM Old 区使用率超阈值\n\n---\n资料编号：ops-kb-004\n适用范围：项目演示资料；期限、金额、错误码、阈值仅适用于本虚构场景。\n来源：scripts/knowledge/Pod_OOMKilled处理指南.md\n整理日期：2026-10-30",
+        "source": "scripts/knowledge/Pod_OOMKilled处理指南.md",
+        "score": 0.0164
+      },
+      {
+        "chunk_id": "ops-kb-016::0",
+        "doc_id": "ops-kb-016",
+        "doc_title": "Redis 复制与 WAIT 的一致性边界",
+        "text": "# Redis 复制与 WAIT 的一致性边界\n\nRedis 默认采用异步复制，主节点通常不等待每次写入都被副本处理才继续。副本会周期性确认收到的数据进度。WAIT 可以等待指定数量的副本确认写入，但不会把 Redis 变成强一致系统；在特定持久化和故障切换条件下，已确认写入仍可能丢失。评估切换风险时应同时考虑复制进度与持久化配置。\n\n---\n资料编号：ops-kb-016\n适用范围：官方资料中文摘要；仅适用于标题产品，不代表本项目已集成。\n来源：https://redis.io/docs/latest/operate/oss_and_stack/management/replication/\n整理日期：2026-10-30",
+        "source": "https://redis.io/docs/latest/operate/oss_and_stack/management/replication/",
+        "score": 0.0164
+      },
+      {
+        "chunk_id": "ops-kb-001::0",
+        "doc_id": "ops-kb-001",
+        "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+        "text": "# ERR_5003 数据库连接池耗尽处理手册",
+        "source": "scripts/knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+        "score": 0.0161
+      },
+      {
+        "chunk_id": "ops-kb-019::0",
+        "doc_id": "ops-kb-019",
+        "doc_title": "诊断工具的输入与证据边界",
+        "text": "# 诊断工具的输入与证据边界\n\n诊断工具按服务标识或中文别名提取实体，订单服务映射为 order-service，网关映射为 api-gateway-service。query_service_metrics 提供近一小时 QPS、P99 延迟、错误率和 CPU 的演示指标，一次最多查询两个服务。query_fault_history 按租户、服务和错误码检索故障，精确匹配为空时退回同租户最近记录；最近记录不能冒充同一故障的已确认根因。工具结果是样例，不是已接入真实监控系统。\n\n---\n资料编号：ops-kb-019\n适用范围：当前代码实现摘要；不代表生产系统能力。\n来源：app/agent/tools.py、app/services/metrics_service.py\n整理日期：2026-10-30",
+        "source": "project",
+        "score": 0.0161
+      }
+    ],
+    "search_with_warm_query_vector_ms": 4.097099998034537
+  },
+  {
+    "id": "ops-abstain-01",
+    "split": "dev",
+    "task_type": "abstain",
+    "mode": "hybrid_rerank",
+    "status": "ok",
+    "query_embedding_ms": 210.7220000034431,
+    "recall": null,
+    "mrr": null,
+    "hits": [
+      {
+        "chunk_id": "ops-kb-004::4",
+        "doc_id": "ops-kb-004",
+        "doc_title": "Pod OOMKilled 处理指南",
+        "text": "## 相关错误码\n- ERR_9001：容器 OOMKilled\n- ERR_9002：JVM Old 区使用率超阈值\n\n---\n资料编号：ops-kb-004\n适用范围：项目演示资料；期限、金额、错误码、阈值仅适用于本虚构场景。\n来源：scripts/knowledge/Pod_OOMKilled处理指南.md\n整理日期：2026-10-30",
+        "source": "scripts/knowledge/Pod_OOMKilled处理指南.md",
+        "score": 0.5439
+      },
+      {
+        "chunk_id": "ops-kb-009::4",
+        "doc_id": "ops-kb-009",
+        "doc_title": "服务熔断与限流说明",
+        "text": "## 相关错误码\n- ERR_6004：熔断触发\n- ERR_6005：请求被限流\n\n---\n资料编号：ops-kb-009\n适用范围：项目演示资料；期限、金额、错误码、阈值仅适用于本虚构场景。\n来源：scripts/knowledge/服务熔断与限流说明.md\n整理日期：2026-10-30",
+        "source": "scripts/knowledge/服务熔断与限流说明.md",
+        "score": 0.4431
+      },
+      {
+        "chunk_id": "ops-kb-001::5",
+        "doc_id": "ops-kb-001",
+        "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+        "text": "## 相关错误码\n- ERR_5003：连接池耗尽\n- ERR_5004：连接获取超时",
+        "source": "scripts/knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+        "score": 0.4031
+      },
+      {
+        "chunk_id": "ops-kb-003::4",
+        "doc_id": "ops-kb-003",
+        "doc_title": "MySQL 慢查询治理",
+        "text": "## 相关错误码\n- ERR_5001：查询超时\n- ERR_5002：锁等待超时\n\n---\n资料编号：ops-kb-003\n适用范围：项目演示资料；期限、金额、错误码、阈值仅适用于本虚构场景。\n来源：scripts/knowledge/MySQL慢查询治理.md\n整理日期：2026-10-30",
+        "source": "scripts/knowledge/MySQL慢查询治理.md",
+        "score": 0.4008
+      },
+      {
+        "chunk_id": "ops-kb-019::0",
+        "doc_id": "ops-kb-019",
+        "doc_title": "诊断工具的输入与证据边界",
+        "text": "# 诊断工具的输入与证据边界\n\n诊断工具按服务标识或中文别名提取实体，订单服务映射为 order-service，网关映射为 api-gateway-service。query_service_metrics 提供近一小时 QPS、P99 延迟、错误率和 CPU 的演示指标，一次最多查询两个服务。query_fault_history 按租户、服务和错误码检索故障，精确匹配为空时退回同租户最近记录；最近记录不能冒充同一故障的已确认根因。工具结果是样例，不是已接入真实监控系统。\n\n---\n资料编号：ops-kb-019\n适用范围：当前代码实现摘要；不代表生产系统能力。\n来源：app/agent/tools.py、app/services/metrics_service.py\n整理日期：2026-10-30",
+        "source": "project",
+        "score": 0.3205
+      }
+    ],
+    "search_with_warm_query_vector_ms": 198.37299999198876
+  }
+]

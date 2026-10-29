@@ -25,7 +25,15 @@ def save(path, value):
     path = Path(path)
     temporary = path.with_name(path.name + "." + uuid.uuid4().hex + ".writing")
     temporary.write_text(json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False), encoding="utf-8")
-    temporary.replace(path)
+    for attempt in range(8):
+        try:
+            temporary.replace(path)
+            return
+        except OSError as exc:
+            if attempt == 7 or (exc.errno not in (13, 22) and getattr(exc, "winerror", None) not in (5, 32, 33)):
+                raise
+            # 只重试文件替换，不重复任何模型调用；完整旧快照仍可读取。
+            time.sleep(.1 * (attempt + 1))
 
 
 def error_info(exc):
@@ -421,7 +429,7 @@ def main():
         save(args.output / f"run_manifest.before_resume_{uuid.uuid4().hex[:8]}.json", previous)
         run["resume_history"] = previous.get("resume_history", []) + [{"previous_started_at": previous["started_at"],
             "previous_git_head": previous["git_head"], "previous_code_sha256": previous["code_sha256"],
-            "reason": "本地缓存完整但直接重写出现 OSError，改为独立临时文件后替换；计分、模型、题库与参数不变"}]
+            "reason": "本地快照完整；修复 Windows 临时写入/替换失败，续跑未保存用例；计分、模型、题库与参数不变"}]
         run["usage_coverage"] = "包含续跑后及已保存用例的 usage；首段中断前未保存的 Embedding/重排用量无法完整恢复，不是账户总耗用"
     save(args.output / "run_manifest.json", run)
     with TestClient(app) as client:

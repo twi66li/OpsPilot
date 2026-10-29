@@ -97,3 +97,24 @@ def test_failed_snapshot_replace_preserves_previous_result(tmp_path, monkeypatch
     with pytest.raises(OSError):
         save(path, {"completed": 11})
     assert '"completed": 10' in path.read_text(encoding="utf-8")
+
+
+def test_snapshot_recovers_from_temporary_windows_file_lock(tmp_path, monkeypatch):
+    from pathlib import Path
+
+    from eval import real_eval
+    original = Path.replace
+    attempts = []
+
+    def locked_twice(source, target):
+        attempts.append(1)
+        if len(attempts) <= 2:
+            raise PermissionError(13, "临时占用")
+        return original(source, target)
+
+    monkeypatch.setattr(Path, "replace", locked_twice)
+    monkeypatch.setattr(real_eval.time, "sleep", lambda delay: None)
+    path = tmp_path / "result.json"
+    real_eval.save(path, {"completed": 11})
+    assert len(attempts) == 3
+    assert '"completed": 11' in path.read_text(encoding="utf-8")

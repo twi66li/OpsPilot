@@ -171,7 +171,7 @@ def render_report(manifest, rows, agreement, summary, usage):
         lines.append(f"| {field} | {item['agree']}/{item['comparable']} | {pct(item['rate'])} | {', '.join(item['disagreements']) or '无'} |")
     lines += ["", "## 结论与范围", "",
               "该对照衡量分数对裁判选择的敏感性；分数变化来自裁判变化，不能表述为被测系统能力提升。",
-              "答案由 qwen3.8-flash 生成，新裁判属于同系列；同系列偏好可能影响判分，当前实验无法排除，也不能据此认定哪个裁判更准确。",
+              "Qwen生成模型与Qwen裁判可能存在同系列偏好；当前实验无法排除，也不能据此认定哪个裁判更准确。",
               "题库 human_reviewed=false，本任务不含人工标注或人工金标；一致率高也不等于人工准确率高。",
               "裁判偏差研究参考：[Judging LLM-as-a-Judge](https://arxiv.org/abs/2306.05685)。",
               "错误用例保留在分母中，新分数包含未完成题时仅为保守下界，须结合有效评分覆盖率阅读。",
@@ -197,7 +197,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--judge-model", default="qwen3.8-max")
+    parser.add_argument("--judge-model", default="qwen3.8-27b")
     parser.add_argument("--workers", type=int, default=2)
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()

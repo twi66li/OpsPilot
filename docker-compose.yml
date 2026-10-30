@@ -53,7 +53,7 @@ services:
       MODEL_STRICT: ${MODEL_STRICT:-false}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
-      CHAT_MODEL: ${CHAT_MODEL:-qwen3.8-flash}
+      CHAT_MODEL: ${CHAT_MODEL:-qwen3.8-max}
       RERANK_ENABLED: ${RERANK_ENABLED:-true}
       RERANK_PROVIDER: ${RERANK_PROVIDER:-dashscope}
       RERANK_MODEL: ${RERANK_MODEL:-qwen3.7-text-rerank}

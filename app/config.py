@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     model_strict: bool = False  # 真实评测失败直接报错，不回退 Mock
     openai_api_key: str = ""
     openai_base_url: str = "https://api.openai.com/v1"
-    chat_model: str = "gpt-4o-mini"
+    chat_model: str = "qwen3.8-max"
     embedding_model: str = "text-embedding-3-small"
 
     # ---- 检索 ----

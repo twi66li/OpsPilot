@@ -276,11 +276,13 @@ def main():
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--split", choices=("dev", "test"), required=True)
     parser.add_argument("--workers", type=int, default=3)
+    parser.add_argument("--judges", nargs=2, default=["qwen3.8-max", "qwen3.8-27b"])
     args = parser.parse_args()
     cases = validate_dataset()
     config, rubric = load(DATASET / "config.json"), load(DATASET / "rubric.json")
     settings = Settings(_env_file=".env")
-    settings.chat_model = config["chat_model"]
+    # 旧数据集配置仅记录历史；新运行使用当前.env模型，另存批次配置，不覆写冻结文件。
+    config.update(chat_model=settings.chat_model, judges=args.judges)
     settings.tool_timeout_seconds = config["tool_timeout_seconds"]
     if not settings.openai_api_key:
         raise ValueError("未配置真实模型密钥")
@@ -290,7 +292,7 @@ def main():
     frozen_hash = sha(DATASET / "manifest.json")
     if run_path.exists():
         run = load(run_path)
-        if run["dataset_sha256"] != frozen_hash or run["source_commit"] != revision:
+        if run["dataset_sha256"] != frozen_hash or run["source_commit"] != revision or run["config"] != config:
             raise ValueError("续跑的代码或冻结数据发生改变，不能混合结果")
     else:
         run = {"started_at": datetime.now(timezone.utc).isoformat(), "source_commit": revision,

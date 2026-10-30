@@ -119,7 +119,8 @@ def run_tool_loop(question, api, execute, *, history=(), timeout=8.0):
                         try:
                             output = future.result(timeout=timeout)
                         finally:
-                            # 等待时间受限；传输层另受同一deadline约束，迟到usage仍写入同一run。
+                            # 超时只停止等待，cancel_futures不能取消已运行线程；工具因此仅限只读。
+                            # 真实网络请求另受同一deadline约束；后台可能仍在收尾，迟到usage追加原run。
                             pool.shutdown(wait=False, cancel_futures=True)
                 except (ValidationError, json.JSONDecodeError, ValueError, KeyError, TypeError) as exc:
                     output = (

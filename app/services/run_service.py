@@ -1,11 +1,14 @@
 """按 run_id 记录运行事件；上下文跟随执行线程，迟到的只读请求用量仍可追加。"""
 import copy
+import logging
 import threading
 import time
 import uuid
 from contextlib import contextmanager
 from contextvars import ContextVar
 from datetime import datetime, timezone
+
+logger = logging.getLogger(__name__)
 
 _current = ContextVar("agent_run", default=None)
 _deadline = ContextVar("tool_deadline", default=None)
@@ -48,7 +51,12 @@ def tool_time_left():
 def emit(kind, detail):
     recorder = current_run()
     if recorder:
-        recorder.add(kind, detail)
+        try:
+            recorder.add(kind, detail)
+        except Exception as exc:
+            # 附加追踪故障不改变业务结果；异常原文可能含SQL参数/正文，只记录类型。
+            logger.warning("run_event_write_failed run_id=%s kind=%s error_type=%s",
+                           getattr(recorder, "id", "offline"), kind, type(exc).__name__)
 
 
 class RunRecorder:

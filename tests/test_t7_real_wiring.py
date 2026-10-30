@@ -99,7 +99,6 @@ def test_compose_carries_t7_passthrough():
     text = "\n".join(f"{k}: {v}" for k, v in env.items())
     for token in (
         "kb_qwen37_1024_v2",
-        "qwen3.8-flash",
         "qwen3.7-text-embedding-flash",
         "qwen3.7-text-rerank",
         "MODEL_STRICT",
@@ -108,3 +107,4 @@ def test_compose_carries_t7_passthrough():
         assert token in text, token
     assert env["QDRANT_COLLECTION"].endswith("kb_qwen37_1024_v2}")
     assert env["EMBEDDING_DIM"].endswith("1024}")
+    assert env["CHAT_MODEL"] == "${CHAT_MODEL:-qwen3.8-max}"

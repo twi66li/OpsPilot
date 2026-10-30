@@ -2,6 +2,7 @@
 import copy
 import json
 import time
+from threading import Event
 
 from app.agent.tool_loop import run_tool_loop
 from tests.conftest import new_session, register
@@ -70,6 +71,52 @@ def test_timeout_bounds_waiting_and_is_not_a_healthy_result():
     assert time.perf_counter() - started < 0.12
     assert result["end_reason"] == "tool_timeout" and result["usage_may_arrive_later"]
     assert result["tool_events"][0]["result"]["status"] == "timeout"
+
+
+def test_timeout_does_not_cancel_an_already_running_read_only_thread():
+    started, release, finished = Event(), Event(), Event()
+
+    def blocked(*_):
+        started.set()
+        try:
+            assert release.wait(2)
+            return {"status": "ok"}
+        finally:
+            finished.set()
+
+    try:
+        api = ScriptedAPI({"tool_calls": [tool("query_service_metrics", {"service": "order-service"})]})
+        result = run_tool_loop("查询", api, blocked, timeout=0.05)
+        assert started.is_set() and not finished.is_set()
+        assert result["end_reason"] == "tool_timeout" and result["usage_may_arrive_later"]
+    finally:
+        release.set()
+        assert finished.wait(2)
+
+
+def test_event_write_failure_does_not_break_answer_or_hide_model_error(caplog):
+    from app.services.run_service import capture_run
+
+    private = "不得写入日志的数据库参数和正文"
+
+    class BrokenRecorder:
+        id = "failed-trace-run"
+
+        def add(self, *_):
+            raise RuntimeError(private)
+
+    class BrokenModel:
+        def tool_turn(self, *_args, **_kwargs):
+            raise ValueError("真实模型错误")
+
+    api = ScriptedAPI({"tool_calls": [tool("search_runbook", {"query": "连接池"})]}, {"content": "依据证据回答"})
+    with capture_run(BrokenRecorder()):
+        success = run_tool_loop("查询", api, lambda *_: {"status": "ok", "hits": []})
+        failure = run_tool_loop("查询", BrokenModel(), lambda *_: {})
+    assert success["end_reason"] == "answered" and success["tool_calls_executed"] == 1
+    assert failure["end_reason"] == "model_error"
+    assert "failed-trace-run" in caplog.text and "RuntimeError" in caplog.text
+    assert private not in caplog.text
 
 
 def test_backend_value_error_is_not_reported_as_model_argument_error():

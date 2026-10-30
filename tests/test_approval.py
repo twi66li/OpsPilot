@@ -1,4 +1,6 @@
 """工单人工审批（LangGraph interrupt / resume）测试。"""
+import pytest
+
 from tests.conftest import new_session
 
 
@@ -94,3 +96,21 @@ def test_repeated_same_decision_returns_existing_ticket(client, admin_headers, e
     )
     assert second.status_code == 200
     assert second.json()["ticket_id"] == first.json()["ticket_id"]
+
+
+@pytest.mark.parametrize("approved", [True, False])
+def test_opposite_decision_returns_409_and_preserves_first_result(client, admin_headers, engineer_headers, approved):
+    sid = new_session(client, admin_headers)
+    started = _start_ticket_flow(client, admin_headers, sid)
+    approval_id = started["approval"]["approval_id"]
+    path = f"/api/agent/approvals/{approval_id}/decide"
+    first = client.post(path, json={"approved": approved, "comment": "首次决定"}, headers=engineer_headers)
+    assert first.status_code == 200
+    before = client.get("/api/tickets", headers=admin_headers).json()
+    opposite = client.post(path, json={"approved": not approved, "comment": "试图反转"}, headers=engineer_headers)
+    assert opposite.status_code == 409 and "相反决定" in opposite.json()["detail"]
+    assert client.get("/api/tickets", headers=admin_headers).json() == before
+    repeated = client.post(path, json={"approved": approved, "comment": "原决定重试"}, headers=engineer_headers)
+    assert repeated.status_code == 200
+    assert repeated.json()["approval_status"] == ("approved" if approved else "rejected")
+    assert repeated.json()["ticket_id"] == first.json()["ticket_id"]

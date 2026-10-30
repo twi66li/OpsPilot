@@ -4,11 +4,14 @@
 - OpenAIEmbedding：任意 OpenAI 兼容 API（生产建议）。
 """
 import hashlib
+import json
+import logging
 import re
 
 import jieba
 
 jieba.setLogLevel(60)
+logger = logging.getLogger(__name__)
 
 
 def tokenize(text: str) -> list[str]:
@@ -56,6 +59,7 @@ class OpenAIEmbedding:
             raise ValueError("向量模型输出维度与索引配置不一致")
         self.calls.append({"model": self.model, "status": "ok", "elapsed_ms": (time.perf_counter() - started) * 1000,
                            "usage": resp.usage.model_dump()})
+        logger.info("model_api_usage kind=embedding record=%s", json.dumps(self.calls[-1], ensure_ascii=False))
         return vectors
 
 

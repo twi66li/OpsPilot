@@ -1,9 +1,13 @@
 """真实模型调用与计时。失败交给调用方，评测不得悄悄替换为 Mock。"""
+import json
+import logging
 import time
 from urllib.parse import urlsplit
 
 import httpx
 from openai import OpenAI
+
+logger = logging.getLogger(__name__)
 
 
 class ChatAPI:
@@ -55,6 +59,7 @@ class ChatAPI:
         finally:
             record["elapsed_ms"] = (time.perf_counter() - started) * 1000
             self.calls.append(record)
+            logger.info("model_api_usage kind=chat record=%s", json.dumps(record, ensure_ascii=False))
 
 
 class RerankAPI:
@@ -94,3 +99,4 @@ class RerankAPI:
         finally:
             record["elapsed_ms"] = (time.perf_counter() - started) * 1000
             self.calls.append(record)
+            logger.info("model_api_usage kind=rerank record=%s", json.dumps(record, ensure_ascii=False))

@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from eval.agent_eval import DATASET, ReplayBackend, hard_score, sha, validate_dataset
+from eval.agent_eval import DATASET, ReplayBackend, hard_score, judge_evidence, sha, validate_dataset
 
 
 def test_dataset_family_leak_is_rejected(tmp_path):
@@ -38,3 +38,12 @@ def test_tool_score_accepts_multiple_orders_but_rejects_wrong_window_and_extra_t
     assert not hard_score(case, {"tools": calls})["parameter_correct"]
     calls.append({"name": "query_fault_history", "args": {}, "executed": True})
     assert not hard_score(case, {"tools": calls})["tool_selection"]
+
+
+def test_judge_receives_the_actual_numbered_evidence_not_pre_adapter_backend_data():
+    row = {"mode": "native", "native_tool_events": [{"name": "search_runbook", "executed": True,
+           "result": {"hits": [{"citation_id": 4, "text": "缓存加TTL"}]}}]}
+    assert judge_evidence(row)[0]["result"]["hits"][0]["citation_id"] == 4
+    row = {"mode": "rule", "trace": [{"kind": "model_input", "detail": {"kind": "chat", "user": "相关性判断"}},
+           {"kind": "model_input", "detail": {"kind": "chat", "user": "知识库文档：[1]缓存加TTL"}}]}
+    assert judge_evidence(row) == [{"kind": "chat", "user": "知识库文档：[1]缓存加TTL"}]

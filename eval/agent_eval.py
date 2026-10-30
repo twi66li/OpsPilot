@@ -202,11 +202,19 @@ def hard_score(case, row):
             "executed": len(actual), "denied": len(row["tools"]) - len(actual)}
 
 
+def judge_evidence(row):
+    # 取模型实际见到的上下文，不能丢掉工具循环补上的citation_id或规则链[n]编号。
+    if row["mode"] == "native":
+        return [{"name": e["name"], "result": e["result"]} for e in row["native_tool_events"] if e["executed"]]
+    inputs = [e["detail"] for e in row["trace"] if e["kind"] == "model_input" and e["detail"].get("kind") == "chat"]
+    return inputs[-1:]  # QA最后一次chat就是generate_answer；不把未展示的数据库字段当依据。
+
+
 def judge_row(case, row, rubric, settings, model):
     api = ChatAPI(settings.openai_api_key, settings.openai_base_url, model)
     # 裁判看相同的题目金标和该答案实际得到的证据，不看策略、生成模型或旧成绩。
     payload = {"question": case["question"], "required_points": case["required_points"], "rubric": rubric,
-               "answer": row["answer"], "evidence": [{"name": t["name"], "result": t["result"]} for t in row["tools"] if t["executed"]],
+               "answer": row["answer"], "evidence": judge_evidence(row),
                "generation_succeeded": row["status"] == "ok"}
     result = {"id": row["id"], "mode": row["mode"], "judge": model, "input": payload, "attempts": []}
     for attempt in range(2):

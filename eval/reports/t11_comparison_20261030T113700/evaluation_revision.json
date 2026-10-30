@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-30T11:33:36.636395+00:00",
+  "source_commit": "3c7e778aee8bd5270d74734ed0ee11463d5ee609",
+  "reason": "首轮裁判只见到适配前的回放后端输出，丢失native citation_id和规则链实际编号上下文；改为模型实际取得证据",
+  "changes": "只改裁判证据输入；同48份答案/原rubric/模型/金标不变；保留首轮全部判分，最终使用corrected文件",
+  "answers_sha256": "9036d5c91ab2f81353af4e62ebe579453328cc76c79ce9d60e3c59d9e5c54740",
+  "rubric_sha256": "8e5bc207b5e969435e218cd6ce768988cda2b53dd2da12bbecd85383d79b91a1",
+  "initial_judgments_sha256": "5eb3b451e212967a46efda19624696f303f81bd3ac148ec7fcc9b441b18d812e",
+  "initial_summary_sha256": "2652463cd325bb46863f0bf9158adb916bcee6e7f50ef5667a73768f62f0db5e"
+}

@@ -1,0 +1,49 @@
+{
+  "by_phase_and_model": {
+    "generation:qwen3.8-flash": {
+      "calls": 108,
+      "actual_tokens": 103148,
+      "missing_usage": 0,
+      "api_errors": 0
+    },
+    "initial_judgment:deepseek-v4-pro-0813": {
+      "calls": 48,
+      "actual_tokens": 90271,
+      "missing_usage": 0,
+      "api_errors": 0
+    },
+    "initial_judgment:qwen3.8-max": {
+      "calls": 48,
+      "actual_tokens": 95045,
+      "missing_usage": 0,
+      "api_errors": 0
+    },
+    "corrected_judgment:deepseek-v4-pro-0813": {
+      "calls": 48,
+      "actual_tokens": 78867,
+      "missing_usage": 0,
+      "api_errors": 0
+    },
+    "corrected_judgment:qwen3.8-max": {
+      "calls": 52,
+      "actual_tokens": 72720,
+      "missing_usage": 8,
+      "api_errors": 8
+    },
+    "capability_probe:deepseek-v4-pro-0813": {
+      "calls": 1,
+      "actual_tokens": 61,
+      "missing_usage": 0,
+      "api_errors": 0
+    },
+    "real_sse:qwen3.8-flash": {
+      "calls": 2,
+      "actual_tokens": 2707,
+      "missing_usage": 0,
+      "api_errors": 0
+    }
+  },
+  "total_reported_tokens": 442819,
+  "calls_without_usage": 8,
+  "notice": "超时调用未返回usage，不能视为零费用；合计仅API实报。首轮与修正重判费用都计入。不是账户余额或生产成本。"
+}

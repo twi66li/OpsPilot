@@ -1,0 +1,25 @@
+{
+  "model": "deepseek-v4-pro-0813",
+  "status": "ok",
+  "raw": "{\"answer_correct\":true,\"grounded\":true,\"appropriate_abstention\":true,\"reason\":\"接口探针\"}",
+  "model_calls": [
+    {
+      "model": "deepseek-v4-pro-0813",
+      "status": "ok",
+      "first_token_ms": 1905.3717000060715,
+      "usage": {
+        "completion_tokens": 26,
+        "prompt_tokens": 35,
+        "total_tokens": 61,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 2238.209700008156
+    }
+  ]
+}

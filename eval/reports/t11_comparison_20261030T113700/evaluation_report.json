@@ -1,0 +1,175 @@
+{
+  "status": "implementation_and_evaluation_ready_for_external_review_with_judge_timeouts",
+  "generated_at": "2026-10-30T11:39:34.656399+00:00",
+  "reviewer": "WorkBuddy/DeepSeek",
+  "final_scores": "summary_corrected.json",
+  "initial_scores": "summary.json 仅保留审计，不作为最终判分；原因见evaluation_revision.json",
+  "raw_outputs": [
+    "answers.json",
+    "judgments.json",
+    "judgments_corrected.json"
+  ],
+  "per_question": [
+    "per_case.json",
+    "per_case.csv"
+  ],
+  "judge_comparison": "judge_sensitivity.json",
+  "usage": "usage_summary.json",
+  "scope": {
+    "qa_real_generation": 24,
+    "strategies": 2,
+    "dev_cases": 8,
+    "test_cases": 16,
+    "mock_constraint_scenarios": 5,
+    "real_integration_groups": 3,
+    "evidence": "11篇演示SOP的同BM25检索、演示历史、两种时间窗的真实测试Prometheus录制；真实模型回答；未评远程向量检索召回率",
+    "live_checks": "当前SSE/运行输入和usage持久化/租户隔离；审批重启/并发复用T10真实证据并对当前数据库只读复核"
+  },
+  "frozen": {
+    "dataset_sha256": "7adb6a587f697d61b34543bdfc312355aaacdc5645d0963f260f002096b9174a",
+    "config_sha256": "dc0c2a9209cd32382e2850ed7dcc26448ba89f0dd9e1be3fa238c36cd51484b0",
+    "rubric_sha256": "8e5bc207b5e969435e218cd6ce768988cda2b53dd2da12bbecd85383d79b91a1",
+    "answers_sha256": "9036d5c91ab2f81353af4e62ebe579453328cc76c79ce9d60e3c59d9e5c54740",
+    "test_generation_source_commit": "27e4b850ef7a1e34e1e7dbea814cea8f23f8f26d",
+    "corrected_judging_source_commit": "3c7e778aee8bd5270d74734ed0ee11463d5ee609",
+    "app_unchanged_since": "ee3d95b"
+  },
+  "test_results": {
+    "rule": {
+      "expected": 16,
+      "completed": 16,
+      "api_errors": 0,
+      "tool_selection": 0.375,
+      "parameter_correct": 0.375,
+      "budget_ok": 1.0,
+      "elapsed_ms_p50": 6635.6231499958085,
+      "actual_total_tokens": 22976,
+      "calls_missing_usage": 0,
+      "judges": {
+        "qwen3.8-max": {
+          "valid": 15,
+          "answer_correct": 0.6875,
+          "grounded": 0.9375,
+          "task_complete": 0.3125
+        },
+        "deepseek-v4-pro-0813": {
+          "valid": 16,
+          "answer_correct": 0.9375,
+          "grounded": 0.9375,
+          "task_complete": 0.375
+        }
+      },
+      "judge_agreement": {
+        "paired": 15,
+        "answer_correct": 0.8
+      }
+    },
+    "native": {
+      "expected": 16,
+      "completed": 16,
+      "api_errors": 0,
+      "tool_selection": 0.9375,
+      "parameter_correct": 0.9375,
+      "budget_ok": 1.0,
+      "elapsed_ms_p50": 6408.1791499920655,
+      "actual_total_tokens": 47866,
+      "calls_missing_usage": 0,
+      "judges": {
+        "qwen3.8-max": {
+          "valid": 15,
+          "answer_correct": 0.875,
+          "grounded": 0.8125,
+          "task_complete": 0.75
+        },
+        "deepseek-v4-pro-0813": {
+          "valid": 16,
+          "answer_correct": 1.0,
+          "grounded": 1.0,
+          "task_complete": 0.9375
+        }
+      },
+      "judge_agreement": {
+        "paired": 15,
+        "answer_correct": 0.9333333333333333
+      }
+    }
+  },
+  "judge_failures": [
+    {
+      "id": "v2-006",
+      "mode": "native",
+      "judge": "qwen3.8-max",
+      "status": "error",
+      "attempts": [
+        {
+          "error_type": "APITimeoutError"
+        },
+        {
+          "error_type": "APITimeoutError"
+        }
+      ]
+    },
+    {
+      "id": "v2-006",
+      "mode": "rule",
+      "judge": "qwen3.8-max",
+      "status": "error",
+      "attempts": [
+        {
+          "error_type": "APITimeoutError"
+        },
+        {
+          "error_type": "APITimeoutError"
+        }
+      ]
+    },
+    {
+      "id": "v2-013",
+      "mode": "native",
+      "judge": "qwen3.8-max",
+      "status": "error",
+      "attempts": [
+        {
+          "error_type": "APITimeoutError"
+        },
+        {
+          "error_type": "APITimeoutError"
+        }
+      ]
+    },
+    {
+      "id": "v2-013",
+      "mode": "rule",
+      "judge": "qwen3.8-max",
+      "status": "error",
+      "attempts": [
+        {
+          "error_type": "APITimeoutError"
+        },
+        {
+          "error_type": "APITimeoutError"
+        }
+      ]
+    }
+  ],
+  "interpretation": [
+    "硬指标逐题评分，工具集合允许多个有效组合、不要求唯一顺序；固定规则链会过度查询/忽略时间窗，不因测试结果修改策略",
+    "原生循环在网关题v2-016查询了未确认的gateway服务与ERR_502，工具/参数评分失败，保留原始轨迹",
+    "任务完成率是严格复合指标：生成成功+工具选择+参数+预算+三项语义判定全部通过；不是只看答案对错",
+    "Qwen在v2-006、v2-013的两策略各两次60秒请求超时，共4条缺判；仍以预设分母统计已通过比例，并列有效数；一致率仅用有效配对",
+    "首轮裁判证据丢失引用适配信息，修正为模型实际所见上下文后仅重判同48份答案；题目/规则/答案均未改",
+    "未人工审核的小样本与模型裁判分歧；不作为生产准确率，不把裁判一致率写为人工准确率",
+    "测试集生成Token rule22976/native47866，原生约2.08倍；P50仅单轮本机耗时，不当性能保证",
+    "单API进程；文件型检查点和数据库唯一约束不等同于多实例分布式事务；不预设提升目标"
+  ],
+  "validation": {
+    "t10_regression": 95,
+    "t11_relevant_before_correction": 13,
+    "t11_after_evidence_fix": 4,
+    "ruff": "passed",
+    "constraint_file": "constraints.json",
+    "all_generated_answers_succeeded": true,
+    "all_semantic_judgments_succeeded": false
+  },
+  "review_status": "待用户在WorkBuddy发起独立审查，任务板维持review，不自行done"
+}

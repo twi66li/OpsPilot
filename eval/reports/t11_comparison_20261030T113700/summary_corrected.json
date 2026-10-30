@@ -1,0 +1,129 @@
+{
+  "labels": {
+    "qa": "真实模型+BM25固定检索+真实测试指标录制回放；不是当前在线指标或生产准确率",
+    "human_reviewed": false,
+    "judges_are_not_gold": true
+  },
+  "splits": {
+    "dev": {
+      "rule": {
+        "expected": 8,
+        "completed": 8,
+        "api_errors": 0,
+        "tool_selection": 0.5,
+        "parameter_correct": 0.5,
+        "budget_ok": 1.0,
+        "elapsed_ms_p50": 5797.835200006375,
+        "actual_total_tokens": 10143,
+        "calls_missing_usage": 0,
+        "judges": {
+          "qwen3.8-max": {
+            "valid": 7,
+            "answer_correct": 0.5,
+            "grounded": 0.625,
+            "task_complete": 0.375
+          },
+          "deepseek-v4-pro-0813": {
+            "valid": 8,
+            "answer_correct": 0.625,
+            "grounded": 0.75,
+            "task_complete": 0.375
+          }
+        },
+        "judge_agreement": {
+          "paired": 7,
+          "answer_correct": 0.8571428571428571
+        }
+      },
+      "native": {
+        "expected": 8,
+        "completed": 8,
+        "api_errors": 0,
+        "tool_selection": 1.0,
+        "parameter_correct": 1.0,
+        "budget_ok": 1.0,
+        "elapsed_ms_p50": 6444.681799999671,
+        "actual_total_tokens": 22163,
+        "calls_missing_usage": 0,
+        "judges": {
+          "qwen3.8-max": {
+            "valid": 7,
+            "answer_correct": 0.75,
+            "grounded": 0.75,
+            "task_complete": 0.75
+          },
+          "deepseek-v4-pro-0813": {
+            "valid": 8,
+            "answer_correct": 1.0,
+            "grounded": 1.0,
+            "task_complete": 1.0
+          }
+        },
+        "judge_agreement": {
+          "paired": 7,
+          "answer_correct": 0.8571428571428571
+        }
+      }
+    },
+    "test": {
+      "rule": {
+        "expected": 16,
+        "completed": 16,
+        "api_errors": 0,
+        "tool_selection": 0.375,
+        "parameter_correct": 0.375,
+        "budget_ok": 1.0,
+        "elapsed_ms_p50": 6635.6231499958085,
+        "actual_total_tokens": 22976,
+        "calls_missing_usage": 0,
+        "judges": {
+          "qwen3.8-max": {
+            "valid": 15,
+            "answer_correct": 0.6875,
+            "grounded": 0.9375,
+            "task_complete": 0.3125
+          },
+          "deepseek-v4-pro-0813": {
+            "valid": 16,
+            "answer_correct": 0.9375,
+            "grounded": 0.9375,
+            "task_complete": 0.375
+          }
+        },
+        "judge_agreement": {
+          "paired": 15,
+          "answer_correct": 0.8
+        }
+      },
+      "native": {
+        "expected": 16,
+        "completed": 16,
+        "api_errors": 0,
+        "tool_selection": 0.9375,
+        "parameter_correct": 0.9375,
+        "budget_ok": 1.0,
+        "elapsed_ms_p50": 6408.1791499920655,
+        "actual_total_tokens": 47866,
+        "calls_missing_usage": 0,
+        "judges": {
+          "qwen3.8-max": {
+            "valid": 15,
+            "answer_correct": 0.875,
+            "grounded": 0.8125,
+            "task_complete": 0.75
+          },
+          "deepseek-v4-pro-0813": {
+            "valid": 16,
+            "answer_correct": 1.0,
+            "grounded": 1.0,
+            "task_complete": 0.9375
+          }
+        },
+        "judge_agreement": {
+          "paired": 15,
+          "answer_correct": 0.9333333333333333
+        }
+      }
+    }
+  }
+}

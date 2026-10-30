@@ -1,0 +1,39 @@
+{
+  "baseline": "f246e4a44eb310b9b89a9b9b72263b4805f267c9",
+  "t10_commit": "ee3d95b",
+  "frozen_evaluation_source_commit": "3c7e778aee8bd5270d74734ed0ee11463d5ee609",
+  "artifacts_sha256": {
+    "answers.json": "9036d5c91ab2f81353af4e62ebe579453328cc76c79ce9d60e3c59d9e5c54740",
+    "constraints.json": "8944365a9335c075429ee71ae1211dbb2ca6accd2ae07ff8f61141da109486cc",
+    "current_sse.json": "eb68bd46091020218d4bf7f64555d1869362c5add2fd5f679998c4a4e722a7bd",
+    "current_sse_check.json": "10023c3162ff98c8a6406f83618c76a4774430b07d4221fbe5bb7fcd7ebf54bc",
+    "current_sse_run.json": "dcff4caa2027d6f4c277a30ccb43fda88942464a13e0a9c3cf085956161ca236",
+    "evaluation_report.json": "e133da3f5a79e4d0cb16120f0e165ed91c846e1b7111038ecbf7ad105534274a",
+    "evaluation_revision.json": "38d2fbf7a8973073f9875c30abb45ad5a072315b18db5c080db802813fcc3a4a",
+    "judge_capability_probe.json": "38e7dc0aa9a8ec0a5895df7d3a756664f44a4d7b01f5cb0767ceaba84530720d",
+    "judge_sensitivity.json": "35014f25da680d64afa679c12802870cef6ce8ee0613916e8dd8dea359aa9e91",
+    "judgments.json": "5eb3b451e212967a46efda19624696f303f81bd3ac148ec7fcc9b441b18d812e",
+    "judgments_corrected.json": "64ee4338d9e2affd2d6ff9e0234b8c37dfaa99f85fd29c0a3c2224c19ef42ddb",
+    "offline_tests.xml": "af231f772f7be8eb8f583255e48d58d0e4cacfd97aeb70a2387c91d63e83d3c2",
+    "per_case.csv": "950e1f60671655e6aea0f1bbfb6958c1775c78b71316fb0d5be617b95206a6ef",
+    "per_case.json": "0737958199e5165165890b9eeaf4fa4fd8a358343ae475a0c73e035ca0d554dc",
+    "run_manifest.json": "4c4fdb554afab3543d0dc787e58c7f3477305470a772e730c60bdd864e80fad8",
+    "summary.json": "2652463cd325bb46863f0bf9158adb916bcee6e7f50ef5667a73768f62f0db5e",
+    "summary_corrected.json": "0ecaf93c391494b1f3094d3979480b09a395a687bf784b53b1993affc7f3d3ff",
+    "usage_summary.json": "87fe6a417c3d99a6df7e93a90ab83a856ad463e331a4d49ab2183a96a8ce4c50"
+  },
+  "credential_scan": "passed",
+  "external_review": "pending",
+  "note": "最终交付commit另见任务板和journal；清单不自引用。",
+  "source_files_git_blob_sha256": {
+    "app/agent/tool_loop.py": "e8c767ac636517c26b1e750aeb0445332a02ec04fee2860b0a1ab0a2c4be552e",
+    "app/agent/nodes.py": "bd2e4c9ea19d03fe045cb33ea6cb76bcd9cc22958f7d713fe57611078fb8ce31",
+    "app/services/model_api.py": "49848729820c78565f2f32a182128109feaf4e6c199ab753239db08cda036bea",
+    "app/services/run_service.py": "23308f94846ffe5b7996cfe187319166207e557a318a07123bfbcc61b0f98a63",
+    "eval/agent_eval.py": "34ab358970a2025d836d957d667bafa4edcba50d277bb011bb3e4546cb09d4dd",
+    "eval/check_agent_constraints.py": "0da6e3b3eac1a5f8165a37830138d4c1d0f23ae5f00f51d417e563127a4d83c3",
+    "eval/rejudge_agent.py": "f3f1f640e1bb9e7274c62f60e97773ba6473d0e9818d9608dbc075baff17f732",
+    "tests/test_t11_eval.py": "5cb67b55f663ed7a9eb0e712b8150e49f9b4d7fd37281a0c0764d71ea6fd2671"
+  },
+  "source_hash_note": "源码校验使用指定commit中的Git blob字节；避免工作区换行格式差异。冻结JSON与报告按原始字节校验。"
+}

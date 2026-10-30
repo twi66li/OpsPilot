@@ -1,0 +1,47 @@
+{
+  "passed": true,
+  "run_id": "ddcf0c7afa5c4aea92a643d359a1f708",
+  "session_id": "e0de8bf84bae48a1b0656eeefe7e4075",
+  "question": "只读查询 order-service 近5分钟真实测试指标，说明来源和数据是否足够；不要创建工单。",
+  "all_events_same_run": true,
+  "inputs_persisted": true,
+  "model_calls": [
+    {
+      "kind": "tool_chat",
+      "model": "qwen3.8-flash",
+      "usage": {
+        "total_tokens": 909,
+        "prompt_tokens": 869,
+        "completion_tokens": 40,
+        "prompt_tokens_details": {
+          "text_tokens": 869,
+          "audio_tokens": null,
+          "cached_tokens": 0,
+          "cache_write_tokens": null
+        },
+        "completion_tokens_details": null
+      },
+      "status": "ok",
+      "elapsed_ms": 2140.8815190006862
+    },
+    {
+      "kind": "tool_chat",
+      "model": "qwen3.8-flash",
+      "usage": {
+        "total_tokens": 1798,
+        "prompt_tokens": 1436,
+        "completion_tokens": 362,
+        "prompt_tokens_details": {
+          "text_tokens": 1436,
+          "audio_tokens": null,
+          "cached_tokens": 0,
+          "cache_write_tokens": null
+        },
+        "completion_tokens_details": null
+      },
+      "status": "ok",
+      "elapsed_ms": 5821.867448001285
+    }
+  ],
+  "scope": "本轮新增真实模型+Prometheus的SSE最小验证；非录制QA；不创建工单"
+}

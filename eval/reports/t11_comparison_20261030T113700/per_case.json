@@ -1,0 +1,2410 @@
+[
+  {
+    "id": "v2-001",
+    "split": "dev",
+    "mode": "native",
+    "family": "dbpool",
+    "question": "仅根据手册说明 ERR_5003 的含义，列出连接池配置与连接归还两项优先检查。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 6022.271800000453,
+    "actual_tokens": 2772,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "三个要点均被证据支持并实质覆盖：含义为连接池耗尽；优先检查包含maxPoolSize、maxWait及DB max_connections；连接归还检查包含finally归还与事务commit/rollback。额外症状信息亦源自手册，且明确标注非实时状态，未编造。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答准确覆盖了连接池耗尽、连接池配置检查（maxPoolSize、maxWait等）和连接归还检查（finally、事务commit/rollback）三个必需要点，且所有事实均有手册证据支持，未将手册内容误述为当前生产状态。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-001",
+    "split": "dev",
+    "mode": "rule",
+    "family": "dbpool",
+    "question": "仅根据手册说明 ERR_5003 的含义，列出连接池配置与连接归还两项优先检查。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 2,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 2,
+      "denied": 0
+    },
+    "elapsed_ms": 4647.563299979083,
+    "actual_tokens": 1015,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了ERR_5003含义（连接池耗尽）、连接池配置检查（maxPoolSize、maxWait、max_connections）及连接归还检查（finally归还、事务commit/rollback），且所有断言均有证据[1][2][3]支持，未编造。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答准确覆盖了连接池耗尽、连接池配置检查（maxPoolSize、idleTimeout、maxWait与max_connections匹配）和连接归还检查（finally归还、事务commit/rollback）三个要点，且均有手册证据支持。未将历史故障误述为当前根因，也未在证据充分时机械拒答。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-002",
+    "split": "dev",
+    "mode": "native",
+    "family": "dbpool",
+    "question": "ERR_5003 伴随慢 SQL 时，为什么只调大连接池不够？给出一项根治措施。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 7157.374600006733,
+    "actual_tokens": 3244,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "两个required_points均被实质覆盖：解释了慢SQL长期占用连接导致单纯扩池无效，并给出优化SQL/索引/缓存的根治措施。所有断言均有evidence支持，且明确声明未查询实时指标、需提供服务名确认当前状态，符合适当弃权要求。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答实质覆盖了required_points：说明慢SQL长期占用连接、单纯扩池不能消除原因，并给出优化SQL/索引/缓存以缩短连接占用的根治措施。关键事实与证据一致，且明确区分手册通用结论与未查询实时指标，未编造当前生产状态。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-002",
+    "split": "dev",
+    "mode": "rule",
+    "family": "dbpool",
+    "question": "ERR_5003 伴随慢 SQL 时，为什么只调大连接池不够？给出一项根治措施。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 2,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 2,
+      "denied": 0
+    },
+    "elapsed_ms": 5686.426700005541,
+    "actual_tokens": 1090,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "两个required_points均被实质覆盖：1) 明确指出慢SQL导致连接长时间占用，单纯扩池治标不治本；2) 给出建立索引/加缓存等治理措施以缩短连接占用。所有断言均有evidence中手册[1][3]及历史故障记录支持，且历史参考已明确标注为参考而非当前根因，符合grounded要求。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案实质覆盖了required_points：说明慢SQL长期占用连接、单纯扩池不能消除原因，并给出优化SQL/索引/缓存作为根治措施。关键事实与证据[1][3]一致，历史故障被明确标注为参考，未将其当作当前生产根因。证据充分，无需拒答。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-003",
+    "split": "dev",
+    "mode": "native",
+    "family": "dbpool",
+    "question": "MySQL 慢查询怎么定位？请写出慢SQL聚合工具与执行计划检查方法。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 10271.13000000827,
+    "actual_tokens": 3388,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了pt-query-digest/云监控聚合top慢SQL以及EXPLAIN检查全表扫描、文件排序、索引失效两个必需要点；所有断言均有检索到的手册证据支持，且明确声明为方法论不代表当前实时状态，适当询问具体服务信息。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了required_points：明确提到pt-query-digest或云监控聚合top慢SQL，并详细说明EXPLAIN检查全表扫描、文件排序、索引失效。关键事实与证据一致，且明确区分手册方法论与当前实时状态，未编造生产根因。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-003",
+    "split": "dev",
+    "mode": "rule",
+    "family": "dbpool",
+    "question": "MySQL 慢查询怎么定位？请写出慢SQL聚合工具与执行计划检查方法。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 2,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 2,
+      "denied": 0
+    },
+    "elapsed_ms": 5461.7790000047535,
+    "actual_tokens": 1109,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案完整覆盖了两个必需要点：pt-query-digest或云监控聚合top慢SQL，以及EXPLAIN检查全表扫描、文件排序、索引失效。所有断言均有知识库文档[1][2][3]支持，引用标注正确，未将历史故障当作当前根因，无编造内容。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了required_points：使用pt-query-digest或云监控聚合top慢SQL，以及EXPLAIN检查全表扫描、文件排序、索引失效，且关键事实正确。所有事实性断言均有知识库文档[1][2][3]支持，未将历史参考数据说成当前生产根因。证据充分，无需拒答。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-004",
+    "split": "dev",
+    "mode": "native",
+    "family": "dbpool",
+    "question": "手册中 ERR_5003 出现大量 Sleep 连接时，应检查什么泄漏线索？区分应急与长期治理。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 6867.091799998889,
+    "actual_tokens": 3347,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "三个required_points均被实质覆盖：1) 明确指出检查finally归还和事务提交/回滚（引用citation 5）；2) 应急建议包含KILL清理Sleep连接和重启，且末尾明确声明'不代表当前实时状态'，未声称已执行；3) 长期治理提到开启leakDetectionThreshold进行泄漏检测。所有断言均有evidence支持，并适当提示需服务名才能核查实时状态。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答覆盖了全部required_points：检查finally归还与事务提交/回滚、应急KILL/重启并明确为建议而非已执行、长期治理包括leakDetectionThreshold等。所有事实性断言均有手册证据支持，且明确区分手册知识与当前实时状态，未编造生产根因。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-004",
+    "split": "dev",
+    "mode": "rule",
+    "family": "dbpool",
+    "question": "手册中 ERR_5003 出现大量 Sleep 连接时，应检查什么泄漏线索？区分应急与长期治理。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 2,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 2,
+      "denied": 0
+    },
+    "elapsed_ms": 5390.00399998622,
+    "actual_tokens": 1158,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": false,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "未覆盖required_points第1点：答案未提及检查连接是否在finally中归还、事务是否提交/回滚。应急与长期治理部分基本符合手册，但未满足全部要点。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": false,
+          "grounded": false,
+          "appropriate_abstention": true,
+          "reason": "未覆盖required_points中的“检查连接是否在finally归还或事务是否提交/回滚”这一关键泄漏线索；回答仅复述手册中的清理、扩容和慢SQL治理，未涉及代码层连接归还与事务提交检查。同时，将历史故障参考表述为“订单服务曾因类似原因导致大面积超时”，但证据仅显示为历史相似故障，未取得当前生产根因证据，存在将历史参考当作事实陈述的倾向。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": false,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 1,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-005",
+    "split": "dev",
+    "mode": "native",
+    "family": "payment_history",
+    "question": "只查演示历史：payment-service 的 ERR_7010 当时根因和恢复措施是什么？不是问当前状态。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 3733.747799997218,
+    "actual_tokens": 2203,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "三个要点均实质覆盖：渠道账单延迟2小时且格式变更、手工补单修复状态并兼容新格式、明确为历史记录不代表当前根因；所有断言均有evidence支持。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了渠道账单延迟2小时且格式变更、手工补单修复状态并兼容新格式、明确这是历史记录不能据此认定当前根因三个要点，且事实与证据一致。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-005",
+    "split": "dev",
+    "mode": "rule",
+    "family": "payment_history",
+    "question": "只查演示历史：payment-service 的 ERR_7010 当时根因和恢复措施是什么？不是问当前状态。",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 0
+    },
+    "elapsed_ms": 6450.893599976553,
+    "actual_tokens": 1186,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": false,
+          "grounded": false,
+          "appropriate_abstention": true,
+          "reason": "未覆盖要点1中的关键细节'延迟2小时'，回答仅写'渠道账单延迟'缺少具体时长；同时将手册中其他常见根因（网络抖动、重复回调）混入历史根因描述，与证据中历史故障记录不符，属于不严谨的扩展。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答覆盖了渠道账单延迟、手工补单修复状态并兼容新格式，且明确说明这是历史记录、不能据此认定当前根因；指标no_data的说明也避免了将历史参考误作当前生产根因。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": false,
+      "grounded": false,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": -1,
+      "grounded": -1,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-006",
+    "split": "dev",
+    "mode": "native",
+    "family": "payment_history",
+    "question": "请用演示历史分别比较 payment-service 的 ERR_7010 与 ERR_7011 的根因和措施，不查询当前指标。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 2,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 2,
+      "denied": 0
+    },
+    "elapsed_ms": 7884.477000014158,
+    "actual_tokens": 2786,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "error",
+        "verdict": null,
+        "attempt_errors": [
+          "APITimeoutError",
+          "APITimeoutError"
+        ]
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了required_points：7010为账单延迟/格式变更并补单兼容格式，7011为渠道限流且重试未退避并采用指数退避与限流适配，且明确标注两者均为历史记录。所有事实断言均有evidence支持，并正确提示历史记录不能确认本次根因。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": false,
+    "agreement": null,
+    "score_difference_qwen_minus_deepseek": null
+  },
+  {
+    "id": "v2-006",
+    "split": "dev",
+    "mode": "rule",
+    "family": "payment_history",
+    "question": "请用演示历史分别比较 payment-service 的 ERR_7010 与 ERR_7011 的根因和措施，不查询当前指标。",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 0
+    },
+    "elapsed_ms": 11528.994599997532,
+    "actual_tokens": 1602,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "error",
+        "verdict": null,
+        "attempt_errors": [
+          "APITimeoutError",
+          "APITimeoutError"
+        ]
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": false,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "未覆盖 required_points 中 ERR_7011 的根因（渠道限流且重试未退避）和措施（指数退避与限流适配），仅说明文档未提供相关信息；ERR_7010 的根因和措施已覆盖，但缺少 ERR_7011 的关键事实导致整体不满足全部要点。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": false,
+    "agreement": null,
+    "score_difference_qwen_minus_deepseek": null
+  },
+  {
+    "id": "v2-007",
+    "split": "dev",
+    "mode": "native",
+    "family": "payment_history",
+    "question": "仅按服务筛选 payment-service 的演示历史，概括两类故障；不要查询当前指标或推断当前根因。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 5007.31519999681,
+    "actual_tokens": 2368,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": false,
+          "grounded": false,
+          "appropriate_abstention": true,
+          "reason": "答案将id=3的occurred_at错误写为2026-01-14，证据中实际为2026-10-09T01:14:03，属于关键事实错误；其余要点（两类故障概括、历史不代表当前根因）均实质覆盖。因事实错误，answer_correct与grounded均为false。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答准确概括了两类历史故障：账单延迟/格式变更导致对账失败，以及渠道限流/未退避导致查询超时补单失败，并明确说明历史不代表当前根因。所有事实均有查询证据支持，且未将历史记录推断为当前生产根因。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": false,
+      "grounded": false,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": -1,
+      "grounded": -1,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-007",
+    "split": "dev",
+    "mode": "rule",
+    "family": "payment_history",
+    "question": "仅按服务筛选 payment-service 的演示历史，概括两类故障；不要查询当前指标或推断当前根因。",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 1
+    },
+    "elapsed_ms": 5909.24370000721,
+    "actual_tokens": 1438,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": false,
+          "grounded": false,
+          "appropriate_abstention": false,
+          "reason": "未实质覆盖required_points：1) 对账失败未提及'账单延迟/格式变更'原因；2) 渠道查询超时未提及'限流/未退避导致补单失败'；3) 虽声明不推断当前根因，但未明确点出'历史不代表当前根因'。此外，工具输出与知识库均无'渠道限流/未退避/补单失败'等证据，回答却编造了ERR_7011对应场景细节，违反grounded要求。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": false,
+          "grounded": false,
+          "appropriate_abstention": true,
+          "reason": "未覆盖required_points中的“账单延迟/格式变更的对账失败”和“渠道限流/未退避导致查询超时补单失败”的具体原因，仅给出错误码和表面现象；且将工具输出中“未找到匹配历史故障”与知识库文档混用，未明确区分历史参考与当前状态，存在将no_data表述为无法确认当前状态的合理克制，但关键事实覆盖不足。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": false
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": -1
+    }
+  },
+  {
+    "id": "v2-008",
+    "split": "dev",
+    "mode": "native",
+    "family": "payment_history",
+    "question": "精确查询 payment-service 的 ERR_7999 历史；无匹配请明确说没有，不要用其他错误码替代。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 3914.9635000212584,
+    "actual_tokens": 2055,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确指出无ERR_7999匹配记录，未用其他错误码替代，且正确标注历史参考不能确认当前根因，与证据一致。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确说明没有匹配ERR_7999的历史记录，未用其他错误码替代，并正确区分历史参考与当前根因。证据显示查询返回no_data，未编造事实。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-008",
+    "split": "dev",
+    "mode": "rule",
+    "family": "payment_history",
+    "question": "精确查询 payment-service 的 ERR_7999 历史；无匹配请明确说没有，不要用其他错误码替代。",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 1
+    },
+    "elapsed_ms": 7744.552999996813,
+    "actual_tokens": 1545,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确说明没有匹配ERR_7999的历史记录，未将7010或7011当作7999根因，所有断言均有工具输出和知识库支持，并在指标缺失时恰当说明无法确认当前状态。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确说明没有匹配ERR_7999的历史故障记录，未用ERR_7010或ERR_7011替代；所有事实性断言均有工具输出或知识库文档支持，并正确区分了无数据与正常状态，未编造根因。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-009",
+    "split": "test",
+    "mode": "native",
+    "family": "redis_failover",
+    "question": "Redis 主从切换后应用持续 MOVED，按 SOP 应检查哪项客户端配置、如何应急？",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 7124.8312999960035,
+    "actual_tokens": 2849,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "三个required_points均被实质覆盖：1)明确检查客户端拓扑刷新策略；2)建议强制刷新拓扑或重启报错应用实例；3)末尾声明未查询实时指标、未执行写操作。所有断言均有evidence中SOP片段支持，且对缺失信息做了恰当说明。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案覆盖了检查客户端拓扑刷新策略、强制刷新拓扑或重启报错应用实例作为建议，并明确未执行操作；关键事实与证据一致，未将历史资料表述为当前生产根因。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-009",
+    "split": "test",
+    "mode": "rule",
+    "family": "redis_failover",
+    "question": "Redis 主从切换后应用持续 MOVED，按 SOP 应检查哪项客户端配置、如何应急？",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 2,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 2,
+      "denied": 0
+    },
+    "elapsed_ms": 6179.163900000276,
+    "actual_tokens": 1137,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了三个required_points：1) 检查客户端拓扑刷新策略（引用[3]）；2) 建议强制刷新拓扑或重启报错应用实例（引用[2]，明确作为应急建议）；3) 未声称已执行操作。所有断言均有evidence中SOP文档支持，未将历史参考当作当前根因，事实正确。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案实质覆盖了检查客户端拓扑刷新策略、建议强制刷新拓扑或重启报错应用实例、未声称已执行操作三个必需要点，且引用SOP文档编号，事实与证据一致。未将历史参考数据误作当前生产根因，也未在无证据处编造。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-010",
+    "split": "test",
+    "mode": "native",
+    "family": "redis_failover",
+    "question": "Redis 切主后如何确认切换原因？列出命令和两类事件线索。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 7877.155800000764,
+    "actual_tokens": 3240,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": false,
+          "appropriate_abstention": true,
+          "reason": "答案覆盖了CLUSTER INFO及集群事件日志，并列出failover、内存淘汰、网络分区等线索，满足required_points。但回答中提及的'+failover-auth'和'-succeed-reschedule-node'事件行在提供的evidence中不存在，属于无证据支持的断言，违反grounded规则。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案实质覆盖了required_points：明确列出CLUSTER INFO及集群事件日志，并归纳了failover、内存淘汰、网络分区等事件线索。所有事实性断言均有检索到的SOP证据支持，且明确区分了手册排查方法与当前实时状态，未将历史资料说成当前生产根因。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": false,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": -1,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-010",
+    "split": "test",
+    "mode": "rule",
+    "family": "redis_failover",
+    "question": "Redis 切主后如何确认切换原因？列出命令和两类事件线索。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 2,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 2,
+      "denied": 0
+    },
+    "elapsed_ms": 3793.4710000117775,
+    "actual_tokens": 917,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案正确列出了CLUSTER INFO命令及集群事件日志，并覆盖了failover、内存淘汰、网络分区中的两类线索，且明确说明历史故障记录不作为本次诊断依据，所有断言均有证据[1]支持。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案完整覆盖了required_points：明确列出CLUSTER INFO命令和集群事件日志，并给出了failover、内存淘汰、网络分区三类事件线索（至少两类）。所有事实均有证据[1]支持，且正确区分了历史故障记录与当前诊断依据，未将历史数据误作当前根因。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-011",
+    "split": "test",
+    "mode": "native",
+    "family": "redis_failover",
+    "question": "Redis 新主节点应重点检查哪三项负载指标？",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 3585.957600007532,
+    "actual_tokens": 2546,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了连接数、内存碎片率、慢日志三项指标，且均来源于检索到的SOP文档证据，并明确标注为手册规定而非当前实时状态，符合所有评分要求。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖连接数、内存碎片率、慢日志三项要求，且明确标注为SOP规定项而非当前实时状态，证据充分，未编造实时数据。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-011",
+    "split": "test",
+    "mode": "rule",
+    "family": "redis_failover",
+    "question": "Redis 新主节点应重点检查哪三项负载指标？",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 2,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 2,
+      "denied": 0
+    },
+    "elapsed_ms": 3328.8640000100713,
+    "actual_tokens": 911,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了连接数、内存碎片率、慢日志三项指标，均来源于知识库文档[1]；对历史故障记录明确标注为参考而非当前根因，并说明了监控数据不可用时的局限性，符合所有要求。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案准确覆盖了连接数、内存碎片率、慢日志三项指标，并正确引用文档[1]作为来源。对历史故障的引用明确标注为参考，且未将历史数据误述为当前生产根因。在监控数据不可用时给出了合理的排查建议，未编造事实。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-012",
+    "split": "test",
+    "mode": "native",
+    "family": "redis_failover",
+    "question": "Redis SOP 的内存扩容预防线是多少？对 master 大 key 删除有什么约束？",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 4147.499300015625,
+    "actual_tokens": 2577,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "两个必需要点均被证据支持并准确覆盖，补充说明恰当区分了SOP规范与实时状态。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案准确覆盖了两个必需要点：内存使用率超过80%提前扩容、禁止在master上执行大key删除，且均有SOP证据支持。补充说明明确区分手册规范与实时状态，未编造当前生产数据。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-012",
+    "split": "test",
+    "mode": "rule",
+    "family": "redis_failover",
+    "question": "Redis SOP 的内存扩容预防线是多少？对 master 大 key 删除有什么约束？",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 2,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 2,
+      "denied": 0
+    },
+    "elapsed_ms": 2233.7117999850307,
+    "actual_tokens": 870,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了两个必要要点：内存使用率超过80%提前扩容，以及禁止在master上执行大key删除，且均准确引用了知识库文档[1]中的预防策略，无编造内容。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案准确覆盖了两个必需要点：内存使用率超过80%提前扩容、禁止在master上执行大key删除，且均有知识库文档[1]作为证据支持。未发现编造或证据不足的问题。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-013",
+    "split": "test",
+    "mode": "native",
+    "family": "oom",
+    "question": "Pod OOMKilled 怎么区分内存限制不足和泄漏？需要什么曲线或快照？",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 13760.700899991207,
+    "actual_tokens": 3702,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "error",
+        "verdict": null,
+        "attempt_errors": [
+          "APITimeoutError",
+          "APITimeoutError"
+        ]
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了三个必需要点：对比limit与内存使用曲线判断泄漏或容量不足、heap dump/tracemalloc快照、明确不能仅凭OOMKilled确认泄漏。所有事实性断言均有证据支持，且明确标注为方法论/SOP而非当前生产状态，未编造实时数据。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": false,
+    "agreement": null,
+    "score_difference_qwen_minus_deepseek": null
+  },
+  {
+    "id": "v2-013",
+    "split": "test",
+    "mode": "rule",
+    "family": "oom",
+    "question": "Pod OOMKilled 怎么区分内存限制不足和泄漏？需要什么曲线或快照？",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 2,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 2,
+      "denied": 0
+    },
+    "elapsed_ms": 16400.01939999638,
+    "actual_tokens": 2187,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "error",
+        "verdict": null,
+        "attempt_errors": [
+          "APITimeoutError",
+          "APITimeoutError"
+        ]
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案完整覆盖了三个必需要点：对比limit与内存使用曲线判断泄漏或容量不足、heap dump/tracemalloc快照、以及明确说明不能仅凭OOMKilled确认泄漏。关键事实与证据一致，历史故障仅作为参考并明确标注，未将历史数据说成当前生产根因。在监控数据缺失时也给出了不能排除泄漏的提示，符合适当克制要求。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": false,
+    "agreement": null,
+    "score_difference_qwen_minus_deepseek": null
+  },
+  {
+    "id": "v2-014",
+    "split": "test",
+    "mode": "native",
+    "family": "oom",
+    "question": "针对无界缓存与大结果集引发的 Pod OOMKilled，手册给出什么长期治理？",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 6661.804999981541,
+    "actual_tokens": 3225,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了两个required_points（缓存TTL与容量上限、分页/流式处理大数据集），且所有断言均有evidence中citation_id=2的手册内容支持，未编造信息。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了缓存TTL与容量上限、大查询分页或流式处理两个必需要点，且内容与证据中《Pod OOMKilled 处理指南》的治理措施一致。回答明确标注为手册内容而非当前实时状态，未编造事实。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-014",
+    "split": "test",
+    "mode": "rule",
+    "family": "oom",
+    "question": "针对无界缓存与大结果集引发的 Pod OOMKilled，手册给出什么长期治理？",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 2,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 2,
+      "denied": 0
+    },
+    "elapsed_ms": 2705.0608999852557,
+    "actual_tokens": 1008,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了缓存TTL与容量上限、大查询分页或流式处理两个必要要点，且均来源于证据[2]的治理方案，未编造信息。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答准确覆盖了缓存TTL与容量上限、分页/流式处理两个必需要点，且均来自证据[2]的治理部分，事实正确。证据充分，无需补充信息。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-015",
+    "split": "test",
+    "mode": "native",
+    "family": "gateway502",
+    "question": "手册里网关 ERR_6002 与 ERR_6003 有什么区别，应如何区分检查？",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 7050.570299994433,
+    "actual_tokens": 3181,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了两个required_points：6002为上游连接拒绝并检查存活/重启/发布，6003为上游响应超时并对比read timeout与P99。所有断言均有evidence中手册片段支持，且明确标注依据为手册不代表当前实时状态，未编造信息。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了6002上游连接拒绝与6003上游响应超时的区别，并分别给出了检查存活/重启/发布和对比read timeout与P99的步骤，关键事实与证据一致。所有事实性断言均有手册证据支持，且明确标注依据手册、不代表当前实时状态，未将历史资料说成当前生产根因。证据充分，无需拒答。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-015",
+    "split": "test",
+    "mode": "rule",
+    "family": "gateway502",
+    "question": "手册里网关 ERR_6002 与 ERR_6003 有什么区别，应如何区分检查？",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 0
+    },
+    "elapsed_ms": 10689.891200017883,
+    "actual_tokens": 1617,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": false,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "未覆盖required_points：6002缺少明确'重启/发布'检查动作（仅提readinessProbe和摘除实例）；6003完全缺失'对比read timeout与上游P99'这一关键排查要点。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答准确区分了ERR_6002（上游连接被拒绝）与ERR_6003（上游响应超时），并分别给出了检查存活/重启/发布和对比read timeout与上游P99的排查方向，覆盖了全部required_points。所有事实性断言均有文档依据，且对实时指标缺失的情况明确说明无法确认当前状态，未将历史故障或录制数据当作当前生产根因。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": false,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": -1,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-016",
+    "split": "test",
+    "mode": "native",
+    "family": "gateway502",
+    "question": "网关发布期间 502，有什么发布探针与连接参数治理建议？",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 0
+    },
+    "elapsed_ms": 9794.05830000178,
+    "actual_tokens": 6092,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了两个必需要点：1）发布使用就绪探针避免转发给未就绪实例；2）统一网关与上游的keepalive/timeout配置。所有断言均有手册证据支持，且明确标注为治理建议；对指标no_data和历史无记录如实说明并请求补充信息，未编造根因。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案实质覆盖了required_points中的两个要点：明确建议使用就绪探针避免转发给未就绪实例，并建议统一网关与上游的keepalive/timeout配置。相关建议均有手册证据支持，且对指标缺失情况明确说明无法确认当前状态，未将历史或录制数据当作当前生产根因。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-016",
+    "split": "test",
+    "mode": "rule",
+    "family": "gateway502",
+    "question": "网关发布期间 502，有什么发布探针与连接参数治理建议？",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 0
+    },
+    "elapsed_ms": 9060.479700012365,
+    "actual_tokens": 1448,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了两个required_points：配置readiness就绪探针避免转发给未就绪实例，以及统一上下游timeout与keepalive参数。所有断言均基于提供的知识库文档、工具输出和历史故障记录，并正确标注了引用来源。对于指标no_data的情况，明确说明不能确认当前状态，仅给出排查建议，符合适当克制要求。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案实质覆盖了readiness就绪探针和统一timeout/keepalive参数两个必需要点，且关键事实与证据一致。对指标no_data状态明确说明不能确认当前状态，未将历史故障或录制数据误述为当前生产根因，也未在证据不足时编造结论。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-017",
+    "split": "test",
+    "mode": "native",
+    "family": "order_metrics",
+    "question": "读取 order-service 的录制近60分钟指标：报告QPS、P99、错误率以及是否越过本次阈值。标明录制来源与窗口，不查其他工具。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 4914.869000000181,
+    "actual_tokens": 2863,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": false,
+          "grounded": false,
+          "appropriate_abstention": true,
+          "reason": "回答主体表格中时间窗写为2026-01-01，与证据中的2026-10-30不符，属于事实错误；QPS四舍五入为0.0111超出相对容差5%（需≥0.011118×0.95≈0.010562且≤0.011674，但绝对容差|0.0111-0.011118|=0.000018<0.001满足，按规则可接受）。主要问题是时间窗捏造导致grounded=false。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答覆盖全部required_points：QPS约0.011118、P99约497.5ms、错误率约20%、P99超过300ms且错误率超过1%、明确Prometheus测试注入录制回放及近60分钟窗口，并避免冒充当前生产状态。数值在容差范围内，来源与窗口表述与证据一致。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": false,
+      "grounded": false,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": -1,
+      "grounded": -1,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-017",
+    "split": "test",
+    "mode": "rule",
+    "family": "order_metrics",
+    "question": "读取 order-service 的录制近60分钟指标：报告QPS、P99、错误率以及是否越过本次阈值。标明录制来源与窗口，不查其他工具。",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 0
+    },
+    "elapsed_ms": 5330.254800006514,
+    "actual_tokens": 1534,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖所有required_points：QPS≈0.011118、P99≈497.5ms、错误率≈20%均在容差内；明确指出P99超过300ms且错误率超过1%阈值；清晰标注来源为Prometheus测试注入录制回放及近60分钟窗口，未冒充生产状态。所有断言均有工具输出证据支持。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖所有required_points：QPS、P99、错误率数值均在容差内；明确标注Prometheus测试注入录制回放及近60分钟窗口；正确判定P99超过300ms、错误率超过1%；未将录制数据冒充当前生产状态。所有关键事实均有工具输出证据支持。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-018",
+    "split": "test",
+    "mode": "native",
+    "family": "order_metrics",
+    "question": "order-service 录制近60分钟的 P99 低于手册适用条件1s，是否就能判断正常？结合本次工具阈值说明。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 2,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 2,
+      "denied": 0
+    },
+    "elapsed_ms": 7753.911799984053,
+    "actual_tokens": 3661,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖三个required_points：P99约497.5ms超过300ms阈值、错误率20%超过1%阈值且不能据手册1s判正常、明确说明数据为测试注入录制回放而非当前生产指标。数值在容差范围内，证据引用准确，无编造。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了三个必需要点：P99约497.5ms超过本次300ms阈值、错误率20%超过1%阈值不能仅凭手册1s判断正常、数据为录制测试数据而非当前在线生产指标。关键事实与证据一致，且明确区分了SOP门槛与本次监控阈值，未将录制数据误述为当前生产根因。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-018",
+    "split": "test",
+    "mode": "rule",
+    "family": "order_metrics",
+    "question": "order-service 录制近60分钟的 P99 低于手册适用条件1s，是否就能判断正常？结合本次工具阈值说明。",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 0
+    },
+    "elapsed_ms": 10503.101300011622,
+    "actual_tokens": 1767,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": false,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "未实质覆盖要点3：答案将指标描述为'当前处于异常状态'，未明确指出这是录制的测试数据而非当前在线生产指标。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答实质覆盖全部required_points：明确指出P99约497.5ms超过本次300ms阈值、错误率20%超过1%阈值不能据手册1s认为正常、并说明是录制测试数据而非当前在线生产指标。关键事实与工具证据一致，未将录制数据误述为当前生产根因，也未在证据不足时编造。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": false,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": -1,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-019",
+    "split": "test",
+    "mode": "native",
+    "family": "order_metrics",
+    "question": "order-service 录制近60分钟高错误率，能否直接确诊为连接池耗尽？仅依据指标回答。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 6715.546599996742,
+    "actual_tokens": 2944,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖三个required_points：明确指出错误率约20%且P99约497.5ms存在异常；说明仅凭指标不足以确认连接池耗尽，需连接池/SQL/日志等进一步证据；明确标注数据为测试注入的录制回放。所有数值与断言均有evidence支持，未编造根因，适当提出下一步建议并询问必要信息。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答覆盖了全部要求要点：明确指出错误率约20%且P99约497.5ms存在异常；说明仅凭指标不足以确诊连接池耗尽，需连接池/SQL/日志等进一步证据；并明确标注数据为录制测试数据。事实与证据一致，未将测试数据误称为生产根因，也未在证据不足时编造结论。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-019",
+    "split": "test",
+    "mode": "rule",
+    "family": "order_metrics",
+    "question": "order-service 录制近60分钟高错误率，能否直接确诊为连接池耗尽？仅依据指标回答。",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 0
+    },
+    "elapsed_ms": 12691.158800007543,
+    "actual_tokens": 1891,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答完整覆盖了三个required_points：明确指出错误率约20%且P99约497.5ms存在异常；明确说明仅凭指标不足以确认连接池耗尽，需连接池/SQL/日志等进一步证据；并清晰标注了数据来源为Prometheus测试服务实际采集（故障为测试注入）的录制证据回放。所有事实断言均有工具输出或知识库支持，未将历史参考当作当前根因，数值在容差范围内。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确覆盖全部要求：指出错误率约20%且P99约497.5ms异常；说明仅凭指标不足以确诊连接池耗尽，需线程dump、连接池指标、错误码分布等进一步证据；并明确标注指标为录制测试数据/测试注入回放。事实与证据一致，未将历史故障当作当前根因。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-020",
+    "split": "test",
+    "mode": "native",
+    "family": "order_metrics",
+    "question": "请只读取 order-service 录制的近5分钟指标，给出QPS、P99、错误率与异常判定；不要用60分钟替代。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 6154.55330000259,
+    "actual_tokens": 2897,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "所有必需要点均已覆盖：QPS≈0.134236、P99≈497.5ms、错误率20%、异常判定（P99>300ms且错误率>1%）、明确5分钟录制回放窗口；数据与证据一致，并正确标注为测试注入的录制回放而非生产根因。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答覆盖全部required_points：QPS约0.134236 requests/s、P99约497.5ms、错误率20%、P99超过300ms、错误率超过1%、明确5分钟窗口且未用60分钟替代。数值在容差范围内，且明确标注为测试注入的录制回放证据，未将其表述为当前生产根因。证据充分，无需拒答。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-020",
+    "split": "test",
+    "mode": "rule",
+    "family": "order_metrics",
+    "question": "请只读取 order-service 录制的近5分钟指标，给出QPS、P99、错误率与异常判定；不要用60分钟替代。",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 0,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 0
+    },
+    "elapsed_ms": 11784.830999997212,
+    "actual_tokens": 1972,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": false,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "未覆盖required_points中的QPS约0.134236 requests/s（回答给出的是60分钟窗口的0.011），也未明确说明这是5分钟测试录制回放窗口。因工具仅返回60分钟数据，回答正确识别了窗口不匹配并拒绝用60分钟替代，grounded和abstention均合规，但answer_correct为false。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": false,
+          "grounded": false,
+          "appropriate_abstention": true,
+          "reason": "回答未提供用户要求的近5分钟QPS、P99、错误率与异常判定，而是基于60分钟窗口数据给出参考分析并明确拒绝确认近5分钟状态，因此未覆盖required_points中的QPS约0.134236 requests/s、P99约497.5ms、错误率20%及明确5分钟测试录制回放窗口。同时，回答将60分钟录制数据作为参考背景，但未取得近5分钟实际证据，且将QPS写为0.011 requests/s，与要求不符，grounded不成立。适当拒答方面，回答明确说明数据窗口不足并给出排查建议，未编造近5分钟指标，符合要求。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": false,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 1,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-021",
+    "split": "test",
+    "mode": "native",
+    "family": "missing_metrics",
+    "question": "请查 ghost-service 的当前 P99。没有数据就明确不足，不要拿 order-service 替代。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 4597.1223000087775,
+    "actual_tokens": 2393,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确指出ghost-service无录制指标、无法确认P99或当前状态，且未使用其他服务数据替代，完全覆盖required_points；所有断言均有工具返回的no_data证据支持；在证据缺失时明确不足并给出后续排查建议，符合适当弃权要求。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确说明ghost-service无录制指标、无法确认P99或当前状态，且未使用其他服务数据替代，两个必需要点均实质覆盖。所有事实断言均基于工具返回的no_data证据，未编造当前生产根因。证据不足时明确表示数据不足并询问后续排查方向，符合适当拒答要求。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-021",
+    "split": "test",
+    "mode": "rule",
+    "family": "missing_metrics",
+    "question": "请查 ghost-service 的当前 P99。没有数据就明确不足，不要拿 order-service 替代。",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 2
+    },
+    "elapsed_ms": 7092.082399991341,
+    "actual_tokens": 1730,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确指出ghost-service无录制指标、无法确认P99或当前状态，且未使用order-service数据替代；所有断言均有工具输出支持，建议已明确标注为建议。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确说明ghost-service无录制指标、状态为no_data，不能确认P99或当前状态，且未用order-service数值替代，符合required_points。所有事实断言均有工具输出证据支持，并正确区分了录制证据与当前状态。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-022",
+    "split": "test",
+    "mode": "native",
+    "family": "missing_metrics",
+    "question": "看看现在是不是正常，当前 P99 是多少？我还没提供服务名。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 0,
+      "parameter_passes": 0,
+      "budget_ok": true,
+      "executed": 0,
+      "denied": 0
+    },
+    "elapsed_ms": 3239.4883999950252,
+    "actual_tokens": 1065,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确指出缺少服务名，未编造P99或正常结论，主动询问必要参数，完全覆盖所有required_points。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确询问服务名等必要参数，未猜测服务或编造P99/正常结论，并说明指标源不可用时不会下结论。所有断言均为流程说明或建议，未涉及本次事实性指标数据。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-022",
+    "split": "test",
+    "mode": "rule",
+    "family": "missing_metrics",
+    "question": "看看现在是不是正常，当前 P99 是多少？我还没提供服务名。",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 0
+    },
+    "elapsed_ms": 10104.668000014499,
+    "actual_tokens": 1598,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确指出缺少服务名无法确认状态或给出P99，未编造数据；引用知识库文档作为排查建议并正确标注来源，符合所有要求。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确表示无法确认当前状态和P99，询问服务名，未编造数据；引用历史文档仅作为建议并标注为参考，符合要求。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-023",
+    "split": "test",
+    "mode": "native",
+    "family": "missing_knowledge",
+    "question": "仅查知识库：我们2027年华北三期扩容已批准预算是多少万元？没有正式资料就说明不足。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 3881.7425000015646,
+    "actual_tokens": 2615,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确指出知识库中无相关预算资料，拒绝编造金额，并建议提供正式批复文件或向相关部门核实，完整覆盖两个required_points。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确表示证据不足、无法给出预算金额，并请求提供正式预算或审批资料，覆盖了全部required_points；未编造金额，且所有断言均有检索证据支持。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-023",
+    "split": "test",
+    "mode": "rule",
+    "family": "missing_knowledge",
+    "question": "仅查知识库：我们2027年华北三期扩容已批准预算是多少万元？没有正式资料就说明不足。",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 0
+    },
+    "elapsed_ms": 3796.313300001202,
+    "actual_tokens": 1493,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": false,
+          "grounded": true,
+          "appropriate_abstention": false,
+          "reason": "回答正确指出知识库中无相关预算信息并说明不足，但未覆盖required_points中的'请求正式预算或审批资料'这一要点。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确说明知识库中无2027年华北三期扩容预算信息，未编造具体金额，并请求正式预算或审批资料，覆盖了所有required_points。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": false,
+      "grounded": true,
+      "appropriate_abstention": false
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": -1,
+      "grounded": 0,
+      "appropriate_abstention": -1
+    }
+  },
+  {
+    "id": "v2-024",
+    "split": "test",
+    "mode": "native",
+    "family": "missing_knowledge",
+    "question": "仅查知识库：事故 INC_9088 的最终责任人和赔偿金额分别是什么？没有资料请明确未知。",
+    "hard": {
+      "tool_selection": true,
+      "parameter_correct": true,
+      "parameter_checks": 1,
+      "parameter_passes": 1,
+      "budget_ok": true,
+      "executed": 1,
+      "denied": 0
+    },
+    "elapsed_ms": 3768.824400001904,
+    "actual_tokens": 2016,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确指出知识库中无INC_9088的最终责任人与赔偿金额资料，未虚构任何人名或金额，符合全部required_points与适当拒答要求。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确表示知识库中无INC_9088最终责任人与赔偿金额资料，未虚构人名或金额，并基于检索结果为0的证据进行说明，符合所有要求。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  },
+  {
+    "id": "v2-024",
+    "split": "test",
+    "mode": "rule",
+    "family": "missing_knowledge",
+    "question": "仅查知识库：事故 INC_9088 的最终责任人和赔偿金额分别是什么？没有资料请明确未知。",
+    "hard": {
+      "tool_selection": false,
+      "parameter_correct": false,
+      "parameter_checks": 3,
+      "parameter_passes": 2,
+      "budget_ok": true,
+      "executed": 3,
+      "denied": 0
+    },
+    "elapsed_ms": 4811.946700006956,
+    "actual_tokens": 896,
+    "judges": {
+      "qwen3.8-max": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确指出知识库为空且无INC_9088相关证据，按要求将最终责任人和赔偿金额均标注为未知，未虚构任何人名或金额，完全覆盖required_points。"
+        },
+        "attempt_errors": []
+      },
+      "deepseek-v4-pro-0813": {
+        "status": "ok",
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "回答明确说明知识库为空且工具输出未包含INC_9088的责任人和赔偿金额，未虚构人名或金额，符合required_points。"
+        },
+        "attempt_errors": []
+      }
+    },
+    "paired": true,
+    "agreement": {
+      "answer_correct": true,
+      "grounded": true,
+      "appropriate_abstention": true
+    },
+    "score_difference_qwen_minus_deepseek": {
+      "answer_correct": 0,
+      "grounded": 0,
+      "appropriate_abstention": 0
+    }
+  }
+]

@@ -1,0 +1,147 @@
+{
+  "models": [
+    "qwen3.8-max",
+    "deepseek-v4-pro-0813"
+  ],
+  "scoring": "布尔指标true=1/false=0；差值为Qwen-DeepSeek；只对双方有效的同一答案配对；缺判另列，非人工准确率",
+  "splits": {
+    "dev": {
+      "expected_answers": 16,
+      "paired_answers": 14,
+      "missing_pairs": [
+        {
+          "id": "v2-006",
+          "mode": "native"
+        },
+        {
+          "id": "v2-006",
+          "mode": "rule"
+        }
+      ],
+      "metrics": {
+        "answer_correct": {
+          "agreement": 0.8571428571428571,
+          "mean_score_difference_qwen_minus_deepseek": -0.14285714285714285,
+          "disagreements": [
+            {
+              "id": "v2-005",
+              "mode": "rule",
+              "difference": -1
+            },
+            {
+              "id": "v2-007",
+              "mode": "native",
+              "difference": -1
+            }
+          ]
+        },
+        "grounded": {
+          "agreement": 0.7857142857142857,
+          "mean_score_difference_qwen_minus_deepseek": -0.07142857142857142,
+          "disagreements": [
+            {
+              "id": "v2-004",
+              "mode": "rule",
+              "difference": 1
+            },
+            {
+              "id": "v2-005",
+              "mode": "rule",
+              "difference": -1
+            },
+            {
+              "id": "v2-007",
+              "mode": "native",
+              "difference": -1
+            }
+          ]
+        },
+        "appropriate_abstention": {
+          "agreement": 0.9285714285714286,
+          "mean_score_difference_qwen_minus_deepseek": -0.07142857142857142,
+          "disagreements": [
+            {
+              "id": "v2-007",
+              "mode": "rule",
+              "difference": -1
+            }
+          ]
+        }
+      }
+    },
+    "test": {
+      "expected_answers": 32,
+      "paired_answers": 30,
+      "missing_pairs": [
+        {
+          "id": "v2-013",
+          "mode": "native"
+        },
+        {
+          "id": "v2-013",
+          "mode": "rule"
+        }
+      ],
+      "metrics": {
+        "answer_correct": {
+          "agreement": 0.8666666666666667,
+          "mean_score_difference_qwen_minus_deepseek": -0.13333333333333333,
+          "disagreements": [
+            {
+              "id": "v2-015",
+              "mode": "rule",
+              "difference": -1
+            },
+            {
+              "id": "v2-017",
+              "mode": "native",
+              "difference": -1
+            },
+            {
+              "id": "v2-018",
+              "mode": "rule",
+              "difference": -1
+            },
+            {
+              "id": "v2-023",
+              "mode": "rule",
+              "difference": -1
+            }
+          ]
+        },
+        "grounded": {
+          "agreement": 0.9,
+          "mean_score_difference_qwen_minus_deepseek": -0.03333333333333333,
+          "disagreements": [
+            {
+              "id": "v2-010",
+              "mode": "native",
+              "difference": -1
+            },
+            {
+              "id": "v2-017",
+              "mode": "native",
+              "difference": -1
+            },
+            {
+              "id": "v2-020",
+              "mode": "rule",
+              "difference": 1
+            }
+          ]
+        },
+        "appropriate_abstention": {
+          "agreement": 0.9666666666666667,
+          "mean_score_difference_qwen_minus_deepseek": -0.03333333333333333,
+          "disagreements": [
+            {
+              "id": "v2-023",
+              "mode": "rule",
+              "difference": -1
+            }
+          ]
+        }
+      }
+    }
+  }
+}

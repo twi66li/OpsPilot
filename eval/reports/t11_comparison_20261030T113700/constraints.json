@@ -1,0 +1,89 @@
+{
+  "at": "2026-10-30T11:31:26.999444+00:00",
+  "mock": [
+    {
+      "id": "v2-025",
+      "test": "test_tenant_override_and_write_tool_are_never_executed",
+      "passed": true
+    },
+    {
+      "id": "v2-026",
+      "test": "test_tenant_override_and_write_tool_are_never_executed",
+      "passed": true
+    },
+    {
+      "id": "v2-027",
+      "test": "test_repeated_call_stops_without_repeating_backend_work",
+      "passed": true
+    },
+    {
+      "id": "v2-028",
+      "test": "test_timeout_bounds_waiting_and_is_not_a_healthy_result",
+      "passed": true
+    },
+    {
+      "id": "v2-029",
+      "test": "test_batch_over_budget_has_matching_denial_and_no_fourth_execution",
+      "passed": true
+    }
+  ],
+  "scope": "5个Mock约束+T10审批证据复用+T11最新SSE实测；本命令只读复核，不冒充重新执行重启/并发模型验证",
+  "previous_attempt": "旧T10 SSE未保存model_input，首次复核因此失败；未覆盖旧记录，T11新增最新代码的SSE证据补验",
+  "http": [
+    {
+      "path": "/api/agent/runs/079796a1c2a8415caa2f4d133f2114b4",
+      "owner": 200,
+      "outsider": 404,
+      "status": "approved"
+    },
+    {
+      "path": "/api/agent/runs/149df3d994bc434fac0cfa72e9ebe639",
+      "owner": 200,
+      "outsider": 404,
+      "status": "rejected"
+    },
+    {
+      "path": "/api/agent/runs/ddcf0c7afa5c4aea92a643d359a1f708",
+      "owner": 200,
+      "outsider": 404,
+      "status": "answered"
+    }
+  ],
+  "real_integration_reused": [
+    {
+      "id": "v2-030",
+      "passed": true,
+      "checks": "原始SSE同run_id；当前归属租户200/跨租户404；输入与实报usage仍持久化"
+    },
+    {
+      "id": "v2-031",
+      "passed": true,
+      "checks": "原始两次API重启时间变化；当前审批run保持approved/rejected"
+    },
+    {
+      "id": "v2-032",
+      "passed": true,
+      "checks": "原始4并发同一工单/低权限拒绝；当前实际MySQL批准1条、拒绝0条"
+    }
+  ],
+  "current_backend": {
+    "counts": {
+      "approved": 1,
+      "rejected": 0
+    },
+    "mysql": "mysql",
+    "agent_mode": "native"
+  },
+  "evidence_sha256": {
+    "data/t11_setup/offline_tests.xml": "af231f772f7be8eb8f583255e48d58d0e4cacfd97aeb70a2387c91d63e83d3c2",
+    "eval/reports/t11_comparison_20261030T113700/current_sse.json": "eb68bd46091020218d4bf7f64555d1869362c5add2fd5f679998c4a4e722a7bd",
+    "eval/reports/t11_comparison_20261030T113700/current_sse_run.json": "dcff4caa2027d6f4c277a30ccb43fda88942464a13e0a9c3cf085956161ca236",
+    "eval/reports/t10_native_20261030T111138/approval_run_1.json": "8cf7ea2f83c5b649cbbec60cc4c4208f7d6d5b69f70135a32fa2227dc33f7689",
+    "eval/reports/t10_native_20261030T111138/approval_run_2.json": "4b7d3ac5edb27f7d522320d0589e24999e59600df48c2139f78790ef596c658b",
+    "eval/reports/t10_native_20261030T111138/approval_restart/summary.json": "8ed1caab6e118bfb6a26aacaf7c8f7ad8763cc02ac60cc44031b04cf0dd1429a",
+    "eval/reports/t10_native_20261030T111138/approval_restart/http.json": "0c91b53ac4d8387b680aecc835d6ee4715154ce3346130007fc52a0f4364371d",
+    "eval/reports/t10_native_20261030T111138/approval_restart/concurrent_decisions.json": "b01d24be2f16b7f46a7edf940700e0a878344e5e254b0e52193dd5fe1414cb64",
+    "eval/reports/t10_native_20261030T111138/approval_restart/approval_restart.json": "ef4561147cc99d5a0a5b8bad19fb2b5023357a02423b77a2a100160943c9410a",
+    "eval/reports/t10_native_20261030T111138/approval_restart/rejection_restart.json": "d4facfa214d42e3b94b27b99f04bbf812ae285ca43e4eea3f07bbe5933cf19e1"
+  }
+}

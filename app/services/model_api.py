@@ -7,6 +7,8 @@ from urllib.parse import urlsplit
 import httpx
 from openai import OpenAI
 
+from app.services.run_service import emit, tool_time_left
+
 logger = logging.getLogger(__name__)
 
 
@@ -18,6 +20,7 @@ class ChatAPI:
         self.calls: list[dict] = []
 
     def chat(self, system: str, user: str, *, json_mode: bool = False) -> str:
+        emit("model_input", {"kind": "chat", "model": self.model, "system": system, "user": user})
         started = time.perf_counter()
         record = {"model": self.model, "status": "error", "first_token_ms": None, "usage": {}}
         params = {}
@@ -60,6 +63,37 @@ class ChatAPI:
             record["elapsed_ms"] = (time.perf_counter() - started) * 1000
             self.calls.append(record)
             logger.info("model_api_usage kind=chat record=%s", json.dumps(record, ensure_ascii=False))
+            emit("model_call", {"kind": "chat", **record})
+
+    def tool_turn(self, messages: list[dict], tools: list[dict], *, allow_tools: bool = True) -> dict:
+        started = time.perf_counter()
+        record = {"model": self.model, "status": "error", "usage": {}}
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model, messages=messages, tools=tools,
+                tool_choice="auto" if allow_tools else "none", temperature=0, max_tokens=1536,
+                **({"extra_body": {"enable_thinking": False}} if self.is_dashscope else {}),
+            )
+            record["usage"] = response.usage.model_dump() if response.usage else {}
+            message = response.choices[0].message
+            if response.choices[0].finish_reason == "length" or not (message.content or message.tool_calls):
+                raise ValueError("模型工具调用输出为空或被截断")
+            result = {"role": "assistant", "content": message.content or ""}
+            if message.tool_calls:
+                result["tool_calls"] = [
+                    {"id": c.id, "type": "function", "function": {"name": c.function.name, "arguments": c.function.arguments}}
+                    for c in message.tool_calls
+                ]
+            record["status"] = "ok"
+            return result
+        except Exception as exc:
+            record["error_type"] = type(exc).__name__
+            raise
+        finally:
+            record["elapsed_ms"] = (time.perf_counter() - started) * 1000
+            self.calls.append(record)
+            logger.info("model_api_usage kind=tool_chat record=%s", json.dumps(record, ensure_ascii=False))
+            emit("model_call", {"kind": "tool_chat", **record})
 
 
 class RerankAPI:
@@ -76,7 +110,8 @@ class RerankAPI:
         started = time.perf_counter()
         record = {"model": self.model, "status": "error", "usage": {}}
         try:
-            response = self.client.post(self.url, json={
+            remaining = tool_time_left()
+            response = self.client.post(self.url, **({"timeout": remaining} if remaining is not None else {}), json={
                 "model": self.model,
                 "input": {"query": query, "documents": [c.text for c in chunks]},
                 "parameters": {"top_n": min(top_k, len(chunks))},
@@ -100,3 +135,4 @@ class RerankAPI:
             record["elapsed_ms"] = (time.perf_counter() - started) * 1000
             self.calls.append(record)
             logger.info("model_api_usage kind=rerank record=%s", json.dumps(record, ensure_ascii=False))
+            emit("model_call", {"kind": "rerank", **record})

@@ -1,0 +1,477 @@
+{
+  "run_id": "4c494fb06e6942ccb382d8721b2a91e0",
+  "session_id": "dea41a37f14749989c53f8a0773d2e2d",
+  "mode": "native",
+  "status": "answered",
+  "data": {
+    "config": {
+      "agent_mode": "native",
+      "chat_model": "qwen3.8-flash",
+      "qdrant_mode": "remote",
+      "llm_provider": "openai",
+      "model_strict": true,
+      "rerank_model": "qwen3.7-text-rerank",
+      "embedding_dim": 1024,
+      "retrieval_mode": "hybrid",
+      "embedding_model": "qwen3.7-text-embedding-flash",
+      "metrics_provider": "prometheus",
+      "embedding_provider": "openai",
+      "tool_timeout_seconds": 8.0
+    },
+    "events": [
+      {
+        "at": "2026-10-30T11:11:47.094928+00:00",
+        "kind": "model_call",
+        "detail": {
+          "kind": "tool_chat",
+          "model": "qwen3.8-flash",
+          "usage": {
+            "total_tokens": 987,
+            "prompt_tokens": 880,
+            "completion_tokens": 107,
+            "prompt_tokens_details": {
+              "text_tokens": 880,
+              "audio_tokens": null,
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": null
+          },
+          "status": "ok",
+          "elapsed_ms": 1995.4174899976351
+        }
+      },
+      {
+        "at": "2026-10-30T11:11:47.105408+00:00",
+        "kind": "assistant_message",
+        "detail": {
+          "role": "assistant",
+          "content": "",
+          "tool_calls": [
+            {
+              "id": "call_03ce11ab6f8f458b9fdcbaaf",
+              "type": "function",
+              "function": {
+                "name": "query_service_metrics",
+                "arguments": "{\"service\": \"order-service\"}"
+              }
+            },
+            {
+              "id": "call_6638a2d2cadb406c9962049a",
+              "type": "function",
+              "function": {
+                "name": "search_runbook",
+                "arguments": "{\"query\": \"ERR_5003 排查手册\"}"
+              }
+            },
+            {
+              "id": "call_0014a561953e46248c860f64",
+              "type": "function",
+              "function": {
+                "name": "query_fault_history",
+                "arguments": "{\"service\": \"order-service\", \"error_code\": \"ERR_5003\"}"
+              }
+            }
+          ]
+        }
+      },
+      {
+        "at": "2026-10-30T11:11:47.199220+00:00",
+        "kind": "tool",
+        "detail": {
+          "args": {
+            "service": "order-service",
+            "window_minutes": 60
+          },
+          "name": "query_service_metrics",
+          "result": {
+            "avg": {
+              "qps": 0.01111800427376084,
+              "error_rate_pct": 20.000000000000004,
+              "latency_p99_ms": 497.49999999999994
+            },
+            "units": {
+              "qps": "requests/s",
+              "error_rate_pct": "%",
+              "latency_p99_ms": "ms"
+            },
+            "source": {
+              "url": "http://prometheus:9090",
+              "kind": "prometheus",
+              "faults": "测试注入",
+              "environment": "test"
+            },
+            "status": "ok",
+            "window": {
+              "end": "2026-10-30T11:11:47.114000+00:00",
+              "start": "2026-10-30T10:11:47.114000+00:00"
+            },
+            "queries": {
+              "qps": "sum(rate(aiops_demo_requests_total{service=\"order-service\"}[3600s]))",
+              "scrape_up": "max(up{job=\"opspilot-demo\"})",
+              "error_rate_pct": "100 * sum(rate(aiops_demo_requests_total{service=\"order-service\",code=~\"5..\"}[3600s])) / sum(rate(aiops_demo_requests_total{service=\"order-service\"}[3600s]))",
+              "latency_p99_ms": "1000 * histogram_quantile(0.99, sum by (le) (rate(aiops_demo_request_duration_seconds_bucket{service=\"order-service\"}[3600s])))"
+            },
+            "service": "order-service",
+            "summary": "order-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T10:11:47.114000+00:00 至 2026-10-30T11:11:47.114000+00:00；QPS=0.011118004273760841 requests/s, P99=497.49999999999994ms, 错误率=20.000000000000004%；本次阈值判定：P99 延迟 497.50ms 超过 300ms 阈值；错误率 20.00% 超过 1% 阈值",
+            "anomalies": [
+              "P99 延迟 497.50ms 超过 300ms 阈值",
+              "错误率 20.00% 超过 1% 阈值"
+            ],
+            "window_minutes": 60,
+            "evaluation_time": 1793358707.114
+          },
+          "executed": true,
+          "duration_ms": 83.57,
+          "tool_call_id": "call_03ce11ab6f8f458b9fdcbaaf"
+        }
+      },
+      {
+        "at": "2026-10-30T11:11:47.207688+00:00",
+        "kind": "tool_message",
+        "detail": {
+          "role": "tool",
+          "content": "{\"service\": \"order-service\", \"window_minutes\": 60, \"evaluation_time\": 1793358707.114, \"window\": {\"start\": \"2026-10-30T10:11:47.114000+00:00\", \"end\": \"2026-10-30T11:11:47.114000+00:00\"}, \"units\": {\"qps\": \"requests/s\", \"latency_p99_ms\": \"ms\", \"error_rate_pct\": \"%\"}, \"source\": {\"kind\": \"prometheus\", \"environment\": \"test\", \"faults\": \"测试注入\", \"url\": \"http://prometheus:9090\"}, \"status\": \"ok\", \"avg\": {\"qps\": 0.011118004273760841, \"latency_p99_ms\": 497.49999999999994, \"error_rate_pct\": 20.000000000000004}, \"anomalies\": [\"P99 延迟 497.50ms 超过 300ms 阈值\", \"错误率 20.00% 超过 1% 阈值\"], \"queries\": {\"scrape_up\": \"max(up{job=\\\"opspilot-demo\\\"})\", \"qps\": \"sum(rate(aiops_demo_requests_total{service=\\\"order-service\\\"}[3600s]))\", \"latency_p99_ms\": \"1000 * histogram_quantile(0.99, sum by (le) (rate(aiops_demo_request_duration_seconds_bucket{service=\\\"order-service\\\"}[3600s])))\", \"error_rate_pct\": \"100 * sum(rate(aiops_demo_requests_total{service=\\\"order-service\\\",code=~\\\"5..\\\"}[3600s])) / sum(rate(aiops_demo_requests_total{service=\\\"order-service\\\"}[3600s]))\"}, \"summary\": \"order-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T10:11:47.114000+00:00 至 2026-10-30T11:11:47.114000+00:00；QPS=0.011118004273760841 requests/s, P99=497.49999999999994ms, 错误率=20.000000000000004%；本次阈值判定：P99 延迟 497.50ms 超过 300ms 阈值；错误率 20.00% 超过 1% 阈值\"}",
+          "tool_call_id": "call_03ce11ab6f8f458b9fdcbaaf"
+        }
+      },
+      {
+        "at": "2026-10-30T11:11:47.550324+00:00",
+        "kind": "model_call",
+        "detail": {
+          "kind": "embedding",
+          "model": "qwen3.7-text-embedding-flash",
+          "usage": {
+            "total_tokens": 25,
+            "prompt_tokens": 25
+          },
+          "status": "ok",
+          "elapsed_ms": 333.465576004528
+        }
+      },
+      {
+        "at": "2026-10-30T11:11:48.086949+00:00",
+        "kind": "model_call",
+        "detail": {
+          "kind": "rerank",
+          "model": "qwen3.7-text-rerank",
+          "usage": {
+            "total_tokens": 238,
+            "prompt_tokens": 238
+          },
+          "status": "ok",
+          "elapsed_ms": 417.0769070042297
+        }
+      },
+      {
+        "at": "2026-10-30T11:11:48.106243+00:00",
+        "kind": "tool",
+        "detail": {
+          "args": {
+            "query": "ERR_5003 排查手册",
+            "top_k": 3
+          },
+          "name": "search_runbook",
+          "result": {
+            "hits": [
+              {
+                "text": "# ERR_5003 数据库连接池耗尽处理手册\n\n## 适用场景\n应用日志出现 `ERR_5003`（Cannot get connection from pool / connection pool exhausted），\n或监控显示数据库活跃连接数长期等于 max_connections。",
+                "score": 0.9872,
+                "doc_id": "8355439efe874adb90e45343a259ad06",
+                "source": "knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+                "chunk_id": "8355439efe874adb90e45343a259ad06::0",
+                "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+                "citation_id": 1
+              },
+              {
+                "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 典型症状\n- 接口大量 500/超时，堆栈中包含 `ERR_5003`\n- `SHOW PROCESSLIST` 中大量 Sleep 连接\n- 应用侧等待队列堆积，RT 从几十毫秒飙升至数秒",
+                "score": 0.9827,
+                "doc_id": "8355439efe874adb90e45343a259ad06",
+                "source": "knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+                "chunk_id": "8355439efe874adb90e45343a259ad06::1",
+                "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+                "citation_id": 2
+              },
+              {
+                "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 相关错误码\n- ERR_5003：连接池耗尽\n- ERR_5004：连接获取超时",
+                "score": 0.9442,
+                "doc_id": "8355439efe874adb90e45343a259ad06",
+                "source": "knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+                "chunk_id": "8355439efe874adb90e45343a259ad06::4",
+                "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+                "citation_id": 3
+              }
+            ],
+            "status": "ok",
+            "summary": "检索到3个手册片段，片段不代表当前实时状态"
+          },
+          "executed": true,
+          "duration_ms": 889.74,
+          "tool_call_id": "call_6638a2d2cadb406c9962049a"
+        }
+      },
+      {
+        "at": "2026-10-30T11:11:48.114769+00:00",
+        "kind": "tool_message",
+        "detail": {
+          "role": "tool",
+          "content": "{\"status\": \"ok\", \"hits\": [{\"chunk_id\": \"8355439efe874adb90e45343a259ad06::0\", \"doc_id\": \"8355439efe874adb90e45343a259ad06\", \"doc_title\": \"ERR_5003 数据库连接池耗尽处理手册\", \"text\": \"# ERR_5003 数据库连接池耗尽处理手册\\n\\n## 适用场景\\n应用日志出现 `ERR_5003`（Cannot get connection from pool / connection pool exhausted），\\n或监控显示数据库活跃连接数长期等于 max_connections。\", \"source\": \"knowledge/ERR_5003_数据库连接池耗尽处理手册.md\", \"score\": 0.9872, \"citation_id\": 1}, {\"chunk_id\": \"8355439efe874adb90e45343a259ad06::1\", \"doc_id\": \"8355439efe874adb90e45343a259ad06\", \"doc_title\": \"ERR_5003 数据库连接池耗尽处理手册\", \"text\": \"# ERR_5003 数据库连接池耗尽处理手册\\n## 典型症状\\n- 接口大量 500/超时，堆栈中包含 `ERR_5003`\\n- `SHOW PROCESSLIST` 中大量 Sleep 连接\\n- 应用侧等待队列堆积，RT 从几十毫秒飙升至数秒\", \"source\": \"knowledge/ERR_5003_数据库连接池耗尽处理手册.md\", \"score\": 0.9827, \"citation_id\": 2}, {\"chunk_id\": \"8355439efe874adb90e45343a259ad06::4\", \"doc_id\": \"8355439efe874adb90e45343a259ad06\", \"doc_title\": \"ERR_5003 数据库连接池耗尽处理手册\", \"text\": \"# ERR_5003 数据库连接池耗尽处理手册\\n## 相关错误码\\n- ERR_5003：连接池耗尽\\n- ERR_5004：连接获取超时\", \"source\": \"knowledge/ERR_5003_数据库连接池耗尽处理手册.md\", \"score\": 0.9442, \"citation_id\": 3}], \"summary\": \"检索到3个手册片段，片段不代表当前实时状态\"}",
+          "tool_call_id": "call_6638a2d2cadb406c9962049a"
+        }
+      },
+      {
+        "at": "2026-10-30T11:11:48.132571+00:00",
+        "kind": "tool",
+        "detail": {
+          "args": {
+            "service": "order-service",
+            "error_code": "ERR_5003"
+          },
+          "name": "query_fault_history",
+          "result": {
+            "status": "ok",
+            "records": [
+              {
+                "id": 1,
+                "title": "订单服务连接池耗尽导致大面积超时",
+                "service": "order-service",
+                "symptom": "下单接口 RT 从 80ms 涨到 8s，应用日志 ERR_5003",
+                "severity": "P1",
+                "error_code": "ERR_5003",
+                "match_type": "exact",
+                "resolution": "临时上调 max_connections 与连接池；治理慢 SQL 后恢复",
+                "root_cause": "大促预热流量突增，连接池 maxPoolSize 偏小且存在慢 SQL 占用",
+                "occurred_at": "2026-10-23T01:14:03"
+              }
+            ],
+            "summary": "历史精确匹配1条，仅供参考，不能确认本次根因"
+          },
+          "executed": true,
+          "duration_ms": 8.64,
+          "tool_call_id": "call_0014a561953e46248c860f64"
+        }
+      },
+      {
+        "at": "2026-10-30T11:11:48.145429+00:00",
+        "kind": "tool_message",
+        "detail": {
+          "role": "tool",
+          "content": "{\"status\": \"ok\", \"records\": [{\"id\": 1, \"service\": \"order-service\", \"error_code\": \"ERR_5003\", \"title\": \"订单服务连接池耗尽导致大面积超时\", \"symptom\": \"下单接口 RT 从 80ms 涨到 8s，应用日志 ERR_5003\", \"root_cause\": \"大促预热流量突增，连接池 maxPoolSize 偏小且存在慢 SQL 占用\", \"resolution\": \"临时上调 max_connections 与连接池；治理慢 SQL 后恢复\", \"severity\": \"P1\", \"occurred_at\": \"2026-10-23T01:14:03\", \"match_type\": \"exact\"}], \"summary\": \"历史精确匹配1条，仅供参考，不能确认本次根因\"}",
+          "tool_call_id": "call_0014a561953e46248c860f64"
+        }
+      },
+      {
+        "at": "2026-10-30T11:11:56.849140+00:00",
+        "kind": "model_call",
+        "detail": {
+          "kind": "tool_chat",
+          "model": "qwen3.8-flash",
+          "usage": {
+            "total_tokens": 2558,
+            "prompt_tokens": 1782,
+            "completion_tokens": 776,
+            "prompt_tokens_details": {
+              "text_tokens": 1782,
+              "audio_tokens": null,
+              "cached_tokens": 0,
+              "cache_write_tokens": null
+            },
+            "completion_tokens_details": null
+          },
+          "status": "ok",
+          "elapsed_ms": 8690.58918000519
+        }
+      },
+      {
+        "at": "2026-10-30T11:11:56.860639+00:00",
+        "kind": "assistant_message",
+        "detail": {
+          "role": "assistant",
+          "content": "根据已获取的工具证据，以下是 `order-service` 的当前状态、手册参考及历史故障分析：\n\n### 1. 当前指标证据 (来源: Prometheus, 时间窗: 2026-10-30 10:11 - 11:11 UTC)\n*   **P99 延迟**: **497.50 ms** (阈值判定: **超过** 300ms 阈值 ⚠️)\n*   **错误率**: **20.00%** (阈值判定: **超过** 1% 阈值 ⚠️)\n*   **QPS**: 0.011 requests/s\n*   **状态**: 异常。高延迟与高错误率并存，符合服务不可用或严重降级特征。\n\n### 2. ERR_5003 手册检索结果 (来源: search_runbook)\n*   **手册标题**: 《ERR_5003 数据库连接池耗尽处理手册》 [引用编号: 1]\n*   **适用场景**: 应用日志出现 `ERR_5003` (Cannot get connection from pool / connection pool exhausted)，或监控显示数据库活跃连接数长期等于 max_connections。\n*   **典型症状**: \n    *   接口大量 500/超时，堆栈中包含 `ERR_5003` [引用编号: 2]\n    *   `SHOW PROCESSLIST` 中大量 Sleep 连接 [引用编号: 2]\n    *   应用侧等待队列堆积，RT 飙升至数秒 [引用编号: 2]\n\n### 3. 历史故障参考 (来源: query_fault_history)\n*   **记录 ID**: 1\n*   **事件**: 订单服务连接池耗尽导致大面积超时\n*   **根因**: 大促预热流量突增，连接池 `maxPoolSize` 偏小且存在慢 SQL 占用\n*   **解决**: 临时上调 `max_connections` 与连接池；治理慢 SQL 后恢复\n*   **注意**: 历史记录仅供参考，不能直接确认为本次根因。\n\n### 4. 排查建议\n基于当前指标（高延迟、高错误率）与手册/历史故障的匹配度，建议按以下步骤进行**只读诊断**：\n\n1.  **确认错误码**: 检查 `order-service` 最近的应用日志，确认是否频繁出现 `ERR_5003` 或 `ERR_5004` [引用编号: 3]。\n2.  **检查数据库连接池**: \n    *   查询数据库当前的活跃连接数 (`Threads_connected`) 是否接近或达到 `max_connections`。\n    *   执行 `SHOW PROCESSLIST`，观察是否有大量处于 `Sleep` 状态的连接，或长时间运行的慢 SQL [引用编号: 2]。\n3.  **关联慢查询**: 如果存在慢 SQL，结合 APM 工具查看 `order-service` 调用数据库的耗时分布，确认是否有特定接口或 SQL 语句导致连接被长时间占用。\n4.  **流量对比**: 虽然当前 QPS 极低 (0.011)，但需确认是否为测试环境注入故障（来源元数据显示 `faults: \"测试注入\"`），或是否存在上游流量截断导致的低 QPS 高错误率现象。\n\n**重要提示**: \n*   以上仅为诊断建议。**禁止直接创建工单或执行写操作**（如修改连接池配置）。\n*   任何变更操作必须经过人工审批流程。"
+        }
+      },
+      {
+        "at": "2026-10-30T11:11:56.874600+00:00",
+        "kind": "agent_end",
+        "detail": {
+          "answer": "根据已获取的工具证据，以下是 `order-service` 的当前状态、手册参考及历史故障分析：\n\n### 1. 当前指标证据 (来源: Prometheus, 时间窗: 2026-10-30 10:11 - 11:11 UTC)\n*   **P99 延迟**: **497.50 ms** (阈值判定: **超过** 300ms 阈值 ⚠️)\n*   **错误率**: **20.00%** (阈值判定: **超过** 1% 阈值 ⚠️)\n*   **QPS**: 0.011 requests/s\n*   **状态**: 异常。高延迟与高错误率并存，符合服务不可用或严重降级特征。\n\n### 2. ERR_5003 手册检索结果 (来源: search_runbook)\n*   **手册标题**: 《ERR_5003 数据库连接池耗尽处理手册》 [引用编号: 1]\n*   **适用场景**: 应用日志出现 `ERR_5003` (Cannot get connection from pool / connection pool exhausted)，或监控显示数据库活跃连接数长期等于 max_connections。\n*   **典型症状**: \n    *   接口大量 500/超时，堆栈中包含 `ERR_5003` [引用编号: 2]\n    *   `SHOW PROCESSLIST` 中大量 Sleep 连接 [引用编号: 2]\n    *   应用侧等待队列堆积，RT 飙升至数秒 [引用编号: 2]\n\n### 3. 历史故障参考 (来源: query_fault_history)\n*   **记录 ID**: 1\n*   **事件**: 订单服务连接池耗尽导致大面积超时\n*   **根因**: 大促预热流量突增，连接池 `maxPoolSize` 偏小且存在慢 SQL 占用\n*   **解决**: 临时上调 `max_connections` 与连接池；治理慢 SQL 后恢复\n*   **注意**: 历史记录仅供参考，不能直接确认为本次根因。\n\n### 4. 排查建议\n基于当前指标（高延迟、高错误率）与手册/历史故障的匹配度，建议按以下步骤进行**只读诊断**：\n\n1.  **确认错误码**: 检查 `order-service` 最近的应用日志，确认是否频繁出现 `ERR_5003` 或 `ERR_5004` [引用编号: 3]。\n2.  **检查数据库连接池**: \n    *   查询数据库当前的活跃连接数 (`Threads_connected`) 是否接近或达到 `max_connections`。\n    *   执行 `SHOW PROCESSLIST`，观察是否有大量处于 `Sleep` 状态的连接，或长时间运行的慢 SQL [引用编号: 2]。\n3.  **关联慢查询**: 如果存在慢 SQL，结合 APM 工具查看 `order-service` 调用数据库的耗时分布，确认是否有特定接口或 SQL 语句导致连接被长时间占用。\n4.  **流量对比**: 虽然当前 QPS 极低 (0.011)，但需确认是否为测试环境注入故障（来源元数据显示 `faults: \"测试注入\"`），或是否存在上游流量截断导致的低 QPS 高错误率现象。\n\n**重要提示**: \n*   以上仅为诊断建议。**禁止直接创建工单或执行写操作**（如修改连接池配置）。\n*   任何变更操作必须经过人工审批流程。\n\n工具调用已达3次上限；仅依据已取得证据回答，未验证的信息仍不确定。",
+          "end_reason": "answered",
+          "tool_calls_used": 3,
+          "tool_calls_executed": 3,
+          "tool_calls_proposed": 3,
+          "usage_may_arrive_later": false
+        }
+      }
+    ],
+    "result": {
+      "answer": "根据已获取的工具证据，以下是 `order-service` 的当前状态、手册参考及历史故障分析：\n\n### 1. 当前指标证据 (来源: Prometheus, 时间窗: 2026-10-30 10:11 - 11:11 UTC)\n*   **P99 延迟**: **497.50 ms** (阈值判定: **超过** 300ms 阈值 ⚠️)\n*   **错误率**: **20.00%** (阈值判定: **超过** 1% 阈值 ⚠️)\n*   **QPS**: 0.011 requests/s\n*   **状态**: 异常。高延迟与高错误率并存，符合服务不可用或严重降级特征。\n\n### 2. ERR_5003 手册检索结果 (来源: search_runbook)\n*   **手册标题**: 《ERR_5003 数据库连接池耗尽处理手册》 [引用编号: 1]\n*   **适用场景**: 应用日志出现 `ERR_5003` (Cannot get connection from pool / connection pool exhausted)，或监控显示数据库活跃连接数长期等于 max_connections。\n*   **典型症状**: \n    *   接口大量 500/超时，堆栈中包含 `ERR_5003` [引用编号: 2]\n    *   `SHOW PROCESSLIST` 中大量 Sleep 连接 [引用编号: 2]\n    *   应用侧等待队列堆积，RT 飙升至数秒 [引用编号: 2]\n\n### 3. 历史故障参考 (来源: query_fault_history)\n*   **记录 ID**: 1\n*   **事件**: 订单服务连接池耗尽导致大面积超时\n*   **根因**: 大促预热流量突增，连接池 `maxPoolSize` 偏小且存在慢 SQL 占用\n*   **解决**: 临时上调 `max_connections` 与连接池；治理慢 SQL 后恢复\n*   **注意**: 历史记录仅供参考，不能直接确认为本次根因。\n\n### 4. 排查建议\n基于当前指标（高延迟、高错误率）与手册/历史故障的匹配度，建议按以下步骤进行**只读诊断**：\n\n1.  **确认错误码**: 检查 `order-service` 最近的应用日志，确认是否频繁出现 `ERR_5003` 或 `ERR_5004` [引用编号: 3]。\n2.  **检查数据库连接池**: \n    *   查询数据库当前的活跃连接数 (`Threads_connected`) 是否接近或达到 `max_connections`。\n    *   执行 `SHOW PROCESSLIST`，观察是否有大量处于 `Sleep` 状态的连接，或长时间运行的慢 SQL [引用编号: 2]。\n3.  **关联慢查询**: 如果存在慢 SQL，结合 APM 工具查看 `order-service` 调用数据库的耗时分布，确认是否有特定接口或 SQL 语句导致连接被长时间占用。\n4.  **流量对比**: 虽然当前 QPS 极低 (0.011)，但需确认是否为测试环境注入故障（来源元数据显示 `faults: \"测试注入\"`），或是否存在上游流量截断导致的低 QPS 高错误率现象。\n\n**重要提示**: \n*   以上仅为诊断建议。**禁止直接创建工单或执行写操作**（如修改连接池配置）。\n*   任何变更操作必须经过人工审批流程。\n\n工具调用已达3次上限；仅依据已取得证据回答，未验证的信息仍不确定。\n\n指标证据：\norder-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T10:11:47.114000+00:00 至 2026-10-30T11:11:47.114000+00:00；QPS=0.011118004273760841 requests/s, P99=497.49999999999994ms, 错误率=20.000000000000004%；本次阈值判定：P99 延迟 497.50ms 超过 300ms 阈值；错误率 20.00% 超过 1% 阈值",
+      "events": [
+        {
+          "node": "route_intent",
+          "type": "node_status",
+          "status": "completed"
+        },
+        {
+          "node": "native_tools",
+          "type": "node_status",
+          "status": "completed"
+        },
+        {
+          "args": {
+            "service": "order-service",
+            "window_minutes": 60
+          },
+          "name": "query_service_metrics",
+          "type": "tool",
+          "result": {
+            "avg": {
+              "qps": 0.01111800427376084,
+              "error_rate_pct": 20.000000000000004,
+              "latency_p99_ms": 497.49999999999994
+            },
+            "units": {
+              "qps": "requests/s",
+              "error_rate_pct": "%",
+              "latency_p99_ms": "ms"
+            },
+            "source": {
+              "url": "http://prometheus:9090",
+              "kind": "prometheus",
+              "faults": "测试注入",
+              "environment": "test"
+            },
+            "status": "ok",
+            "window": {
+              "end": "2026-10-30T11:11:47.114000+00:00",
+              "start": "2026-10-30T10:11:47.114000+00:00"
+            },
+            "queries": {
+              "qps": "sum(rate(aiops_demo_requests_total{service=\"order-service\"}[3600s]))",
+              "scrape_up": "max(up{job=\"opspilot-demo\"})",
+              "error_rate_pct": "100 * sum(rate(aiops_demo_requests_total{service=\"order-service\",code=~\"5..\"}[3600s])) / sum(rate(aiops_demo_requests_total{service=\"order-service\"}[3600s]))",
+              "latency_p99_ms": "1000 * histogram_quantile(0.99, sum by (le) (rate(aiops_demo_request_duration_seconds_bucket{service=\"order-service\"}[3600s])))"
+            },
+            "service": "order-service",
+            "summary": "order-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T10:11:47.114000+00:00 至 2026-10-30T11:11:47.114000+00:00；QPS=0.011118004273760841 requests/s, P99=497.49999999999994ms, 错误率=20.000000000000004%；本次阈值判定：P99 延迟 497.50ms 超过 300ms 阈值；错误率 20.00% 超过 1% 阈值",
+            "anomalies": [
+              "P99 延迟 497.50ms 超过 300ms 阈值",
+              "错误率 20.00% 超过 1% 阈值"
+            ],
+            "window_minutes": 60,
+            "evaluation_time": 1793358707.114
+          },
+          "summary": "order-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T10:11:47.114000+00:00 至 2026-10-30T11:11:47.114000+00:00；QPS=0.011118004273760841 requests/s, P99=497.49999999999994ms, 错误率=20.000000000000004%；本次阈值判定：P99 延迟 497.50ms 超过 300ms 阈值；错误率 20.00% 超过 1% 阈值",
+          "executed": true,
+          "anomalies": [
+            "P99 延迟 497.50ms 超过 300ms 阈值",
+            "错误率 20.00% 超过 1% 阈值"
+          ],
+          "duration_ms": 83.57,
+          "tool_call_id": "call_03ce11ab6f8f458b9fdcbaaf"
+        },
+        {
+          "args": {
+            "query": "ERR_5003 排查手册",
+            "top_k": 3
+          },
+          "name": "search_runbook",
+          "type": "tool",
+          "result": {
+            "hits": [
+              {
+                "text": "# ERR_5003 数据库连接池耗尽处理手册\n\n## 适用场景\n应用日志出现 `ERR_5003`（Cannot get connection from pool / connection pool exhausted），\n或监控显示数据库活跃连接数长期等于 max_connections。",
+                "score": 0.9872,
+                "doc_id": "8355439efe874adb90e45343a259ad06",
+                "source": "knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+                "chunk_id": "8355439efe874adb90e45343a259ad06::0",
+                "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+                "citation_id": 1
+              },
+              {
+                "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 典型症状\n- 接口大量 500/超时，堆栈中包含 `ERR_5003`\n- `SHOW PROCESSLIST` 中大量 Sleep 连接\n- 应用侧等待队列堆积，RT 从几十毫秒飙升至数秒",
+                "score": 0.9827,
+                "doc_id": "8355439efe874adb90e45343a259ad06",
+                "source": "knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+                "chunk_id": "8355439efe874adb90e45343a259ad06::1",
+                "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+                "citation_id": 2
+              },
+              {
+                "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 相关错误码\n- ERR_5003：连接池耗尽\n- ERR_5004：连接获取超时",
+                "score": 0.9442,
+                "doc_id": "8355439efe874adb90e45343a259ad06",
+                "source": "knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+                "chunk_id": "8355439efe874adb90e45343a259ad06::4",
+                "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+                "citation_id": 3
+              }
+            ],
+            "status": "ok",
+            "summary": "检索到3个手册片段，片段不代表当前实时状态"
+          },
+          "summary": "检索到3个手册片段，片段不代表当前实时状态",
+          "executed": true,
+          "anomalies": [],
+          "duration_ms": 889.74,
+          "tool_call_id": "call_6638a2d2cadb406c9962049a"
+        },
+        {
+          "args": {
+            "service": "order-service",
+            "error_code": "ERR_5003"
+          },
+          "name": "query_fault_history",
+          "type": "tool",
+          "result": {
+            "status": "ok",
+            "records": [
+              {
+                "id": 1,
+                "title": "订单服务连接池耗尽导致大面积超时",
+                "service": "order-service",
+                "symptom": "下单接口 RT 从 80ms 涨到 8s，应用日志 ERR_5003",
+                "severity": "P1",
+                "error_code": "ERR_5003",
+                "match_type": "exact",
+                "resolution": "临时上调 max_connections 与连接池；治理慢 SQL 后恢复",
+                "root_cause": "大促预热流量突增，连接池 maxPoolSize 偏小且存在慢 SQL 占用",
+                "occurred_at": "2026-10-23T01:14:03"
+              }
+            ],
+            "summary": "历史精确匹配1条，仅供参考，不能确认本次根因"
+          },
+          "summary": "历史精确匹配1条，仅供参考，不能确认本次根因",
+          "executed": true,
+          "anomalies": [],
+          "duration_ms": 8.64,
+          "tool_call_id": "call_0014a561953e46248c860f64"
+        },
+        {
+          "type": "answer",
+          "answer": "根据已获取的工具证据，以下是 `order-service` 的当前状态、手册参考及历史故障分析：\n\n### 1. 当前指标证据 (来源: Prometheus, 时间窗: 2026-10-30 10:11 - 11:11 UTC)\n*   **P99 延迟**: **497.50 ms** (阈值判定: **超过** 300ms 阈值 ⚠️)\n*   **错误率**: **20.00%** (阈值判定: **超过** 1% 阈值 ⚠️)\n*   **QPS**: 0.011 requests/s\n*   **状态**: 异常。高延迟与高错误率并存，符合服务不可用或严重降级特征。\n\n### 2. ERR_5003 手册检索结果 (来源: search_runbook)\n*   **手册标题**: 《ERR_5003 数据库连接池耗尽处理手册》 [引用编号: 1]\n*   **适用场景**: 应用日志出现 `ERR_5003` (Cannot get connection from pool / connection pool exhausted)，或监控显示数据库活跃连接数长期等于 max_connections。\n*   **典型症状**: \n    *   接口大量 500/超时，堆栈中包含 `ERR_5003` [引用编号: 2]\n    *   `SHOW PROCESSLIST` 中大量 Sleep 连接 [引用编号: 2]\n    *   应用侧等待队列堆积，RT 飙升至数秒 [引用编号: 2]\n\n### 3. 历史故障参考 (来源: query_fault_history)\n*   **记录 ID**: 1\n*   **事件**: 订单服务连接池耗尽导致大面积超时\n*   **根因**: 大促预热流量突增，连接池 `maxPoolSize` 偏小且存在慢 SQL 占用\n*   **解决**: 临时上调 `max_connections` 与连接池；治理慢 SQL 后恢复\n*   **注意**: 历史记录仅供参考，不能直接确认为本次根因。\n\n### 4. 排查建议\n基于当前指标（高延迟、高错误率）与手册/历史故障的匹配度，建议按以下步骤进行**只读诊断**：\n\n1.  **确认错误码**: 检查 `order-service` 最近的应用日志，确认是否频繁出现 `ERR_5003` 或 `ERR_5004` [引用编号: 3]。\n2.  **检查数据库连接池**: \n    *   查询数据库当前的活跃连接数 (`Threads_connected`) 是否接近或达到 `max_connections`。\n    *   执行 `SHOW PROCESSLIST`，观察是否有大量处于 `Sleep` 状态的连接，或长时间运行的慢 SQL [引用编号: 2]。\n3.  **关联慢查询**: 如果存在慢 SQL，结合 APM 工具查看 `order-service` 调用数据库的耗时分布，确认是否有特定接口或 SQL 语句导致连接被长时间占用。\n4.  **流量对比**: 虽然当前 QPS 极低 (0.011)，但需确认是否为测试环境注入故障（来源元数据显示 `faults: \"测试注入\"`），或是否存在上游流量截断导致的低 QPS 高错误率现象。\n\n**重要提示**: \n*   以上仅为诊断建议。**禁止直接创建工单或执行写操作**（如修改连接池配置）。\n*   任何变更操作必须经过人工审批流程。\n\n工具调用已达3次上限；仅依据已取得证据回答，未验证的信息仍不确定。\n\n指标证据：\norder-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T10:11:47.114000+00:00 至 2026-10-30T11:11:47.114000+00:00；QPS=0.011118004273760841 requests/s, P99=497.49999999999994ms, 错误率=20.000000000000004%；本次阈值判定：P99 延迟 497.50ms 超过 300ms 阈值；错误率 20.00% 超过 1% 阈值",
+          "citations": [
+            "ERR_5003 数据库连接池耗尽处理手册"
+          ]
+        }
+      ],
+      "intent": "diagnose",
+      "run_id": "4c494fb06e6942ccb382d8721b2a91e0",
+      "status": "answered",
+      "citations": [
+        "ERR_5003 数据库连接池耗尽处理手册"
+      ],
+      "ticket_id": null,
+      "end_reason": "answered",
+      "session_id": "dea41a37f14749989c53f8a0773d2e2d",
+      "docs_sufficient": null
+    },
+    "backends": {
+      "llm": "OpenAIChatLLM",
+      "cache": "RedisCache",
+      "embedder": "OpenAIEmbedding",
+      "vector_store": "QdrantVectorStore"
+    },
+    "question": "请查询order-service当前指标，检索ERR_5003手册，并查询同服务历史故障，简要列出证据和排查建议。不要创建工单。",
+    "max_tool_calls": 3
+  }
+}

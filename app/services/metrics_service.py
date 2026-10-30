@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 import httpx
 
 from app.config import get_settings
+from app.services.run_service import tool_time_left
 
 
 def _seeded_uniform(seed: str, index: int) -> float:
@@ -103,9 +104,11 @@ def query_service_metrics(service: str, window_minutes: int = 60) -> dict:
     try:
         with httpx.Client(timeout=settings.prometheus_timeout_seconds) as client:
             for name, query in queries.items():
+                remaining = tool_time_left()
                 response = client.get(
                     settings.prometheus_url.rstrip("/") + "/api/v1/query",
                     params={"query": query, "time": str(end)},
+                    timeout=min(settings.prometheus_timeout_seconds, remaining) if remaining is not None else settings.prometheus_timeout_seconds,
                 )
                 response.raise_for_status()
                 body = response.json()

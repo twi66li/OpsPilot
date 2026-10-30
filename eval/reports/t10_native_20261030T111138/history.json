@@ -1,0 +1,98 @@
+[
+  {
+    "id": 1,
+    "service": "order-service",
+    "error_code": "ERR_5003",
+    "title": "订单服务连接池耗尽导致大面积超时",
+    "symptom": "下单接口 RT 从 80ms 涨到 8s，应用日志 ERR_5003",
+    "root_cause": "大促预热流量突增，连接池 maxPoolSize 偏小且存在慢 SQL 占用",
+    "resolution": "临时上调 max_connections 与连接池；治理慢 SQL 后恢复",
+    "severity": "P1",
+    "occurred_at": "2026-10-23T01:14:03",
+    "match_type": "tenant_recent"
+  },
+  {
+    "id": 2,
+    "service": "order-service",
+    "error_code": "ERR_6001",
+    "title": "order-service 调用库存服务超时",
+    "symptom": "下单链路 15% 请求超时",
+    "root_cause": "库存服务 GC 停顿，未配熔断",
+    "resolution": "为下游配置 500ms 超时与熔断，扩容库存服务",
+    "severity": "P2",
+    "occurred_at": "2026-10-16T01:14:03",
+    "match_type": "tenant_recent"
+  },
+  {
+    "id": 3,
+    "service": "payment-service",
+    "error_code": "ERR_7010",
+    "title": "支付对账失败：渠道账单延迟",
+    "symptom": "对账任务连续 3 天差异 1200 笔",
+    "root_cause": "渠道账单文件延迟 2 小时且格式变更",
+    "resolution": "手工补单修复状态，兼容新格式后恢复",
+    "severity": "P1",
+    "occurred_at": "2026-10-09T01:14:03",
+    "match_type": "tenant_recent"
+  },
+  {
+    "id": 4,
+    "service": "payment-service",
+    "error_code": "ERR_7011",
+    "title": "渠道查询接口超时引发补单失败",
+    "symptom": "补单任务大量 ERR_7011",
+    "root_cause": "渠道接口限流，重试未退避",
+    "resolution": "增加指数退避重试与限流适配",
+    "severity": "P2",
+    "occurred_at": "2026-10-02T01:14:03",
+    "match_type": "tenant_recent"
+  },
+  {
+    "id": 5,
+    "service": "user-service",
+    "error_code": "ERR_9001",
+    "title": "用户服务 Pod OOMKilled",
+    "symptom": "Pod 每 40 分钟重启一次",
+    "root_cause": "本地缓存无界增长",
+    "resolution": "缓存加 TTL 与容量上限，limit 上调至 2Gi",
+    "severity": "P2",
+    "occurred_at": "2026-09-25T01:14:03",
+    "match_type": "tenant_recent"
+  },
+  {
+    "id": 6,
+    "service": "api-gateway-service",
+    "error_code": "ERR_6002",
+    "title": "网关 502：上游发布期间连接拒绝",
+    "symptom": "网关错误率 3%",
+    "root_cause": "发布窗口上游实例未配就绪探针",
+    "resolution": "摘除未就绪实例，补齐 readinessProbe",
+    "severity": "P2",
+    "occurred_at": "2026-09-18T01:14:03",
+    "match_type": "tenant_recent"
+  },
+  {
+    "id": 7,
+    "service": "notify-service",
+    "error_code": "ERR_9101",
+    "title": "通知服务消费积压 200 万条",
+    "symptom": "消息延迟 30 分钟+",
+    "root_cause": "消费者实例数少于分区数",
+    "resolution": "扩容消费者至分区数，优化批量写库",
+    "severity": "P2",
+    "occurred_at": "2026-09-11T01:14:03",
+    "match_type": "tenant_recent"
+  },
+  {
+    "id": 8,
+    "service": "order-service",
+    "error_code": "ERR_5004",
+    "title": "订单服务连接获取超时",
+    "symptom": "ERR_5004 频繁出现",
+    "root_cause": "DB 慢查询占用连接",
+    "resolution": "为订单查询补索引，慢查询下降 90%",
+    "severity": "P2",
+    "occurred_at": "2026-09-04T01:14:03",
+    "match_type": "tenant_recent"
+  }
+]

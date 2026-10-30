@@ -54,6 +54,8 @@ class Settings(BaseSettings):
     prometheus_timeout_seconds: float = 3.0
 
     checkpoint_path: str = ""  # 离线测试为空；单进程 Compose 使用持久卷中的 SQLite 文件
+    agent_mode: str = "rule"  # rule | native；离线测试保留规则链
+    tool_timeout_seconds: float = 8.0
 
     # ---- Langfuse ----
     langfuse_public_key: str = ""

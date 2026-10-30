@@ -10,6 +10,8 @@ import re
 
 import jieba
 
+from app.services.run_service import emit, tool_time_left
+
 jieba.setLogLevel(60)
 logger = logging.getLogger(__name__)
 
@@ -52,15 +54,27 @@ class OpenAIEmbedding:
         import time
 
         started = time.perf_counter()
-        params = {"dimensions": self.dim} if self.dim is not None else {}
-        resp = self._client.embeddings.create(model=self.model, input=texts, **params)
-        vectors = [item.embedding for item in sorted(resp.data, key=lambda item: item.index)]
-        if self.dim is not None and any(len(v) != self.dim for v in vectors):
-            raise ValueError("向量模型输出维度与索引配置不一致")
-        self.calls.append({"model": self.model, "status": "ok", "elapsed_ms": (time.perf_counter() - started) * 1000,
-                           "usage": resp.usage.model_dump()})
-        logger.info("model_api_usage kind=embedding record=%s", json.dumps(self.calls[-1], ensure_ascii=False))
-        return vectors
+        record = {"model": self.model, "status": "error", "usage": {}}
+        try:
+            params = {"dimensions": self.dim} if self.dim is not None else {}
+            remaining = tool_time_left()
+            client = self._client.with_options(timeout=remaining) if remaining is not None else self._client
+            resp = client.embeddings.create(model=self.model, input=texts, **params)
+            usage = getattr(resp, "usage", None)
+            record["usage"] = usage.model_dump() if usage else {}
+            vectors = [item.embedding for item in sorted(resp.data, key=lambda item: item.index)]
+            if self.dim is not None and any(len(v) != self.dim for v in vectors):
+                raise ValueError("向量模型输出维度与索引配置不一致")
+            record["status"] = "ok"
+            return vectors
+        except Exception as exc:
+            record["error_type"] = type(exc).__name__
+            raise
+        finally:
+            record["elapsed_ms"] = (time.perf_counter() - started) * 1000
+            self.calls.append(record)
+            logger.info("model_api_usage kind=embedding record=%s", json.dumps(record, ensure_ascii=False))
+            emit("model_call", {"kind": "embedding", **record})
 
 
 def get_embedding_provider(settings):

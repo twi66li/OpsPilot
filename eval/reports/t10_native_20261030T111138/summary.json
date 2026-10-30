@@ -1,0 +1,35 @@
+{
+  "status": "passed_pending_external_review",
+  "mock_pytest": 95,
+  "real_backend": "真实模型+MySQL/Redis/Qdrant/Prometheus",
+  "mode": "native",
+  "read_tools": [
+    "query_fault_history",
+    "query_service_metrics",
+    "search_runbook"
+  ],
+  "tool_calls_used": 3,
+  "call_ids_match": true,
+  "sse_run_id_matches": true,
+  "cross_tenant_get": 404,
+  "no_unrequested_approval": true,
+  "test_injection_requests": {
+    "ok": 32,
+    "error": 8
+  },
+  "injection_reset": true,
+  "total_trace_tokens": 6604,
+  "completed_at": "2026-10-30T11:12:01.855670+00:00",
+  "approval_restart_guard": "approval_restart/summary.json",
+  "approval_run_statuses": [
+    "approved",
+    "rejected"
+  ],
+  "run_input_and_usage_persisted_after_restart": true,
+  "reviewer": "WorkBuddy/DeepSeek",
+  "limits": [
+    "单API进程；工具超时限制等待时间，传输层有同一deadline；迟到API用量仍追加到原run，超时无usage时不编造token",
+    "主规则链保留为对照；原生路径禁止直接写工具，建单仍需审批"
+  ],
+  "validated_at": "2026-10-30T11:19:29.340041+00:00"
+}

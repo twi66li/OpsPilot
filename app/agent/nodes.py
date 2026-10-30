@@ -6,7 +6,7 @@
 import logging
 
 from app.agent.llm import detect_intent
-from app.agent.tools import run_diagnostic_tools
+from app.agent.tools import make_tool_executor, run_diagnostic_tools
 from app.services.observability import estimate_tokens, get_tracer
 from app.services.ticket_service import get_or_create_approval
 
@@ -17,6 +17,42 @@ class DiagnosisNodes:
     def __init__(self, container):
         self.container = container
         self.tracer = get_tracer()
+
+    def select_path(self, state):
+        mode = self.container.settings.agent_mode
+        if mode not in ("rule", "native"):
+            raise ValueError("agent_mode 必须是rule或native")
+        return mode
+
+    def native_tools(self, state):
+        from app.agent.tool_loop import run_tool_loop
+
+        if not hasattr(self.container.llm, "_api"):
+            raise ValueError("原生工具模式需要真实OpenAI兼容模型，不回退Mock")
+        result = run_tool_loop(
+            state["question"], self.container.llm._api, make_tool_executor(self.container, state["tenant_id"]),
+            history=state.get("history", []), timeout=self.container.settings.tool_timeout_seconds,
+        )
+        answer, citations, hits = result["answer"], [], []
+        events = []
+        for event in result["tool_events"]:
+            output = event["result"]
+            if event["name"] == "search_runbook":
+                hits.extend(output.get("hits", []))
+                for hit in output.get("hits", []):
+                    if hit["doc_title"] not in citations:
+                        citations.append(hit["doc_title"])
+            if event["name"] == "query_service_metrics" and "source" in output:
+                answer += "\n\n指标证据：\n" + output["summary"]
+            events.append({"type": "tool", **event, "summary": output.get("summary", output.get("message", "")), "anomalies": output.get("anomalies", [])})
+        payload = {"answer": answer, "citations": citations, "hits": hits, "docs_sufficient": None, "end_reason": result["end_reason"],
+                   "tool_events": result["tool_events"], "events": events + [{"type": "answer", "answer": answer, "citations": citations}]}
+        if state.get("intent") == "create_ticket" and result["end_reason"] == "answered":
+            payload["ticket_draft"] = self.container.llm.draft_ticket(state["question"], answer)
+        return payload
+
+    def route_after_native(self, state):
+        return "approval" if state.get("end_reason") == "answered" else "end"
 
     # ---- 意图路由 ----
     def route_intent(self, state):
@@ -33,6 +69,7 @@ class DiagnosisNodes:
             "tool_events": [],
             "fault_records": [],
             "metrics": {},
+            "end_reason": "answered",
         }
 
     # ---- 检索 ----

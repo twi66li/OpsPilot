@@ -10,12 +10,14 @@ class DiagState(TypedDict, total=False):
     user_id: str
     username: str
     history: list[dict]
+    run_id: str
+    end_reason: str
 
     # 流程中间态
     intent: str  # diagnose | create_ticket
     rewritten_query: str
     hits: list[dict]
-    docs_sufficient: bool
+    docs_sufficient: bool | None
     iteration: int  # 检索轮次（grade 节点自增，控制补充检索次数）
 
     # 工具与证据

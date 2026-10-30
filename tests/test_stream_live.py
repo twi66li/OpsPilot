@@ -63,7 +63,10 @@ class FakeGraph:
 
 class FakeContainer:
     def __init__(self, graph):
+        from types import SimpleNamespace
+
         self.graph = graph
+        self.settings = SimpleNamespace(agent_mode="rule")
 
     @contextmanager
     def db_session(self):

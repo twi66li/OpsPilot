@@ -58,6 +58,46 @@ def query_fault_history(db: Session, tenant_id: str, service: str = "", error_co
     ]
 
 
+def metrics_summary(result):
+    source = "Prometheus测试服务实际采集（故障为测试注入）" if result["source"]["kind"] == "prometheus" else "Mock模拟数据"
+    if result["source"].get("replay"):
+        source += "（录制证据回放）"
+    evidence = f"{result['service']}；来源：{source}；时间窗：{result['window']['start']} 至 {result['window']['end']}"
+    if result["status"] == "ok":
+        evidence += f"；QPS={result['avg']['qps']} requests/s, P99={result['avg']['latency_p99_ms']}ms, 错误率={result['avg']['error_rate_pct']}%"
+    else:
+        evidence += f"；状态={result['status']}，{result.get('message', '指标证据不足')}"
+    if result["anomalies"]:
+        evidence += "；本次阈值判定：" + "；".join(result["anomalies"])
+    return evidence
+
+
+def make_tool_executor(container, tenant_id):
+    """tenant_id 来自服务端认证上下文，模型参数无法覆盖它。"""
+    citation_ids = {}
+
+    def execute(name, args):
+        if name == "search_runbook":
+            with container.db_session() as db:
+                result = container.retriever.retrieve(db, tenant_id, args["query"], mode=container.settings.retrieval_mode, top_k=args["top_k"])
+            hits = []
+            for hit in result.hits:
+                data = hit.to_dict()
+                citation = citation_ids.setdefault(data["chunk_id"], len(citation_ids) + 1)
+                hits.append({**data, "text": data["text"][:500], "citation_id": citation})
+            return {"status": "ok" if hits else "no_data", "hits": hits, "summary": f"检索到{len(hits)}个手册片段，片段不代表当前实时状态"}
+        if name == "query_service_metrics":
+            result = query_service_metrics(**args)
+            return {**result, "summary": metrics_summary(result)}
+        if name == "query_fault_history":
+            with container.db_session() as db:
+                rows = query_fault_history(db, tenant_id, **args)
+            return {"status": "ok" if rows else "no_data", "records": rows, "summary": f"历史精确匹配{len(rows)}条，仅供参考，不能确认本次根因"}
+        raise ValueError("只允许三个只读工具")
+
+    return execute
+
+
 def run_diagnostic_tools(db: Session, tenant_id: str, question: str) -> tuple[list[dict], list[dict], dict]:
     """执行工具链：返回 (tool_events, fault_records, metrics)。
 
@@ -72,17 +112,7 @@ def run_diagnostic_tools(db: Session, tenant_id: str, question: str) -> tuple[li
         start = time.perf_counter()
         result = query_service_metrics(service)
         metrics_all[service] = result
-        source = "Prometheus测试服务实际采集（故障为测试注入）" if result["source"]["kind"] == "prometheus" else "Mock模拟数据"
-        evidence = f"{service}；来源：{source}；时间窗：{result['window']['start']} 至 {result['window']['end']}"
-        if result["status"] == "ok":
-            evidence += (
-                f"；QPS={result['avg']['qps']} requests/s, P99={result['avg']['latency_p99_ms']}ms, "
-                f"错误率={result['avg']['error_rate_pct']}%"
-            )
-        else:
-            evidence += f"；状态={result['status']}，{result.get('message', '指标证据不足')}"
-        if result["anomalies"]:
-            evidence += "；本次阈值判定：" + "；".join(result["anomalies"])
+        evidence = metrics_summary(result)
         tool_events.append(
             {
                 "name": "query_service_metrics",
@@ -113,6 +143,7 @@ def run_diagnostic_tools(db: Session, tenant_id: str, question: str) -> tuple[li
 
 
 TOOL_REGISTRY = [
+    {"name": "search_runbook", "description": "只读检索本租户的运维手册和SOP，返回依据片段"},
     {"name": "query_service_metrics", "description": "查询测试服务近 1 小时的 QPS / P99 延迟 / 错误率，返回来源、时间窗和证据状态"},
     {"name": "query_fault_history", "description": "按服务名 / 错误码检索历史故障记录（根因与解决方案）"},
 ]

@@ -1,0 +1,158 @@
+{
+  "calls": [
+    {
+      "kind": "tool_chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "usage": {
+        "completion_tokens": 105,
+        "prompt_tokens": 857,
+        "total_tokens": 962,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 857
+        }
+      },
+      "elapsed_ms": 2197.880603998783
+    },
+    {
+      "kind": "embedding",
+      "model": "qwen3.7-text-embedding-flash",
+      "status": "ok",
+      "usage": {
+        "prompt_tokens": 29,
+        "total_tokens": 29
+      },
+      "elapsed_ms": 400.5100510039483
+    },
+    {
+      "kind": "rerank",
+      "model": "qwen3.7-text-rerank",
+      "status": "ok",
+      "usage": {
+        "prompt_tokens": 300,
+        "total_tokens": 300
+      },
+      "elapsed_ms": 432.5090310012456
+    },
+    {
+      "kind": "tool_chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "usage": {
+        "completion_tokens": 577,
+        "prompt_tokens": 2234,
+        "total_tokens": 2811,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 2234
+        }
+      },
+      "elapsed_ms": 7057.213542997488
+    },
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "first_token_ms": 391.79820400022436,
+      "usage": {
+        "completion_tokens": 156,
+        "prompt_tokens": 571,
+        "total_tokens": 727,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 571
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 1906.5674250014126
+    },
+    {
+      "kind": "tool_chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "usage": {
+        "completion_tokens": 109,
+        "prompt_tokens": 858,
+        "total_tokens": 967,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 858
+        }
+      },
+      "elapsed_ms": 1942.1626460025436
+    },
+    {
+      "kind": "embedding",
+      "model": "qwen3.7-text-embedding-flash",
+      "status": "ok",
+      "usage": {
+        "prompt_tokens": 25,
+        "total_tokens": 25
+      },
+      "elapsed_ms": 363.23050600185525
+    },
+    {
+      "kind": "rerank",
+      "model": "qwen3.7-text-rerank",
+      "status": "ok",
+      "usage": {
+        "prompt_tokens": 231,
+        "total_tokens": 231
+      },
+      "elapsed_ms": 838.9074829974561
+    },
+    {
+      "kind": "tool_chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "usage": {
+        "completion_tokens": 525,
+        "prompt_tokens": 2069,
+        "total_tokens": 2594,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 2069
+        }
+      },
+      "elapsed_ms": 6450.884427998972
+    },
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "first_token_ms": 394.14602699980605,
+      "usage": {
+        "completion_tokens": 191,
+        "prompt_tokens": 557,
+        "total_tokens": 748,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 557
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 3027.200365999306
+    }
+  ],
+  "total_tokens": 9394,
+  "source": "实际API容器自本脚本启动以来的实报usage日志；同一容器两次restart保留日志，不重复计数"
+}

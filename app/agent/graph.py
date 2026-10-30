@@ -12,6 +12,7 @@ def build_graph(nodes, checkpointer=None):
 
     graph = StateGraph(DiagState)
     graph.add_node("route_intent", nodes.route_intent)
+    graph.add_node("native_tools", nodes.native_tools)
     graph.add_node("retrieve", nodes.retrieve)
     graph.add_node("grade", nodes.grade)
     graph.add_node("rewrite", nodes.rewrite)
@@ -22,7 +23,8 @@ def build_graph(nodes, checkpointer=None):
     graph.add_node("create_ticket", nodes.create_ticket)
 
     graph.add_edge(START, "route_intent")
-    graph.add_edge("route_intent", "retrieve")
+    graph.add_conditional_edges("route_intent", nodes.select_path, {"rule": "retrieve", "native": "native_tools"})
+    graph.add_conditional_edges("native_tools", nodes.route_after_native, {"approval": "prepare_approval", "end": END})
     graph.add_edge("retrieve", "grade")
     graph.add_conditional_edges("grade", nodes.route_after_grade, {"rewrite": "rewrite", "tools": "call_tools"})
     graph.add_edge("rewrite", "retrieve")

@@ -1,0 +1,56 @@
+{
+  "kind": "真实模型原生工具协议探针，工具结果为明确标注的示例值",
+  "model": "qwen3.8-flash",
+  "started_at": "2026-10-30T10:49:03.575147+00:00",
+  "calls": [
+    {
+      "assistant": {
+        "content": "",
+        "role": "assistant",
+        "tool_calls": [
+          {
+            "id": "call_d117a732228043ca9e0de70c",
+            "function": {
+              "arguments": "{\"service\": \"order-service\"}",
+              "name": "query_service_metrics"
+            },
+            "type": "function",
+            "index": 0
+          }
+        ]
+      },
+      "usage": {
+        "completion_tokens": 27,
+        "prompt_tokens": 305,
+        "total_tokens": 332,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 305
+        }
+      }
+    },
+    {
+      "assistant": {
+        "content": "7",
+        "role": "assistant"
+      },
+      "usage": {
+        "completion_tokens": 1,
+        "prompt_tokens": 113,
+        "total_tokens": 114,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 113
+        }
+      }
+    }
+  ],
+  "status": "passed",
+  "completed_at": "2026-10-30T10:49:06.415206+00:00"
+}

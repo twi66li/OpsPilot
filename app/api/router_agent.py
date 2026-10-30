@@ -63,3 +63,13 @@ def decide(approval_id: str, body: DecisionIn, user: AuthUser = Depends(require_
 @router.get("/tools")
 def tools(user: AuthUser = Depends(get_current_user)):
     return TOOL_REGISTRY
+
+
+@router.get("/runs/{run_id}")
+def get_run(run_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    from app.services.run_service import get_run as read_run
+
+    run = read_run(db, user.tenant_id, run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail="运行记录不存在")
+    return {"run_id": run.id, "session_id": run.session_id, "mode": run.mode, "status": run.status, "data": run.data}

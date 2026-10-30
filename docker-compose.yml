@@ -60,6 +60,7 @@ services:
       METRICS_PROVIDER: prometheus
       PROMETHEUS_URL: http://prometheus:9090
       CHECKPOINT_PATH: /app/data/checkpoints.sqlite3
+      AGENT_MODE: ${AGENT_MODE:-native}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-prod}
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}

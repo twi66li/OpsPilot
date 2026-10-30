@@ -15,6 +15,8 @@ TICKET_KEYWORDS = re.compile(r"创建工单|提交工单|开个工单|建单|提
 
 
 def detect_intent(question: str) -> str:
+    if re.search(r"(?:不要|无需|不用|禁止|不必).{0,8}(?:工单|建单|提单|ticket)", question, re.IGNORECASE):
+        return "diagnose"
     return "create_ticket" if TICKET_KEYWORDS.search(question) else "diagnose"
 
 

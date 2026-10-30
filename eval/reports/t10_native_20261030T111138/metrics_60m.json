@@ -1,0 +1,36 @@
+{
+  "service": "order-service",
+  "window_minutes": 60,
+  "evaluation_time": 1793358716.957,
+  "window": {
+    "start": "2026-10-30T10:11:56.957000+00:00",
+    "end": "2026-10-30T11:11:56.957000+00:00"
+  },
+  "units": {
+    "qps": "requests/s",
+    "latency_p99_ms": "ms",
+    "error_rate_pct": "%"
+  },
+  "source": {
+    "kind": "prometheus",
+    "environment": "test",
+    "faults": "测试注入",
+    "url": "http://prometheus:9090"
+  },
+  "status": "ok",
+  "avg": {
+    "qps": 0.011118004273760841,
+    "latency_p99_ms": 497.49999999999994,
+    "error_rate_pct": 20.000000000000004
+  },
+  "anomalies": [
+    "P99 延迟 497.50ms 超过 300ms 阈值",
+    "错误率 20.00% 超过 1% 阈值"
+  ],
+  "queries": {
+    "scrape_up": "max(up{job=\"opspilot-demo\"})",
+    "qps": "sum(rate(aiops_demo_requests_total{service=\"order-service\"}[3600s]))",
+    "latency_p99_ms": "1000 * histogram_quantile(0.99, sum by (le) (rate(aiops_demo_request_duration_seconds_bucket{service=\"order-service\"}[3600s])))",
+    "error_rate_pct": "100 * sum(rate(aiops_demo_requests_total{service=\"order-service\",code=~\"5..\"}[3600s])) / sum(rate(aiops_demo_requests_total{service=\"order-service\"}[3600s]))"
+  }
+}

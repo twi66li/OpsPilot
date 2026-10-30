@@ -1,0 +1,18 @@
+{
+  "status": "passed_pending_external_review",
+  "started_at": "2026-10-30T11:15:48.861787+00:00",
+  "approved_approval": "151b2f934ee544dab6ccfe262e8ebba3",
+  "rejected_approval": "559398b57c7f42369d31a323ce07b9a2",
+  "ticket_id": "fe2b7ff89c214581b59493f328dad9b0",
+  "concurrent_requests": 4,
+  "unique_ticket_count": 1,
+  "rejected_ticket_count": 0,
+  "real_api_restarts": 2,
+  "cross_tenant_blocked": true,
+  "viewer_blocked": true,
+  "legacy_migration_preserved": null,
+  "scope": "单API进程 + 文件型SqliteSaver + 实际MySQL/Redis/Qdrant及真实模型；非多实例部署或分布式原子事务",
+  "completed_at": "2026-10-30T11:16:51.687911+00:00",
+  "reviewer": "WorkBuddy/DeepSeek",
+  "report_annotation": "复用T9验收脚本的旧zcode状态标签按用户本轮指定更正，原始HTTP、重启和用量记录不变。"
+}

@@ -1,0 +1,8 @@
+{
+  "checkpointer": "SqliteSaver",
+  "checkpoint_path": "/app/data/checkpoints.sqlite3",
+  "strict": true,
+  "llm": "OpenAIChatLLM",
+  "mysql": "mysql",
+  "total_tickets": 2
+}

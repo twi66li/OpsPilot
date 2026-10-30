@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.agent.tools import TOOL_REGISTRY
 from app.db.models import ApprovalRequest, Ticket
 from app.services import chat_service, ticket_service
+from app.services.run_service import RunRecorder, capture_run, current_run
 
 logger = logging.getLogger(__name__)
 # shortcut: 单 API 进程串行审批；多实例部署时升级为跨进程协调。
@@ -19,6 +20,9 @@ _approval_lock = threading.Lock()
 
 
 def _sse(data: dict) -> str:
+    recorder = current_run()
+    if recorder:
+        data = {**data, "run_id": recorder.id}
     return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
@@ -51,16 +55,31 @@ def _final_snapshot(container, config: dict) -> dict:
     snapshot = container.graph.get_state(config)
     values = snapshot.values or {}
     return {
-        "status": "approval_required" if snapshot.next else "answered",
+        "status": "approval_required" if snapshot.next else "answered" if values.get("end_reason", "answered") == "answered" else "failed",
         "answer": values.get("answer", ""),
         "citations": values.get("citations", []),
         "intent": values.get("intent", "diagnose"),
         "ticket_id": values.get("ticket_id"),
         "docs_sufficient": values.get("docs_sufficient"),
+        "run_id": values.get("run_id"),
+        "end_reason": values.get("end_reason", "answered"),
     }
 
 
 def chat_once(container, db: Session, tenant_id: str, user_id: str, username: str, session_id: str, question: str) -> dict:
+    recorder = RunRecorder.start(container, tenant_id, session_id, question)
+    try:
+        with capture_run(recorder):
+            result = _chat_once(container, db, tenant_id, user_id, username, session_id, question, recorder.id)
+        result["run_id"] = recorder.id
+        recorder.finish(result)
+        return result
+    except Exception as exc:
+        recorder.finish({"status": "failed", "error_type": type(exc).__name__})
+        raise
+
+
+def _chat_once(container, db, tenant_id, user_id, username, session_id, question, run_id):
     """非流式诊断：返回最终结果与全部过程事件（便于测试与调试）。"""
     chat_service.add_message(db, tenant_id, session_id, "user", question)
     history = chat_service.get_history(db, session_id, limit=6)
@@ -72,6 +91,7 @@ def chat_once(container, db: Session, tenant_id: str, user_id: str, username: st
         "user_id": user_id,
         "username": username,
         "history": history,
+        "run_id": run_id,
     }
     events: list[dict] = []
     _emit_graph_events(container.graph, container.graph.stream(input_state, config, stream_mode="updates"), events)
@@ -90,12 +110,38 @@ def chat_once(container, db: Session, tenant_id: str, user_id: str, username: st
         session_id,
         "assistant",
         result["answer"],
-        meta={"citations": result["citations"], "intent": result["intent"], "ticket_id": result["ticket_id"]},
+        meta={"citations": result["citations"], "intent": result["intent"], "ticket_id": result["ticket_id"], "run_id": run_id},
     )
     return result
 
 
 def chat_stream(container, tenant_id: str, user_id: str, username: str, session_id: str, question: str):
+    def recorded():
+        recorder = RunRecorder.start(container, tenant_id, session_id, question)
+        iterator = _chat_stream(container, tenant_id, user_id, username, session_id, question, recorder.id)
+        try:
+            while True:
+                # SSE每次next可由不同工作线程执行，ContextVar不能跨yield保留token。
+                with capture_run(recorder):
+                    item = next(iterator)
+                yield item
+        except StopIteration:
+            return
+        except GeneratorExit:
+            if not recorder.finished:
+                recorder.finish({"status": "cancelled", "end_reason": "client_disconnected"})
+            raise
+        except Exception as exc:
+            recorder.finish({"status": "failed", "error_type": type(exc).__name__})
+            raise
+        finally:
+            with capture_run(recorder):
+                iterator.close()
+
+    return recorded()
+
+
+def _chat_stream(container, tenant_id, user_id, username, session_id, question, run_id):
     """SSE 流式诊断：推送 start → 节点状态/检索/工具/回答 → (approval_required) → final → done。
 
     注意：不复用请求级 DB 会话，生成器内部自管会话，避免依赖在流式响应期间被提前关闭。
@@ -113,6 +159,7 @@ def chat_stream(container, tenant_id: str, user_id: str, username: str, session_
             "user_id": user_id,
             "username": username,
             "history": history,
+            "run_id": run_id,
         }
         yield _sse({"type": "start", "session_id": session_id, "question": question})
         stream = container.graph.stream(input_state, config, stream_mode="updates")
@@ -134,8 +181,10 @@ def chat_stream(container, tenant_id: str, user_id: str, username: str, session_
                 session_id,
                 "assistant",
                 result["answer"],
-                meta={"citations": result["citations"], "intent": result["intent"], "ticket_id": result["ticket_id"]},
+                meta={"citations": result["citations"], "intent": result["intent"], "ticket_id": result["ticket_id"], "run_id": run_id},
             )
+        result["run_id"] = run_id
+        current_run().finish(result)
         yield _sse({**result, "type": "final"})
         yield _sse({"type": "done"})
 
@@ -198,13 +247,19 @@ def decide_approval(container, db: Session, auth, approval_id: str, approved: bo
                 _emit_graph_events(container.graph, container.graph.stream(Command(resume=resume_value), config, stream_mode="updates"), events)
             values = container.graph.get_state(config).values or {}
         ticket = db.query(Ticket).filter(Ticket.approval_id == approval_id, Ticket.tenant_id == auth.tenant_id).first()
-        return {
+        result = {
             "approval_id": approval_id,
             "approval_status": req.status,
             "ticket_id": ticket.id if ticket else values.get("ticket_id"),
             "answer": values.get("answer", ""),
             "events": events,
         }
+        if values.get("run_id"):
+            result["run_id"] = values["run_id"]
+            recorder = RunRecorder(values["run_id"], auth.tenant_id)
+            recorder.add("approval_decision", {"approved": approved, "decided_by": auth.username, "ticket_id": result["ticket_id"]})
+            recorder.finish(result)
+        return result
 
 
 def list_tools() -> list[dict]:

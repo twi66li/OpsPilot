@@ -18,7 +18,7 @@ _TICKET_CLAUSE_START = r"(?:^|[，。！？,.!?；;：:\s])"
 TICKET_KEYWORDS = re.compile(
     _TICKET_CUE + r"[^，。！？,.!?；;：:]{0,8}?(?:创建|提交|开|建)\s*(?:一?\s*个\s*)?(?:工单|ticket)"
     r"|" + _TICKET_CUE + r"[^，。！？,.!?；;：:]{0,8}?(?:建单|提单)"
-    r"|" + _TICKET_CLAUSE_START + r"(?:创建|提交|开)\s*(?:一?\s*个\s*)?(?:工单|ticket)"
+    r"|" + _TICKET_CLAUSE_START + r"(?:创建|提交|开|建)\s*(?:一?\s*个\s*)?(?:工单|ticket)"
     r"|" + _TICKET_CLAUSE_START + r"(?:建单|提单)",
     re.IGNORECASE,
 )

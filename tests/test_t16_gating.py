@@ -28,6 +28,21 @@ def test_negation_clause_is_stripped_from_entity_extraction():
     assert extract_entities("ERR_7010 与 ERR_7011 比较")["error_codes"] == ["ERR_7010", "ERR_7011"]
 
 
+def test_multi_hyphen_service_names_are_not_truncated():
+    assert extract_entities("api-gateway-service 最近5分钟 P99是多少")["services"] == ["api-gateway-service"]
+    assert extract_entities("网关和 api-gateway-service 都要查")["services"] == ["api-gateway-service"]
+
+
+def test_rule_chain_queries_full_hyphenated_service():
+    from app.db.base import SessionLocal
+
+    with SessionLocal() as db:
+        events, _, _ = run_diagnostic_tools(db, "default", "api-gateway-service 接口大量超时，如何排查？")
+    metrics_events = [e for e in events if e["name"] == "query_service_metrics"]
+    assert metrics_events and metrics_events[0]["args"]["service"] == "api-gateway-service"
+    assert metrics_events[0]["result"]["status"] == "ok"
+
+
 def test_interrogative_is_not_treated_as_negation():
     text = strip_negations("看看现在是不是正常，当前 P99 是多少？")
     assert "正常" in text and "P99" in text
@@ -48,11 +63,32 @@ def test_window_minutes_extraction(question, expected):
 
 # ---- 规则链意图门控 ----
 
-def test_metrics_require_service_and_status_hint():
+def test_manual_only_question_runs_no_rule_tools():
     from app.db.base import SessionLocal
 
     with SessionLocal() as db:
         events, _, _ = run_diagnostic_tools(db, "default", "仅根据手册说明 order-service 的接口规范")
+    assert events == []
+
+
+def test_explicit_tool_prohibition_is_honored():
+    from app.db.base import SessionLocal
+
+    with SessionLocal() as db:
+        events, _, _ = run_diagnostic_tools(db, "default", "order-service 当前状态如何，不要查询指标，只看历史故障")
+    assert [e["name"] for e in events] == ["query_fault_history"]
+    assert events[0]["args"]["service"] == ["order-service"]
+
+    with SessionLocal() as db:
+        events, _, _ = run_diagnostic_tools(db, "default", "不要查当前指标，看看 order-service 的历史故障")
+    assert [e["name"] for e in events] == ["query_fault_history"]
+
+
+def test_metrics_require_service_and_status_hint():
+    from app.db.base import SessionLocal
+
+    with SessionLocal() as db:
+        events, _, _ = run_diagnostic_tools(db, "default", "order-service 的接口规范是什么")
     assert [e["name"] for e in events] == ["query_fault_history"]
 
 
@@ -187,6 +223,8 @@ def test_native_loop_receives_unknown_service_for_made_up_name():
     ("订单服务又超时了，请帮我创建工单跟进处理。", "create_ticket"),
     ("我要提单", "create_ticket"),
     ("建单", "create_ticket"),
+    ("建工单", "create_ticket"),
+    ("建个工单", "create_ticket"),
     ("什么情况该建工单", "diagnose"),
     ("不要建单", "diagnose"),
     ("工单流程是什么", "diagnose"),

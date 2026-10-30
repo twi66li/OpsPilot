@@ -21,7 +21,8 @@ SERVICE_ALIAS = {
 }
 
 ERROR_CODE_RE = re.compile(r"(?:ERR|ERROR)[_-]?[A-Za-z0-9]+", re.IGNORECASE)
-SERVICE_RE = re.compile(r"[a-z][a-z0-9]*-service", re.IGNORECASE)
+# 服务名可含内部连字符（如 api-gateway-service），必须整体匹配、不能截断成 gateway-service
+SERVICE_RE = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*-service", re.IGNORECASE)
 # 否定引导词：其后的从句内容（如"不要拿 X 替代"）不是用户想查询的实体；
 # "是不是/看不看"中的"不是/不看"不是否定引导，用负向后顾排除
 NEGATION_CUE_RE = re.compile(r"(?:不要|不用|不得|不必|无需|禁止|(?<!是)不是|不查|(?<!看)不看|别拿|别用|别提)")
@@ -67,6 +68,33 @@ def extract_entities(question: str) -> dict:
         if zh in text and en not in services:
             services.append(en)
     return {"error_codes": error_codes, "services": services}
+
+
+# 工具 ↔ 题材关键词：用于从否定从句提取"禁止某工具"、从"只/仅"提取"仅允许某工具"
+_TOOL_TOPIC_RE = {
+    "query_service_metrics": re.compile(r"指标|metrics|实时", re.IGNORECASE),
+    "query_fault_history": re.compile(r"历史|故障记录|故障史"),
+    "search_runbook": re.compile(r"手册|SOP|知识库", re.IGNORECASE),
+}
+_ONLY_RE = re.compile(r"(?:只|仅)(?:根据|按|查|看|用|依)[^，。！？!；;]*")
+
+
+def extract_tool_policy(question: str) -> dict:
+    """提取明确工具约束：forbidden（否定从句点名的工具）、allowed（"只/仅"限定的工具集合或 None）。"""
+    forbidden: set[str] = set()
+    for match in NEGATION_CUE_RE.finditer(question):
+        boundary = _CLAUSE_BOUNDARY_RE.search(question, match.end())
+        clause = question[match.end() : boundary.end() if boundary else len(question)]
+        for tool, pattern in _TOOL_TOPIC_RE.items():
+            if pattern.search(clause):
+                forbidden.add(tool)
+    allowed: set[str] | None = None
+    only = _ONLY_RE.search(strip_negations(question))
+    if only:
+        wanted = {tool for tool, pattern in _TOOL_TOPIC_RE.items() if pattern.search(only.group(0))}
+        if wanted:
+            allowed = wanted
+    return {"forbidden": forbidden, "allowed": allowed}
 
 
 def query_fault_history(db: Session, tenant_id: str, service: str = "", error_code: str = "", limit: int = 5) -> list[dict]:
@@ -138,16 +166,24 @@ def run_diagnostic_tools(db: Session, tenant_id: str, question: str) -> tuple[li
 
     tool_events 记录每次调用的名称/参数/耗时/关键发现，随 SSE 推送并写入 Langfuse。
     意图门控：仅当抽取到服务名且问题含状态/指标词才查实时指标；历史故障仅在有
-    服务名或错误码过滤时查询，避免无关问题触发无关工具。
+    服务名或错误码过滤时查询；问题明示禁止或仅允许某类工具时按其约束执行，
+    避免无关或被明确禁止的工具触发。
     """
     entities = extract_entities(question)
     text = strip_negations(question)
     window_minutes = extract_window_minutes(text)
+    policy = extract_tool_policy(question)
     tool_events: list[dict] = []
     metrics_all: dict = {}
     fault_records: list[dict] = []
 
-    if entities["services"] and METRICS_HINT_RE.search(text):
+    allowed = policy["allowed"]
+    if (
+        entities["services"]
+        and METRICS_HINT_RE.search(text)
+        and "query_service_metrics" not in policy["forbidden"]
+        and (allowed is None or "query_service_metrics" in allowed)
+    ):
         for service in entities["services"][:2]:
             start = time.perf_counter()
             result = query_service_metrics(service, window_minutes)
@@ -164,7 +200,11 @@ def run_diagnostic_tools(db: Session, tenant_id: str, question: str) -> tuple[li
                 }
             )
 
-    if entities["services"] or entities["error_codes"]:
+    if (
+        (entities["services"] or entities["error_codes"])
+        and "query_fault_history" not in policy["forbidden"]
+        and (allowed is None or "query_fault_history" in allowed)
+    ):
         start = time.perf_counter()
         fault_records = query_fault_history(db, tenant_id, service=entities["services"][0] if entities["services"] else "", error_code=entities["error_codes"][0] if entities["error_codes"] else "")
         tool_events.append(

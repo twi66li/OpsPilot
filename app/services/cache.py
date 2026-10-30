@@ -64,17 +64,20 @@ class RedisCache:
 _cache_instance = None
 
 
-def get_cache():
-    """单例缓存：Redis 不可达时静默退化。"""
+def get_cache(settings=None):
+    """单例缓存：Redis 不可达时退化为进程内；model_strict 下直接抛出（T7：真实后端不得被静默掩盖）。"""
     global _cache_instance
     if _cache_instance is None:
-        from app.config import get_settings
+        if settings is None:
+            from app.config import get_settings
 
-        settings = get_settings()
+            settings = get_settings()
         try:
             _cache_instance = RedisCache(settings.redis_url)
             logger.info("Redis 缓存已连接: %s", settings.redis_url)
         except Exception as exc:
+            if getattr(settings, "model_strict", False):
+                raise RuntimeError(f"model_strict 模式下 Redis 不可达: {exc}") from exc
             logger.warning("Redis 不可达(%s)，使用进程内缓存", exc)
             _cache_instance = InMemoryCache()
     return _cache_instance

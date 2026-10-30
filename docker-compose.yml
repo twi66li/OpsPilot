@@ -45,15 +45,18 @@ services:
       REDIS_URL: redis://redis:6379/0
       QDRANT_MODE: remote
       QDRANT_URL: http://qdrant:6333
-      QDRANT_COLLECTION: kb_chunks
+      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-kb_qwen37_1024_v2}
       EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-mock}
-      EMBEDDING_DIM: ${EMBEDDING_DIM:-256}
+      EMBEDDING_DIM: ${EMBEDDING_DIM:-1024}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-qwen3.7-text-embedding-flash}
       LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      MODEL_STRICT: ${MODEL_STRICT:-false}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://api.openai.com/v1}
-      CHAT_MODEL: ${CHAT_MODEL:-gpt-4o-mini}
-      RERANK_ENABLED: ${RERANK_ENABLED:-false}
-      RERANK_PROVIDER: ${RERANK_PROVIDER:-heuristic}
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-https://dashscope.aliyuncs.com/compatible-mode/v1}
+      CHAT_MODEL: ${CHAT_MODEL:-qwen3.8-flash}
+      RERANK_ENABLED: ${RERANK_ENABLED:-true}
+      RERANK_PROVIDER: ${RERANK_PROVIDER:-dashscope}
+      RERANK_MODEL: ${RERANK_MODEL:-qwen3.7-text-rerank}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-prod}
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}

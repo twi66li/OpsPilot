@@ -41,9 +41,34 @@ class CrossEncoderReranker:
         return chunks[:top_k]
 
 
+class DashScopeReranker:
+    """DashScope 原生 text-rerank API（T7：正式 API 的真实重排路径，复用评测已验证的 RerankAPI）。
+
+    与 heuristic/cross_encoder 不同：API 调用失败直接抛出、不静默回退词面重排，
+    避免真实后端故障被掩盖（strict 语义在 provider 层即成立）。
+    """
+
+    def __init__(self, api_key: str, base_url: str, model: str):
+        from app.services.model_api import RerankAPI
+
+        self._api = RerankAPI(api_key, base_url, model)
+        self.model = model
+
+    @property
+    def calls(self) -> list[dict]:
+        return self._api.calls
+
+    def rerank(self, query: str, chunks: list, top_k: int = 5) -> list:
+        return self._api.rerank(query, chunks, top_k)
+
+
 def get_reranker(settings):
     if not settings.rerank_enabled:
         return None
+    if settings.rerank_provider == "dashscope":
+        if not settings.openai_api_key:
+            raise ValueError("dashscope 重排需要配置密钥（openai_api_key，即 DashScope API Key）")
+        return DashScopeReranker(settings.openai_api_key, settings.openai_base_url, settings.rerank_model)
     if settings.rerank_provider == "cross_encoder":
         try:
             return CrossEncoderReranker(settings.rerank_model)

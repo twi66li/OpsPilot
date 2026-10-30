@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     top_k: int = 5
     rrf_k: int = 60
     rerank_enabled: bool = False
-    rerank_provider: str = "heuristic"  # heuristic | cross_encoder
+    rerank_provider: str = "heuristic"  # heuristic | cross_encoder | dashscope（T7：DashScope 原生 text-rerank）
     rerank_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
     # ---- Redis ----

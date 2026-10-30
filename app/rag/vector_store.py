@@ -177,6 +177,8 @@ def get_vector_store(settings):
         return QdrantVectorStore(
             mode=settings.qdrant_mode, url=settings.qdrant_url, collection=settings.qdrant_collection, dim=settings.embedding_dim
         )
-    except Exception as exc:  # Qdrant 不可达时自动退化，保证服务可用
+    except Exception as exc:
+        if getattr(settings, "model_strict", False):
+            raise  # T7：真实模式下连接失败必须暴露，不得退化为进程内实现冒充真实后端
         logger.warning("Qdrant 连接失败(%s)，退化为进程内向量库", exc)
         return InMemoryVectorStore(dim=settings.embedding_dim)

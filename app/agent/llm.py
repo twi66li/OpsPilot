@@ -11,7 +11,17 @@ from app.rag.embeddings import tokenize
 
 logger = logging.getLogger(__name__)
 
-TICKET_KEYWORDS = re.compile(r"创建工单|提交工单|开个工单|建单|提单|工单|ticket", re.IGNORECASE)
+# 仅当建单动词短语带祈使触发（帮我/请/给我/我要/想要 或位于分句开头）才判定为建单意图；
+# 裸提及"工单/ticket"的疑问（如"什么情况该建工单"）不算建单请求。
+_TICKET_CUE = r"(?:帮我|请|给我|我要|想要)"
+_TICKET_CLAUSE_START = r"(?:^|[，。！？,.!?；;：:\s])"
+TICKET_KEYWORDS = re.compile(
+    _TICKET_CUE + r"[^，。！？,.!?；;：:]{0,8}?(?:创建|提交|开|建)\s*(?:一?\s*个\s*)?(?:工单|ticket)"
+    r"|" + _TICKET_CUE + r"[^，。！？,.!?；;：:]{0,8}?(?:建单|提单)"
+    r"|" + _TICKET_CLAUSE_START + r"(?:创建|提交|开)\s*(?:一?\s*个\s*)?(?:工单|ticket)"
+    r"|" + _TICKET_CLAUSE_START + r"(?:建单|提单)",
+    re.IGNORECASE,
+)
 
 
 def detect_intent(question: str) -> str:
@@ -159,7 +169,9 @@ class OpenAIChatLLM(BaseLLM):
         faults = "\n".join(f"- {f['title']}: {f['resolution']}" for f in fault_records) or "（无）"
         system = (
             "你是 AIOps 故障诊断助手。仅依据给定的知识库文档、工具输出和历史故障回答，"
-            "答案中使用 [n] 标注引用的文档编号；不要编造。用中文回答。"
+            "答案中使用 [n] 标注引用的文档编号；不要编造。"
+            "服务名只能来自用户问题、工具输出或知识库证据，不得新造或猜测服务名。"
+            "用中文回答。"
             "指标必须注明来源和时间窗；模拟数据须明确说明。指标不可用或采样不足不等于服务正常，"
             "此时只能给出排查建议，不能确认当前状态或根因。历史故障仅为参考。"
             "工具的本次阈值判定优先于手册中其他场景的阈值；不得把已触发阈值的指标写成正常。"

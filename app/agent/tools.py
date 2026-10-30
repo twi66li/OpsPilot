@@ -22,14 +22,49 @@ SERVICE_ALIAS = {
 
 ERROR_CODE_RE = re.compile(r"(?:ERR|ERROR)[_-]?[A-Za-z0-9]+", re.IGNORECASE)
 SERVICE_RE = re.compile(r"[a-z][a-z0-9]*-service", re.IGNORECASE)
+# 否定引导词：其后的从句内容（如"不要拿 X 替代"）不是用户想查询的实体；
+# "是不是/看不看"中的"不是/不看"不是否定引导，用负向后顾排除
+NEGATION_CUE_RE = re.compile(r"(?:不要|不用|不得|不必|无需|禁止|(?<!是)不是|不查|(?<!看)不看|别拿|别用|别提)")
+_CLAUSE_BOUNDARY_RE = re.compile(r"[？?！!。；;，,、]")
+TIME_WINDOW_RE = re.compile(r"(?:近|最近)\s*(\d+)\s*(小时|h|分钟|m|min)?", re.IGNORECASE)
+# 出现这些状态/指标词且抽取到服务名时，规则链才查询实时指标
+METRICS_HINT_RE = re.compile(
+    r"(?:QPS|P99|错误率|延迟|超时|异常|错误|故障|告警|正常|状态|指标|监控|CPU|内存|流量|吞吐|慢|(?<![0-9A-Za-z])5\d{2}(?![0-9]))",
+    re.IGNORECASE,
+)
+
+
+def strip_negations(question: str) -> str:
+    """去掉否定引导从句（从否定词到下一个分句边界），避免其内容被当作查询实体/触发词。"""
+    out, pos = [], 0
+    for match in NEGATION_CUE_RE.finditer(question):
+        if match.start() < pos:
+            continue
+        out.append(question[pos:match.start()])
+        boundary = _CLAUSE_BOUNDARY_RE.search(question, match.end())
+        pos = boundary.end() if boundary else len(question)
+    out.append(question[pos:])
+    return "".join(out)
+
+
+def extract_window_minutes(question: str) -> int:
+    """抽取"近/最近 N 分钟/小时"为 window_minutes；无时间词默认 60，边界与 MetricsArgs(5–240) 一致。"""
+    match = TIME_WINDOW_RE.search(question)
+    if not match:
+        return 60
+    value = int(match.group(1))
+    if match.group(2) and match.group(2).lower().startswith(("h", "小")):
+        value *= 60
+    return min(max(value, 5), 240)
 
 
 def extract_entities(question: str) -> dict:
-    """从自然语言问题中抽取错误码与服务名（工具路由依据）。"""
-    error_codes = sorted({m.group(0).upper().replace("-", "_") for m in ERROR_CODE_RE.finditer(question)})
-    services = sorted({m.group(0).lower() for m in SERVICE_RE.finditer(question)})
+    """从自然语言问题中抽取错误码与服务名（工具路由依据）；否定从句先剥离。"""
+    text = strip_negations(question)
+    error_codes = sorted({m.group(0).upper().replace("-", "_") for m in ERROR_CODE_RE.finditer(text)})
+    services = sorted({m.group(0).lower() for m in SERVICE_RE.finditer(text)})
     for zh, en in SERVICE_ALIAS.items():
-        if zh in question and en not in services:
+        if zh in text and en not in services:
             services.append(en)
     return {"error_codes": error_codes, "services": services}
 
@@ -102,48 +137,53 @@ def run_diagnostic_tools(db: Session, tenant_id: str, question: str) -> tuple[li
     """执行工具链：返回 (tool_events, fault_records, metrics)。
 
     tool_events 记录每次调用的名称/参数/耗时/关键发现，随 SSE 推送并写入 Langfuse。
+    意图门控：仅当抽取到服务名且问题含状态/指标词才查实时指标；历史故障仅在有
+    服务名或错误码过滤时查询，避免无关问题触发无关工具。
     """
     entities = extract_entities(question)
+    text = strip_negations(question)
+    window_minutes = extract_window_minutes(text)
     tool_events: list[dict] = []
     metrics_all: dict = {}
     fault_records: list[dict] = []
 
-    for service in entities["services"][:2]:
+    if entities["services"] and METRICS_HINT_RE.search(text):
+        for service in entities["services"][:2]:
+            start = time.perf_counter()
+            result = query_service_metrics(service, window_minutes)
+            metrics_all[service] = result
+            evidence = metrics_summary(result)
+            tool_events.append(
+                {
+                    "name": "query_service_metrics",
+                    "args": {"service": service, "window_minutes": window_minutes},
+                    "duration_ms": round((time.perf_counter() - start) * 1000, 2),
+                    "summary": evidence,
+                    "anomalies": result["anomalies"],
+                    "result": result,
+                }
+            )
+
+    if entities["services"] or entities["error_codes"]:
         start = time.perf_counter()
-        result = query_service_metrics(service)
-        metrics_all[service] = result
-        evidence = metrics_summary(result)
+        fault_records = query_fault_history(db, tenant_id, service=entities["services"][0] if entities["services"] else "", error_code=entities["error_codes"][0] if entities["error_codes"] else "")
         tool_events.append(
             {
-                "name": "query_service_metrics",
-                "args": {"service": service, "window_minutes": 60},
+                "name": "query_fault_history",
+                "args": {"service": entities["services"][:1], "error_codes": entities["error_codes"][:1]},
                 "duration_ms": round((time.perf_counter() - start) * 1000, 2),
-                "summary": evidence,
-                "anomalies": result["anomalies"],
-                "result": result,
+                "summary": (
+                    f"命中 {len(fault_records)} 条精确匹配历史故障，仅供排查参考"
+                    if fault_records and (entities["services"] or entities["error_codes"])
+                    else "未找到匹配历史故障，不能据此确认根因"
+                ),
             }
         )
-
-    start = time.perf_counter()
-    fault_records = query_fault_history(db, tenant_id, service=entities["services"][0] if entities["services"] else "", error_code=entities["error_codes"][0] if entities["error_codes"] else "")
-    tool_events.append(
-        {
-            "name": "query_fault_history",
-            "args": {"service": entities["services"][:1], "error_codes": entities["error_codes"][:1]},
-            "duration_ms": round((time.perf_counter() - start) * 1000, 2),
-            "summary": (
-                f"命中 {len(fault_records)} 条精确匹配历史故障，仅供排查参考"
-                if fault_records and (entities["services"] or entities["error_codes"])
-                else f"同租户历史参考 {len(fault_records)} 条（未指定匹配条件）"
-                if fault_records else "未找到匹配历史故障，不能据此确认根因"
-            ),
-        }
-    )
     return tool_events, fault_records, metrics_all
 
 
 TOOL_REGISTRY = [
     {"name": "search_runbook", "description": "只读检索本租户的运维手册和SOP，返回依据片段"},
-    {"name": "query_service_metrics", "description": "查询测试服务近 1 小时的 QPS / P99 延迟 / 错误率，返回来源、时间窗和证据状态"},
+    {"name": "query_service_metrics", "description": "只读查询指定测试服务最近 window_minutes 分钟（5–240，以当前时间为终点）的 QPS / P99 延迟 / 错误率，返回来源、时间窗和证据状态"},
     {"name": "query_fault_history", "description": "按服务名 / 错误码检索历史故障记录（根因与解决方案）"},
 ]

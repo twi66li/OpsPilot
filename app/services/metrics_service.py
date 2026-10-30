@@ -19,6 +19,12 @@ def _seeded_uniform(seed: str, index: int) -> float:
 # 预置异常服务：评测/演示用，使工具能发现异常指标
 ANOMALY_SERVICES = {"order-service", "payment-service"}
 
+# 已知服务清单：Mock 提供方只对清单内服务合成指标，防止模型编造的服务名被"证实"；
+# Prometheus 提供方不做硬门控，仅当无序列时在消息中区分服务名可能不存在。
+KNOWN_SERVICES = frozenset(
+    {"order-service", "payment-service", "user-service", "inventory-service", "api-gateway-service", "notify-service"}
+)
+
 
 def _mock_metrics(service: str, window_minutes: int) -> dict:
     service = service.strip().lower()
@@ -78,6 +84,13 @@ def query_service_metrics(service: str, window_minutes: int = 60) -> dict:
     }
     if not re.fullmatch(r"[a-z][a-z0-9-]{0,63}", service):
         return {**result, "status": "invalid_service", "message": "服务标识无效，指标证据不足"}
+    if settings.metrics_provider == "mock" and service not in KNOWN_SERVICES:
+        return {
+            **result,
+            "status": "unknown_service",
+            "valid_services": sorted(KNOWN_SERVICES),
+            "message": "服务名不在已知服务清单，不合成模拟指标；请核对服务名或改用清单内服务",
+        }
     if settings.metrics_provider == "mock":
         return {**result, **_mock_metrics(service, window_minutes), "status": "ok"}
     if settings.metrics_provider != "prometheus":
@@ -124,7 +137,10 @@ def query_service_metrics(service: str, window_minutes: int = 60) -> dict:
     if values["scrape_up"] != 1:
         return {**result, "status": "unavailable", "message": "测试服务采集目标不可用，指标证据不足"}
     if any(value is None for value in result["avg"].values()):
-        return {**result, "message": "未找到服务指标或采样不足，不能据此判定服务正常或根因"}
+        return {
+            **result,
+            "message": "未找到该服务的指标序列（服务名可能不存在于指标系统）或采样不足，不能据此判定服务正常或根因",
+        }
     result["status"] = "ok"
     if values["latency_p99_ms"] > 300:
         result["anomalies"].append(f"P99 延迟 {values['latency_p99_ms']:.2f}ms 超过 300ms 阈值")

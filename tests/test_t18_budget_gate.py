@@ -71,15 +71,32 @@ def _fresh_ledger(path, limit=10_000, models=None):
     return BudgetLedger(path, limit, models if models is not None else {"test-model": limit})
 
 
-# ---- 可证明保守上界（字节级） ----
+# ---- 可证明保守上界（完整实际请求字节 + 已验证包装余量） ----
 
 def test_estimate_is_byte_level_provable_bound():
-    # 每个 token 至少占 1 个 UTF-8 字节 ⇒ token 数 ≤ 字节数；上界=载荷字节+输出+思考封顶
+    # 每个 token 至少占 1 个 UTF-8 字节 ⇒ token 数 ≤ 字节数（rerank/embedding 通道）
     assert estimate_upper_bound(["a" * 2000], output_cap=1536) == 2000 + 1536
     assert estimate_upper_bound(["你好世界"], output_cap=0) == 12  # 4 CJK × 3 字节
-    assert estimate_upper_bound(["a"], output_cap=1536) < estimate_upper_bound(["a"], output_cap=3000)
     with pytest.raises(BudgetExceededError):
         estimate_upper_bound(["x"], output_cap=None)
+
+
+def test_chat_bound_covers_full_billing_input_including_wrapping():
+    """终审 F2-remains 同型：真实探针 prompt_tokens=19（正文仅 2 字节），上界必须覆盖完整计费输入。"""
+    from app.services.model_api import estimate_chat_bound
+
+    messages = [{"role": "system", "content": "a"}, {"role": "user", "content": "b"}]
+    bound = estimate_chat_bound(messages, None, output_cap=1)
+    assert bound >= 20, "必须覆盖已验证真实探针的 prompt_tokens=19 + completion=1"
+
+    # 随消息/工具轮次/工具定义数量增长（形状感知，非固定常数）
+    richer = messages + [{"role": "assistant", "content": "",
+                          "tool_calls": [{"id": "c1", "type": "function", "function": {"name": "f", "arguments": "{}"}}]}]
+    tools = [{"type": "function", "function": {"name": "f", "parameters": {"type": "object"}}}]
+    assert estimate_chat_bound(richer, tools, output_cap=1) > bound
+
+    # 载荷字节全部计入（CJK 3 字节/字 + 输出封顶）
+    assert estimate_chat_bound([{"role": "user", "content": "字" * 1000}], None, output_cap=1536) >= 3000 + 1536
 
 
 def test_over_reserve_keeps_actual_and_halts(tmp_path):
@@ -412,10 +429,13 @@ def test_error_call_is_settled_as_unknown(tmp_path, monkeypatch):
     api = ChatAPI("key", UNREACHABLE, "test-model")
     with pytest.raises(Exception):
         api.chat("你好", "世界")
-    expected = estimate_upper_bound(["你好", "世界"], output_cap=1536)
+    from app.services.model_api import _CHAT_OUTPUT_CAP, estimate_chat_bound
+
+    messages = [{"role": "system", "content": "你好"}, {"role": "user", "content": "世界"}]
+    expected = estimate_chat_bound(messages, None, output_cap=_CHAT_OUTPUT_CAP)
     api._budget.close()
     rebuilt = _fresh_ledger(settings.budget_ledger_path, limit=1_000_000)
     usage = rebuilt.usage_now()
-    assert usage["unknown"] == expected, "失败调用按保守预留记 unknown，不按零费用释放"
+    assert usage["unknown"] == expected, "失败调用按完整请求保守预留记 unknown，不按零费用释放"
     assert usage["actual"] == 0
     assert usage["models"]["test-model"]["unknown"] == expected, "分模型记账与总额一致"

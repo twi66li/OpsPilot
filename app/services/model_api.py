@@ -21,24 +21,35 @@ _CHAT_OUTPUT_CAP = 1536
 _RERANK_OUTPUT_CAP = 64
 
 
-def _message_texts(messages: list[dict], tools: list[dict] | None) -> list[str]:
-    texts = [m.get("content") or "" for m in messages]
-    for message in messages:
-        for call in message.get("tool_calls") or []:
-            function = call.get("function", {})
-            texts.append(str(function.get("name", "")))
-            texts.append(str(function.get("arguments", "")))
+# 本文件所有 chat/tool_chat 通道的输出上界（max_tokens）；思考量在 DashScope 显式关闭记 0。
+_CHAT_OUTPUT_CAP = 1536
+_RERANK_OUTPUT_CAP = 64
+# chat 模板包装余量（已验证协议事实的保守放大约束，非实测常数硬编码）：
+# Qwen 模板每条消息渲染 <|im_start|>role\n…<|im_end|>\n 等 ASCII 标记（单个标记 ≤11 字节），
+# 每元素（消息/工具轮次/工具定义）放 128 字节，基础段（生成提示等）另放 128 字节；
+# 配合"token ≤ UTF-8 字节数"即得随请求形状增长的可证明上界。
+_BASE_WRAP_BYTES = 128
+_WRAP_PER_ELEMENT_BYTES = 128
+
+
+def estimate_chat_bound(messages: list[dict], tools: list[dict] | None, *, output_cap, thinking_cap: int = 0) -> int:
+    """chat/tool_chat 的计费输入上界：完整实际请求（messages+tools）序列化字节 + 包装余量 + 封顶。"""
+    if output_cap is None or output_cap < 0:
+        raise BudgetExceededError("调用无法保证输出上界，发送前拒绝")
+    request: dict = {"messages": messages}
     if tools:
-        texts.append(json.dumps(tools, ensure_ascii=False))
-    return texts
+        request["tools"] = tools
+    payload = len(json.dumps(request, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+    elements = len(messages) + sum(len(m.get("tool_calls") or []) for m in messages) + len(tools or [])
+    return payload + _BASE_WRAP_BYTES + _WRAP_PER_ELEMENT_BYTES * elements + int(output_cap) + int(thinking_cap)
 
 
-def reserve_for_channel(calls: list, guard, kind: str, model: str, texts: list[str], *, output_cap: int, thinking_cap: int = 0):
+def reserve_for_channel(calls: list, guard, kind: str, model: str, estimate: int):
     """发送前统一预留；拒绝时留 budget_refused 审计记录并抛出，调用方不触达供应商。"""
     if guard is None:
         raise BudgetLedgerError("真实模型通道缺少预算账本实例，fail closed")
     try:
-        return guard, guard.reserve(kind, model, estimate_upper_bound(texts, output_cap=output_cap, thinking_cap=thinking_cap))
+        return guard, guard.reserve(kind, model, estimate)
     except (BudgetExceededError, BudgetLedgerError) as exc:
         calls.append({"model": model, "kind": kind, "status": "budget_refused",
                       "error_type": type(exc).__name__, "message": str(exc)})
@@ -56,8 +67,9 @@ class ChatAPI:
         self.is_dashscope = "aliyuncs.com" in (base_url or "")
         self.calls: list[dict] = []
 
-    def _reserve(self, kind: str, texts: list[str], *, output_cap: int, thinking_cap: int = 0):
-        return reserve_for_channel(self.calls, self._budget, kind, self.model, texts, output_cap=output_cap, thinking_cap=thinking_cap)
+    def _reserve(self, kind: str, messages: list[dict], tools: list[dict] | None, *, output_cap: int, thinking_cap: int = 0):
+        estimate = estimate_chat_bound(messages, tools, output_cap=output_cap, thinking_cap=thinking_cap)
+        return reserve_for_channel(self.calls, self._budget, kind, self.model, estimate)
 
     @staticmethod
     def _settle(guard, reservation, record: dict):
@@ -71,7 +83,8 @@ class ChatAPI:
             logger.error("预算结算写入失败（%s），账本 fail closed，后续真实调用将被拒绝", exc)
 
     def chat(self, system: str, user: str, *, json_mode: bool = False) -> str:
-        guard, reservation = self._reserve("chat", [system, user], output_cap=_CHAT_OUTPUT_CAP)
+        messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
+        guard, reservation = self._reserve("chat", messages, None, output_cap=_CHAT_OUTPUT_CAP)
         emit("model_input", {"kind": "chat", "model": self.model, "system": system, "user": user})
         started = time.perf_counter()
         record = {"model": self.model, "status": "error", "first_token_ms": None, "usage": {}}
@@ -85,7 +98,7 @@ class ChatAPI:
         try:
             with self.client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+                messages=messages,
                 temperature=0,
                 max_tokens=1536,
                 stream=True,
@@ -119,7 +132,7 @@ class ChatAPI:
             self._settle(guard, reservation, record)
 
     def tool_turn(self, messages: list[dict], tools: list[dict], *, allow_tools: bool = True) -> dict:
-        guard, reservation = self._reserve("tool_chat", _message_texts(messages, tools), output_cap=_CHAT_OUTPUT_CAP)
+        guard, reservation = self._reserve("tool_chat", messages, tools, output_cap=_CHAT_OUTPUT_CAP)
         started = time.perf_counter()
         record = {"model": self.model, "status": "error", "usage": {}}
         try:
@@ -166,7 +179,8 @@ class RerankAPI:
         if not chunks:
             return []
         texts = [query] + [c.text for c in chunks]
-        guard, reservation = reserve_for_channel(self.calls, self._budget, "rerank", self.model, texts, output_cap=_RERANK_OUTPUT_CAP)
+        estimate = estimate_upper_bound(texts, output_cap=_RERANK_OUTPUT_CAP)
+        guard, reservation = reserve_for_channel(self.calls, self._budget, "rerank", self.model, estimate)
         started = time.perf_counter()
         record = {"model": self.model, "status": "error", "usage": {}}
         try:

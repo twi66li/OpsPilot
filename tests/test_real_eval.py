@@ -45,16 +45,19 @@ def test_strict_generation_does_not_fall_back(monkeypatch):
         llm.generate_answer("问题", [{"text": "依据"}], [], [], [])
 
 
-def test_embedding_dimension_is_sent_and_mismatch_rejected(monkeypatch):
+def test_embedding_dimension_is_sent_and_mismatch_rejected(monkeypatch, tmp_path):
     requested = {}
 
     def create(**kwargs):
         requested.update(kwargs)
         return SimpleNamespace(data=[SimpleNamespace(index=0, embedding=[1, 2, 3])])
 
+    from app.services.budget import BudgetLedger
+
     provider = OpenAIEmbedding.__new__(OpenAIEmbedding)
     provider.model, provider.dim, provider.calls = "real-embedding", 2, []
     provider._client = SimpleNamespace(embeddings=SimpleNamespace(create=create))
+    provider._budget = BudgetLedger(str(tmp_path / "ledger.jsonl"), 10**9, {"real-embedding": 10**9})
     with pytest.raises(ValueError, match="维度"):
         provider.embed(["文档"])
     assert requested["dimensions"] == 2

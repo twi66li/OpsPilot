@@ -33,11 +33,10 @@ def _message_texts(messages: list[dict], tools: list[dict] | None) -> list[str]:
     return texts
 
 
-def reserve_for_channel(calls: list, kind: str, model: str, texts: list[str], *, output_cap: int, thinking_cap: int = 0):
+def reserve_for_channel(calls: list, guard, kind: str, model: str, texts: list[str], *, output_cap: int, thinking_cap: int = 0):
     """发送前统一预留；拒绝时留 budget_refused 审计记录并抛出，调用方不触达供应商。"""
-    guard = get_budget_guard()
     if guard is None:
-        return None, None
+        raise BudgetLedgerError("真实模型通道缺少预算账本实例，fail closed")
     try:
         return guard, guard.reserve(kind, model, estimate_upper_bound(texts, output_cap=output_cap, thinking_cap=thinking_cap))
     except (BudgetExceededError, BudgetLedgerError) as exc:
@@ -48,13 +47,17 @@ def reserve_for_channel(calls: list, kind: str, model: str, texts: list[str], *,
 
 class ChatAPI:
     def __init__(self, api_key: str, base_url: str, model: str):
+        # 真实供应商入口：无持久账本配置即 fail closed，Mock 路径（MockLLM 等）不经过本类
+        self._budget = get_budget_guard()
+        if self._budget is None:
+            raise BudgetLedgerError("真实对话模型入口未配置持久预算账本（BUDGET_LEDGER_PATH/BUDGET_TOKEN_LIMIT），拒绝启动")
         self.client = OpenAI(api_key=api_key, base_url=base_url or None, timeout=60, max_retries=0)
         self.model = model
         self.is_dashscope = "aliyuncs.com" in (base_url or "")
         self.calls: list[dict] = []
 
     def _reserve(self, kind: str, texts: list[str], *, output_cap: int, thinking_cap: int = 0):
-        return reserve_for_channel(self.calls, kind, self.model, texts, output_cap=output_cap, thinking_cap=thinking_cap)
+        return reserve_for_channel(self.calls, self._budget, kind, self.model, texts, output_cap=output_cap, thinking_cap=thinking_cap)
 
     @staticmethod
     def _settle(guard, reservation, record: dict):
@@ -150,6 +153,9 @@ class ChatAPI:
 
 class RerankAPI:
     def __init__(self, api_key: str, base_url: str, model: str):
+        self._budget = get_budget_guard()
+        if self._budget is None:
+            raise BudgetLedgerError("真实重排入口未配置持久预算账本（BUDGET_LEDGER_PATH/BUDGET_TOKEN_LIMIT），拒绝启动")
         origin = urlsplit(base_url)
         self.url = f"{origin.scheme}://{origin.netloc}/api/v1/services/rerank/text-rerank/text-rerank"
         self.client = httpx.Client(headers={"Authorization": f"Bearer {api_key}"}, timeout=60)
@@ -160,7 +166,7 @@ class RerankAPI:
         if not chunks:
             return []
         texts = [query] + [c.text for c in chunks]
-        guard, reservation = reserve_for_channel(self.calls, "rerank", self.model, texts, output_cap=_RERANK_OUTPUT_CAP)
+        guard, reservation = reserve_for_channel(self.calls, self._budget, "rerank", self.model, texts, output_cap=_RERANK_OUTPUT_CAP)
         started = time.perf_counter()
         record = {"model": self.model, "status": "error", "usage": {}}
         try:

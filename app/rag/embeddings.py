@@ -45,6 +45,12 @@ class OpenAIEmbedding:
     def __init__(self, api_key: str, base_url: str, model: str, dim: int | None = None):
         from openai import OpenAI
 
+        from app.services.budget import BudgetLedgerError, get_budget_guard
+
+        # 真实向量入口：无持久账本配置即 fail closed（MockEmbedding 不经过本类）
+        self._budget = get_budget_guard()
+        if self._budget is None:
+            raise BudgetLedgerError("真实向量入口未配置持久预算账本（BUDGET_LEDGER_PATH/BUDGET_TOKEN_LIMIT），拒绝启动")
         self._client = OpenAI(api_key=api_key, base_url=base_url or None, timeout=60, max_retries=0)
         self.model = model
         self.dim = dim
@@ -53,17 +59,15 @@ class OpenAIEmbedding:
     def embed(self, texts: list[str]) -> list[list[float]]:
         import time
 
-        from app.services.budget import BudgetExceededError, BudgetLedgerError, estimate_upper_bound, get_budget_guard
+        from app.services.budget import BudgetExceededError, BudgetLedgerError, estimate_upper_bound
 
-        guard = get_budget_guard()
-        reservation = None
-        if guard is not None:
-            try:
-                reservation = guard.reserve("embedding", self.model, estimate_upper_bound(texts, output_cap=0))
-            except (BudgetExceededError, BudgetLedgerError) as exc:
-                self.calls.append({"model": self.model, "kind": "embedding", "status": "budget_refused",
-                                   "error_type": type(exc).__name__, "message": str(exc)})
-                raise
+        guard = self._budget
+        try:
+            reservation = guard.reserve("embedding", self.model, estimate_upper_bound(texts, output_cap=0))
+        except (BudgetExceededError, BudgetLedgerError) as exc:
+            self.calls.append({"model": self.model, "kind": "embedding", "status": "budget_refused",
+                               "error_type": type(exc).__name__, "message": str(exc)})
+            raise
         started = time.perf_counter()
         record = {"model": self.model, "status": "error", "usage": {}}
         try:

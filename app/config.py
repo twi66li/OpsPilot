@@ -65,6 +65,7 @@ class Settings(BaseSettings):
     # ---- 预算门控（真实模型调用统一入口；路径留空=不启用，仅离线 Mock 使用）----
     budget_ledger_path: str = ""
     budget_token_limit: int = 0
+    budget_model_limits: dict[str, int] = {}  # 按 budget.json p1 列的分模型授权；未授权模型一律拒绝
 
 
 @lru_cache

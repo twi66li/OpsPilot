@@ -1,10 +1,16 @@
 """T7 接线测试：真实模型/存储链路的装配语义（全部 Mock/假端点，不打真实 API）。"""
+import os
+import tempfile
+
 import pytest
 
 from app.config import Settings
 from app.rag.rerank import DashScopeReranker, get_reranker
 from app.rag.vector_store import InMemoryVectorStore, RetrievedChunk, get_vector_store
 from app.services import cache as cache_mod
+
+# 真实客户端构造现要求已配置预算账本（T18 fail-closed）；接线测试统一指向临时账本
+_BUDGET_DIR = tempfile.mkdtemp(prefix="t7_wiring_budget_")
 
 
 def _settings(**kw) -> Settings:
@@ -23,6 +29,9 @@ def _settings(**kw) -> Settings:
         openai_api_key="test-key",
         openai_base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
         redis_url="redis://127.0.0.1:1/0",
+        budget_ledger_path=os.path.join(_BUDGET_DIR, "ledger.jsonl"),
+        budget_token_limit=10**9,
+        budget_model_limits={"qwen3.7-text-rerank": 10**9},
     )
     base.update(kw)
     return Settings(**base)
@@ -38,7 +47,8 @@ def test_non_strict_vector_store_falls_back_to_memory():
     assert isinstance(store, InMemoryVectorStore)
 
 
-def test_dashscope_reranker_wiring():
+def test_dashscope_reranker_wiring(monkeypatch):
+    monkeypatch.setattr("app.config.get_settings", _settings)  # RerankAPI 构造读取全局预算配置
     reranker = get_reranker(_settings())
     assert isinstance(reranker, DashScopeReranker)
     assert reranker.model == "qwen3.7-text-rerank"
@@ -47,6 +57,8 @@ def test_dashscope_reranker_wiring():
 
 
 def test_dashscope_reranker_uses_api_and_no_fallback(monkeypatch):
+    monkeypatch.setattr("app.config.get_settings", _settings)
+
     def fake_ok(self, query, chunks, top_k=5):
         for c in chunks:
             c.score = 1.0

@@ -1,0 +1,114 @@
+{
+  "namespace": "night20261031",
+  "unit": "tokens",
+  "budget_source": "D:/agent-hub/night-20261030/budget.json p1 列",
+  "caliber_note": "典型口径依据 v2 实测（生成≈1.5K/题、主裁判≈1.7K/题、复核≈1.76K/题）；字节级保守上界≈典型的 3—4 倍（Codex 终审确认的口径），取 3.5 倍为规划值。保守列为授权规划依据；两列比值应在 S0 探针后以实测校准。",
+  "rows": [
+    {
+      "model": "qwen3.8-max",
+      "basis": "生成 40题×2模式 + 主裁判 80判",
+      "calls": 160,
+      "typical_tokens_per_call": 1600,
+      "typical_total": 256000,
+      "byte_bound_total": 896000,
+      "p1_grant": 302500,
+      "typical_fit": true,
+      "byte_bound_fit": false,
+      "note": "同模型双职责合并计量"
+    },
+    {
+      "model": "qwen3.8-27b",
+      "basis": "第二裁判 80判",
+      "calls": 80,
+      "typical_tokens_per_call": 1700,
+      "typical_total": 136000,
+      "byte_bound_total": 476000,
+      "p1_grant": 192500,
+      "typical_fit": true,
+      "byte_bound_fit": false,
+      "note": ""
+    },
+    {
+      "model": "deepseek-v4-pro-0813",
+      "basis": "分歧复核+预选一致题校验（估 24 判）",
+      "calls": 24,
+      "typical_tokens_per_call": 1760,
+      "typical_total": 42240,
+      "byte_bound_total": 147840,
+      "p1_grant": 137500,
+      "typical_fit": true,
+      "byte_bound_fit": false,
+      "note": ""
+    },
+    {
+      "model": "qwen3.7-text-embedding-flash",
+      "basis": "入库 12 文档 + 80 查询向量",
+      "calls": 92,
+      "typical_tokens_per_call": 200,
+      "typical_total": 18400,
+      "byte_bound_total": 64400,
+      "p1_grant": 110000,
+      "typical_fit": true,
+      "byte_bound_fit": true,
+      "note": ""
+    },
+    {
+      "model": "qwen3.7-text-rerank",
+      "basis": "80 查询重排",
+      "calls": 80,
+      "typical_tokens_per_call": 150,
+      "typical_total": 12000,
+      "byte_bound_total": 42000,
+      "p1_grant": 110000,
+      "typical_fit": true,
+      "byte_bound_fit": true,
+      "note": ""
+    },
+    {
+      "model": "qwen3.8-2.4t-a95b",
+      "basis": "候选对照 dev ≤8题（仅开发集）",
+      "calls": 8,
+      "typical_tokens_per_call": 2500,
+      "typical_total": 20000,
+      "byte_bound_total": 70000,
+      "p1_grant": 66000,
+      "typical_fit": true,
+      "byte_bound_fit": false,
+      "note": "保守口径下不可行，需缩减题数或放弃"
+    },
+    {
+      "model": "kimi-k3",
+      "basis": "候选对照 dev ≤8题（仅开发集）",
+      "calls": 8,
+      "typical_tokens_per_call": 2500,
+      "typical_total": 20000,
+      "byte_bound_total": 70000,
+      "p1_grant": 44000,
+      "typical_fit": true,
+      "byte_bound_fit": false,
+      "note": "保守口径下不可行；缩减题数后仍紧张"
+    },
+    {
+      "model": "glm-5.3",
+      "basis": "候选对照 dev ≤8题（仅开发集）",
+      "calls": 8,
+      "typical_tokens_per_call": 2500,
+      "typical_total": 20000,
+      "byte_bound_total": 70000,
+      "p1_grant": 44000,
+      "typical_fit": true,
+      "byte_bound_fit": false,
+      "note": "同上"
+    }
+  ],
+  "totals": {
+    "typical_all": 524640,
+    "byte_bound_all": 1836240
+  },
+  "verdicts": [
+    "典型口径：正式 40题×2模式+双裁判+复核+向量/重排 全部在各模型授权内（qwen3.8-max 合并计量 25.6万 < 30.25万）。",
+    "字节级保守上界：合计约 116.6 万 tokens，qwen3.8-max/27b/deepseek 均超授权——全量正式批次在保守口径下不可行。",
+    "可行路径（按保守口径规划）：S0 探针实测两类口径比值→按实测重判规模；或缩减为 dev10×2 模式先行（保守口径 max 约 11.2万、27b 约 9.5万，均入授权）。",
+    "候选模型对照在保守口径下不可行，仅在实测比值显著低于 3.5 或授权调整时恢复。"
+  ]
+}

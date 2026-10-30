@@ -1,0 +1,49 @@
+{
+  "namespace": "night20261031",
+  "baseline_commit": "1b0b3b2",
+  "frozen_at": "2026-10-31T07:00:00+08:00 (approx, 封存于固定提交)",
+  "human_reviewed": false,
+  "files": [
+    {
+      "file": "README.md",
+      "bytes": 1812,
+      "sha256": "66a7137740998fb625d49f1e7edd57021639d41d41a757d61dc387a9b02f4a4c"
+    },
+    {
+      "file": "config.json",
+      "bytes": 1294,
+      "sha256": "2b6ebf2ede33c2265205efde1eadaec8f6566a38c92f41cf5af2b2f2d65932c7"
+    },
+    {
+      "file": "corpus_manifest.json",
+      "bytes": 2200,
+      "sha256": "b5401d9a71feb0b617a88022ff5b3abee40196f3a3bca0d7abd858f3ee87cdad"
+    },
+    {
+      "file": "cost_estimate.json",
+      "bytes": 3901,
+      "sha256": "0b629ff15875e8b06329f7d0d54a070888a39db97ce3625cc6be51f0eb487b96"
+    },
+    {
+      "file": "execution_plan.md",
+      "bytes": 4216,
+      "sha256": "1a65aef3a39cb22c45b9dbc71d295a0d126b47fb1c9034f6681878821e853140"
+    },
+    {
+      "file": "failure_template.json",
+      "bytes": 1949,
+      "sha256": "711b956b803e60fac9e454aa20768bb9303f5927efe4aa602027d24b65d66f31"
+    },
+    {
+      "file": "rubric.json",
+      "bytes": 1832,
+      "sha256": "689e88bdb406597c6b45e992142927d7d96520dd1f6450777b82bdb382105c9e"
+    },
+    {
+      "file": "scenarios.json",
+      "bytes": 30338,
+      "sha256": "7aa50af88dda9a4b65b60d2cb407be2bf22d94d8caad69f49a678268867a737b"
+    }
+  ],
+  "count": 8
+}

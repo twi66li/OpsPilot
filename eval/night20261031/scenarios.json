@@ -1,0 +1,1000 @@
+{
+  "namespace": "night20261031",
+  "count": 40,
+  "dev": 10,
+  "test": 30,
+  "family_isolation": "每题仅属一个家族；同家族题目不跨家族引用上下文",
+  "human_reviewed": false,
+  "scenarios": [
+    {
+      "id": "n31-001",
+      "kind": "qa",
+      "split": "dev",
+      "family": "manual_only",
+      "question": "仅根据手册：ERR_5003 应急处理中清理 Sleep 连接的命令是什么？扩容时 max_connections 建议上调幅度是多少？",
+      "required_points": [
+        "应急执行 KILL <id> 清理长时间 Sleep 连接",
+        "扩容将 max_connections 上调 20%~50% 并同步调大应用 maxPoolSize"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_5003",
+        "Sleep",
+        "KILL"
+      ],
+      "source_doc": "ERR_5003_数据库连接池耗尽处理手册.md"
+    },
+    {
+      "id": "n31-002",
+      "kind": "qa",
+      "split": "test",
+      "family": "manual_only",
+      "question": "仅根据手册：Kafka 消费组 ERR_9101（rebalance 频繁）的常见根因有哪些？对反复失败的消息应如何处理？",
+      "required_points": [
+        "常见根因含消费逻辑变慢、实例数少于分区数或 rebalance 风暴、毒消息反复重试",
+        "应急扩容消费者实例；反复失败消息跳过并投递死信队列"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_9101",
+        "rebalance",
+        "死信"
+      ],
+      "source_doc": "Kafka消费积压处理.md"
+    },
+    {
+      "id": "n31-003",
+      "kind": "qa",
+      "split": "dev",
+      "family": "manual_only",
+      "question": "仅根据手册：MySQL ERR_5002 锁等待超时应检查哪些系统视图？上线前 SQL 审核必须通过什么评审？",
+      "required_points": [
+        "检查 information_schema.innodb_trx 与 data_locks 的锁等待",
+        "上线前 SQL 审核必须通过 EXPLAIN 评审"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_5002",
+        "锁等待",
+        "EXPLAIN"
+      ],
+      "source_doc": "MySQL慢查询治理.md"
+    },
+    {
+      "id": "n31-004",
+      "kind": "qa",
+      "split": "test",
+      "family": "manual_only",
+      "question": "仅根据手册：Redis 集群 ERR_8001 连接重置后，客户端应启用什么策略？对 master 上的大 key 删除有什么约束？",
+      "required_points": [
+        "客户端开启自动拓扑刷新与重试",
+        "禁止在 master 上执行大 key 删除"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_8001",
+        "拓扑刷新",
+        "大key"
+      ],
+      "source_doc": "Redis集群主从切换SOP.md"
+    },
+    {
+      "id": "n31-005",
+      "kind": "qa",
+      "split": "test",
+      "family": "manual_only",
+      "question": "仅根据手册：服务熔断恢复采用什么探测方式？限流阈值建议按压测容量的多少设置？多实例限流不均应改用什么方案？",
+      "required_points": [
+        "熔断恢复采用半开探测",
+        "限流阈值按压测容量的 80% 设置",
+        "多实例本地限流不均时改用 Redis 集中式限流"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "熔断",
+        "半开",
+        "限流"
+      ],
+      "source_doc": "服务熔断与限流说明.md"
+    },
+    {
+      "id": "n31-006",
+      "kind": "qa",
+      "split": "test",
+      "family": "manual_only",
+      "question": "仅根据手册：磁盘 ERR_5101 告警时的排查顺序是什么？统一的日志滚动与保留策略是什么？",
+      "required_points": [
+        "df -h 定位挂载点、du 找大目录，再查日志滚动/临时文件/容器残留",
+        "统一按天滚动并保留 7 天"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_5101",
+        "df -h",
+        "日志滚动"
+      ],
+      "source_doc": "磁盘空间不足处理SOP.md"
+    },
+    {
+      "id": "n31-007",
+      "kind": "qa",
+      "split": "dev",
+      "family": "history_only",
+      "question": "只查演示历史：payment-service 的 ERR_7010 当时根因和恢复措施是什么？不是问当前状态。",
+      "required_points": [
+        "根因为渠道账单文件延迟或格式变更等对账失败原因",
+        "恢复措施为手工触发补单任务并按渠道查询结果修复订单状态"
+      ],
+      "required_tools": [
+        "query_fault_history"
+      ],
+      "allowed_tools": [
+        "query_fault_history"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_7010"
+      ],
+      "service": "payment-service",
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "payment-service_对账失败处理手册.md"
+    },
+    {
+      "id": "n31-008",
+      "kind": "qa",
+      "split": "test",
+      "family": "history_only",
+      "question": "请用演示历史分别比较 payment-service 的 ERR_7010 与 ERR_7011 的根因差异，不查询当前指标。",
+      "required_points": [
+        "ERR_7010 为对账失败（渠道账单延迟/格式变更、通知丢失、幂等冲突）",
+        "ERR_7011 为渠道查询超时",
+        "两者处置不同：补单修复 vs 重试查询并告警"
+      ],
+      "required_tools": [
+        "query_fault_history"
+      ],
+      "allowed_tools": [
+        "query_fault_history"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_7010",
+        "ERR_7011"
+      ],
+      "service": "payment-service",
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "payment-service_对账失败处理手册.md"
+    },
+    {
+      "id": "n31-009",
+      "kind": "qa",
+      "split": "dev",
+      "family": "history_only",
+      "question": "只查演示历史：order-service 的 ERR_6001 当时根因是什么？手册对应的治理措施是什么？",
+      "required_points": [
+        "历史根因为下游调用超时（库存/支付等下游抖动）",
+        "治理：为下游调用设置 200ms~1s 超时并启用熔断"
+      ],
+      "required_tools": [
+        "query_fault_history"
+      ],
+      "allowed_tools": [
+        "query_fault_history",
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_6001"
+      ],
+      "service": "order-service",
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "order-service_接口超时排查SOP.md"
+    },
+    {
+      "id": "n31-010",
+      "kind": "qa",
+      "split": "test",
+      "family": "history_only",
+      "question": "仅按服务筛选 payment-service 的演示历史，概括其故障类型；不要查询当前指标或推断当前根因。",
+      "required_points": [
+        "仅依据历史记录概括，不编造当前状态",
+        "payment-service 历史集中于对账失败与渠道查询超时两类"
+      ],
+      "required_tools": [
+        "query_fault_history"
+      ],
+      "allowed_tools": [
+        "query_fault_history"
+      ],
+      "human_reviewed": false,
+      "service": "payment-service",
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "payment-service_对账失败处理手册.md"
+    },
+    {
+      "id": "n31-011",
+      "kind": "qa",
+      "split": "test",
+      "family": "history_only",
+      "question": "精确查询 ERR_5101 的演示历史；无匹配请明确说没有，不要用其他错误码替代。",
+      "required_points": [
+        "明确说明演示历史中无 ERR_5101 匹配记录",
+        "不得用其他错误码或历史记录替代作答"
+      ],
+      "required_tools": [
+        "query_fault_history"
+      ],
+      "allowed_tools": [
+        "query_fault_history"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_5101"
+      ],
+      "should_abstain": true,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "磁盘空间不足处理SOP.md"
+    },
+    {
+      "id": "n31-012",
+      "kind": "qa",
+      "split": "test",
+      "family": "history_only",
+      "question": "只查演示历史：ERR_9001（容器 OOMKilled）当时的应急与长期治理分别是什么？",
+      "required_points": [
+        "应急：内存 limit 上调 30%~50% 并重启，流量大时先扩容副本",
+        "长期治理：修复内存泄漏、缓存设 TTL 与容量上限、大数据集分页/流式处理"
+      ],
+      "required_tools": [
+        "query_fault_history"
+      ],
+      "allowed_tools": [
+        "query_fault_history"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_9001"
+      ],
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "Pod_OOMKilled处理指南.md"
+    },
+    {
+      "id": "n31-013",
+      "kind": "qa",
+      "split": "dev",
+      "family": "metrics_window",
+      "question": "请只读取 order-service 录制的近5分钟指标，给出QPS、P99、错误率与异常判定；不要用60分钟替代。",
+      "required_points": [
+        "调用窗口 window_minutes=5",
+        "报告来源与时间窗并换算北京时间",
+        "QPS/P99/错误率数值与录制一致并给出本次阈值判定"
+      ],
+      "required_tools": [
+        "query_service_metrics"
+      ],
+      "allowed_tools": [
+        "query_service_metrics"
+      ],
+      "human_reviewed": false,
+      "service": "order-service",
+      "window_minutes": 5,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "order-service_接口超时排查SOP.md"
+    },
+    {
+      "id": "n31-014",
+      "kind": "qa",
+      "split": "test",
+      "family": "metrics_window",
+      "question": "读取 order-service 的录制近60分钟指标：报告QPS、P99、错误率以及是否越过本次阈值。",
+      "required_points": [
+        "窗口 window_minutes=60",
+        "标明录制来源与时间窗（UTC 换算北京时间）",
+        "给出是否越过 P99/错误率阈值的判定"
+      ],
+      "required_tools": [
+        "query_service_metrics"
+      ],
+      "allowed_tools": [
+        "query_service_metrics"
+      ],
+      "human_reviewed": false,
+      "service": "order-service",
+      "window_minutes": 60,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "order-service_接口超时排查SOP.md"
+    },
+    {
+      "id": "n31-015",
+      "kind": "qa",
+      "split": "dev",
+      "family": "metrics_window",
+      "question": "payment-service 最近3小时的录制指标如何？请给 QPS、P99、错误率与异常判定。",
+      "required_points": [
+        "窗口 window_minutes=180（3小时）",
+        "数值与录制一致并注明来源/时间窗",
+        "按本次阈值给出判定"
+      ],
+      "required_tools": [
+        "query_service_metrics"
+      ],
+      "allowed_tools": [
+        "query_service_metrics"
+      ],
+      "human_reviewed": false,
+      "service": "payment-service",
+      "window_minutes": 180,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "payment-service_对账失败处理手册.md"
+    },
+    {
+      "id": "n31-016",
+      "kind": "qa",
+      "split": "test",
+      "family": "metrics_window",
+      "question": "api-gateway-service 近15分钟的录制指标是多少？是否越过本次阈值？",
+      "required_points": [
+        "窗口 window_minutes=15",
+        "QPS/P99/错误率与录制一致",
+        "明确本次阈值判定结论"
+      ],
+      "required_tools": [
+        "query_service_metrics"
+      ],
+      "allowed_tools": [
+        "query_service_metrics"
+      ],
+      "human_reviewed": false,
+      "service": "api-gateway-service",
+      "window_minutes": 15,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "网关502排查手册.md"
+    },
+    {
+      "id": "n31-017",
+      "kind": "qa",
+      "split": "test",
+      "family": "metrics_window",
+      "question": "order-service 录制近60分钟高错误率，能否仅凭指标直接确诊为连接池耗尽？请只依据指标回答。",
+      "required_points": [
+        "不能仅凭高错误率确诊连接池耗尽",
+        "指标只能证明错误率超阈值，根因需结合历史与手册证据",
+        "不编造未取得的根因"
+      ],
+      "required_tools": [
+        "query_service_metrics"
+      ],
+      "allowed_tools": [
+        "query_service_metrics"
+      ],
+      "human_reviewed": false,
+      "service": "order-service",
+      "window_minutes": 60,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "order-service_接口超时排查SOP.md"
+    },
+    {
+      "id": "n31-018",
+      "kind": "qa",
+      "split": "test",
+      "family": "metrics_window",
+      "question": "user-service 近30分钟是否正常？给出当前 QPS、P99、错误率与判定。",
+      "required_points": [
+        "窗口 window_minutes=30",
+        "未越过阈值时明确表述为观测窗口内未见异常",
+        "注明指标来源与时间窗，不可用不等于正常"
+      ],
+      "required_tools": [
+        "query_service_metrics"
+      ],
+      "allowed_tools": [
+        "query_service_metrics"
+      ],
+      "human_reviewed": false,
+      "service": "user-service",
+      "window_minutes": 30,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "ERR_5003_数据库连接池耗尽处理手册.md"
+    },
+    {
+      "id": "n31-019",
+      "kind": "qa",
+      "split": "dev",
+      "family": "metrics_missing",
+      "question": "请查 ghost-service 的当前 P99。没有数据就明确不足，不要拿 order-service 替代。",
+      "required_points": [
+        "明确说明该服务无指标数据或不在已知服务清单",
+        "不得用其他服务的指标替代",
+        "结论为证据不足"
+      ],
+      "required_tools": [
+        "query_service_metrics"
+      ],
+      "allowed_tools": [
+        "query_service_metrics",
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "service": "ghost-service",
+      "should_abstain": true,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "order-service_接口超时排查SOP.md"
+    },
+    {
+      "id": "n31-020",
+      "kind": "qa",
+      "split": "test",
+      "family": "metrics_missing",
+      "question": "看看现在是不是正常，当前 P99 是多少？我还没提供服务名。",
+      "required_points": [
+        "不猜测/编造服务名",
+        "明确询问必要的服务名参数",
+        "说明服务名仅限已知清单"
+      ],
+      "required_tools": [],
+      "allowed_tools": [
+        "search_runbook",
+        "query_service_metrics",
+        "query_fault_history"
+      ],
+      "human_reviewed": false,
+      "should_abstain": true,
+      "source_doc": "order-service_接口超时排查SOP.md"
+    },
+    {
+      "id": "n31-021",
+      "kind": "qa",
+      "split": "test",
+      "family": "metrics_missing",
+      "question": "api-gateway-service 目前状态如何？注意：不要查询实时指标，只基于已有资料说明。",
+      "required_points": [
+        "遵守禁查指标约束，不调用 query_service_metrics",
+        "基于手册说明排查方向，明确当前状态未知",
+        "不得把建议说成当前状态"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "service": "api-gateway-service",
+      "source_doc": "网关502排查手册.md"
+    },
+    {
+      "id": "n31-022",
+      "kind": "qa",
+      "split": "test",
+      "family": "metrics_missing",
+      "question": "database-service 的当前 P99 是多少？",
+      "required_points": [
+        "database-service 不在已知服务清单（order/payment/user/inventory/api-gateway/notify）",
+        "明确说明不在清单或证据不足，不合成数据",
+        "可列出有效服务名供用户确认"
+      ],
+      "required_tools": [
+        "query_service_metrics"
+      ],
+      "allowed_tools": [
+        "query_service_metrics",
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "service": "database-service",
+      "should_abstain": true,
+      "source_doc": "ERR_5003_数据库连接池耗尽处理手册.md"
+    },
+    {
+      "id": "n31-023",
+      "kind": "qa",
+      "split": "dev",
+      "family": "missing_knowledge",
+      "question": "仅查知识库：我们2027年华北三期扩容已批准预算是多少万元？没有正式资料就说明不足。",
+      "required_points": [
+        "明确说明知识库无该预算资料",
+        "不编造金额",
+        "可建议补充资料渠道"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "华北三期",
+        "预算"
+      ],
+      "should_abstain": true
+    },
+    {
+      "id": "n31-024",
+      "kind": "qa",
+      "split": "test",
+      "family": "missing_knowledge",
+      "question": "仅查知识库：事故 INC_9088 的最终责任人和赔偿金额分别是什么？没有资料请明确未知。",
+      "required_points": [
+        "明确说明知识库无 INC_9088 记录",
+        "责任人与赔偿金额均为未知，不推测"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "INC_9088"
+      ],
+      "should_abstain": true
+    },
+    {
+      "id": "n31-025",
+      "kind": "qa",
+      "split": "test",
+      "family": "missing_knowledge",
+      "question": "知识库里能查到 Datadog 监控平台的套餐价格吗？",
+      "required_points": [
+        "说明知识库不含第三方商业产品价格",
+        "不编造价格"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "Datadog"
+      ],
+      "should_abstain": true
+    },
+    {
+      "id": "n31-026",
+      "kind": "qa",
+      "split": "test",
+      "family": "missing_knowledge",
+      "question": "ERR_7777 在知识库里有处理手册吗？如果有请给出处理步骤。",
+      "required_points": [
+        "明确说明知识库无 ERR_7777 手册",
+        "不编造处理步骤",
+        "可说明如需处理建议先补充资料"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_7777"
+      ],
+      "should_abstain": true
+    },
+    {
+      "id": "n31-027",
+      "kind": "qa",
+      "split": "dev",
+      "family": "mixed_triage",
+      "question": "order-service P99 超过 1s 且历史有 ERR_6001：结合当前指标、历史故障与手册给出有依据的排查顺序。",
+      "required_points": [
+        "先查当前指标确认错误率/延迟现状",
+        "结合历史 ERR_6001 下游超时根因",
+        "按手册给出下游超时+熔断治理与排查步骤"
+      ],
+      "required_tools": [
+        "query_service_metrics",
+        "query_fault_history",
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "query_service_metrics",
+        "query_fault_history",
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_6001",
+        "P99"
+      ],
+      "service": "order-service",
+      "window_minutes": 60,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "order-service_接口超时排查SOP.md"
+    },
+    {
+      "id": "n31-028",
+      "kind": "qa",
+      "split": "test",
+      "family": "mixed_triage",
+      "question": "payment-service 对账失败 ERR_7010，且当前指标也有异常：应先查什么？请给出有依据的处置顺序。",
+      "required_points": [
+        "先核对当前指标异常类型",
+        "结合历史 ERR_7010 根因（账单延迟/通知丢失/幂等）",
+        "按手册先核对对账文件与差异明细，再补单"
+      ],
+      "required_tools": [
+        "query_service_metrics",
+        "query_fault_history",
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "query_service_metrics",
+        "query_fault_history",
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_7010"
+      ],
+      "service": "payment-service",
+      "window_minutes": 60,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "payment-service_对账失败处理手册.md"
+    },
+    {
+      "id": "n31-029",
+      "kind": "qa",
+      "split": "test",
+      "family": "mixed_triage",
+      "question": "MySQL Threads_connected 超过 85% 且应用报 ERR_5003：按手册给出完整排查流程，并说明需要哪些实时证据。",
+      "required_points": [
+        "按手册确认连接池配置与 DB max_connections 匹配",
+        "排查慢查询与连接泄漏（processlist/finally 归还）",
+        "说明需实时指标（Threads_connected、acquire P99）佐证"
+      ],
+      "required_tools": [
+        "query_service_metrics",
+        "query_fault_history",
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "query_service_metrics",
+        "query_fault_history",
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_5003",
+        "Threads_connected"
+      ],
+      "service": "order-service",
+      "window_minutes": 60,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "ERR_5003_数据库连接池耗尽处理手册.md"
+    },
+    {
+      "id": "n31-030",
+      "kind": "qa",
+      "split": "test",
+      "family": "mixed_triage",
+      "question": "节点磁盘使用率 85% 期间 order-service 接口超时：两者可能如何关联？给出排查步骤。",
+      "required_points": [
+        "磁盘满可导致日志写入失败影响服务（ERR_5102）",
+        "按磁盘 SOP 定位挂载点与清理策略",
+        "结合 order-service 指标确认超时时间窗是否吻合"
+      ],
+      "required_tools": [
+        "query_service_metrics",
+        "query_fault_history",
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "query_service_metrics",
+        "query_fault_history",
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "磁盘",
+        "超时"
+      ],
+      "service": "order-service",
+      "window_minutes": 60,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "磁盘空间不足处理SOP.md"
+    },
+    {
+      "id": "n31-031",
+      "kind": "qa",
+      "split": "test",
+      "family": "mixed_triage",
+      "question": "Kafka 消费组 Lag 增长且消费耗时 P99 上升：结合手册给出根因假设与验证方法。",
+      "required_points": [
+        "根因假设：下游 DB/Redis 抖动或毒消息重试",
+        "验证：查分区 Lag 分布倾斜与消费错误日志",
+        "处置：扩容消费者/死信队列，治理批量拉取"
+      ],
+      "required_tools": [
+        "query_service_metrics",
+        "query_fault_history",
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "query_service_metrics",
+        "query_fault_history",
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "Lag",
+        "消费"
+      ],
+      "window_minutes": 60,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "Kafka消费积压处理.md"
+    },
+    {
+      "id": "n31-032",
+      "kind": "qa",
+      "split": "test",
+      "family": "mixed_triage",
+      "question": "Redis 切主后应用持续 MOVED 报错且 order-service 同时超时：给出跨服务关联的排查思路。",
+      "required_points": [
+        "按 Redis SOP 确认切换原因与客户端拓扑刷新",
+        "关联 order-service 对 Redis 的依赖超时",
+        "给出应急（重启报错实例/刷新拓扑）与治理（自动拓扑刷新+重试）"
+      ],
+      "required_tools": [
+        "query_service_metrics",
+        "query_fault_history",
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "query_service_metrics",
+        "query_fault_history",
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "MOVED",
+        "ERR_8001"
+      ],
+      "service": "order-service",
+      "window_minutes": 60,
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "Redis集群主从切换SOP.md"
+    },
+    {
+      "id": "n31-033",
+      "kind": "qa",
+      "split": "test",
+      "family": "abstain_irrelevant",
+      "question": "今天午饭吃什么比较好？",
+      "required_points": [
+        "明确说明与运维诊断无关",
+        "不调用工具",
+        "简短礼貌拒绝并引导回正题"
+      ],
+      "required_tools": [],
+      "allowed_tools": [],
+      "human_reviewed": false,
+      "should_abstain": true
+    },
+    {
+      "id": "n31-034",
+      "kind": "qa",
+      "split": "test",
+      "family": "abstain_irrelevant",
+      "question": "帮我写一首关于服务器的诗。",
+      "required_points": [
+        "明确说明该请求与运维诊断无关",
+        "不编造运维结论",
+        "简短拒绝"
+      ],
+      "required_tools": [],
+      "allowed_tools": [],
+      "human_reviewed": false,
+      "should_abstain": true
+    },
+    {
+      "id": "n31-035",
+      "kind": "qa",
+      "split": "test",
+      "family": "abstain_irrelevant",
+      "question": "北京明天天气怎么样？",
+      "required_points": [
+        "明确说明不在运维知识范围",
+        "不编造天气信息",
+        "简短拒绝"
+      ],
+      "required_tools": [],
+      "allowed_tools": [],
+      "human_reviewed": false,
+      "should_abstain": true
+    },
+    {
+      "id": "n31-036",
+      "kind": "qa",
+      "split": "test",
+      "family": "abstain_irrelevant",
+      "question": "帮我查一下股票 600519 今天的价格。",
+      "required_points": [
+        "明确说明与运维知识库无关",
+        "不编造价格",
+        "简短拒绝"
+      ],
+      "required_tools": [],
+      "allowed_tools": [],
+      "human_reviewed": false,
+      "should_abstain": true
+    },
+    {
+      "id": "n31-037",
+      "kind": "qa",
+      "split": "dev",
+      "family": "tool_constraint",
+      "question": "order-service 当前状态如何，不要查询指标，只看历史故障。",
+      "required_points": [
+        "不调用 query_service_metrics（明示禁止）",
+        "执行 query_fault_history 查询该服务历史",
+        "基于历史与手册给排查建议并说明当前状态未知"
+      ],
+      "required_tools": [
+        "query_fault_history"
+      ],
+      "allowed_tools": [
+        "query_fault_history"
+      ],
+      "human_reviewed": false,
+      "service": "order-service",
+      "prerequisites": [
+        "replay_snapshot"
+      ],
+      "source_doc": "order-service_接口超时排查SOP.md"
+    },
+    {
+      "id": "n31-038",
+      "kind": "qa",
+      "split": "test",
+      "family": "tool_constraint",
+      "question": "仅根据手册说明 ERR_5004 与 ERR_5003 的区别及各自处置要点。",
+      "required_points": [
+        "仅使用手册检索，不查指标/历史",
+        "ERR_5003 为连接池耗尽、ERR_5004 为连接获取超时",
+        "各自处置要点符合手册"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "ERR_5003",
+        "ERR_5004"
+      ],
+      "source_doc": "ERR_5003_数据库连接池耗尽处理手册.md"
+    },
+    {
+      "id": "n31-039",
+      "kind": "qa",
+      "split": "test",
+      "family": "tool_constraint",
+      "question": "不要建单，只给 payment-service 对账失败的诊断建议。",
+      "required_points": [
+        "不触发建单/审批流程",
+        "给出对账失败的排查建议（对账文件/差异明细/幂等）",
+        "说明如需建单可再明确要求"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "对账",
+        "ERR_7010"
+      ],
+      "service": "payment-service",
+      "source_doc": "payment-service_对账失败处理手册.md"
+    },
+    {
+      "id": "n31-040",
+      "kind": "qa",
+      "split": "test",
+      "family": "tool_constraint",
+      "question": "网关 502 的治理建议有哪些？不要查询指标。",
+      "required_points": [
+        "不调用 query_service_metrics",
+        "依据手册给出 keepalive/readiness/超时统一配置等治理建议",
+        "不编造当前指标状态"
+      ],
+      "required_tools": [
+        "search_runbook"
+      ],
+      "allowed_tools": [
+        "search_runbook"
+      ],
+      "human_reviewed": false,
+      "search_terms": [
+        "502",
+        "keepalive"
+      ],
+      "service": "api-gateway-service",
+      "source_doc": "网关502排查手册.md"
+    }
+  ]
+}

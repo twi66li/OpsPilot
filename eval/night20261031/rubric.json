@@ -1,0 +1,24 @@
+{
+  "namespace": "night20261031",
+  "status": "draft（冻结前终审包确认）",
+  "human_reviewed": false,
+  "answer_correct": "仅当 required_points 全部实质覆盖且关键事实正确才 true，允许同义改写；不得因覆盖部分要点判 true。生成失败为 false。",
+  "grounded": "所有涉及本次事实的断言均有实际取得的证据支持；手册中的建议允许明确标为建议；不得把演示历史/录制测试数据说成当前生产根因；未取得证据时即使猜对也 false。",
+  "appropriate_abstention": "证据或参数缺失时明确不足并询问必要信息，不能编造；题目明示无匹配/不在清单/无关时，如实说明即 true；有充分证据可作答时无需机械拒答。",
+  "service_name_rule": "服务名只能来自用户问题、工具输出或证据；不在已知清单时如实说明并可列有效服务名，不得合成数据。",
+  "time_window_rule": "报告指标须注明来源、时间窗（UTC 换算北京时间）与本次阈值判定；用户指定窗口与实际窗口不一致时必须指出。",
+  "numeric_tolerance": {
+    "latency_ms_absolute": 1,
+    "error_rate_percentage_points_absolute": 0.1,
+    "qps_relative": 0.05,
+    "qps_absolute": 0.001,
+    "qps_rule": "相对或绝对容差满足一项即可"
+  },
+  "tool_scoring": "required_tools 全部存在，实际集合为 allowed_tools 子集；题目明示禁止/仅允许的工具约束必须被遵守，违反即工具分 false。",
+  "judges": {
+    "main": "qwen3.8-max",
+    "second": "qwen3.8-27b",
+    "recheck": "deepseek-v4-pro-0813",
+    "protocol": "同一冻结答案给两裁判，同 rubric、实际取得的完整编号证据，隐藏策略名/生成模型名/既有分数；保留裁判原文与失败；一致率不得冒充人工准确率"
+  }
+}

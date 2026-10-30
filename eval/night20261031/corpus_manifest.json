@@ -1,0 +1,62 @@
+{
+  "namespace": "night20261031",
+  "reuse_mode": "只读复用 scripts/knowledge 原文，不复制不改写；入库前按 sha256 校验",
+  "documents": [
+    {
+      "path": "scripts/knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+      "bytes": 1339,
+      "sha256": "0ae9bd8222608c81f5a845d945046696c44e4e2e302e726b7749a34f4470df31"
+    },
+    {
+      "path": "scripts/knowledge/Kafka消费积压处理.md",
+      "bytes": 827,
+      "sha256": "137038f0e45f6d7988ff5a8bcb73e7d00cac17a57489ca5a9151fc043571735d"
+    },
+    {
+      "path": "scripts/knowledge/MySQL慢查询治理.md",
+      "bytes": 661,
+      "sha256": "d14e3a7af58736365f362eaeaaf085bf14d91e8a8eebe7b61f5851da2db87ae8"
+    },
+    {
+      "path": "scripts/knowledge/Pod_OOMKilled处理指南.md",
+      "bytes": 859,
+      "sha256": "01cc434c1503bebaf605a501b71353b96b4d0edfdf8f77a1c5d585bfa68f6050"
+    },
+    {
+      "path": "scripts/knowledge/Redis集群主从切换SOP.md",
+      "bytes": 827,
+      "sha256": "b716825b8f3923fa38fe246d56e530e917aeecf9baf609df68cefa19cfea901d"
+    },
+    {
+      "path": "scripts/knowledge/order-service_接口超时排查SOP.md",
+      "bytes": 1158,
+      "sha256": "cef207a1693e7c76c48eeb4e34d55fc9d84abc30c81946fbdf97bc2ca8c24b04"
+    },
+    {
+      "path": "scripts/knowledge/payment-service_对账失败处理手册.md",
+      "bytes": 1004,
+      "sha256": "03a737c98ca5a73356197f1dfc4ef641e2f8361ab4e20496492aa79777709b77"
+    },
+    {
+      "path": "scripts/knowledge/日志平台使用指南.md",
+      "bytes": 651,
+      "sha256": "2b1e0a0525c9b8e31fbd8a95831c68675f0dcb853f40501e6c609158f93e12b6"
+    },
+    {
+      "path": "scripts/knowledge/服务熔断与限流说明.md",
+      "bytes": 773,
+      "sha256": "946d0e1dee12f497e8161f99c629d62c38a9c88b8278d96fdd9b3e5ae930bc6b"
+    },
+    {
+      "path": "scripts/knowledge/磁盘空间不足处理SOP.md",
+      "bytes": 1010,
+      "sha256": "4ed9153233da4ee562f4e9499603ee35f4c1b0baaca64602350499a9149fa34e"
+    },
+    {
+      "path": "scripts/knowledge/网关502排查手册.md",
+      "bytes": 749,
+      "sha256": "7ca5485f7500b81c77f6ce2df9d2adef9c5a3351b3804fffb58351ccb828c58d"
+    }
+  ],
+  "count": 11
+}

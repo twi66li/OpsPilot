@@ -1,0 +1,52 @@
+{
+  "namespace": "night20261031",
+  "baseline_commit": "1b0b3b2",
+  "status": "draft（待冻结）",
+  "human_reviewed": false,
+  "models": {
+    "generation": "qwen3.8-max",
+    "judge_main": "qwen3.8-max",
+    "judge_second": "qwen3.8-27b",
+    "recheck": "deepseek-v4-pro-0813",
+    "candidates_dev_only": [
+      "qwen3.8-2.4t-a95b",
+      "kimi-k3",
+      "glm-5.3"
+    ]
+  },
+  "generation": {
+    "temperature": 0,
+    "max_tokens": 1536,
+    "enable_thinking": false,
+    "retries": "初次+最多1次"
+  },
+  "retrieval": {
+    "mode": "hybrid",
+    "collection": "kb_night20261031",
+    "dim": 1024,
+    "embedding": "qwen3.7-text-embedding-flash",
+    "rerank": "qwen3.7-text-rerank"
+  },
+  "agent_modes": [
+    "rule",
+    "native"
+  ],
+  "metrics": {
+    "provider": "prometheus",
+    "default_window_minutes": 60,
+    "allowed_range": [
+      5,
+      240
+    ]
+  },
+  "history": {
+    "source": "seed.py 灌入的新租户演示故障记录",
+    "match_types": [
+      "exact",
+      "none"
+    ]
+  },
+  "seed": 20261031,
+  "isolation": "场景家族互斥；录制/回放证据按（service, window_minutes, seed）键匹配，不替代其他服务",
+  "accounting": "所有真实调用经统一门控预留/结算；账本逐请求落盘；缺 usage 记 unknown 不记零"
+}

@@ -1,0 +1,61 @@
+{
+  "namespace": "night20261031",
+  "purpose": "逐题失败/缺判/异常记录模板；失败与未完成必须如实保留",
+  "record_schema": {
+    "id": "场景 id（n31-xxx）",
+    "family": "家族",
+    "mode": "rule|native",
+    "split": "dev|test",
+    "question": "题目原文",
+    "input_refs": [
+      "实际取得的输入证据定位（回放键/录制文件/提示词快照）"
+    ],
+    "evidence_refs": [
+      "工具事件与 citation_id/编号证据定位"
+    ],
+    "output": "模型最终回答原文（失败时保留错误类型与消息，不写正文）",
+    "end_reason": "answered|model_error|budget_exhausted|invalid_model_output|tool_timeout|repeated_no_progress",
+    "judge": {
+      "main": {
+        "verdict": null,
+        "raw": null
+      },
+      "second": {
+        "verdict": null,
+        "raw": null
+      },
+      "recheck": {
+        "verdict": null,
+        "raw": null
+      },
+      "missing_judgment": "布尔：超时/缺判如实标记",
+      "attempts": [
+        {
+          "attempt": 1,
+          "error_type": null
+        }
+      ]
+    },
+    "usage": {
+      "estimated_reserve": null,
+      "actual_tokens": null,
+      "unknown_tokens": null,
+      "settlement": "committed|committed_unknown|unresolved"
+    },
+    "ledger_refs": {
+      "ledger_path": "账本文件路径",
+      "reserve_id": "预留记录 id",
+      "record_types": [
+        "reserved",
+        "committed"
+      ]
+    },
+    "failure_class": "none|tool_selection|parameter|budget|judge_missing|service_unavailable|other",
+    "notes": "人工补充说明（不改写原始输出）"
+  },
+  "rules": [
+    "失败题保留原始输出与错误类型，不以人工通过填空",
+    "缺 usage 的在途预留保留为 unknown，不释放",
+    "每次实验同时保存：代码提交、冻结材料哈希、逐题记录、每裁判结果、一致率与有效配对数、耗时、实报/未知用量"
+  ]
+}

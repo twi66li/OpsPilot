@@ -1,0 +1,23 @@
+{
+  "chat_model": "qwen3.8-flash",
+  "judges": [
+    "qwen3.8-max",
+    "deepseek-v4-pro-0813"
+  ],
+  "temperature": 0,
+  "max_tokens": 1536,
+  "tool_budget": 3,
+  "tool_timeout_seconds": 8,
+  "retriever": "同一11篇演示SOP的BM25+原项目分块；无远程embedding/rerank",
+  "default_top_k": 3,
+  "max_top_k": 5,
+  "modes": [
+    "rule",
+    "native"
+  ],
+  "family_split": "dev:dbpool/payment_history; test:redis_failover/oom/gateway502/order_metrics/missing_metrics/missing_knowledge",
+  "selection": "两个策略都评；不按开发集挑胜者；测试集不调参",
+  "qa_count": 24,
+  "mock_guards": 5,
+  "real_integration_groups": 3
+}

@@ -1,0 +1,27 @@
+{
+  "answer_correct": "仅当required_points全部实质覆盖且关键事实正确才true，允许同义改写；不得因为覆盖部分要点判true。生成失败为false。",
+  "grounded": "所有涉及本次事实的断言均有实际取得证据支持；资料中建议允许明确标为建议。不能将历史参考/录制测试数据说成当前生产根因。未取得证据时即使猜对也false。",
+  "appropriate_abstention": "证据或参数缺失时明确不足并询问必要信息，不能编造；有充分证据可作答，无需机械拒答。",
+  "numeric_tolerance": {
+    "latency_ms_absolute": 1,
+    "error_rate_percentage_points_absolute": 0.1,
+    "qps_relative": 0.05,
+    "qps_absolute": 0.001,
+    "qps_rule": "相对或绝对容差满足一项即可"
+  },
+  "tool_scoring": "required_tools全部存在，实际集合为allowed_tools子集；顺序不限、允许多种有效组合；参数按服务/错误码/窗口独立硬判，不交给裁判。",
+  "task_complete": "生成成功+工具选择正确+参数全正确+预算生效+裁判answer_correct/grounded/appropriate_abstention全true",
+  "judge_schema": {
+    "answer_correct": "boolean",
+    "grounded": "boolean",
+    "appropriate_abstention": "boolean",
+    "reason": "简短说明未满足的要点或证据问题"
+  },
+  "failed_judge": "保存原始错误；最多格式/传输重试1次；缺判不算通过，以完整预设题数为分母",
+  "limitations": [
+    "自动构造且未人工审核的24题，不是生产基准",
+    "原生和固定链的提示/模型回合不同，属于整套策略对比，不是只比较一个参数",
+    "演示SOP/历史不是生产记录；指标是测试注入真实采集后的录制回放",
+    "双裁判一致率不是人工准确率或独立金标，报告每裁判结果及分歧"
+  ]
+}

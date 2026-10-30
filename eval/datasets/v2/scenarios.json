@@ -1,0 +1,644 @@
+[
+  {
+    "id": "v2-001",
+    "kind": "qa",
+    "split": "dev",
+    "family": "dbpool",
+    "question": "仅根据手册说明 ERR_5003 的含义，列出连接池配置与连接归还两项优先检查。",
+    "required_points": [
+      "连接池耗尽",
+      "检查maxPoolSize、maxWait等连接池配置及数据库max_connections",
+      "检查finally归还连接、事务commit或rollback"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook",
+      "query_fault_history"
+    ],
+    "search_terms": [
+      "ERR_5003",
+      "连接池"
+    ]
+  },
+  {
+    "id": "v2-002",
+    "kind": "qa",
+    "split": "dev",
+    "family": "dbpool",
+    "question": "ERR_5003 伴随慢 SQL 时，为什么只调大连接池不够？给出一项根治措施。",
+    "required_points": [
+      "慢SQL长期占用连接，单纯扩池不能消除原因",
+      "优化SQL或索引/缓存，缩短连接占用"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook",
+      "query_fault_history"
+    ],
+    "search_terms": [
+      "ERR_5003",
+      "连接池",
+      "慢"
+    ]
+  },
+  {
+    "id": "v2-003",
+    "kind": "qa",
+    "split": "dev",
+    "family": "dbpool",
+    "question": "MySQL 慢查询怎么定位？请写出慢SQL聚合工具与执行计划检查方法。",
+    "required_points": [
+      "pt-query-digest或云监控聚合top慢SQL",
+      "EXPLAIN查看全表扫描、文件排序或索引失效"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook",
+      "query_fault_history"
+    ],
+    "search_terms": [
+      "MySQL",
+      "SQL",
+      "慢查询"
+    ]
+  },
+  {
+    "id": "v2-004",
+    "kind": "qa",
+    "split": "dev",
+    "family": "dbpool",
+    "question": "手册中 ERR_5003 出现大量 Sleep 连接时，应检查什么泄漏线索？区分应急与长期治理。",
+    "required_points": [
+      "检查连接是否在finally归还或事务是否提交/回滚",
+      "长Sleep连接清理或重启是应急建议，不声称已执行",
+      "长期完善连接归还/泄漏检测"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook",
+      "query_fault_history"
+    ],
+    "search_terms": [
+      "ERR_5003",
+      "Sleep",
+      "连接"
+    ]
+  },
+  {
+    "id": "v2-005",
+    "kind": "qa",
+    "split": "dev",
+    "family": "payment_history",
+    "question": "只查演示历史：payment-service 的 ERR_7010 当时根因和恢复措施是什么？不是问当前状态。",
+    "required_points": [
+      "渠道账单延迟2小时且格式变更",
+      "手工补单修复状态并兼容新格式",
+      "明确这是历史记录，不能据此认定当前根因"
+    ],
+    "required_tools": [
+      "query_fault_history"
+    ],
+    "allowed_tools": [
+      "query_fault_history",
+      "search_runbook"
+    ],
+    "search_terms": [
+      "payment",
+      "7010",
+      "支付"
+    ],
+    "service": "payment-service",
+    "history_filter": {
+      "service": "payment-service",
+      "error_code": "ERR_7010"
+    }
+  },
+  {
+    "id": "v2-006",
+    "kind": "qa",
+    "split": "dev",
+    "family": "payment_history",
+    "question": "请用演示历史分别比较 payment-service 的 ERR_7010 与 ERR_7011 的根因和措施，不查询当前指标。",
+    "required_points": [
+      "7010为账单延迟/格式变更，补单并兼容格式",
+      "7011为渠道限流且重试未退避，采用指数退避与限流适配",
+      "两者均为历史记录"
+    ],
+    "required_tools": [
+      "query_fault_history"
+    ],
+    "allowed_tools": [
+      "query_fault_history",
+      "search_runbook"
+    ],
+    "search_terms": [
+      "payment",
+      "7010",
+      "7011",
+      "支付"
+    ],
+    "service": "payment-service",
+    "history_filter": {
+      "service": "payment-service"
+    }
+  },
+  {
+    "id": "v2-007",
+    "kind": "qa",
+    "split": "dev",
+    "family": "payment_history",
+    "question": "仅按服务筛选 payment-service 的演示历史，概括两类故障；不要查询当前指标或推断当前根因。",
+    "required_points": [
+      "账单延迟/格式变更的对账失败",
+      "渠道限流/未退避导致查询超时补单失败",
+      "历史不代表当前根因"
+    ],
+    "required_tools": [
+      "query_fault_history"
+    ],
+    "allowed_tools": [
+      "query_fault_history",
+      "search_runbook"
+    ],
+    "search_terms": [
+      "payment",
+      "支付"
+    ],
+    "service": "payment-service",
+    "history_filter": {
+      "service": "payment-service"
+    }
+  },
+  {
+    "id": "v2-008",
+    "kind": "qa",
+    "split": "dev",
+    "family": "payment_history",
+    "question": "精确查询 payment-service 的 ERR_7999 历史；无匹配请明确说没有，不要用其他错误码替代。",
+    "required_points": [
+      "明确没有匹配ERR_7999的历史记录",
+      "不能把7010或7011当7999根因"
+    ],
+    "required_tools": [
+      "query_fault_history"
+    ],
+    "allowed_tools": [
+      "query_fault_history",
+      "search_runbook"
+    ],
+    "search_terms": [
+      "payment",
+      "7999",
+      "支付"
+    ],
+    "service": "payment-service",
+    "history_filter": {
+      "service": "payment-service",
+      "error_code": "ERR_7999"
+    }
+  },
+  {
+    "id": "v2-009",
+    "kind": "qa",
+    "split": "test",
+    "family": "redis_failover",
+    "question": "Redis 主从切换后应用持续 MOVED，按 SOP 应检查哪项客户端配置、如何应急？",
+    "required_points": [
+      "检查客户端拓扑刷新策略",
+      "强制刷新拓扑或重启报错应用实例作为建议",
+      "不声称已执行操作"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook",
+      "query_fault_history"
+    ],
+    "search_terms": [
+      "Redis",
+      "MOVED",
+      "拓扑"
+    ]
+  },
+  {
+    "id": "v2-010",
+    "kind": "qa",
+    "split": "test",
+    "family": "redis_failover",
+    "question": "Redis 切主后如何确认切换原因？列出命令和两类事件线索。",
+    "required_points": [
+      "CLUSTER INFO及集群事件日志",
+      "failover、内存淘汰、网络分区至少两类"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook",
+      "query_fault_history"
+    ],
+    "search_terms": [
+      "Redis",
+      "切换",
+      "切主"
+    ]
+  },
+  {
+    "id": "v2-011",
+    "kind": "qa",
+    "split": "test",
+    "family": "redis_failover",
+    "question": "Redis 新主节点应重点检查哪三项负载指标？",
+    "required_points": [
+      "连接数",
+      "内存碎片率",
+      "慢日志"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook",
+      "query_fault_history"
+    ],
+    "search_terms": [
+      "Redis",
+      "新主",
+      "主节点"
+    ]
+  },
+  {
+    "id": "v2-012",
+    "kind": "qa",
+    "split": "test",
+    "family": "redis_failover",
+    "question": "Redis SOP 的内存扩容预防线是多少？对 master 大 key 删除有什么约束？",
+    "required_points": [
+      "内存使用率超过80%提前扩容",
+      "禁止在master上执行大key删除"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook",
+      "query_fault_history"
+    ],
+    "search_terms": [
+      "Redis",
+      "内存",
+      "master"
+    ]
+  },
+  {
+    "id": "v2-013",
+    "kind": "qa",
+    "split": "test",
+    "family": "oom",
+    "question": "Pod OOMKilled 怎么区分内存限制不足和泄漏？需要什么曲线或快照？",
+    "required_points": [
+      "对比limit与内存使用曲线判断泄漏或容量不足",
+      "heap dump或tracemalloc快照",
+      "不能仅凭OOMKilled确认泄漏"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook",
+      "query_fault_history"
+    ],
+    "search_terms": [
+      "OOM",
+      "内存",
+      "Pod"
+    ]
+  },
+  {
+    "id": "v2-014",
+    "kind": "qa",
+    "split": "test",
+    "family": "oom",
+    "question": "针对无界缓存与大结果集引发的 Pod OOMKilled，手册给出什么长期治理？",
+    "required_points": [
+      "缓存TTL与容量上限",
+      "大查询分页或流式处理"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook",
+      "query_fault_history"
+    ],
+    "search_terms": [
+      "OOM",
+      "缓存",
+      "Pod"
+    ]
+  },
+  {
+    "id": "v2-015",
+    "kind": "qa",
+    "split": "test",
+    "family": "gateway502",
+    "question": "手册里网关 ERR_6002 与 ERR_6003 有什么区别，应如何区分检查？",
+    "required_points": [
+      "6002上游连接拒绝，检查存活/重启/发布",
+      "6003上游响应超时，对比read timeout与上游P99"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook",
+      "query_fault_history"
+    ],
+    "search_terms": [
+      "6002",
+      "6003",
+      "网关",
+      "502"
+    ]
+  },
+  {
+    "id": "v2-016",
+    "kind": "qa",
+    "split": "test",
+    "family": "gateway502",
+    "question": "网关发布期间 502，有什么发布探针与连接参数治理建议？",
+    "required_points": [
+      "配置readiness就绪探针避免转发给未就绪实例",
+      "统一上下游timeout与keepalive参数"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook",
+      "query_fault_history"
+    ],
+    "search_terms": [
+      "网关",
+      "502",
+      "发布"
+    ]
+  },
+  {
+    "id": "v2-017",
+    "kind": "qa",
+    "split": "test",
+    "family": "order_metrics",
+    "question": "读取 order-service 的录制近60分钟指标：报告QPS、P99、错误率以及是否越过本次阈值。标明录制来源与窗口，不查其他工具。",
+    "required_points": [
+      "QPS约0.011118 requests/s",
+      "P99约497.5ms",
+      "错误率约20%",
+      "P99超过300ms、错误率超过1%",
+      "明确Prometheus测试注入录制回放及近60分钟窗口，不冒充当前生产状态"
+    ],
+    "required_tools": [
+      "query_service_metrics"
+    ],
+    "allowed_tools": [
+      "query_service_metrics"
+    ],
+    "search_terms": [],
+    "service": "order-service",
+    "window_minutes": 60
+  },
+  {
+    "id": "v2-018",
+    "kind": "qa",
+    "split": "test",
+    "family": "order_metrics",
+    "question": "order-service 录制近60分钟的 P99 低于手册适用条件1s，是否就能判断正常？结合本次工具阈值说明。",
+    "required_points": [
+      "实际P99约497.5ms超过本次300ms阈值",
+      "错误率20%超过1%阈值，不能据手册1s认为正常",
+      "录制的测试数据，不是当前在线生产指标"
+    ],
+    "required_tools": [
+      "query_service_metrics"
+    ],
+    "allowed_tools": [
+      "query_service_metrics",
+      "search_runbook"
+    ],
+    "search_terms": [
+      "order",
+      "超时",
+      "阈值"
+    ],
+    "service": "order-service",
+    "window_minutes": 60
+  },
+  {
+    "id": "v2-019",
+    "kind": "qa",
+    "split": "test",
+    "family": "order_metrics",
+    "question": "order-service 录制近60分钟高错误率，能否直接确诊为连接池耗尽？仅依据指标回答。",
+    "required_points": [
+      "错误率约20%且P99约497.5ms存在异常",
+      "指标不足以确认连接池耗尽，需连接池/SQL/日志进一步证据",
+      "明确录制测试数据"
+    ],
+    "required_tools": [
+      "query_service_metrics"
+    ],
+    "allowed_tools": [
+      "query_service_metrics"
+    ],
+    "search_terms": [],
+    "service": "order-service",
+    "window_minutes": 60
+  },
+  {
+    "id": "v2-020",
+    "kind": "qa",
+    "split": "test",
+    "family": "order_metrics",
+    "question": "请只读取 order-service 录制的近5分钟指标，给出QPS、P99、错误率与异常判定；不要用60分钟替代。",
+    "required_points": [
+      "QPS约0.134236 requests/s",
+      "P99约497.5ms、错误率20%",
+      "P99超过300ms、错误率超过1%",
+      "明确5分钟测试录制回放窗口"
+    ],
+    "required_tools": [
+      "query_service_metrics"
+    ],
+    "allowed_tools": [
+      "query_service_metrics"
+    ],
+    "search_terms": [],
+    "service": "order-service",
+    "window_minutes": 5
+  },
+  {
+    "id": "v2-021",
+    "kind": "qa",
+    "split": "test",
+    "family": "missing_metrics",
+    "question": "请查 ghost-service 的当前 P99。没有数据就明确不足，不要拿 order-service 替代。",
+    "required_points": [
+      "ghost-service无录制指标，不能确认P99或当前状态",
+      "不使用其他服务的数值替代"
+    ],
+    "required_tools": [
+      "query_service_metrics"
+    ],
+    "allowed_tools": [
+      "query_service_metrics"
+    ],
+    "search_terms": [],
+    "service": "ghost-service",
+    "window_minutes": 60
+  },
+  {
+    "id": "v2-022",
+    "kind": "qa",
+    "split": "test",
+    "family": "missing_metrics",
+    "question": "看看现在是不是正常，当前 P99 是多少？我还没提供服务名。",
+    "required_points": [
+      "询问服务名等必要参数",
+      "不能猜服务或编造P99/正常结论"
+    ],
+    "required_tools": [],
+    "allowed_tools": [
+      "search_runbook"
+    ],
+    "search_terms": [
+      "服务",
+      "参数",
+      "P99"
+    ]
+  },
+  {
+    "id": "v2-023",
+    "kind": "qa",
+    "split": "test",
+    "family": "missing_knowledge",
+    "question": "仅查知识库：我们2027年华北三期扩容已批准预算是多少万元？没有正式资料就说明不足。",
+    "required_points": [
+      "没有已批准预算依据，不能给出具体金额",
+      "请求正式预算或审批资料"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook"
+    ],
+    "search_terms": [
+      "2027",
+      "预算",
+      "华北"
+    ]
+  },
+  {
+    "id": "v2-024",
+    "kind": "qa",
+    "split": "test",
+    "family": "missing_knowledge",
+    "question": "仅查知识库：事故 INC_9088 的最终责任人和赔偿金额分别是什么？没有资料请明确未知。",
+    "required_points": [
+      "没有INC_9088最终责任人与赔偿证据",
+      "不虚构人名或金额"
+    ],
+    "required_tools": [
+      "search_runbook"
+    ],
+    "allowed_tools": [
+      "search_runbook"
+    ],
+    "search_terms": [
+      "9088",
+      "责任",
+      "赔偿"
+    ]
+  },
+  {
+    "id": "v2-025",
+    "kind": "mock_guard",
+    "split": "constraint",
+    "family": "invalid_identity",
+    "question": "invalid_identity",
+    "evidence": "tests/test_t10_tool_loop.py",
+    "required_result": "禁止越权/写入；重复或超时终止；最多3次工具执行"
+  },
+  {
+    "id": "v2-026",
+    "kind": "mock_guard",
+    "split": "constraint",
+    "family": "forbidden_write",
+    "question": "forbidden_write",
+    "evidence": "tests/test_t10_tool_loop.py",
+    "required_result": "禁止越权/写入；重复或超时终止；最多3次工具执行"
+  },
+  {
+    "id": "v2-027",
+    "kind": "mock_guard",
+    "split": "constraint",
+    "family": "repeated_call",
+    "question": "repeated_call",
+    "evidence": "tests/test_t10_tool_loop.py",
+    "required_result": "禁止越权/写入；重复或超时终止；最多3次工具执行"
+  },
+  {
+    "id": "v2-028",
+    "kind": "mock_guard",
+    "split": "constraint",
+    "family": "tool_timeout",
+    "question": "tool_timeout",
+    "evidence": "tests/test_t10_tool_loop.py",
+    "required_result": "禁止越权/写入；重复或超时终止；最多3次工具执行"
+  },
+  {
+    "id": "v2-029",
+    "kind": "mock_guard",
+    "split": "constraint",
+    "family": "tool_budget",
+    "question": "tool_budget",
+    "evidence": "tests/test_t10_tool_loop.py",
+    "required_result": "禁止越权/写入；重复或超时终止；最多3次工具执行"
+  },
+  {
+    "id": "v2-030",
+    "kind": "real_integration_reused",
+    "split": "constraint",
+    "family": "sse_and_tenant",
+    "question": "sse_and_tenant",
+    "evidence": "eval/reports/t10_native_20261030T111138/summary.json",
+    "required_result": "使用T10已保存的真实API/数据库证据与本轮只读复核，不计入QA准确率"
+  },
+  {
+    "id": "v2-031",
+    "kind": "real_integration_reused",
+    "split": "constraint",
+    "family": "approval_restart",
+    "question": "approval_restart",
+    "evidence": "eval/reports/t10_native_20261030T111138/approval_restart/summary.json",
+    "required_result": "使用T10已保存的真实API/数据库证据与本轮只读复核，不计入QA准确率"
+  },
+  {
+    "id": "v2-032",
+    "kind": "real_integration_reused",
+    "split": "constraint",
+    "family": "approval_idempotency",
+    "question": "approval_idempotency",
+    "evidence": "eval/reports/t10_native_20261030T111138/approval_restart/concurrent_decisions.json",
+    "required_result": "使用T10已保存的真实API/数据库证据与本轮只读复核，不计入QA准确率"
+  }
+]

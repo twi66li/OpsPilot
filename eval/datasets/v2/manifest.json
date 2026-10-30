@@ -1,0 +1,25 @@
+{
+  "version": "v2",
+  "created_at": "2026-10-30T11:26:40.693473+00:00",
+  "human_reviewed": false,
+  "source": "现有11篇项目SOP、演示种子故障史、T10真实测试注入Prometheus录制；新增场景不复制v1题目；未新增网络事实",
+  "source_commit": "ee3d95b",
+  "files": {
+    "config.json": "dc0c2a9209cd32382e2850ed7dcc26448ba89f0dd9e1be3fa238c36cd51484b0",
+    "corpus.json": "cf35e1c7b4689ee67b5b3acb992d03d7784bf1c21dd56a85fb04e0dce08a2dfe",
+    "history_snapshot.json": "8dc9e1f378a222d9fe988263755b4499252dd719a153b78d9d793bb3af1dfee9",
+    "metrics_snapshot.json": "0c012969a1d480b4f0b30de72662bf180742a5f9c28a10b25f38eecfae7a9dbd",
+    "rubric.json": "8e5bc207b5e969435e218cd6ce768988cda2b53dd2da12bbecd85383d79b91a1",
+    "scenarios.json": "8514ea04f8fb061da8b435ef2346965a8b56612c54d670982debabd8cb20634c"
+  },
+  "qa": {
+    "dev": 8,
+    "test": 16,
+    "family_disjoint": true
+  },
+  "constraint": {
+    "mock": 5,
+    "real_integration_groups": 3
+  },
+  "frozen_before_any_dev_or_test_generation": true
+}

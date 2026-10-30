@@ -81,7 +81,7 @@ def test_reject_does_not_create_ticket(client, admin_headers, engineer_headers):
     assert after == before
 
 
-def test_double_decision_rejected(client, admin_headers, engineer_headers):
+def test_repeated_same_decision_returns_existing_ticket(client, admin_headers, engineer_headers):
     session_id = new_session(client, admin_headers)
     result = _start_ticket_flow(client, admin_headers, session_id)
     approval_id = result["approval"]["approval_id"]
@@ -92,4 +92,5 @@ def test_double_decision_rejected(client, admin_headers, engineer_headers):
     second = client.post(
         f"/api/agent/approvals/{approval_id}/decide", json={"approved": True, "comment": ""}, headers=engineer_headers
     )
-    assert second.status_code == 400
+    assert second.status_code == 200
+    assert second.json()["ticket_id"] == first.json()["ticket_id"]

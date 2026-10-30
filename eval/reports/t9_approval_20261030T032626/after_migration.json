@@ -1,0 +1,19 @@
+{
+  "checkpointer": "SqliteSaver",
+  "checkpoint_path": "/app/data/checkpoints.sqlite3",
+  "strict": true,
+  "llm": "OpenAIChatLLM",
+  "mysql": "mysql",
+  "legacy_rows_unchanged": true,
+  "approval_column_exists": true,
+  "unique_index": [
+    {
+      "name": "uq_tickets_approval_id",
+      "column_names": [
+        "approval_id"
+      ],
+      "unique": true
+    }
+  ],
+  "total_tickets": 1
+}

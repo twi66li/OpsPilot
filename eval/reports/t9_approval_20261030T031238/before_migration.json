@@ -1,0 +1,26 @@
+{
+  "counts": {
+    "tickets": 1,
+    "approval_requests": 1,
+    "messages": 8,
+    "documents": 13
+  },
+  "ticket_ids": [
+    "d56dfa4a15a84c55be4f94d3588c84c6"
+  ],
+  "ticket_columns": [
+    "id",
+    "tenant_id",
+    "session_id",
+    "title",
+    "description",
+    "severity",
+    "status",
+    "created_by",
+    "approver",
+    "decision_comment",
+    "created_at",
+    "decided_at"
+  ],
+  "ticket_rows_sha256": "971b7734634e89369926f6a07a18f99272da5384029ea59dc549f656de91de8d"
+}

@@ -1,0 +1,14 @@
+{
+  "baseline": "5e74ea3",
+  "runner_sha256": "54826d854bc2852aee4f79cff6fc30036f6e2abc20f8c427d2d461e78cb67c3a",
+  "artifacts": {
+    "after_migration.json": "31ccbaa3264c426f584b09f8c4d7ede91c49214ba2f25924b43aff559ce89b3b",
+    "before_migration.json": "3fac317d8153c27833e906dc62854f571402d8594598c22337f364ffba4b0aa3",
+    "http.json": "63afde7fc28d624081023d5b3aa81aca8e078dc3945420c8ccb056d8d4a93435",
+    "missing_approval_diagnosis.json": "571d779c9f22d39a0e6014ecf811d2fb049d69593a24e4bb49cc6b1e6a4457f3",
+    "summary.json": "e84864e0ad4477c1340f74301b777748d02891928bf8fdf2d0fe586c54843503",
+    "usage.json": "41ef19a4292deed6ac9da6b1be8e692d160f5e608166c5b9bf70515427d83869"
+  },
+  "credential_scan": "passed_exact_secret_and_sk_pattern",
+  "annotation": "保留原失败记录；追加缺失审批字段的诊断证据及摘要，不覆盖原始HTTP/usage。"
+}

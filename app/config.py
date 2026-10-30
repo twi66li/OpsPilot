@@ -53,6 +53,8 @@ class Settings(BaseSettings):
     prometheus_url: str = "http://localhost:19090"
     prometheus_timeout_seconds: float = 3.0
 
+    checkpoint_path: str = ""  # 离线测试为空；单进程 Compose 使用持久卷中的 SQLite 文件
+
     # ---- Langfuse ----
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""

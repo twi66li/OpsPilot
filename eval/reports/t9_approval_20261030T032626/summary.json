@@ -1,0 +1,48 @@
+{
+  "status": "passed_pending_zcode_review",
+  "started_at": "2026-10-30T03:26:37.358068+00:00",
+  "approved_approval": "894645f5ac624f148a71d60dc982f7f8",
+  "rejected_approval": "b9a9953dcb8d4fb8a0d5fd1a4dc7fc2c",
+  "ticket_id": "4a7b4127268340e0adbbfa9e3e7ce007",
+  "concurrent_requests": 4,
+  "unique_ticket_count": 1,
+  "rejected_ticket_count": 0,
+  "real_api_restarts": 2,
+  "cross_tenant_blocked": true,
+  "viewer_blocked": true,
+  "legacy_migration_preserved": true,
+  "scope": "单API进程 + 文件型SqliteSaver + 实际MySQL/Redis/Qdrant及真实模型；非多实例部署或分布式原子事务",
+  "completed_at": "2026-10-30T03:27:42.862187+00:00",
+  "validation": {
+    "minimal_related_tests": 10,
+    "full_pytest_final": 85,
+    "ruff": "app scripts eval tests passed",
+    "native_interrupt_regression": "实际原生LangGraph输出，修复前失败、支持tuple后通过",
+    "real_integration_runner": "scripts/check_approval_restart.py"
+  },
+  "migration": {
+    "mode": "只新增可空approval_id列与uq_tickets_approval_id唯一索引，不猜测旧审批关联，不删除旧数据",
+    "legacy_ticket_rows_unchanged": true,
+    "old_ticket_id": "d56dfa4a15a84c55be4f94d3588c84c6",
+    "legacy_checkpoint_limit": "T7/T8旧内存检查点没有可迁移的磁盘状态；新文件型检查点用于T9之后流程。本轮失败尝试的待审批测试会话原样保留。"
+  },
+  "findings_fixed": [
+    "真实MySQL REPEATABLE READ旧历史读取快照看不到独立节点新建审批：非流式chat结束旧只读事务后再读取审批",
+    "原生LangGraph tuple中断载荷未被旧事件解析器识别：支持list/tuple，保留真实原生接口回归"
+  ],
+  "failure_evidence": "eval\\reports\\t9_approval_20261030T031238",
+  "usage": {
+    "successful_attempt_requests": 10,
+    "successful_attempt_tokens": 6598,
+    "initial_failed_attempt_requests": 5,
+    "initial_failed_attempt_tokens": 3409,
+    "total_saved_tokens": 10007,
+    "coverage": "T9初次失败与修复后完整流程分别按容器/脚本启动时间记录，未核实账单或账户余额"
+  },
+  "limitations": [
+    "仅单API进程，审批用进程内锁协调；不宣称多实例支持",
+    "MySQL业务提交与SQLite图检查点不构成分布式原子事务；由工单approval_id唯一约束与重放恢复兜底",
+    "单测模拟提交后检查点前的中断；真实集成验证正常API进程重启，不声称断电/生产容灾测试",
+    "T7/T8/T9独立复核均等待ZCode回信，未自行置done；T10/T11未开工"
+  ]
+}

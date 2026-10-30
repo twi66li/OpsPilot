@@ -15,6 +15,7 @@ class Container:
     tracer: object
     cache: object
     graph: object
+    checkpoint_connection: object | None = None
 
     @contextmanager
     def db_session(self):
@@ -55,7 +56,18 @@ def get_container() -> Container:
         tracer = get_tracer()
         cache = get_cache()
         nodes = DiagnosisNodes(None)
-        graph = build_graph(nodes)
+        connection = None
+        checkpointer = None
+        if settings.checkpoint_path:
+            import sqlite3
+            from pathlib import Path
+
+            from langgraph.checkpoint.sqlite import SqliteSaver
+
+            Path(settings.checkpoint_path).parent.mkdir(parents=True, exist_ok=True)
+            connection = sqlite3.connect(settings.checkpoint_path, check_same_thread=False)
+            checkpointer = SqliteSaver(connection)
+        graph = build_graph(nodes, checkpointer)
         _container = Container(
             settings=settings,
             embedder=embedder,
@@ -67,6 +79,7 @@ def get_container() -> Container:
             tracer=tracer,
             cache=cache,
             graph=graph,
+            checkpoint_connection=connection,
         )
         nodes.container = _container
     return _container
@@ -75,6 +88,8 @@ def get_container() -> Container:
 def reset_container() -> None:
     """测试用：重建容器（例如切换配置后）。"""
     global _container
+    if _container is not None and _container.checkpoint_connection is not None:
+        _container.checkpoint_connection.close()
     _container = None
 
 

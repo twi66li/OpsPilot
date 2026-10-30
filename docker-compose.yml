@@ -59,10 +59,13 @@ services:
       RERANK_MODEL: ${RERANK_MODEL:-qwen3.7-text-rerank}
       METRICS_PROVIDER: prometheus
       PROMETHEUS_URL: http://prometheus:9090
+      CHECKPOINT_PATH: /app/data/checkpoints.sqlite3
       JWT_SECRET: ${JWT_SECRET:-change-me-in-prod}
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
       LANGFUSE_HOST: ${LANGFUSE_HOST:-https://cloud.langfuse.com}
+    volumes:
+      - checkpoints_data:/app/data
     depends_on:
       mysql:
         condition: service_healthy
@@ -95,3 +98,4 @@ volumes:
   redis_data:
   qdrant_data:
   prometheus_data:
+  checkpoints_data:

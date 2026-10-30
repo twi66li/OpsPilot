@@ -1,0 +1,13 @@
+{
+  "checkpointer": "SqliteSaver",
+  "checkpoint_path": "/app/data/checkpoints.sqlite3",
+  "strict": true,
+  "llm": "OpenAIChatLLM",
+  "mysql": "mysql",
+  "total_tickets": 1,
+  "graph_next": [
+    "approval_gate"
+  ],
+  "graph_approval_id": "894645f5ac624f148a71d60dc982f7f8",
+  "checkpoint_file_bytes": 4096
+}

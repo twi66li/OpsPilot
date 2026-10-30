@@ -1,0 +1,41 @@
+{
+  "baseline": "5e74ea3",
+  "runner_sha256": "54826d854bc2852aee4f79cff6fc30036f6e2abc20f8c427d2d461e78cb67c3a",
+  "artifacts": {
+    "after_migration.json": "31ccbaa3264c426f584b09f8c4d7ede91c49214ba2f25924b43aff559ce89b3b",
+    "approval_restart.json": "6fcba1c2235a97a6755e1b68d761569ddd92cd774e38d2c31ec7f156a1e764ee",
+    "before_migration.json": "3fac317d8153c27833e906dc62854f571402d8594598c22337f364ffba4b0aa3",
+    "concurrent_decisions.json": "8541eb776f5cea69267a77e49224f44a8ab89cd0c61194e4ec999f04bfd66aa7",
+    "final_backend.json": "531eec0c3b997674972927614da8db156cf969780d33d3a56084ec06b57f0e6c",
+    "http.json": "0ba5f7057f9ee382ba7d977fb6e1aef3d4f2886738738f2533d7fa3ef842a23c",
+    "paused_checkpoint.json": "df0e161754d6ad8065b8c538b1425ad92341a56b292c4e3aca73f4fbf2f7f818",
+    "previous_attempt.json": "b9800c78331adf6389e7423db1e08681c0b5716a8946b6bb6d1e80b55edbe196",
+    "rejection_restart.json": "7befc928d564cc9cc027fef2449ff8c9d98049de68b31bfad1422abe4febb0cb",
+    "summary.json": "3df9b8727122e92dafbf2a32b0ada4b851f259e34b83cc59801e3ec7e144ff4f",
+    "usage.json": "e990f2e8827cfead3c30625d61de6993323f4dec3c2c18f9e8c2f158ea5b9a5a"
+  },
+  "credential_scan": "passed_exact_secret_and_sk_pattern",
+  "source_sha256": {
+    "app/agent/graph.py": "6bf2ed00e454f84f7e6a1a97300e3250c13c4bacca8fdb6f8470df8c61dd5a87",
+    "app/agent/nodes.py": "fc270629f0151088329917535c0a81b919448078f9bab747bd97906e8c74b538",
+    "app/config.py": "b3cd249e421cff48095fb14b153fc1bedecf47c43fc57db7b0f7e85f374a78f7",
+    "app/container.py": "ffc4f5f2917b6d43f02d8d452c80be1439fd3b5c701fd5f1d2282f0713f2171e",
+    "app/db/base.py": "8599fc8a3514cca0773a80c5ec4ec2395057887214b2a01ef875e4cbd2ac7192",
+    "app/db/models.py": "838a54a0e02447c81c49a7965c2d4fa18fe1973dcf67b5325f5d997e201d4047",
+    "app/main.py": "9c3c73533679f5b1624feaf1779f48959e500cb2dd418c685f72d21874fcb4f8",
+    "app/services/agent_service.py": "14d0dbbbcec9601d890b9db83d3ada5b00cd60e67d2be147d80932c0cf210556",
+    "app/services/ticket_service.py": "aab3751ec58075362810b4302ea5ffde7e19b7f26da67552071a3d57519c6e11",
+    "docker-compose.yml": "d3aea057b1830adacf4e0c1214f6f6f1331451952faf918134aa1cf8aae909f5",
+    "requirements-optional.txt": "5355616afaa5121c196c7388d38eb659ecbc09de71b043d74a83345cb8ff31ca",
+    "requirements.txt": "3ca4051dbeb65032913b45a50f7b922877e88253d7e419363395128e67ffc5ad",
+    "scripts/check_approval_restart.py": "54826d854bc2852aee4f79cff6fc30036f6e2abc20f8c427d2d461e78cb67c3a",
+    "tests/test_approval.py": "a54aa6d268e922271f3d010272ed62eefb0a4f458cd10c967e6d8426c0b26d92",
+    "tests/test_stream_live.py": "c0247dd46c6c60aa595c360899ac35ca4a31f2e75edbb4b5d6da515c5a5139e0",
+    "tests/test_t9_persistence.py": "d6087831ef6563fade92f1290c2a434086e715cf6b5c7d92a694c6df6132509c"
+  },
+  "protected_diff_empty": true,
+  "validated_at": "2026-10-30T03:28:43.032335+00:00",
+  "full_pytest": 85,
+  "ruff": "passed",
+  "post_validation_cleanup": "仅移除新增测试文件末尾多余空行，不改变执行逻辑。"
+}

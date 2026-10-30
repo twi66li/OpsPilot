@@ -1,0 +1,16 @@
+{
+  "original_response_has_approval": false,
+  "interrupts": [],
+  "fresh_request_status": 200,
+  "fresh_request_pending": {
+    "pending": true,
+    "approval_id": "0fd1147f5e8c4365a6d718091b6998bd",
+    "ticket_draft": {
+      "title": "[Order-Service] 接口超时与高错误率告警跟进",
+      "service": "order-service",
+      "severity": "P2",
+      "description": "现象：order-service 在指定时间窗内 P99 延迟达 495.62ms（阈值 300ms），错误率达 11.43%（阈值 1%）。\n初步排查方向：\n1. 检查是否因下游依赖（库存/支付服务）抖动导致超时，需确认是否配置了合理超时与熔断 [2]。\n2. 检查数据库连接池是否耗尽（ERR_5003），参考历史故障“订单服务连接池耗尽导致大面积超时” [2][4]。\n3. 检查 GC 停顿情况，排除 Full GC 频繁导致的 STW [2]。\n4. 若为大促期间，检查线程池是否打满 [2]。\n处理方案（依据 SOP [1]）：\n*   **应急措施**：对非核心下游执行降级。"
+    }
+  },
+  "mysql_isolation": "REPEATABLE READ"
+}

@@ -18,9 +18,14 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    init_db()
-    bootstrap()
-    yield
+    from app.container import reset_container
+
+    try:
+        init_db()
+        bootstrap()
+        yield
+    finally:
+        reset_container()
 
 
 def bootstrap() -> None:

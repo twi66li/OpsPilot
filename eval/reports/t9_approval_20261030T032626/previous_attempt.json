@@ -1,0 +1,6 @@
+{
+  "report": "eval\\reports\\t9_approval_20261030T031238",
+  "status": "保留失败原文",
+  "fix": "结束MySQL历史只读事务并支持原生元组中断；重新验证同一正式API路径",
+  "migration_snapshot": "沿用修改前快照，不覆盖首次失败记录"
+}

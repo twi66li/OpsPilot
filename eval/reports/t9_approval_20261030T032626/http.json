@@ -1,0 +1,563 @@
+[
+  {
+    "method": "POST",
+    "path": "/api/sessions",
+    "request": {
+      "title": "T9跨重启批准"
+    },
+    "status": 200,
+    "response": {
+      "id": "6c2444b0229a48199d88fd7a80d2036a",
+      "title": "T9跨重启批准",
+      "created_at": "2026-10-30T03:26:40.530696+00:00"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/agent/chat",
+    "request": {
+      "session_id": "6c2444b0229a48199d88fd7a80d2036a",
+      "message": "order-service 超时，请创建工单跟进处理。"
+    },
+    "status": 200,
+    "response": {
+      "status": "approval_required",
+      "answer": "根据用户请求，针对 `order-service` 超时问题，已结合知识库文档、工具输出及历史故障信息生成工单内容如下：\n\n### 🎫 工单详情\n\n**标题**：[P2] order-service 接口超时告警跟进处理\n**优先级**：P2（建议根据实际业务影响调整，若涉及核心交易链路可升级为 P1）\n**状态**：新建 / 待排查\n\n#### 1. 故障现象与指标依据\n*   **当前状态**：监控显示 `order-service` 存在性能异常。\n*   **关键指标**（来源：Prometheus测试服务实际采集；时间窗：2026-10-30T02:26:42.395000+00:00 至 2026-10-30T03:26:42.395000+00:00）：\n    *   **P99 延迟**：**495.62ms**，超过阈值 **300ms** [工具输出]。\n    *   **错误率**：**11.43%**，超过阈值 **1%** [工具输出]。\n    *   **QPS**：0.019 requests/s（注：QPS极低但错误率高，需警惕是否为特定场景或采样偏差，但延迟和错误率已触发告警）。\n*   **适用场景匹配**：符合《order-service 接口超时排查 SOP》中定义的“对外接口 P99 延迟超过 1s”或出现大量超时的场景特征（虽当前P99未达1s，但已显著高于基线且伴随高错误率）[3]。\n\n#### 2. 初步根因分析（基于SOP与历史故障）\n请值班人员按以下顺序排查常见根因 [2][4]：\n1.  **数据库连接池耗尽**：检查是否出现 `ERR_5003` 错误码。历史故障显示“订单服务连接池耗尽导致大面积超时”是高频原因，表现为获取连接超时 [2][4]。\n2.  **下游依赖抖动**：检查库存服务、支付服务调用情况。若出现 `ERR_6001`（下游调用超时），可能是下游服务响应慢或未配置合理熔断 [2][4]。历史案例中有“order-service 调用库存服务超时”的记录 [历史故障]。\n3.  **GC 停顿**：检查 JVM GC 日志，确认是否有频繁 Full GC 导致 STW（Stop-The-World）[2]。\n4.  **线程池打满**：虽然当前 QPS 较低，仍需确认是否存在突发流量导致的线程池阻塞 [2]。\n\n#### 3. 建议处理步骤\n**应急措施** [1]：\n*   若确认为非核心下游依赖导致，执行降级策略。\n*   考虑临时扩容 `order-service` 实例数以缓解压力。\n\n**治理与修复** [1][历史故障]：\n*   **数据库层面**：若定位为连接池问题，参考历史方案“临时上调 max_connections”，并重点排查慢 SQL，为订单查询补索引（历史案例显示补索引后慢查询下降 90%）[1][历史故障]。\n*   **下游调用**：确保为所有下游调用设置 **200ms~1s** 的超时时间，并启用熔断机制 [1]。\n*   **代码/配置优化**：优化慢 SQL，检查线程池配置。\n\n**复盘要求** [1]：\n*   故障解决后，需将最终根因与处理步骤录入故障知识库。\n\n#### 4. 关联信息\n*   **相关错误码**：ERR_6001 (下游超时), ERR_5003 (DB连接池耗尽) [4]。\n*   **历史相似故障参考**：\n    *   订单服务连接池耗尽导致大面积超时 [历史故障]。\n    *   order-service 调用库存服务超时 [历史故障]。\n    *   订单服务连接获取超时（通过补索引解决） [历史故障]。\n\n---\n**备注**：本工单基于自动诊断助手生成，具体操作请遵循公司变更管理规范。若涉及资金差异或核心交易中断，请立即升级优先级并通知财务值班 [5]。\n\n指标证据：\norder-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T02:26:42.395000+00:00 至 2026-10-30T03:26:42.395000+00:00；QPS=0.019453998895555956 requests/s, P99=495.625ms, 错误率=11.428571428571429%；本次阈值判定：P99 延迟 495.62ms 超过 300ms 阈值；错误率 11.43% 超过 1% 阈值",
+      "citations": [
+        "order-service 接口超时排查 SOP",
+        "payment-service 对账失败处理手册"
+      ],
+      "intent": "create_ticket",
+      "ticket_id": null,
+      "docs_sufficient": true,
+      "session_id": "6c2444b0229a48199d88fd7a80d2036a",
+      "events": [
+        {
+          "type": "node_status",
+          "node": "route_intent",
+          "status": "completed"
+        },
+        {
+          "type": "node_status",
+          "node": "retrieve",
+          "status": "completed"
+        },
+        {
+          "type": "retrieval",
+          "mode": "hybrid",
+          "query": "order-service 超时，请创建工单跟进处理。",
+          "latency_ms": 974.7,
+          "reranked": true,
+          "hits": [
+            {
+              "chunk_id": "b2ba8100e1e441adb199d9bc71ee6af6::3",
+              "doc_id": "b2ba8100e1e441adb199d9bc71ee6af6",
+              "doc_title": "order-service 接口超时排查 SOP",
+              "text": "# order-service 接口超时排查 SOP\n## 处理方案\n- 应急：对非核心下游执行降级；扩容 order-service 实例数。\n- 治理：为下游调用设置 200ms~1s 超时并启用熔断；优化慢 SQL。\n- 复盘：将根因与处理步骤录入故障知识库。",
+              "source": "knowledge/order-service_接口超时排查SOP.md",
+              "score": 0.9032
+            },
+            {
+              "chunk_id": "b2ba8100e1e441adb199d9bc71ee6af6::1",
+              "doc_id": "b2ba8100e1e441adb199d9bc71ee6af6",
+              "doc_title": "order-service 接口超时排查 SOP",
+              "text": "# order-service 接口超时排查 SOP\n## 常见根因\n1. 数据库连接池耗尽（见 ERR_5003 手册）。\n2. 下游依赖（库存服务、支付服务）抖动，未配置合理超时与熔断。\n3. 大促期间 QPS 突增，线程池打满。\n4. GC 停顿：Full GC 频繁导致 STW。",
+              "source": "knowledge/order-service_接口超时排查SOP.md",
+              "score": 0.8547
+            },
+            {
+              "chunk_id": "b2ba8100e1e441adb199d9bc71ee6af6::0",
+              "doc_id": "b2ba8100e1e441adb199d9bc71ee6af6",
+              "doc_title": "order-service 接口超时排查 SOP",
+              "text": "# order-service 接口超时排查 SOP\n\n## 适用场景\n订单服务（order-service）对外接口 P99 延迟超过 1s，或出现大量 `Read timed out`。",
+              "source": "knowledge/order-service_接口超时排查SOP.md",
+              "score": 0.7897
+            },
+            {
+              "chunk_id": "b2ba8100e1e441adb199d9bc71ee6af6::4",
+              "doc_id": "b2ba8100e1e441adb199d9bc71ee6af6",
+              "doc_title": "order-service 接口超时排查 SOP",
+              "text": "# order-service 接口超时排查 SOP\n## 相关错误码\n- ERR_6001：下游调用超时\n- ERR_5003：数据库连接池耗尽（常为上游表现）",
+              "source": "knowledge/order-service_接口超时排查SOP.md",
+              "score": 0.7026
+            },
+            {
+              "chunk_id": "6e061d34e28348debc411a01c21c0a47::3",
+              "doc_id": "6e061d34e28348debc411a01c21c0a47",
+              "doc_title": "payment-service 对账失败处理手册",
+              "text": "# payment-service 对账失败处理手册\n## 处理方案\n- 应急：手工触发补单任务，按渠道查询结果修复订单状态。\n- 治理：对账任务增加重试与告警；回调处理保证幂等。\n- 升级：涉及资金差异时立即创建 P1 工单并通知财务值班。",
+              "source": "knowledge/payment-service_对账失败处理手册.md",
+              "score": 0.2728
+            }
+          ],
+          "round": 1
+        },
+        {
+          "type": "node_status",
+          "node": "grade",
+          "status": "completed"
+        },
+        {
+          "type": "grade",
+          "docs_sufficient": true,
+          "iteration": 1
+        },
+        {
+          "type": "node_status",
+          "node": "call_tools",
+          "status": "completed"
+        },
+        {
+          "type": "tool",
+          "name": "query_service_metrics",
+          "args": {
+            "service": "order-service",
+            "window_minutes": 60
+          },
+          "duration_ms": 16.72,
+          "summary": "order-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T02:26:42.395000+00:00 至 2026-10-30T03:26:42.395000+00:00；QPS=0.019453998895555956 requests/s, P99=495.625ms, 错误率=11.428571428571429%；本次阈值判定：P99 延迟 495.62ms 超过 300ms 阈值；错误率 11.43% 超过 1% 阈值",
+          "anomalies": [
+            "P99 延迟 495.62ms 超过 300ms 阈值",
+            "错误率 11.43% 超过 1% 阈值"
+          ],
+          "result": {
+            "service": "order-service",
+            "window_minutes": 60,
+            "evaluation_time": 1793330802.395,
+            "window": {
+              "start": "2026-10-30T02:26:42.395000+00:00",
+              "end": "2026-10-30T03:26:42.395000+00:00"
+            },
+            "units": {
+              "qps": "requests/s",
+              "latency_p99_ms": "ms",
+              "error_rate_pct": "%"
+            },
+            "source": {
+              "kind": "prometheus",
+              "environment": "test",
+              "faults": "测试注入",
+              "url": "http://prometheus:9090"
+            },
+            "status": "ok",
+            "avg": {
+              "qps": 0.019453998895555956,
+              "latency_p99_ms": 495.625,
+              "error_rate_pct": 11.428571428571429
+            },
+            "anomalies": [
+              "P99 延迟 495.62ms 超过 300ms 阈值",
+              "错误率 11.43% 超过 1% 阈值"
+            ],
+            "queries": {
+              "scrape_up": "max(up{job=\"opspilot-demo\"})",
+              "qps": "sum(rate(aiops_demo_requests_total{service=\"order-service\"}[3600s]))",
+              "latency_p99_ms": "1000 * histogram_quantile(0.99, sum by (le) (rate(aiops_demo_request_duration_seconds_bucket{service=\"order-service\"}[3600s])))",
+              "error_rate_pct": "100 * sum(rate(aiops_demo_requests_total{service=\"order-service\",code=~\"5..\"}[3600s])) / sum(rate(aiops_demo_requests_total{service=\"order-service\"}[3600s]))"
+            }
+          }
+        },
+        {
+          "type": "tool",
+          "name": "query_fault_history",
+          "args": {
+            "service": [
+              "order-service"
+            ],
+            "error_codes": []
+          },
+          "duration_ms": 5.54,
+          "summary": "命中 3 条精确匹配历史故障，仅供排查参考"
+        },
+        {
+          "type": "node_status",
+          "node": "generate",
+          "status": "completed"
+        },
+        {
+          "type": "answer",
+          "answer": "根据用户请求，针对 `order-service` 超时问题，已结合知识库文档、工具输出及历史故障信息生成工单内容如下：\n\n### 🎫 工单详情\n\n**标题**：[P2] order-service 接口超时告警跟进处理\n**优先级**：P2（建议根据实际业务影响调整，若涉及核心交易链路可升级为 P1）\n**状态**：新建 / 待排查\n\n#### 1. 故障现象与指标依据\n*   **当前状态**：监控显示 `order-service` 存在性能异常。\n*   **关键指标**（来源：Prometheus测试服务实际采集；时间窗：2026-10-30T02:26:42.395000+00:00 至 2026-10-30T03:26:42.395000+00:00）：\n    *   **P99 延迟**：**495.62ms**，超过阈值 **300ms** [工具输出]。\n    *   **错误率**：**11.43%**，超过阈值 **1%** [工具输出]。\n    *   **QPS**：0.019 requests/s（注：QPS极低但错误率高，需警惕是否为特定场景或采样偏差，但延迟和错误率已触发告警）。\n*   **适用场景匹配**：符合《order-service 接口超时排查 SOP》中定义的“对外接口 P99 延迟超过 1s”或出现大量超时的场景特征（虽当前P99未达1s，但已显著高于基线且伴随高错误率）[3]。\n\n#### 2. 初步根因分析（基于SOP与历史故障）\n请值班人员按以下顺序排查常见根因 [2][4]：\n1.  **数据库连接池耗尽**：检查是否出现 `ERR_5003` 错误码。历史故障显示“订单服务连接池耗尽导致大面积超时”是高频原因，表现为获取连接超时 [2][4]。\n2.  **下游依赖抖动**：检查库存服务、支付服务调用情况。若出现 `ERR_6001`（下游调用超时），可能是下游服务响应慢或未配置合理熔断 [2][4]。历史案例中有“order-service 调用库存服务超时”的记录 [历史故障]。\n3.  **GC 停顿**：检查 JVM GC 日志，确认是否有频繁 Full GC 导致 STW（Stop-The-World）[2]。\n4.  **线程池打满**：虽然当前 QPS 较低，仍需确认是否存在突发流量导致的线程池阻塞 [2]。\n\n#### 3. 建议处理步骤\n**应急措施** [1]：\n*   若确认为非核心下游依赖导致，执行降级策略。\n*   考虑临时扩容 `order-service` 实例数以缓解压力。\n\n**治理与修复** [1][历史故障]：\n*   **数据库层面**：若定位为连接池问题，参考历史方案“临时上调 max_connections”，并重点排查慢 SQL，为订单查询补索引（历史案例显示补索引后慢查询下降 90%）[1][历史故障]。\n*   **下游调用**：确保为所有下游调用设置 **200ms~1s** 的超时时间，并启用熔断机制 [1]。\n*   **代码/配置优化**：优化慢 SQL，检查线程池配置。\n\n**复盘要求** [1]：\n*   故障解决后，需将最终根因与处理步骤录入故障知识库。\n\n#### 4. 关联信息\n*   **相关错误码**：ERR_6001 (下游超时), ERR_5003 (DB连接池耗尽) [4]。\n*   **历史相似故障参考**：\n    *   订单服务连接池耗尽导致大面积超时 [历史故障]。\n    *   order-service 调用库存服务超时 [历史故障]。\n    *   订单服务连接获取超时（通过补索引解决） [历史故障]。\n\n---\n**备注**：本工单基于自动诊断助手生成，具体操作请遵循公司变更管理规范。若涉及资金差异或核心交易中断，请立即升级优先级并通知财务值班 [5]。\n\n指标证据：\norder-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T02:26:42.395000+00:00 至 2026-10-30T03:26:42.395000+00:00；QPS=0.019453998895555956 requests/s, P99=495.625ms, 错误率=11.428571428571429%；本次阈值判定：P99 延迟 495.62ms 超过 300ms 阈值；错误率 11.43% 超过 1% 阈值",
+          "citations": [
+            "order-service 接口超时排查 SOP",
+            "payment-service 对账失败处理手册"
+          ]
+        },
+        {
+          "type": "node_status",
+          "node": "prepare_approval",
+          "status": "completed"
+        },
+        {
+          "type": "approval_required",
+          "approval_id": "894645f5ac624f148a71d60dc982f7f8",
+          "ticket_draft": {
+            "title": "[P2] order-service 接口超时告警跟进处理",
+            "description": "监控显示 order-service 存在性能异常。关键指标（时间窗：2026-10-30T02:26:42.395000+00:00 至 2026-10-30T03:26:42.395000+00:00）：P99 延迟 495.62ms（阈值 300ms），错误率 11.43%（阈值 1%）。初步根因分析建议按 SOP 排查：1. 数据库连接池耗尽（检查 ERR_5003，历史高频原因）；2. 下游依赖抖动（检查库存、支付服务调用情况）。请值班人员尽快介入处理。",
+            "severity": "P2",
+            "service": "order-service"
+          },
+          "session_id": "6c2444b0229a48199d88fd7a80d2036a"
+        }
+      ],
+      "approval": {
+        "approval_id": "894645f5ac624f148a71d60dc982f7f8",
+        "ticket_draft": {
+          "title": "[P2] order-service 接口超时告警跟进处理",
+          "service": "order-service",
+          "severity": "P2",
+          "description": "监控显示 order-service 存在性能异常。关键指标（时间窗：2026-10-30T02:26:42.395000+00:00 至 2026-10-30T03:26:42.395000+00:00）：P99 延迟 495.62ms（阈值 300ms），错误率 11.43%（阈值 1%）。初步根因分析建议按 SOP 排查：1. 数据库连接池耗尽（检查 ERR_5003，历史高频原因）；2. 下游依赖抖动（检查库存、支付服务调用情况）。请值班人员尽快介入处理。"
+        },
+        "session_id": "6c2444b0229a48199d88fd7a80d2036a"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/agent/approvals/894645f5ac624f148a71d60dc982f7f8/decide",
+    "request": {
+      "approved": true
+    },
+    "status": 403,
+    "response": {
+      "detail": "需要角色 admin/engineer，当前为 viewer"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/agent/approvals/894645f5ac624f148a71d60dc982f7f8/decide",
+    "request": {
+      "approved": true
+    },
+    "status": 404,
+    "response": {
+      "detail": "审批单不存在"
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/sessions/6c2444b0229a48199d88fd7a80d2036a",
+    "request": null,
+    "status": 404,
+    "response": {
+      "detail": "会话不存在"
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/agent/sessions/6c2444b0229a48199d88fd7a80d2036a/pending-approval",
+    "request": null,
+    "status": 200,
+    "response": {
+      "pending": false
+    }
+  },
+  {
+    "method": "GET",
+    "path": "/api/agent/sessions/6c2444b0229a48199d88fd7a80d2036a/pending-approval",
+    "request": null,
+    "status": 200,
+    "response": {
+      "pending": true,
+      "approval_id": "894645f5ac624f148a71d60dc982f7f8",
+      "ticket_draft": {
+        "title": "[P2] order-service 接口超时告警跟进处理",
+        "service": "order-service",
+        "severity": "P2",
+        "description": "监控显示 order-service 存在性能异常。关键指标（时间窗：2026-10-30T02:26:42.395000+00:00 至 2026-10-30T03:26:42.395000+00:00）：P99 延迟 495.62ms（阈值 300ms），错误率 11.43%（阈值 1%）。初步根因分析建议按 SOP 排查：1. 数据库连接池耗尽（检查 ERR_5003，历史高频原因）；2. 下游依赖抖动（检查库存、支付服务调用情况）。请值班人员尽快介入处理。"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/agent/approvals/894645f5ac624f148a71d60dc982f7f8/decide",
+    "request": {
+      "approved": true
+    },
+    "status": 200,
+    "response": {
+      "approval_id": "894645f5ac624f148a71d60dc982f7f8",
+      "approval_status": "approved",
+      "ticket_id": "4a7b4127268340e0adbbfa9e3e7ce007",
+      "answer": "根据用户请求，针对 `order-service` 超时问题，已结合知识库文档、工具输出及历史故障信息生成工单内容如下：\n\n### 🎫 工单详情\n\n**标题**：[P2] order-service 接口超时告警跟进处理\n**优先级**：P2（建议根据实际业务影响调整，若涉及核心交易链路可升级为 P1）\n**状态**：新建 / 待排查\n\n#### 1. 故障现象与指标依据\n*   **当前状态**：监控显示 `order-service` 存在性能异常。\n*   **关键指标**（来源：Prometheus测试服务实际采集；时间窗：2026-10-30T02:26:42.395000+00:00 至 2026-10-30T03:26:42.395000+00:00）：\n    *   **P99 延迟**：**495.62ms**，超过阈值 **300ms** [工具输出]。\n    *   **错误率**：**11.43%**，超过阈值 **1%** [工具输出]。\n    *   **QPS**：0.019 requests/s（注：QPS极低但错误率高，需警惕是否为特定场景或采样偏差，但延迟和错误率已触发告警）。\n*   **适用场景匹配**：符合《order-service 接口超时排查 SOP》中定义的“对外接口 P99 延迟超过 1s”或出现大量超时的场景特征（虽当前P99未达1s，但已显著高于基线且伴随高错误率）[3]。\n\n#### 2. 初步根因分析（基于SOP与历史故障）\n请值班人员按以下顺序排查常见根因 [2][4]：\n1.  **数据库连接池耗尽**：检查是否出现 `ERR_5003` 错误码。历史故障显示“订单服务连接池耗尽导致大面积超时”是高频原因，表现为获取连接超时 [2][4]。\n2.  **下游依赖抖动**：检查库存服务、支付服务调用情况。若出现 `ERR_6001`（下游调用超时），可能是下游服务响应慢或未配置合理熔断 [2][4]。历史案例中有“order-service 调用库存服务超时”的记录 [历史故障]。\n3.  **GC 停顿**：检查 JVM GC 日志，确认是否有频繁 Full GC 导致 STW（Stop-The-World）[2]。\n4.  **线程池打满**：虽然当前 QPS 较低，仍需确认是否存在突发流量导致的线程池阻塞 [2]。\n\n#### 3. 建议处理步骤\n**应急措施** [1]：\n*   若确认为非核心下游依赖导致，执行降级策略。\n*   考虑临时扩容 `order-service` 实例数以缓解压力。\n\n**治理与修复** [1][历史故障]：\n*   **数据库层面**：若定位为连接池问题，参考历史方案“临时上调 max_connections”，并重点排查慢 SQL，为订单查询补索引（历史案例显示补索引后慢查询下降 90%）[1][历史故障]。\n*   **下游调用**：确保为所有下游调用设置 **200ms~1s** 的超时时间，并启用熔断机制 [1]。\n*   **代码/配置优化**：优化慢 SQL，检查线程池配置。\n\n**复盘要求** [1]：\n*   故障解决后，需将最终根因与处理步骤录入故障知识库。\n\n#### 4. 关联信息\n*   **相关错误码**：ERR_6001 (下游超时), ERR_5003 (DB连接池耗尽) [4]。\n*   **历史相似故障参考**：\n    *   订单服务连接池耗尽导致大面积超时 [历史故障]。\n    *   order-service 调用库存服务超时 [历史故障]。\n    *   订单服务连接获取超时（通过补索引解决） [历史故障]。\n\n---\n**备注**：本工单基于自动诊断助手生成，具体操作请遵循公司变更管理规范。若涉及资金差异或核心交易中断，请立即升级优先级并通知财务值班 [5]。\n\n指标证据：\norder-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T02:26:42.395000+00:00 至 2026-10-30T03:26:42.395000+00:00；QPS=0.019453998895555956 requests/s, P99=495.625ms, 错误率=11.428571428571429%；本次阈值判定：P99 延迟 495.62ms 超过 300ms 阈值；错误率 11.43% 超过 1% 阈值\n\n✅ 工单已创建（ID: 4a7b4127），由 admin 审批通过，等待值班工程师处理。",
+      "events": []
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/agent/approvals/894645f5ac624f148a71d60dc982f7f8/decide",
+    "request": {
+      "approved": false
+    },
+    "status": 409,
+    "response": {
+      "detail": "审批决定已确定，不能改为相反决定"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/sessions",
+    "request": {
+      "title": "T9跨重启拒绝"
+    },
+    "status": 200,
+    "response": {
+      "id": "4fe16c7fb0834e5ba072bd1e30e49284",
+      "title": "T9跨重启拒绝",
+      "created_at": "2026-10-30T03:27:15.346841+00:00"
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/agent/chat",
+    "request": {
+      "session_id": "4fe16c7fb0834e5ba072bd1e30e49284",
+      "message": "payment-service 对账异常，请创建工单跟进。"
+    },
+    "status": 200,
+    "response": {
+      "status": "approval_required",
+      "answer": "针对 payment-service 对账异常及工单创建需求，依据知识库文档和当前工具输出，处理建议如下：\n\n### 1. 工单创建与升级策略\n根据《payment-service 对账失败处理手册》[1]，工单的优先级取决于是否涉及资金差异：\n*   **若确认存在资金差异**：必须立即创建 **P1 工单**，并通知财务值班人员 [1]。\n*   **若仅为状态不一致或无资金差异**：可创建常规故障工单跟进，执行应急补单流程 [1]。\n\n> **注意**：由于当前指标数据不可用（见下文），无法直接判断是否存在资金差异，需先通过排查步骤确认。\n\n### 2. 当前诊断状态说明\n*   **指标不可用**：`query_service_metrics` 显示 `status=insufficient_data`，未找到服务指标或采样不足。**这不代表服务正常**，仅表示无法通过监控指标确认当前运行状态或根因 [工具输出]。\n*   **历史参考**：历史相似故障包括“渠道账单延迟”和“渠道查询接口超时”，但这仅供参考，不能作为本次故障的确切原因 [工具输出]。\n\n### 3. 推荐排查步骤（用于确定工单细节）\n在创建工单前或同时，请按以下顺序执行排查，以明确故障范围和根因：\n\n1.  **确认对账文件完整性**：检查对账文件下载是否成功，核对行数与渠道后台是否一致 [2]。\n    *   *可能根因*：渠道账单文件延迟到达或格式变更 [3]。\n2.  **查询差异明细**：在本地订单表中查找状态为 `PROCESSING` 且超过 30 分钟的订单 [2]。\n    *   *可能根因*：网络抖动导致支付通知丢失，状态机停滞 [3]；或重复回调引起的幂等冲突 [3]。\n3.  **核实真实支付状态**：对差异订单调用渠道查询接口，核实其真实支付状态 [2]。\n    *   *错误码关注*：若出现 `ERR_7010`（对账失败）或 `ERR_7011`（渠道查询超时），需在工单中注明 [4][5]。\n\n### 4. 应急处理方案\n一旦确认为对账失败（如日志出现 `ERR_7010` 或财务反馈状态不一致 [4]）：\n*   **手工触发补单任务**：按渠道查询结果修复订单状态 [1]。\n*   **后续治理**：建议在工单中记录长期改进项，如对账任务增加重试与告警机制，确保回调处理的幂等性 [1]。\n\n### 总结行动建议\n1.  **立即执行**：按步骤 [2] 排查差异订单，确认是否涉及资金差异。\n2.  **创建工单**：\n    *   若有资金差异 -> 创建 **P1 工单**，通知财务 [1]。\n    *   若无资金差异 -> 创建普通工单，指派研发/运维进行手工补单 [1]。\n3.  **工单内容应包含**：\n    *   现象描述：对账异常，具体错误码（如有 `ERR_7010`/`ERR_7011` [5]）。\n    *   影响范围：差异订单数量、是否涉及资金。\n    *   已执行操作：指标采集不足说明、初步排查结果。\n\n指标证据：\npayment-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T02:27:17.003000+00:00 至 2026-10-30T03:27:17.003000+00:00；状态=insufficient_data，未找到服务指标或采样不足，不能据此判定服务正常或根因",
+      "citations": [
+        "payment-service 对账失败处理手册"
+      ],
+      "intent": "create_ticket",
+      "ticket_id": null,
+      "docs_sufficient": true,
+      "session_id": "4fe16c7fb0834e5ba072bd1e30e49284",
+      "events": [
+        {
+          "type": "node_status",
+          "node": "route_intent",
+          "status": "completed"
+        },
+        {
+          "type": "node_status",
+          "node": "retrieve",
+          "status": "completed"
+        },
+        {
+          "type": "retrieval",
+          "mode": "hybrid",
+          "query": "payment-service 对账异常，请创建工单跟进。",
+          "latency_ms": 878.1,
+          "reranked": true,
+          "hits": [
+            {
+              "chunk_id": "6e061d34e28348debc411a01c21c0a47::3",
+              "doc_id": "6e061d34e28348debc411a01c21c0a47",
+              "doc_title": "payment-service 对账失败处理手册",
+              "text": "# payment-service 对账失败处理手册\n## 处理方案\n- 应急：手工触发补单任务，按渠道查询结果修复订单状态。\n- 治理：对账任务增加重试与告警；回调处理保证幂等。\n- 升级：涉及资金差异时立即创建 P1 工单并通知财务值班。",
+              "source": "knowledge/payment-service_对账失败处理手册.md",
+              "score": 0.9462
+            },
+            {
+              "chunk_id": "6e061d34e28348debc411a01c21c0a47::2",
+              "doc_id": "6e061d34e28348debc411a01c21c0a47",
+              "doc_title": "payment-service 对账失败处理手册",
+              "text": "# payment-service 对账失败处理手册\n## 排查步骤\n1. 确认对账文件下载是否成功，行数与渠道后台是否一致。\n2. 查询差异明细：本地订单表中状态为 PROCESSING 超过 30 分钟的订单。\n3. 对差异订单调用渠道查询接口核实真实支付状态。",
+              "source": "knowledge/payment-service_对账失败处理手册.md",
+              "score": 0.8462
+            },
+            {
+              "chunk_id": "6e061d34e28348debc411a01c21c0a47::1",
+              "doc_id": "6e061d34e28348debc411a01c21c0a47",
+              "doc_title": "payment-service 对账失败处理手册",
+              "text": "# payment-service 对账失败处理手册\n## 常见根因\n1. 渠道账单文件延迟到达或格式变更。\n2. 网络抖动导致部分支付通知丢失，状态机停滞在 PROCESSING。\n3. 重复回调引起的幂等冲突。",
+              "source": "knowledge/payment-service_对账失败处理手册.md",
+              "score": 0.8284
+            },
+            {
+              "chunk_id": "6e061d34e28348debc411a01c21c0a47::0",
+              "doc_id": "6e061d34e28348debc411a01c21c0a47",
+              "doc_title": "payment-service 对账失败处理手册",
+              "text": "# payment-service 对账失败处理手册\n\n## 适用场景\n支付服务（payment-service）对账任务失败，日志出现 `ERR_7010`（reconciliation failed），\n或财务侧反馈订单状态与渠道账单不一致。",
+              "source": "knowledge/payment-service_对账失败处理手册.md",
+              "score": 0.8027
+            },
+            {
+              "chunk_id": "6e061d34e28348debc411a01c21c0a47::4",
+              "doc_id": "6e061d34e28348debc411a01c21c0a47",
+              "doc_title": "payment-service 对账失败处理手册",
+              "text": "# payment-service 对账失败处理手册\n## 相关错误码\n- ERR_7010：对账失败\n- ERR_7011：渠道查询超时",
+              "source": "knowledge/payment-service_对账失败处理手册.md",
+              "score": 0.6573
+            }
+          ],
+          "round": 1
+        },
+        {
+          "type": "node_status",
+          "node": "grade",
+          "status": "completed"
+        },
+        {
+          "type": "grade",
+          "docs_sufficient": true,
+          "iteration": 1
+        },
+        {
+          "type": "node_status",
+          "node": "call_tools",
+          "status": "completed"
+        },
+        {
+          "type": "tool",
+          "name": "query_service_metrics",
+          "args": {
+            "service": "payment-service",
+            "window_minutes": 60
+          },
+          "duration_ms": 19.64,
+          "summary": "payment-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T02:27:17.003000+00:00 至 2026-10-30T03:27:17.003000+00:00；状态=insufficient_data，未找到服务指标或采样不足，不能据此判定服务正常或根因",
+          "anomalies": [],
+          "result": {
+            "service": "payment-service",
+            "window_minutes": 60,
+            "evaluation_time": 1793330837.003,
+            "window": {
+              "start": "2026-10-30T02:27:17.003000+00:00",
+              "end": "2026-10-30T03:27:17.003000+00:00"
+            },
+            "units": {
+              "qps": "requests/s",
+              "latency_p99_ms": "ms",
+              "error_rate_pct": "%"
+            },
+            "source": {
+              "kind": "prometheus",
+              "environment": "test",
+              "faults": "测试注入",
+              "url": "http://prometheus:9090"
+            },
+            "status": "insufficient_data",
+            "avg": {
+              "qps": null,
+              "latency_p99_ms": null,
+              "error_rate_pct": null
+            },
+            "anomalies": [],
+            "queries": {
+              "scrape_up": "max(up{job=\"opspilot-demo\"})",
+              "qps": "sum(rate(aiops_demo_requests_total{service=\"payment-service\"}[3600s]))",
+              "latency_p99_ms": "1000 * histogram_quantile(0.99, sum by (le) (rate(aiops_demo_request_duration_seconds_bucket{service=\"payment-service\"}[3600s])))",
+              "error_rate_pct": "100 * sum(rate(aiops_demo_requests_total{service=\"payment-service\",code=~\"5..\"}[3600s])) / sum(rate(aiops_demo_requests_total{service=\"payment-service\"}[3600s]))"
+            },
+            "message": "未找到服务指标或采样不足，不能据此判定服务正常或根因"
+          }
+        },
+        {
+          "type": "tool",
+          "name": "query_fault_history",
+          "args": {
+            "service": [
+              "payment-service"
+            ],
+            "error_codes": []
+          },
+          "duration_ms": 4.17,
+          "summary": "命中 2 条精确匹配历史故障，仅供排查参考"
+        },
+        {
+          "type": "node_status",
+          "node": "generate",
+          "status": "completed"
+        },
+        {
+          "type": "answer",
+          "answer": "针对 payment-service 对账异常及工单创建需求，依据知识库文档和当前工具输出，处理建议如下：\n\n### 1. 工单创建与升级策略\n根据《payment-service 对账失败处理手册》[1]，工单的优先级取决于是否涉及资金差异：\n*   **若确认存在资金差异**：必须立即创建 **P1 工单**，并通知财务值班人员 [1]。\n*   **若仅为状态不一致或无资金差异**：可创建常规故障工单跟进，执行应急补单流程 [1]。\n\n> **注意**：由于当前指标数据不可用（见下文），无法直接判断是否存在资金差异，需先通过排查步骤确认。\n\n### 2. 当前诊断状态说明\n*   **指标不可用**：`query_service_metrics` 显示 `status=insufficient_data`，未找到服务指标或采样不足。**这不代表服务正常**，仅表示无法通过监控指标确认当前运行状态或根因 [工具输出]。\n*   **历史参考**：历史相似故障包括“渠道账单延迟”和“渠道查询接口超时”，但这仅供参考，不能作为本次故障的确切原因 [工具输出]。\n\n### 3. 推荐排查步骤（用于确定工单细节）\n在创建工单前或同时，请按以下顺序执行排查，以明确故障范围和根因：\n\n1.  **确认对账文件完整性**：检查对账文件下载是否成功，核对行数与渠道后台是否一致 [2]。\n    *   *可能根因*：渠道账单文件延迟到达或格式变更 [3]。\n2.  **查询差异明细**：在本地订单表中查找状态为 `PROCESSING` 且超过 30 分钟的订单 [2]。\n    *   *可能根因*：网络抖动导致支付通知丢失，状态机停滞 [3]；或重复回调引起的幂等冲突 [3]。\n3.  **核实真实支付状态**：对差异订单调用渠道查询接口，核实其真实支付状态 [2]。\n    *   *错误码关注*：若出现 `ERR_7010`（对账失败）或 `ERR_7011`（渠道查询超时），需在工单中注明 [4][5]。\n\n### 4. 应急处理方案\n一旦确认为对账失败（如日志出现 `ERR_7010` 或财务反馈状态不一致 [4]）：\n*   **手工触发补单任务**：按渠道查询结果修复订单状态 [1]。\n*   **后续治理**：建议在工单中记录长期改进项，如对账任务增加重试与告警机制，确保回调处理的幂等性 [1]。\n\n### 总结行动建议\n1.  **立即执行**：按步骤 [2] 排查差异订单，确认是否涉及资金差异。\n2.  **创建工单**：\n    *   若有资金差异 -> 创建 **P1 工单**，通知财务 [1]。\n    *   若无资金差异 -> 创建普通工单，指派研发/运维进行手工补单 [1]。\n3.  **工单内容应包含**：\n    *   现象描述：对账异常，具体错误码（如有 `ERR_7010`/`ERR_7011` [5]）。\n    *   影响范围：差异订单数量、是否涉及资金。\n    *   已执行操作：指标采集不足说明、初步排查结果。\n\n指标证据：\npayment-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T02:27:17.003000+00:00 至 2026-10-30T03:27:17.003000+00:00；状态=insufficient_data，未找到服务指标或采样不足，不能据此判定服务正常或根因",
+          "citations": [
+            "payment-service 对账失败处理手册"
+          ]
+        },
+        {
+          "type": "node_status",
+          "node": "prepare_approval",
+          "status": "completed"
+        },
+        {
+          "type": "approval_required",
+          "approval_id": "b9a9953dcb8d4fb8a0d5fd1a4dc7fc2c",
+          "ticket_draft": {
+            "title": "payment-service 对账异常跟进",
+            "description": "诊断发现 payment-service 存在对账异常，当前监控指标数据不可用（insufficient_data），无法直接判断是否存在资金差异。根据处理手册，需先执行排查步骤：1.确认对账文件完整性；2.查询状态为 PROCESSING 且超过30分钟的订单明细；3.调用渠道接口核实真实支付状态。若确认存在资金差异，需升级为 P1 并通知财务值班人员；若仅为状态不一致，则按常规故障处理并执行应急补单流程。",
+            "severity": "P2",
+            "service": "payment-service"
+          },
+          "session_id": "4fe16c7fb0834e5ba072bd1e30e49284"
+        }
+      ],
+      "approval": {
+        "approval_id": "b9a9953dcb8d4fb8a0d5fd1a4dc7fc2c",
+        "ticket_draft": {
+          "title": "payment-service 对账异常跟进",
+          "service": "payment-service",
+          "severity": "P2",
+          "description": "诊断发现 payment-service 存在对账异常，当前监控指标数据不可用（insufficient_data），无法直接判断是否存在资金差异。根据处理手册，需先执行排查步骤：1.确认对账文件完整性；2.查询状态为 PROCESSING 且超过30分钟的订单明细；3.调用渠道接口核实真实支付状态。若确认存在资金差异，需升级为 P1 并通知财务值班人员；若仅为状态不一致，则按常规故障处理并执行应急补单流程。"
+        },
+        "session_id": "4fe16c7fb0834e5ba072bd1e30e49284"
+      }
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/agent/approvals/b9a9953dcb8d4fb8a0d5fd1a4dc7fc2c/decide",
+    "request": {
+      "approved": false,
+      "comment": "验收拒绝分支"
+    },
+    "status": 200,
+    "response": {
+      "approval_id": "b9a9953dcb8d4fb8a0d5fd1a4dc7fc2c",
+      "approval_status": "rejected",
+      "ticket_id": null,
+      "answer": "针对 payment-service 对账异常及工单创建需求，依据知识库文档和当前工具输出，处理建议如下：\n\n### 1. 工单创建与升级策略\n根据《payment-service 对账失败处理手册》[1]，工单的优先级取决于是否涉及资金差异：\n*   **若确认存在资金差异**：必须立即创建 **P1 工单**，并通知财务值班人员 [1]。\n*   **若仅为状态不一致或无资金差异**：可创建常规故障工单跟进，执行应急补单流程 [1]。\n\n> **注意**：由于当前指标数据不可用（见下文），无法直接判断是否存在资金差异，需先通过排查步骤确认。\n\n### 2. 当前诊断状态说明\n*   **指标不可用**：`query_service_metrics` 显示 `status=insufficient_data`，未找到服务指标或采样不足。**这不代表服务正常**，仅表示无法通过监控指标确认当前运行状态或根因 [工具输出]。\n*   **历史参考**：历史相似故障包括“渠道账单延迟”和“渠道查询接口超时”，但这仅供参考，不能作为本次故障的确切原因 [工具输出]。\n\n### 3. 推荐排查步骤（用于确定工单细节）\n在创建工单前或同时，请按以下顺序执行排查，以明确故障范围和根因：\n\n1.  **确认对账文件完整性**：检查对账文件下载是否成功，核对行数与渠道后台是否一致 [2]。\n    *   *可能根因*：渠道账单文件延迟到达或格式变更 [3]。\n2.  **查询差异明细**：在本地订单表中查找状态为 `PROCESSING` 且超过 30 分钟的订单 [2]。\n    *   *可能根因*：网络抖动导致支付通知丢失，状态机停滞 [3]；或重复回调引起的幂等冲突 [3]。\n3.  **核实真实支付状态**：对差异订单调用渠道查询接口，核实其真实支付状态 [2]。\n    *   *错误码关注*：若出现 `ERR_7010`（对账失败）或 `ERR_7011`（渠道查询超时），需在工单中注明 [4][5]。\n\n### 4. 应急处理方案\n一旦确认为对账失败（如日志出现 `ERR_7010` 或财务反馈状态不一致 [4]）：\n*   **手工触发补单任务**：按渠道查询结果修复订单状态 [1]。\n*   **后续治理**：建议在工单中记录长期改进项，如对账任务增加重试与告警机制，确保回调处理的幂等性 [1]。\n\n### 总结行动建议\n1.  **立即执行**：按步骤 [2] 排查差异订单，确认是否涉及资金差异。\n2.  **创建工单**：\n    *   若有资金差异 -> 创建 **P1 工单**，通知财务 [1]。\n    *   若无资金差异 -> 创建普通工单，指派研发/运维进行手工补单 [1]。\n3.  **工单内容应包含**：\n    *   现象描述：对账异常，具体错误码（如有 `ERR_7010`/`ERR_7011` [5]）。\n    *   影响范围：差异订单数量、是否涉及资金。\n    *   已执行操作：指标采集不足说明、初步排查结果。\n\n指标证据：\npayment-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T02:27:17.003000+00:00 至 2026-10-30T03:27:17.003000+00:00；状态=insufficient_data，未找到服务指标或采样不足，不能据此判定服务正常或根因\n\n❌ 工单创建申请被审批拒绝。",
+      "events": [
+        {
+          "type": "node_status",
+          "node": "approval_gate",
+          "status": "completed"
+        },
+        {
+          "type": "approval_decision",
+          "approved": false,
+          "approval_id": "b9a9953dcb8d4fb8a0d5fd1a4dc7fc2c"
+        },
+        {
+          "type": "node_status",
+          "node": "create_ticket",
+          "status": "completed"
+        },
+        {
+          "type": "ticket_rejected",
+          "comment": "验收拒绝分支"
+        }
+      ]
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/agent/approvals/b9a9953dcb8d4fb8a0d5fd1a4dc7fc2c/decide",
+    "request": {
+      "approved": false
+    },
+    "status": 200,
+    "response": {
+      "approval_id": "b9a9953dcb8d4fb8a0d5fd1a4dc7fc2c",
+      "approval_status": "rejected",
+      "ticket_id": null,
+      "answer": "针对 payment-service 对账异常及工单创建需求，依据知识库文档和当前工具输出，处理建议如下：\n\n### 1. 工单创建与升级策略\n根据《payment-service 对账失败处理手册》[1]，工单的优先级取决于是否涉及资金差异：\n*   **若确认存在资金差异**：必须立即创建 **P1 工单**，并通知财务值班人员 [1]。\n*   **若仅为状态不一致或无资金差异**：可创建常规故障工单跟进，执行应急补单流程 [1]。\n\n> **注意**：由于当前指标数据不可用（见下文），无法直接判断是否存在资金差异，需先通过排查步骤确认。\n\n### 2. 当前诊断状态说明\n*   **指标不可用**：`query_service_metrics` 显示 `status=insufficient_data`，未找到服务指标或采样不足。**这不代表服务正常**，仅表示无法通过监控指标确认当前运行状态或根因 [工具输出]。\n*   **历史参考**：历史相似故障包括“渠道账单延迟”和“渠道查询接口超时”，但这仅供参考，不能作为本次故障的确切原因 [工具输出]。\n\n### 3. 推荐排查步骤（用于确定工单细节）\n在创建工单前或同时，请按以下顺序执行排查，以明确故障范围和根因：\n\n1.  **确认对账文件完整性**：检查对账文件下载是否成功，核对行数与渠道后台是否一致 [2]。\n    *   *可能根因*：渠道账单文件延迟到达或格式变更 [3]。\n2.  **查询差异明细**：在本地订单表中查找状态为 `PROCESSING` 且超过 30 分钟的订单 [2]。\n    *   *可能根因*：网络抖动导致支付通知丢失，状态机停滞 [3]；或重复回调引起的幂等冲突 [3]。\n3.  **核实真实支付状态**：对差异订单调用渠道查询接口，核实其真实支付状态 [2]。\n    *   *错误码关注*：若出现 `ERR_7010`（对账失败）或 `ERR_7011`（渠道查询超时），需在工单中注明 [4][5]。\n\n### 4. 应急处理方案\n一旦确认为对账失败（如日志出现 `ERR_7010` 或财务反馈状态不一致 [4]）：\n*   **手工触发补单任务**：按渠道查询结果修复订单状态 [1]。\n*   **后续治理**：建议在工单中记录长期改进项，如对账任务增加重试与告警机制，确保回调处理的幂等性 [1]。\n\n### 总结行动建议\n1.  **立即执行**：按步骤 [2] 排查差异订单，确认是否涉及资金差异。\n2.  **创建工单**：\n    *   若有资金差异 -> 创建 **P1 工单**，通知财务 [1]。\n    *   若无资金差异 -> 创建普通工单，指派研发/运维进行手工补单 [1]。\n3.  **工单内容应包含**：\n    *   现象描述：对账异常，具体错误码（如有 `ERR_7010`/`ERR_7011` [5]）。\n    *   影响范围：差异订单数量、是否涉及资金。\n    *   已执行操作：指标采集不足说明、初步排查结果。\n\n指标证据：\npayment-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-10-30T02:27:17.003000+00:00 至 2026-10-30T03:27:17.003000+00:00；状态=insufficient_data，未找到服务指标或采样不足，不能据此判定服务正常或根因\n\n❌ 工单创建申请被审批拒绝。",
+      "events": []
+    }
+  },
+  {
+    "method": "POST",
+    "path": "/api/agent/approvals/b9a9953dcb8d4fb8a0d5fd1a4dc7fc2c/decide",
+    "request": {
+      "approved": true
+    },
+    "status": 409,
+    "response": {
+      "detail": "审批决定已确定，不能改为相反决定"
+    }
+  }
+]

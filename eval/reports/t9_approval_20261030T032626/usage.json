@@ -1,0 +1,166 @@
+{
+  "calls": [
+    {
+      "kind": "embedding",
+      "model": "qwen3.7-text-embedding-flash",
+      "status": "ok",
+      "elapsed_ms": 593.737229000908,
+      "usage": {
+        "prompt_tokens": 28,
+        "total_tokens": 28
+      }
+    },
+    {
+      "kind": "rerank",
+      "model": "qwen3.7-text-rerank",
+      "status": "ok",
+      "usage": {
+        "prompt_tokens": 446,
+        "total_tokens": 446
+      },
+      "elapsed_ms": 367.01235299915425
+    },
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "first_token_ms": 594.5577519996732,
+      "usage": {
+        "completion_tokens": 19,
+        "prompt_tokens": 449,
+        "total_tokens": 468,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 449
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 811.1093859988614
+    },
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "first_token_ms": 736.0633050011529,
+      "usage": {
+        "completion_tokens": 963,
+        "prompt_tokens": 836,
+        "total_tokens": 1799,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 836
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 16120.985818000918
+    },
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "first_token_ms": 546.1946460000036,
+      "usage": {
+        "completion_tokens": 220,
+        "prompt_tokens": 577,
+        "total_tokens": 797,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 577
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 3284.901978000562
+    },
+    {
+      "kind": "embedding",
+      "model": "qwen3.7-text-embedding-flash",
+      "status": "ok",
+      "elapsed_ms": 516.6397350003535,
+      "usage": {
+        "prompt_tokens": 29,
+        "total_tokens": 29
+      }
+    },
+    {
+      "kind": "rerank",
+      "model": "qwen3.7-text-rerank",
+      "status": "ok",
+      "usage": {
+        "prompt_tokens": 427,
+        "total_tokens": 427
+      },
+      "elapsed_ms": 342.2275289995014
+    },
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "first_token_ms": 486.21481400004996,
+      "usage": {
+        "completion_tokens": 19,
+        "prompt_tokens": 430,
+        "total_tokens": 449,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 430
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 730.6681139998545
+    },
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "first_token_ms": 513.6387890015612,
+      "usage": {
+        "completion_tokens": 771,
+        "prompt_tokens": 701,
+        "total_tokens": 1472,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 701
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 10624.455750001289
+    },
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "first_token_ms": 533.8471560007747,
+      "usage": {
+        "completion_tokens": 148,
+        "prompt_tokens": 535,
+        "total_tokens": 683,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 535
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 2099.2229969997425
+    }
+  ],
+  "total_tokens": 6598,
+  "source": "实际API容器自本脚本启动以来的实报usage日志；同一容器两次restart保留日志，不重复计数"
+}

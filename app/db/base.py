@@ -2,7 +2,7 @@
 import os
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 
 from app.config import get_settings
@@ -47,3 +47,10 @@ def init_db() -> None:
     from app.db import models  # noqa: F401  确保模型注册
 
     Base.metadata.create_all(bind=engine)
+    # 旧工单保留为 NULL；只有新审批才能可靠关联编号，不猜测历史关联。
+    if "approval_id" not in {column["name"] for column in inspect(engine).get_columns("tickets")}:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE tickets ADD COLUMN approval_id VARCHAR(64) NULL"))
+    for index in models.Ticket.__table__.indexes:
+        if index.name == "uq_tickets_approval_id":
+            index.create(bind=engine, checkfirst=True)

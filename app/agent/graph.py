@@ -1,10 +1,10 @@
-"""组装并编译诊断工作流图（带 MemorySaver checkpointer，支持 interrupt/resume）。"""
+"""组装诊断工作流；由容器注入持久化检查点，离线测试默认内存。"""
 from langgraph.graph import END, START, StateGraph
 
 from app.agent.state import DiagState
 
 
-def build_graph(nodes):
+def build_graph(nodes, checkpointer=None):
     try:
         from langgraph.checkpoint.memory import MemorySaver
     except ImportError:  # 兼容不同版本的导出名
@@ -17,6 +17,7 @@ def build_graph(nodes):
     graph.add_node("rewrite", nodes.rewrite)
     graph.add_node("call_tools", nodes.call_tools)
     graph.add_node("generate", nodes.generate)
+    graph.add_node("prepare_approval", nodes.prepare_approval)
     graph.add_node("approval_gate", nodes.approval_gate)
     graph.add_node("create_ticket", nodes.create_ticket)
 
@@ -26,8 +27,9 @@ def build_graph(nodes):
     graph.add_conditional_edges("grade", nodes.route_after_grade, {"rewrite": "rewrite", "tools": "call_tools"})
     graph.add_edge("rewrite", "retrieve")
     graph.add_edge("call_tools", "generate")
-    graph.add_edge("generate", "approval_gate")
+    graph.add_edge("generate", "prepare_approval")
+    graph.add_edge("prepare_approval", "approval_gate")
     graph.add_conditional_edges("approval_gate", nodes.route_after_approval, {"ticket": "create_ticket", "end": END})
     graph.add_edge("create_ticket", END)
 
-    return graph.compile(checkpointer=MemorySaver())
+    return graph.compile(checkpointer=checkpointer if checkpointer is not None else MemorySaver())

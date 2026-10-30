@@ -112,8 +112,8 @@ class DiagnosisNodes:
             payload["ticket_draft"] = self.container.llm.draft_ticket(state["question"], answer)
         return payload
 
-    # ---- 工单人工审批门（LangGraph interrupt） ----
-    def approval_gate(self, state):
+    # 审批编号先经过一个完整节点保存；interrupt 恢复会从等待节点开头重跑。
+    def prepare_approval(self, state):
         if state.get("intent") != "create_ticket":
             return {}
         draft = state.get("ticket_draft") or {"title": state["question"][:80], "description": state.get("answer", ""), "severity": "P2"}
@@ -121,6 +121,14 @@ class DiagnosisNodes:
             req = get_or_create_approval(db, state["tenant_id"], state["session_id"], draft, state.get("username", ""))
             approval_id = req.id
             ticket_draft = req.ticket_draft
+        return {"approval_id": approval_id, "ticket_draft": ticket_draft}
+
+    # ---- 工单人工审批门（LangGraph interrupt） ----
+    def approval_gate(self, state):
+        if state.get("intent") != "create_ticket":
+            return {}
+        approval_id = state["approval_id"]
+        ticket_draft = state["ticket_draft"]
         # interrupt：暂停图执行，等待 /approvals/{id}/decide 恢复
         from langgraph.types import interrupt
 
@@ -138,16 +146,16 @@ class DiagnosisNodes:
 
     # ---- 创建工单 ----
     def create_ticket(self, state):
-        from datetime import datetime, timezone
-
         from app.db.models import ApprovalRequest
         from app.services.ticket_service import create_ticket
 
         decision = state["approval"]
         with self.container.db_session() as db:
             req = db.get(ApprovalRequest, state.get("approval_id") or "")
-            if req is None:
-                return {"events": [{"type": "error", "message": "审批单不存在"}]}
+            if req is None or req.tenant_id != state["tenant_id"] or req.session_id != state["session_id"]:
+                raise ValueError("审批单与流程不匹配")
+            if req.status not in ("approved", "rejected") or decision.get("approved") != (req.status == "approved"):
+                raise ValueError("审批决定尚未由服务端确认")
             if decision.get("approved"):
                 ticket = create_ticket(
                     db,
@@ -156,20 +164,14 @@ class DiagnosisNodes:
                     req.ticket_draft,
                     created_by=req.requested_by,
                     approver=decision.get("decided_by", ""),
+                    approval_id=req.id,
+                    comment=req.comment,
                 )
-                req.status = "approved"
-                req.comment = decision.get("comment", "")
-                req.decided_at = datetime.now(timezone.utc)
-                db.commit()
                 answer = (state.get("answer", "")) + f"\n\n✅ 工单已创建（ID: {ticket.id[:8]}），由 {decision.get('decided_by', '')} 审批通过，等待值班工程师处理。"
                 return {
                     "ticket_id": ticket.id,
                     "answer": answer,
                     "events": [{"type": "ticket_created", "ticket_id": ticket.id, "title": ticket.title}],
                 }
-            req.status = "rejected"
-            req.comment = decision.get("comment", "")
-            req.decided_at = datetime.now(timezone.utc)
-            db.commit()
             answer = (state.get("answer", "")) + "\n\n❌ 工单创建申请被审批拒绝。"
             return {"answer": answer, "events": [{"type": "ticket_rejected", "comment": decision.get("comment", "")}]}

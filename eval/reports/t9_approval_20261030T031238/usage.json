@@ -1,0 +1,86 @@
+{
+  "calls": [
+    {
+      "kind": "embedding",
+      "model": "qwen3.7-text-embedding-flash",
+      "status": "ok",
+      "elapsed_ms": 730.2015019995451,
+      "usage": {
+        "prompt_tokens": 28,
+        "total_tokens": 28
+      }
+    },
+    {
+      "kind": "rerank",
+      "model": "qwen3.7-text-rerank",
+      "status": "ok",
+      "usage": {
+        "prompt_tokens": 446,
+        "total_tokens": 446
+      },
+      "elapsed_ms": 374.99802700040163
+    },
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "first_token_ms": 489.33328699968115,
+      "usage": {
+        "completion_tokens": 19,
+        "prompt_tokens": 449,
+        "total_tokens": 468,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 449
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 726.1801509994257
+    },
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "first_token_ms": 652.0061969995368,
+      "usage": {
+        "completion_tokens": 822,
+        "prompt_tokens": 836,
+        "total_tokens": 1658,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 836
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 9019.931799000005
+    },
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "first_token_ms": 570.0693539993154,
+      "usage": {
+        "completion_tokens": 240,
+        "prompt_tokens": 569,
+        "total_tokens": 809,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 569
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 3173.292464000042
+    }
+  ],
+  "total_tokens": 3409,
+  "source": "实际API容器自本脚本启动以来的实报usage日志；同一容器两次restart保留日志，不重复计数"
+}

@@ -1,0 +1,9 @@
+{
+  "container_id": "0af420d7d7869788e30ad5ee3e2fb13bfe1523e6854773406cf562268dfb9deb",
+  "command": "docker compose restart api",
+  "exit_code": 0,
+  "output": "",
+  "started_before": "2026-10-30T03:27:09.097663611Z",
+  "started_after": "2026-10-30T03:27:33.708229549Z",
+  "ready_at": "2026-10-30T03:27:39.662911+00:00"
+}

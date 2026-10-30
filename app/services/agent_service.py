@@ -1,16 +1,21 @@
 """Agent 服务层：运行诊断图、SSE 事件映射、审批恢复。"""
 import json
 import logging
+import threading
+from datetime import datetime, timezone
 
 from fastapi import HTTPException
 from langgraph.types import Command
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from app.agent.tools import TOOL_REGISTRY
-from app.db.models import ApprovalRequest
+from app.db.models import ApprovalRequest, Ticket
 from app.services import chat_service, ticket_service
 
 logger = logging.getLogger(__name__)
+# shortcut: 单 API 进程串行审批；多实例部署时升级为跨进程协调。
+_approval_lock = threading.Lock()
 
 
 def _sse(data: dict) -> str:
@@ -22,7 +27,7 @@ def _iter_graph_events(chunk_iter):
     for chunk in chunk_iter:
         for node, delta in chunk.items():
             if node == "__interrupt__":
-                payloads = delta if isinstance(delta, list) else [delta]
+                payloads = delta if isinstance(delta, (list, tuple)) else [delta]
                 for intr in payloads:
                     value = getattr(intr, "value", None)
                     if value is None and isinstance(intr, dict):
@@ -70,6 +75,8 @@ def chat_once(container, db: Session, tenant_id: str, user_id: str, username: st
     }
     events: list[dict] = []
     _emit_graph_events(container.graph, container.graph.stream(input_state, config, stream_mode="updates"), events)
+    # 图节点独立提交审批单；结束历史读取事务，避免 MySQL RR 快照看不到新审批。
+    db.rollback()
     result = _final_snapshot(container, config)
     _ensure_approval_event(container, db, config, tenant_id, session_id, events)
     result["session_id"] = session_id
@@ -152,28 +159,52 @@ def _pending_approval_payload(db: Session, tenant_id: str, session_id: str) -> d
 
 
 def decide_approval(container, db: Session, auth, approval_id: str, approved: bool, comment: str = "") -> dict:
-    """人工审批：恢复被 interrupt 的图，返回最终结果。"""
-    req = db.get(ApprovalRequest, approval_id)
-    if req is None or req.tenant_id != auth.tenant_id:
-        raise HTTPException(status_code=404, detail="审批单不存在")
-    if req.status != "pending":
-        raise HTTPException(status_code=400, detail=f"该审批单已处理（{req.status}）")
-    config = {"configurable": {"thread_id": req.session_id}}
-    snapshot = container.graph.get_state(config)
-    if not snapshot.next:
-        raise HTTPException(status_code=409, detail="该会话没有等待审批的诊断流程（可能服务已重启丢失内存态）")
-    resume_value = {"approved": approved, "comment": comment, "decided_by": auth.username}
-    events: list[dict] = []
-    _emit_graph_events(container.graph, container.graph.stream(Command(resume=resume_value), config, stream_mode="updates"), events)
-    values = container.graph.get_state(config).values or {}
-    db.refresh(req)
-    return {
-        "approval_id": approval_id,
-        "approval_status": req.status,
-        "ticket_id": values.get("ticket_id"),
-        "answer": values.get("answer", ""),
-        "events": events,
-    }
+    """先原子确认审批决定，再恢复图；重试使用既有决定与唯一工单。"""
+    with _approval_lock:
+        # 身份查询可能已开启 MySQL 一致性读事务，锁内重新开始以免读到旧审批状态。
+        db.rollback()
+        req = db.get(ApprovalRequest, approval_id)
+        if req is None or req.tenant_id != auth.tenant_id:
+            raise HTTPException(status_code=404, detail="审批单不存在")
+        config = {"configurable": {"thread_id": req.session_id}}
+        snapshot = container.graph.get_state(config)
+        values = snapshot.values or {}
+        if values.get("tenant_id") != req.tenant_id or values.get("approval_id") != req.id:
+            raise HTTPException(status_code=409, detail="找不到该审批对应的持久化流程状态")
+        target = "approved" if approved else "rejected"
+        if req.status not in ("pending", target):
+            raise HTTPException(status_code=409, detail="审批决定已确定，不能改为相反决定")
+        if req.status == "pending":
+            if not snapshot.next:
+                raise HTTPException(status_code=409, detail="该流程没有等待审批的节点")
+            changed = db.execute(
+                update(ApprovalRequest)
+                .where(ApprovalRequest.id == approval_id, ApprovalRequest.tenant_id == auth.tenant_id, ApprovalRequest.status == "pending")
+                .values(status=target, comment=comment, decided_by=auth.username, decided_at=datetime.now(timezone.utc))
+            ).rowcount
+            db.commit()
+            db.refresh(req)
+            if changed != 1 and req.status != target:
+                raise HTTPException(status_code=409, detail="审批已由其他请求处理")
+        resume_value = {"approved": req.status == "approved", "comment": req.comment, "decided_by": req.decided_by}
+        events: list[dict] = []
+        if snapshot.next:
+            interrupted = any(task.interrupts for task in snapshot.tasks)
+            graph_input = Command(resume=resume_value) if interrupted else None
+            _emit_graph_events(container.graph, container.graph.stream(graph_input, config, stream_mode="updates"), events)
+            snapshot = container.graph.get_state(config)
+            # prepare_approval 已提交、但进程在进入 interrupt 前崩溃时，先跑到等待点再恢复。
+            if snapshot.next == ("approval_gate",) and any(task.interrupts for task in snapshot.tasks):
+                _emit_graph_events(container.graph, container.graph.stream(Command(resume=resume_value), config, stream_mode="updates"), events)
+            values = container.graph.get_state(config).values or {}
+        ticket = db.query(Ticket).filter(Ticket.approval_id == approval_id, Ticket.tenant_id == auth.tenant_id).first()
+        return {
+            "approval_id": approval_id,
+            "approval_status": req.status,
+            "ticket_id": ticket.id if ticket else values.get("ticket_id"),
+            "answer": values.get("answer", ""),
+            "events": events,
+        }
 
 
 def list_tools() -> list[dict]:

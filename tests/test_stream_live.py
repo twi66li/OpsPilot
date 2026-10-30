@@ -84,3 +84,17 @@ def test_process_events_sent_before_graph_exhausted():
             break
 
     assert saw_node_status, "流中未产出任何 node_status 事件"
+def test_native_interrupt_tuple_emits_approval_event():
+    from langgraph.checkpoint.memory import MemorySaver
+    from langgraph.graph import END, START, StateGraph
+    from langgraph.types import interrupt
+
+    from app.services.agent_service import _iter_graph_events
+
+    graph = StateGraph(dict)
+    graph.add_node("approval", lambda state: interrupt({"approval_id": "native-approval", "ticket_draft": {}}))
+    graph.add_edge(START, "approval")
+    graph.add_edge("approval", END)
+    compiled = graph.compile(checkpointer=MemorySaver())
+    stream = compiled.stream({}, {"configurable": {"thread_id": "native-interrupt"}}, stream_mode="updates")
+    assert any(event["type"] == "approval_required" for event in _iter_graph_events(stream))

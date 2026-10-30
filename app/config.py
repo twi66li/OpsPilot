@@ -62,6 +62,10 @@ class Settings(BaseSettings):
     langfuse_secret_key: str = ""
     langfuse_host: str = "https://cloud.langfuse.com"
 
+    # ---- 预算门控（真实模型调用统一入口；路径留空=不启用，仅离线 Mock 使用）----
+    budget_ledger_path: str = ""
+    budget_token_limit: int = 0
+
 
 @lru_cache
 def get_settings() -> Settings:

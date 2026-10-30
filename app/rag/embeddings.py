@@ -53,6 +53,17 @@ class OpenAIEmbedding:
     def embed(self, texts: list[str]) -> list[list[float]]:
         import time
 
+        from app.services.budget import BudgetExceededError, BudgetLedgerError, estimate_upper_bound, get_budget_guard
+
+        guard = get_budget_guard()
+        reservation = None
+        if guard is not None:
+            try:
+                reservation = guard.reserve("embedding", self.model, estimate_upper_bound(texts, output_cap=0))
+            except (BudgetExceededError, BudgetLedgerError) as exc:
+                self.calls.append({"model": self.model, "kind": "embedding", "status": "budget_refused",
+                                   "error_type": type(exc).__name__, "message": str(exc)})
+                raise
         started = time.perf_counter()
         record = {"model": self.model, "status": "error", "usage": {}}
         try:
@@ -75,6 +86,12 @@ class OpenAIEmbedding:
             self.calls.append(record)
             logger.info("model_api_usage kind=embedding record=%s", json.dumps(record, ensure_ascii=False))
             emit("model_call", {"kind": "embedding", **record})
+            if reservation is not None:
+                try:
+                    guard.settle(reservation, record.get("usage") or None)
+                except BudgetLedgerError as exc:
+                    record["settlement_error"] = type(exc).__name__
+                    logger.error("Embedding 预算结算写入失败（%s），账本 fail closed，后续真实调用将被拒绝", exc)
 
 
 def get_embedding_provider(settings):

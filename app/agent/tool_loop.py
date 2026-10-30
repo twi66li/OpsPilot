@@ -6,6 +6,7 @@ from contextvars import copy_context
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
+from app.services.budget import BudgetExceededError, BudgetLedgerError
 from app.services.run_service import emit, tool_deadline
 
 
@@ -85,6 +86,8 @@ def run_tool_loop(question, api, execute, *, history=(), timeout=8.0):
     for _ in range(4):  # 三次工具预算，另留一轮只回答；不把模型回合数当工具次数。
         try:
             message = api.tool_turn(messages, TOOL_SCHEMAS, allow_tools=used < 3)
+        except (BudgetExceededError, BudgetLedgerError):
+            raise  # 预算停止/账本失败是基础设施停机信号，不伪装成一次普通模型失败
         except Exception as exc:
             return finish(f"模型调用失败（{type(exc).__name__}），当前证据不足，无法确认诊断结论。", "model_error")
         messages.append(message)

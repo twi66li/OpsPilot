@@ -21,6 +21,7 @@ from app.config import Settings
 from app.rag.bm25 import BM25Retriever
 from app.rag.chunking import split_into_chunks
 from app.rag.hybrid import RetrievalResult
+from app.services.budget import BudgetExceededError, BudgetLedgerError
 from app.services.model_api import ChatAPI
 from app.services.run_service import capture_run
 
@@ -228,6 +229,8 @@ def judge_row(case, row, rubric, settings, model):
                 raise ValueError("裁判缺少理由")
             result.update(status="ok", verdict=parsed)
             break
+        except (BudgetExceededError, BudgetLedgerError):
+            raise  # 预算门控/账本失败不重试、不吞掉
         except Exception as exc:
             if not result["attempts"] or "error_type" in result["attempts"][-1]:
                 result["attempts"].append({})

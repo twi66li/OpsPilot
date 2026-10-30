@@ -16,6 +16,7 @@ import httpx
 import yaml
 from openai import APIConnectionError
 
+from app.services.budget import BudgetExceededError, BudgetLedgerError
 from app.services.model_api import ChatAPI
 from eval.real_eval import error_info, save
 
@@ -71,7 +72,8 @@ class Audit:
         return finished, started - finished.keys()
 
 
-def score_one(question, answer, retrieval, rubric, api, audit, max_retries=2):
+def score_one(question, answer, retrieval, rubric, api, audit, max_retries=1):
+    """初次失败最多额外重试 1 次（api_gate：全层重试合计初次+1）。"""
     record = {"id": answer["id"], "task_type": answer["task_type"], "mode": answer["mode"],
               "old": answer["judgment"], "new": None, "status": "error", "calls": [], "attempt_errors": []}
     payload = json.dumps(judge_payload(question, answer, retrieval), ensure_ascii=False)
@@ -88,6 +90,8 @@ def score_one(question, answer, retrieval, rubric, api, audit, max_retries=2):
                     raise ValueError("裁判未返回三个布尔值及理由")
                 record.update(status="ok", new=judgment)
                 break
+            except (BudgetExceededError, BudgetLedgerError):
+                raise  # 预算门控/账本失败不重试、不吞掉
             except Exception as exc:
                 record["attempt_errors"].append({"attempt": attempt + 1, **error_info(exc)})
                 audit.append({"event": "attempt_failed", "id": answer["id"], "attempt": attempt + 1,

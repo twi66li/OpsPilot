@@ -8,6 +8,7 @@ import logging
 import re
 
 from app.rag.embeddings import tokenize
+from app.services.budget import BudgetExceededError, BudgetLedgerError
 
 logger = logging.getLogger(__name__)
 
@@ -142,6 +143,8 @@ class OpenAIChatLLM(BaseLLM):
         try:
             data = self._parse_json(self._chat("你是运维知识库检索相关性判断助手，只输出 JSON。", prompt))
             return bool(data and any(data.get("relevant", [])))
+        except (BudgetExceededError, BudgetLedgerError):
+            raise
         except Exception as exc:
             if self.strict:
                 raise
@@ -157,6 +160,8 @@ class OpenAIChatLLM(BaseLLM):
             if not rewritten and self.strict:
                 raise ValueError("模型返回空查询改写")
             return rewritten or self._fallback.rewrite_query(question)
+        except (BudgetExceededError, BudgetLedgerError):
+            raise
         except Exception as exc:
             if self.strict:
                 raise
@@ -179,6 +184,8 @@ class OpenAIChatLLM(BaseLLM):
         user = f"用户问题：{question}\n\n知识库文档：\n{context}\n\n工具输出：\n{tools_info}\n\n历史相似故障：\n{faults}"
         try:
             return self._chat(system, user)
+        except (BudgetExceededError, BudgetLedgerError):
+            raise
         except Exception as exc:
             if self.strict:
                 raise
@@ -192,6 +199,8 @@ class OpenAIChatLLM(BaseLLM):
             data = self._parse_json(self._chat(system, user))
             if data and data.get("title"):
                 return data
+        except (BudgetExceededError, BudgetLedgerError):
+            raise
         except Exception as exc:
             if self.strict:
                 raise

@@ -1,0 +1,124 @@
+{
+  "containers": [
+    {
+      "Service": "api",
+      "State": "running",
+      "Health": "",
+      "ID": "2de53fc94d39",
+      "Image": "aiops-diagnosis-agent-api",
+      "Publishers": [
+        {
+          "URL": "0.0.0.0",
+          "TargetPort": 8000,
+          "PublishedPort": 8000,
+          "Protocol": "tcp"
+        },
+        {
+          "URL": "::",
+          "TargetPort": 8000,
+          "PublishedPort": 8000,
+          "Protocol": "tcp"
+        }
+      ]
+    },
+    {
+      "Service": "mysql",
+      "State": "running",
+      "Health": "healthy",
+      "ID": "36c6968f72f6",
+      "Image": "mysql:8.0",
+      "Publishers": [
+        {
+          "URL": "0.0.0.0",
+          "TargetPort": 3306,
+          "PublishedPort": 13306,
+          "Protocol": "tcp"
+        },
+        {
+          "URL": "::",
+          "TargetPort": 3306,
+          "PublishedPort": 13306,
+          "Protocol": "tcp"
+        }
+      ]
+    },
+    {
+      "Service": "qdrant",
+      "State": "running",
+      "Health": "",
+      "ID": "81e18eb3a27e",
+      "Image": "qdrant/qdrant:v1.12.4",
+      "Publishers": [
+        {
+          "URL": "0.0.0.0",
+          "TargetPort": 6333,
+          "PublishedPort": 6333,
+          "Protocol": "tcp"
+        },
+        {
+          "URL": "::",
+          "TargetPort": 6333,
+          "PublishedPort": 6333,
+          "Protocol": "tcp"
+        },
+        {
+          "URL": "0.0.0.0",
+          "TargetPort": 6334,
+          "PublishedPort": 6334,
+          "Protocol": "tcp"
+        },
+        {
+          "URL": "::",
+          "TargetPort": 6334,
+          "PublishedPort": 6334,
+          "Protocol": "tcp"
+        }
+      ]
+    },
+    {
+      "Service": "redis",
+      "State": "running",
+      "Health": "healthy",
+      "ID": "3c7726f1a895",
+      "Image": "redis:7-alpine",
+      "Publishers": [
+        {
+          "URL": "0.0.0.0",
+          "TargetPort": 6379,
+          "PublishedPort": 6379,
+          "Protocol": "tcp"
+        },
+        {
+          "URL": "::",
+          "TargetPort": 6379,
+          "PublishedPort": 6379,
+          "Protocol": "tcp"
+        }
+      ]
+    }
+  ],
+  "mounts": {
+    "mysql": [
+      {
+        "Type": "volume",
+        "Name": "aiops-diagnosis-agent_mysql_data",
+        "Destination": "/var/lib/mysql"
+      }
+    ],
+    "qdrant": [
+      {
+        "Type": "volume",
+        "Name": "aiops-diagnosis-agent_qdrant_data",
+        "Destination": "/qdrant/storage"
+      }
+    ],
+    "redis": [
+      {
+        "Type": "volume",
+        "Name": "aiops-diagnosis-agent_redis_data",
+        "Destination": "/data"
+      }
+    ]
+  },
+  "checked_at": "2026-10-30T02:13:29.849613+00:00"
+}

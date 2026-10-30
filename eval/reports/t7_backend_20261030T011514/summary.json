@@ -1,0 +1,88 @@
+{
+  "status": "integration_passed_pending_zcode_review",
+  "source_baseline": "f738b08",
+  "source_commit": "fdb538df8d27c1efdee1c944ac3e6fb8d80547ab",
+  "validation": {
+    "mock_tests": {
+      "tests/test_t7_real_wiring.py": 8,
+      "tests/test_real_eval.py": 10,
+      "note": "Codex最小相关回归；未声称独立复跑ZCode所报全量70例"
+    },
+    "ruff": "app/services/model_api.py与app/rag/embeddings.py通过",
+    "compose_config": "docker compose config --quiet 通过",
+    "real_http_smoke": "登录/SSE诊断/人工审批建单通过",
+    "ingest_and_search": "正式HTTP文档入库/1024维向量/真实DashScope重排通过",
+    "business_persistence": "实际API容器重启后同文档/4条消息/同工单仍可读取；兼容客户端下重排检索通过",
+    "strict_connection_failures": "真实关闭端口1探针：Qdrant/Redis/chat/embedding/rerank五项均抛出，未回退Mock"
+  },
+  "actual_backends": {
+    "database": "MySQL8.0.46容器",
+    "cache": "Redis7容器（正式请求限流键有实证）",
+    "vector": "Qdrant1.12.4容器，客户端1.13.3",
+    "collection": "kb_qwen37_1024_v2",
+    "dimensions": 1024,
+    "documents": 13,
+    "vector_points": 51
+  },
+  "changes": [
+    ".dockerignore阻止.env/本机环境/安装包进入镜像",
+    "MySQL宿主端口可覆盖，本机13306保留原生3306",
+    "正式chat/embedding/rerank输出无正文及凭据的API实报usage日志",
+    "Qdrant客户端范围>=1.12,<1.14对齐固定1.12.4服务"
+  ],
+  "usage": {
+    "source": "正式API容器及同一Compose启动脚本的API实报usage日志；不使用estimate_tokens",
+    "request_count": 28,
+    "by_kind": {
+      "chat": {
+        "model": [
+          "qwen3.8-flash"
+        ],
+        "requests": 5,
+        "api_usage_sum": {
+          "completion_tokens": 1434,
+          "prompt_tokens": 2534,
+          "total_tokens": 3968
+        },
+        "records_with_usage": 5
+      },
+      "embedding": {
+        "model": [
+          "qwen3.7-text-embedding-flash"
+        ],
+        "requests": 18,
+        "api_usage_sum": {
+          "prompt_tokens": 4085,
+          "total_tokens": 4085
+        },
+        "records_with_usage": 18
+      },
+      "rerank": {
+        "model": [
+          "qwen3.7-text-rerank"
+        ],
+        "requests": 5,
+        "api_usage_sum": {
+          "prompt_tokens": 1583,
+          "total_tokens": 1583
+        },
+        "records_with_usage": 5
+      }
+    },
+    "total_tokens": 9636,
+    "coverage": "本轮由Codex启动的种子入库、正式HTTP smoke、文档入库/检索及版本修复后的检索复验。ZCode移交前宿主机探针不计入；关闭端口1的故障探针没有真实上游响应/计费usage；未核实账户余额或实际费用。"
+  },
+  "limitations": [
+    "本地Compose演示环境，非生产部署或负载测试",
+    "指标工具仍为模拟数据、故障记录为演示种子；T8尚未实施",
+    "仅验证已提交业务数据的重启持久化，未验证等待审批的LangGraph跨重启恢复；该项属于T9",
+    "故障验证使用本地关闭端口，不等同于真实供应商宕机实验",
+    "旧离线评测数据和分数未重跑或改写；本轮结果不构成新准确率"
+  ],
+  "protected_paths_unchanged": [
+    "eval/datasets/v1",
+    "eval/reports/real_ops_20261029T221616",
+    "eval/reports/judge_sensitivity_qwen38max_20261029T233928"
+  ],
+  "completed_at": "2026-10-30T02:30:09.798027+00:00"
+}

@@ -1,0 +1,14 @@
+{
+  "report_dir": "D:\\Code\\python\\aiops-diagnosis-agent\\eval\\reports\\t7_backend_20261030T011514",
+  "status": "http_passed",
+  "started_at": "2026-10-30T01:15:14.940484+00:00",
+  "smoke_exit": 0,
+  "document_id": "e0104fbb3b0b40e4a1e433387010504a",
+  "session_id": "429e85602239460481fcb524ca22be5b",
+  "ticket_id": "d56dfa4a15a84c55be4f94d3588c84c6",
+  "message_count": 4,
+  "search_hit_count": 3,
+  "reranked": true,
+  "completed_at": "2026-10-30T01:15:42.224324+00:00",
+  "smoke_stdout": "health: 200 {\"status\":\"ok\",\"app\":\"aiops-diagnosis-agent\"}\nlogin: 200\nsession: 200 429e8560\n诊断 SSE: 200 | 事件: ['start', 'node_status', 'node_status', 'retrieval', 'node_status', 'grade', 'node_status', 'tool', 'node_status', 'answer', 'final', 'done']\n  状态: answered | 引用: ['ERR_5003 数据库连接池耗尽处理手册']\n工单审批: approval_required | approval_id: e1d71181\n审批决定: 200 | 工单: d56dfa4a\n\n结果： ✅ 全部通过\n"
+}

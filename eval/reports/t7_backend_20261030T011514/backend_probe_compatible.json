@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "checked_at": "2026-10-30T02:29:00.629807+00:00",
+  "result": {
+    "classes": {
+      "embedder": "OpenAIEmbedding",
+      "vector_store": "QdrantVectorStore",
+      "reranker": "DashScopeReranker",
+      "llm": "OpenAIChatLLM",
+      "cache": "RedisCache"
+    },
+    "strict": true,
+    "mysql_dialect": "mysql",
+    "mysql_host": "mysql",
+    "counts": {
+      "documents": 13,
+      "messages": 4,
+      "tickets": 1
+    },
+    "redis_ping": true,
+    "qdrant_client_version": "1.13.3",
+    "collection": "kb_qwen37_1024_v2",
+    "dimension": 1024,
+    "point_count": 51
+  },
+  "stderr": ""
+}

@@ -1,0 +1,240 @@
+[
+  {
+    "method": "GET",
+    "path": "/health",
+    "request": null,
+    "status": 200,
+    "response": {
+      "status": "ok",
+      "app": "aiops-diagnosis-agent"
+    },
+    "elapsed_ms": 64.39
+  },
+  {
+    "method": "POST",
+    "path": "/auth/login",
+    "request": {
+      "username": "admin",
+      "password": "[REDACTED]"
+    },
+    "status": 200,
+    "response": {
+      "token_received": true
+    },
+    "elapsed_ms": 55.62
+  },
+  {
+    "method": "POST",
+    "path": "/api/sessions",
+    "request": {
+      "title": "smoke"
+    },
+    "status": 200,
+    "response": {
+      "id": "429e85602239460481fcb524ca22be5b",
+      "title": "smoke",
+      "created_at": "2026-10-30T01:15:15.085592+00:00"
+    },
+    "elapsed_ms": 29.74
+  },
+  {
+    "method": "POST",
+    "path": "/api/agent/chat/stream",
+    "request": {
+      "session_id": "429e85602239460481fcb524ca22be5b",
+      "message": "ERR_5003 连接池耗尽怎么处理？"
+    },
+    "status": 200,
+    "response": "data: {\"type\": \"start\", \"session_id\": \"429e85602239460481fcb524ca22be5b\", \"question\": \"ERR_5003 连接池耗尽怎么处理？\"}\n\ndata: {\"type\": \"node_status\", \"node\": \"route_intent\", \"status\": \"completed\"}\n\ndata: {\"type\": \"node_status\", \"node\": \"retrieve\", \"status\": \"completed\"}\n\ndata: {\"type\": \"retrieval\", \"mode\": \"hybrid\", \"query\": \"ERR_5003 连接池耗尽怎么处理？\", \"latency_ms\": 1473.0, \"reranked\": true, \"hits\": [{\"chunk_id\": \"8355439efe874adb90e45343a259ad06::2\", \"doc_id\": \"8355439efe874adb90e45343a259ad06\", \"doc_title\": \"ERR_5003 数据库连接池耗尽处理手册\", \"text\": \"# ERR_5003 数据库连接池耗尽处理手册\\n## 排查步骤\\n1. 确认连接池配置：`maxPoolSize`、`idleTimeout`、`maxWait` 是否与 DB 的 `max_connections` 匹配。\\n2. 检查是否存在慢查询占用连接：`SELECT * FROM information_schema.processlist WHERE time > 5;`\\n3. 检查是否有连接泄漏：连接未在 finally 中归还、事务未提交/回滚。\\n4. 检查是否发生流量突增或下游抖动导致的线程堆积。\", \"source\": \"knowledge/ERR_5003_数据库连接池耗尽处理手册.md\", \"score\": 1.0}, {\"chunk_id\": \"8355439efe874adb90e45343a259ad06::0\", \"doc_id\": \"8355439efe874adb90e45343a259ad06\", \"doc_title\": \"ERR_5003 数据库连接池耗尽处理手册\", \"text\": \"# ERR_5003 数据库连接池耗尽处理手册\\n\\n## 适用场景\\n应用日志出现 `ERR_5003`（Cannot get connection from pool / connection pool exhausted），\\n或监控显示数据库活跃连接数长期等于 max_connections。\", \"source\": \"knowledge/ERR_5003_数据库连接池耗尽处理手册.md\", \"score\": 0.949}, {\"chunk_id\": \"8355439efe874adb90e45343a259ad06::1\", \"doc_id\": \"8355439efe874adb90e45343a259ad06\", \"doc_title\": \"ERR_5003 数据库连接池耗尽处理手册\", \"text\": \"# ERR_5003 数据库连接池耗尽处理手册\\n## 典型症状\\n- 接口大量 500/超时，堆栈中包含 `ERR_5003`\\n- `SHOW PROCESSLIST` 中大量 Sleep 连接\\n- 应用侧等待队列堆积，RT 从几十毫秒飙升至数秒\", \"source\": \"knowledge/ERR_5003_数据库连接池耗尽处理手册.md\", \"score\": 0.9239}, {\"chunk_id\": \"8355439efe874adb90e45343a259ad06::5\", \"doc_id\": \"8355439efe874adb90e45343a259ad06\", \"doc_title\": \"ERR_5003 数据库连接池耗尽处理手册\", \"text\": \"# ERR_5003 数据库连接池耗尽处理手册\\n## 预警指标\\n- MySQL Threads_connected / max_connections > 85% 告警\\n- 应用侧 acquire 等待时间 P99 > 100ms 告警\", \"source\": \"knowledge/ERR_5003_数据库连接池耗尽处理手册.md\", \"score\": 0.8827}, {\"chunk_id\": \"8355439efe874adb90e45343a259ad06::4\", \"doc_id\": \"8355439efe874adb90e45343a259ad06\", \"doc_title\": \"ERR_5003 数据库连接池耗尽处理手册\", \"text\": \"# ERR_5003 数据库连接池耗尽处理手册\\n## 相关错误码\\n- ERR_5003：连接池耗尽\\n- ERR_5004：连接获取超时\", \"source\": \"knowledge/ERR_5003_数据库连接池耗尽处理手册.md\", \"score\": 0.7945}], \"round\": 1}\n\ndata: {\"type\": \"node_status\", \"node\": \"grade\", \"status\": \"completed\"}\n\ndata: {\"type\": \"grade\", \"docs_sufficient\": true, \"iteration\": 1}\n\ndata: {\"type\": \"node_status\", \"node\": \"call_tools\", \"status\": \"completed\"}\n\ndata: {\"type\": \"tool\", \"name\": \"query_fault_history\", \"args\": {\"service\": [], \"error_codes\": [\"ERR_5003\"]}, \"summary\": \"命中 1 条历史故障\", \"anomalies\": []}\n\ndata: {\"type\": \"node_status\", \"node\": \"generate\", \"status\": \"completed\"}\n\ndata: {\"type\": \"answer\", \"answer\": \"针对 `ERR_5003` 数据库连接池耗尽问题，建议按照以下步骤进行处理：\\n\\n### 1. 确认适用场景与症状\\n首先确认当前现象是否符合以下特征，以排除其他故障可能 [2]：\\n*   **日志报错**：应用日志中出现 `ERR_5003`（Cannot get connection from pool / connection pool exhausted）[2]。\\n*   **监控指标**：数据库活跃连接数长期等于 `max_connections` [2]；MySQL `Threads_connected` / `max_connections` > 85% [4]；应用侧获取连接等待时间 P99 > 100ms [4]。\\n*   **业务表现**：接口大量返回 500 错误或超时，堆栈中包含 `ERR_5003` [3]；响应时间（RT）从几十毫秒飙升至数秒 [3]。\\n*   **数据库状态**：执行 `SHOW PROCESSLIST` 时观察到大量 `Sleep` 状态的连接 [3]。\\n\\n### 2. 排查步骤\\n请依次执行以下检查以确定根本原因 [1]：\\n\\n1.  **检查配置匹配性**：\\n    确认连接池配置参数 `maxPoolSize`、`idleTimeout`、`maxWait` 是否与数据库的 `max_connections` 设置相匹配 [1]。\\n2.  **检查慢查询占用**：\\n    执行 SQL 查询是否存在长时间运行的慢查询占用连接：\\n    ```sql\\n    SELECT * FROM information_schema.processlist WHERE time > 5;\\n    ```\\n    [1]\\n3.  **检查连接泄漏**：\\n    审查代码逻辑，确认是否存在连接未在 `finally` 块中归还，或者事务未正确提交/回滚的情况 [1]。\\n4.  **检查流量与下游抖动**：\\n    分析是否因流量突增或下游服务抖动导致线程堆积，进而耗尽连接池 [1]。\\n\\n### 3. 历史相似故障参考\\n根据历史故障记录，曾发生过“订单服务连接池耗尽导致大面积超时”的案例 [工具输出]。\\n*   **临时措施**：上调数据库 `max_connections` 及连接池大小 [工具输出]。\\n*   **根治措施**：治理慢 SQL 后恢复稳定 [工具输出]。\\n\\n### 4. 关联错误码提示\\n在处理过程中，若遇到连接获取超时而非直接耗尽，请注意区分相关错误码 `ERR_5004` [5]。\", \"citations\": [\"ERR_5003 数据库连接池耗尽处理手册\"]}\n\ndata: {\"status\": \"answered\", \"answer\": \"针对 `ERR_5003` 数据库连接池耗尽问题，建议按照以下步骤进行处理：\\n\\n### 1. 确认适用场景与症状\\n首先确认当前现象是否符合以下特征，以排除其他故障可能 [2]：\\n*   **日志报错**：应用日志中出现 `ERR_5003`（Cannot get connection from pool / connection pool exhausted）[2]。\\n*   **监控指标**：数据库活跃连接数长期等于 `max_connections` [2]；MySQL `Threads_connected` / `max_connections` > 85% [4]；应用侧获取连接等待时间 P99 > 100ms [4]。\\n*   **业务表现**：接口大量返回 500 错误或超时，堆栈中包含 `ERR_5003` [3]；响应时间（RT）从几十毫秒飙升至数秒 [3]。\\n*   **数据库状态**：执行 `SHOW PROCESSLIST` 时观察到大量 `Sleep` 状态的连接 [3]。\\n\\n### 2. 排查步骤\\n请依次执行以下检查以确定根本原因 [1]：\\n\\n1.  **检查配置匹配性**：\\n    确认连接池配置参数 `maxPoolSize`、`idleTimeout`、`maxWait` 是否与数据库的 `max_connections` 设置相匹配 [1]。\\n2.  **检查慢查询占用**：\\n    执行 SQL 查询是否存在长时间运行的慢查询占用连接：\\n    ```sql\\n    SELECT * FROM information_schema.processlist WHERE time > 5;\\n    ```\\n    [1]\\n3.  **检查连接泄漏**：\\n    审查代码逻辑，确认是否存在连接未在 `finally` 块中归还，或者事务未正确提交/回滚的情况 [1]。\\n4.  **检查流量与下游抖动**：\\n    分析是否因流量突增或下游服务抖动导致线程堆积，进而耗尽连接池 [1]。\\n\\n### 3. 历史相似故障参考\\n根据历史故障记录，曾发生过“订单服务连接池耗尽导致大面积超时”的案例 [工具输出]。\\n*   **临时措施**：上调数据库 `max_connections` 及连接池大小 [工具输出]。\\n*   **根治措施**：治理慢 SQL 后恢复稳定 [工具输出]。\\n\\n### 4. 关联错误码提示\\n在处理过程中，若遇到连接获取超时而非直接耗尽，请注意区分相关错误码 `ERR_5004` [5]。\", \"citations\": [\"ERR_5003 数据库连接池耗尽处理手册\"], \"intent\": \"diagnose\", \"ticket_id\": null, \"docs_sufficient\": true, \"type\": \"final\"}\n\ndata: {\"type\": \"done\"}\n\n",
+    "elapsed_ms": 12159.38
+  },
+  {
+    "method": "POST",
+    "path": "/api/agent/chat/stream",
+    "request": {
+      "session_id": "429e85602239460481fcb524ca22be5b",
+      "message": "帮我创建工单处理网关 502 问题"
+    },
+    "status": 200,
+    "response": "data: {\"type\": \"start\", \"session_id\": \"429e85602239460481fcb524ca22be5b\", \"question\": \"帮我创建工单处理网关 502 问题\"}\n\ndata: {\"type\": \"node_status\", \"node\": \"route_intent\", \"status\": \"completed\"}\n\ndata: {\"type\": \"node_status\", \"node\": \"retrieve\", \"status\": \"completed\"}\n\ndata: {\"type\": \"retrieval\", \"mode\": \"hybrid\", \"query\": \"帮我创建工单处理网关 502 问题\", \"latency_ms\": 707.4, \"reranked\": true, \"hits\": [{\"chunk_id\": \"c75b21db1c86407189caa13b21f5a728::3\", \"doc_id\": \"c75b21db1c86407189caa13b21f5a728\", \"doc_title\": \"网关 502 排查手册\", \"text\": \"# 网关 502 排查手册\\n## 处理方案\\n- 应急：摘除异常实例，滚动重启；临时调大网关超时。\\n- 治理：统一网关与上游的 keepalive/timeout 配置；发布使用就绪探针。\", \"source\": \"knowledge/网关502排查手册.md\", \"score\": 0.9224}, {\"chunk_id\": \"c75b21db1c86407189caa13b21f5a728::2\", \"doc_id\": \"c75b21db1c86407189caa13b21f5a728\", \"doc_title\": \"网关 502 排查手册\", \"text\": \"# 网关 502 排查手册\\n## 排查步骤\\n1. 定位报错路由对应的上游服务与实例。\\n2. 查看该服务实例的存活与发布状态。\\n3. 对比网关超时配置与服务 P99 延迟。\", \"source\": \"knowledge/网关502排查手册.md\", \"score\": 0.8639}, {\"chunk_id\": \"c75b21db1c86407189caa13b21f5a728::1\", \"doc_id\": \"c75b21db1c86407189caa13b21f5a728\", \"doc_title\": \"网关 502 排查手册\", \"text\": \"# 网关 502 排查手册\\n## 常见根因\\n1. 上游服务实例重启或发布中，连接被拒绝。\\n2. 上游处理超时超过网关 read timeout。\\n3. 上游 keepalive 配置不一致导致连接被对端关闭。\", \"source\": \"knowledge/网关502排查手册.md\", \"score\": 0.8589}, {\"chunk_id\": \"c75b21db1c86407189caa13b21f5a728::0\", \"doc_id\": \"c75b21db1c86407189caa13b21f5a728\", \"doc_title\": \"网关 502 排查手册\", \"text\": \"# 网关 502 排查手册\\n\\n## 适用场景\\nAPI 网关集中返回 502/504，或某路由的错误率突增。\", \"source\": \"knowledge/网关502排查手册.md\", \"score\": 0.6776}, {\"chunk_id\": \"c75b21db1c86407189caa13b21f5a728::4\", \"doc_id\": \"c75b21db1c86407189caa13b21f5a728\", \"doc_title\": \"网关 502 排查手册\", \"text\": \"# 网关 502 排查手册\\n## 相关错误码\\n- ERR_6002：上游连接被拒绝\\n- ERR_6003：上游响应超时\", \"source\": \"knowledge/网关502排查手册.md\", \"score\": 0.6725}], \"round\": 1}\n\ndata: {\"type\": \"node_status\", \"node\": \"grade\", \"status\": \"completed\"}\n\ndata: {\"type\": \"grade\", \"docs_sufficient\": true, \"iteration\": 1}\n\ndata: {\"type\": \"node_status\", \"node\": \"call_tools\", \"status\": \"completed\"}\n\ndata: {\"type\": \"tool\", \"name\": \"query_service_metrics\", \"args\": {\"service\": \"api-gateway-service\", \"window_minutes\": 60}, \"summary\": \"QPS=227.06, P99=112.06ms, 错误率=0.33%\", \"anomalies\": []}\n\ndata: {\"type\": \"tool\", \"name\": \"query_fault_history\", \"args\": {\"service\": [\"api-gateway-service\"], \"error_codes\": []}, \"summary\": \"命中 1 条历史故障\", \"anomalies\": []}\n\ndata: {\"type\": \"node_status\", \"node\": \"generate\", \"status\": \"completed\"}\n\ndata: {\"type\": \"answer\", \"answer\": \"针对网关 502 问题，建议按以下步骤创建工单并处理：\\n\\n### 1. 工单标题与描述\\n*   **标题**：[P1] API 网关集中返回 502/504 故障排查 [4]\\n*   **现象描述**：API 网关出现 502 错误。根据工具输出，当前服务 QPS=227.06，P99=112.06ms，错误率=0.33%。\\n*   **初步判断**：结合历史相似故障（上游发布期间连接拒绝）及常见根因，极可能为上游服务实例重启或发布中导致连接被拒绝，或 keepalive 配置不一致 [3][历史故障]。\\n\\n### 2. 推荐处理方案（写入工单解决方案栏）\\n\\n#### A. 应急措施（立即执行）\\n1.  **摘除异常实例**：定位报错路由对应的上游服务与实例，检查其存活与发布状态 [2]。若发现未就绪或正在发布的实例，立即从负载均衡池中摘除 [1][历史故障]。\\n2.  **滚动重启**：对疑似异常的网关或上游服务进行滚动重启 [1]。\\n3.  **临时调大超时**：若怀疑是超时导致，可临时调大网关超时配置以缓解症状 [1]。\\n\\n#### B. 后续治理（长期修复）\\n1.  **统一配置**：检查并统一网关与上游服务的 `keepalive` 和 `timeout` 配置，防止因配置不一致导致连接被对端关闭 [1][3]。\\n2.  **完善探针**：确保发布流程使用就绪探针（readinessProbe），避免流量打到未完全启动的实例上 [1][历史故障]。\\n3.  **对比延迟**：再次对比网关超时配置与服务 P99 延迟（当前 P99=112.06ms），确保网关超时设置合理 [2]。\\n\\n### 3. 关键参考信息\\n*   **相关错误码**：关注日志中的 `ERR_6002`（上游连接被拒绝）或 `ERR_6003`（上游响应超时）以确认具体根因 [5]。\\n*   **适用场景匹配**：本案例符合“API 网关集中返回 502/504”的场景 [4]。\", \"citations\": [\"网关 502 排查手册\"]}\n\ndata: {\"type\": \"approval_required\", \"approval_id\": \"e1d71181b2074f25b17874f5e71fea41\", \"ticket_draft\": {\"title\": \"[P1] API 网关集中返回 502/504 故障排查\", \"service\": \"API Gateway\", \"severity\": \"P1\", \"description\": \"现象：API 网关出现 502 错误，当前服务 QPS=227.06，P99=112.06ms，错误率=0.33%。初步判断：极可能为上游服务实例重启或发布中导致连接被拒绝，或 keepalive 配置不一致。\\n\\n应急措施：\\n1. 摘除异常实例：定位报错路由对应的上游服务与实例，检查其存活与发布状态，若发现未就绪或正在发布的实例，立即从负载均衡池中摘除。\\n2. 滚动重启：对疑似异常的网关或上游服务进行滚动重启。\\n3. 临时调大超时：若怀疑是超时导致，可临时调大网关超时配置以缓解症状。\\n\\n后续治理：\\n1. 统一配置：检查并统一网关与上游服务的 keepalive 和 timeout 配置。\\n2. 完善探针：确保发布流程使用就绪探针（readinessProbe）。\\n3. 对比延迟：再次对比网关超时配置与服务 P99 延迟，确保设置合理。\\n\\n关键参考：关注日志中的 ERR_6002（上游连接被拒绝）或 ERR_6003（上游响应超时）。\"}, \"session_id\": \"429e85602239460481fcb524ca22be5b\"}\n\ndata: {\"status\": \"approval_required\", \"answer\": \"针对网关 502 问题，建议按以下步骤创建工单并处理：\\n\\n### 1. 工单标题与描述\\n*   **标题**：[P1] API 网关集中返回 502/504 故障排查 [4]\\n*   **现象描述**：API 网关出现 502 错误。根据工具输出，当前服务 QPS=227.06，P99=112.06ms，错误率=0.33%。\\n*   **初步判断**：结合历史相似故障（上游发布期间连接拒绝）及常见根因，极可能为上游服务实例重启或发布中导致连接被拒绝，或 keepalive 配置不一致 [3][历史故障]。\\n\\n### 2. 推荐处理方案（写入工单解决方案栏）\\n\\n#### A. 应急措施（立即执行）\\n1.  **摘除异常实例**：定位报错路由对应的上游服务与实例，检查其存活与发布状态 [2]。若发现未就绪或正在发布的实例，立即从负载均衡池中摘除 [1][历史故障]。\\n2.  **滚动重启**：对疑似异常的网关或上游服务进行滚动重启 [1]。\\n3.  **临时调大超时**：若怀疑是超时导致，可临时调大网关超时配置以缓解症状 [1]。\\n\\n#### B. 后续治理（长期修复）\\n1.  **统一配置**：检查并统一网关与上游服务的 `keepalive` 和 `timeout` 配置，防止因配置不一致导致连接被对端关闭 [1][3]。\\n2.  **完善探针**：确保发布流程使用就绪探针（readinessProbe），避免流量打到未完全启动的实例上 [1][历史故障]。\\n3.  **对比延迟**：再次对比网关超时配置与服务 P99 延迟（当前 P99=112.06ms），确保网关超时设置合理 [2]。\\n\\n### 3. 关键参考信息\\n*   **相关错误码**：关注日志中的 `ERR_6002`（上游连接被拒绝）或 `ERR_6003`（上游响应超时）以确认具体根因 [5]。\\n*   **适用场景匹配**：本案例符合“API 网关集中返回 502/504”的场景 [4]。\", \"citations\": [\"网关 502 排查手册\"], \"intent\": \"create_ticket\", \"ticket_id\": null, \"docs_sufficient\": true, \"approval\": {\"approval_id\": \"e1d71181b2074f25b17874f5e71fea41\", \"ticket_draft\": {\"title\": \"[P1] API 网关集中返回 502/504 故障排查\", \"service\": \"API Gateway\", \"severity\": \"P1\", \"description\": \"现象：API 网关出现 502 错误，当前服务 QPS=227.06，P99=112.06ms，错误率=0.33%。初步判断：极可能为上游服务实例重启或发布中导致连接被拒绝，或 keepalive 配置不一致。\\n\\n应急措施：\\n1. 摘除异常实例：定位报错路由对应的上游服务与实例，检查其存活与发布状态，若发现未就绪或正在发布的实例，立即从负载均衡池中摘除。\\n2. 滚动重启：对疑似异常的网关或上游服务进行滚动重启。\\n3. 临时调大超时：若怀疑是超时导致，可临时调大网关超时配置以缓解症状。\\n\\n后续治理：\\n1. 统一配置：检查并统一网关与上游服务的 keepalive 和 timeout 配置。\\n2. 完善探针：确保发布流程使用就绪探针（readinessProbe）。\\n3. 对比延迟：再次对比网关超时配置与服务 P99 延迟，确保设置合理。\\n\\n关键参考：关注日志中的 ERR_6002（上游连接被拒绝）或 ERR_6003（上游响应超时）。\"}, \"session_id\": \"429e85602239460481fcb524ca22be5b\"}, \"type\": \"final\"}\n\ndata: {\"type\": \"done\"}\n\n",
+    "elapsed_ms": 13510.9
+  },
+  {
+    "method": "POST",
+    "path": "/api/agent/approvals/e1d71181b2074f25b17874f5e71fea41/decide",
+    "request": {
+      "approved": true,
+      "comment": "冒烟测试审批"
+    },
+    "status": 200,
+    "response": {
+      "approval_id": "e1d71181b2074f25b17874f5e71fea41",
+      "approval_status": "pending",
+      "ticket_id": "d56dfa4a15a84c55be4f94d3588c84c6",
+      "answer": "针对网关 502 问题，建议按以下步骤创建工单并处理：\n\n### 1. 工单标题与描述\n*   **标题**：[P1] API 网关集中返回 502/504 故障排查 [4]\n*   **现象描述**：API 网关出现 502 错误。根据工具输出，当前服务 QPS=227.06，P99=112.06ms，错误率=0.33%。\n*   **初步判断**：结合历史相似故障（上游发布期间连接拒绝）及常见根因，极可能为上游服务实例重启或发布中导致连接被拒绝，或 keepalive 配置不一致 [3][历史故障]。\n\n### 2. 推荐处理方案（写入工单解决方案栏）\n\n#### A. 应急措施（立即执行）\n1.  **摘除异常实例**：定位报错路由对应的上游服务与实例，检查其存活与发布状态 [2]。若发现未就绪或正在发布的实例，立即从负载均衡池中摘除 [1][历史故障]。\n2.  **滚动重启**：对疑似异常的网关或上游服务进行滚动重启 [1]。\n3.  **临时调大超时**：若怀疑是超时导致，可临时调大网关超时配置以缓解症状 [1]。\n\n#### B. 后续治理（长期修复）\n1.  **统一配置**：检查并统一网关与上游服务的 `keepalive` 和 `timeout` 配置，防止因配置不一致导致连接被对端关闭 [1][3]。\n2.  **完善探针**：确保发布流程使用就绪探针（readinessProbe），避免流量打到未完全启动的实例上 [1][历史故障]。\n3.  **对比延迟**：再次对比网关超时配置与服务 P99 延迟（当前 P99=112.06ms），确保网关超时设置合理 [2]。\n\n### 3. 关键参考信息\n*   **相关错误码**：关注日志中的 `ERR_6002`（上游连接被拒绝）或 `ERR_6003`（上游响应超时）以确认具体根因 [5]。\n*   **适用场景匹配**：本案例符合“API 网关集中返回 502/504”的场景 [4]。\n\n✅ 工单已创建（ID: d56dfa4a），由 admin 审批通过，等待值班工程师处理。",
+      "events": [
+        {
+          "type": "node_status",
+          "node": "approval_gate",
+          "status": "completed"
+        },
+        {
+          "type": "approval_decision",
+          "approved": true,
+          "approval_id": "e1d71181b2074f25b17874f5e71fea41"
+        },
+        {
+          "type": "node_status",
+          "node": "create_ticket",
+          "status": "completed"
+        },
+        {
+          "type": "ticket_created",
+          "ticket_id": "d56dfa4a15a84c55be4f94d3588c84c6",
+          "title": "[P1] API 网关集中返回 502/504 故障排查"
+        }
+      ]
+    },
+    "elapsed_ms": 53.84
+  },
+  {
+    "method": "POST",
+    "path": "/api/kb/documents",
+    "request": {
+      "title": "T7 真实存储验收 t7_backend_20261030T011514",
+      "content": "# T7_BACKEND 真实存储验收\n\n本条为演示环境验收文档。T7_BACKEND 标识用于验证正式 API 的 MySQL 文档持久化、Qdrant 1024 维向量入库与重排检索，不代表生产业务数据。",
+      "source": "t7_backend_acceptance"
+    },
+    "status": 200,
+    "response": {
+      "id": "e0104fbb3b0b40e4a1e433387010504a",
+      "title": "T7 真实存储验收 t7_backend_20261030T011514",
+      "chunk_count": 1,
+      "tenant_id": "default"
+    },
+    "elapsed_ms": 522.74
+  },
+  {
+    "method": "POST",
+    "path": "/api/kb/search",
+    "request": {
+      "query": "T7_BACKEND 真实存储验收",
+      "mode": "hybrid",
+      "top_k": 3
+    },
+    "status": 200,
+    "response": {
+      "mode": "hybrid",
+      "reranked": true,
+      "latency_ms": 808.0,
+      "hits": [
+        {
+          "chunk_id": "e0104fbb3b0b40e4a1e433387010504a::0",
+          "doc_id": "e0104fbb3b0b40e4a1e433387010504a",
+          "doc_title": "T7 真实存储验收 t7_backend_20261030T011514",
+          "text": "# T7_BACKEND 真实存储验收\n\n本条为演示环境验收文档。T7_BACKEND 标识用于验证正式 API 的 MySQL 文档持久化、Qdrant 1024 维向量入库与重排检索，不代表生产业务数据。",
+          "source": "t7_backend_acceptance",
+          "score": 0.9245
+        },
+        {
+          "chunk_id": "6e061d34e28348debc411a01c21c0a47::2",
+          "doc_id": "6e061d34e28348debc411a01c21c0a47",
+          "doc_title": "payment-service 对账失败处理手册",
+          "text": "# payment-service 对账失败处理手册\n## 排查步骤\n1. 确认对账文件下载是否成功，行数与渠道后台是否一致。\n2. 查询差异明细：本地订单表中状态为 PROCESSING 超过 30 分钟的订单。\n3. 对差异订单调用渠道查询接口核实真实支付状态。",
+          "source": "knowledge/payment-service_对账失败处理手册.md",
+          "score": 0.2478
+        },
+        {
+          "chunk_id": "6e061d34e28348debc411a01c21c0a47::0",
+          "doc_id": "6e061d34e28348debc411a01c21c0a47",
+          "doc_title": "payment-service 对账失败处理手册",
+          "text": "# payment-service 对账失败处理手册\n\n## 适用场景\n支付服务（payment-service）对账任务失败，日志出现 `ERR_7010`（reconciliation failed），\n或财务侧反馈订单状态与渠道账单不一致。",
+          "source": "knowledge/payment-service_对账失败处理手册.md",
+          "score": 0.0823
+        }
+      ],
+      "debug": {
+        "dense_count": 5,
+        "bm25_count": 2,
+        "dense_titles": [
+          "T7 真实存储验收 t7_backend_20261030T011514",
+          "payment-service 对账失败处理手册",
+          "payment-service 对账失败处理手册",
+          "payment-service 对账失败处理手册",
+          "磁盘空间不足处理 SOP"
+        ],
+        "bm25_titles": [
+          "T7 真实存储验收 t7_backend_20261030T011514",
+          "payment-service 对账失败处理手册"
+        ]
+      }
+    },
+    "elapsed_ms": 849.5
+  },
+  {
+    "method": "GET",
+    "path": "/api/sessions/429e85602239460481fcb524ca22be5b",
+    "request": null,
+    "status": 200,
+    "response": {
+      "id": "429e85602239460481fcb524ca22be5b",
+      "title": "smoke",
+      "messages": [
+        {
+          "role": "user",
+          "content": "ERR_5003 连接池耗尽怎么处理？",
+          "meta": {},
+          "created_at": "2026-10-30T01:15:15"
+        },
+        {
+          "role": "assistant",
+          "content": "针对 `ERR_5003` 数据库连接池耗尽问题，建议按照以下步骤进行处理：\n\n### 1. 确认适用场景与症状\n首先确认当前现象是否符合以下特征，以排除其他故障可能 [2]：\n*   **日志报错**：应用日志中出现 `ERR_5003`（Cannot get connection from pool / connection pool exhausted）[2]。\n*   **监控指标**：数据库活跃连接数长期等于 `max_connections` [2]；MySQL `Threads_connected` / `max_connections` > 85% [4]；应用侧获取连接等待时间 P99 > 100ms [4]。\n*   **业务表现**：接口大量返回 500 错误或超时，堆栈中包含 `ERR_5003` [3]；响应时间（RT）从几十毫秒飙升至数秒 [3]。\n*   **数据库状态**：执行 `SHOW PROCESSLIST` 时观察到大量 `Sleep` 状态的连接 [3]。\n\n### 2. 排查步骤\n请依次执行以下检查以确定根本原因 [1]：\n\n1.  **检查配置匹配性**：\n    确认连接池配置参数 `maxPoolSize`、`idleTimeout`、`maxWait` 是否与数据库的 `max_connections` 设置相匹配 [1]。\n2.  **检查慢查询占用**：\n    执行 SQL 查询是否存在长时间运行的慢查询占用连接：\n    ```sql\n    SELECT * FROM information_schema.processlist WHERE time > 5;\n    ```\n    [1]\n3.  **检查连接泄漏**：\n    审查代码逻辑，确认是否存在连接未在 `finally` 块中归还，或者事务未正确提交/回滚的情况 [1]。\n4.  **检查流量与下游抖动**：\n    分析是否因流量突增或下游服务抖动导致线程堆积，进而耗尽连接池 [1]。\n\n### 3. 历史相似故障参考\n根据历史故障记录，曾发生过“订单服务连接池耗尽导致大面积超时”的案例 [工具输出]。\n*   **临时措施**：上调数据库 `max_connections` 及连接池大小 [工具输出]。\n*   **根治措施**：治理慢 SQL 后恢复稳定 [工具输出]。\n\n### 4. 关联错误码提示\n在处理过程中，若遇到连接获取超时而非直接耗尽，请注意区分相关错误码 `ERR_5004` [5]。",
+          "meta": {
+            "intent": "diagnose",
+            "citations": [
+              "ERR_5003 数据库连接池耗尽处理手册"
+            ],
+            "ticket_id": null
+          },
+          "created_at": "2026-10-30T01:15:27"
+        },
+        {
+          "role": "user",
+          "content": "帮我创建工单处理网关 502 问题",
+          "meta": {},
+          "created_at": "2026-10-30T01:15:27"
+        },
+        {
+          "role": "assistant",
+          "content": "针对网关 502 问题，建议按以下步骤创建工单并处理：\n\n### 1. 工单标题与描述\n*   **标题**：[P1] API 网关集中返回 502/504 故障排查 [4]\n*   **现象描述**：API 网关出现 502 错误。根据工具输出，当前服务 QPS=227.06，P99=112.06ms，错误率=0.33%。\n*   **初步判断**：结合历史相似故障（上游发布期间连接拒绝）及常见根因，极可能为上游服务实例重启或发布中导致连接被拒绝，或 keepalive 配置不一致 [3][历史故障]。\n\n### 2. 推荐处理方案（写入工单解决方案栏）\n\n#### A. 应急措施（立即执行）\n1.  **摘除异常实例**：定位报错路由对应的上游服务与实例，检查其存活与发布状态 [2]。若发现未就绪或正在发布的实例，立即从负载均衡池中摘除 [1][历史故障]。\n2.  **滚动重启**：对疑似异常的网关或上游服务进行滚动重启 [1]。\n3.  **临时调大超时**：若怀疑是超时导致，可临时调大网关超时配置以缓解症状 [1]。\n\n#### B. 后续治理（长期修复）\n1.  **统一配置**：检查并统一网关与上游服务的 `keepalive` 和 `timeout` 配置，防止因配置不一致导致连接被对端关闭 [1][3]。\n2.  **完善探针**：确保发布流程使用就绪探针（readinessProbe），避免流量打到未完全启动的实例上 [1][历史故障]。\n3.  **对比延迟**：再次对比网关超时配置与服务 P99 延迟（当前 P99=112.06ms），确保网关超时设置合理 [2]。\n\n### 3. 关键参考信息\n*   **相关错误码**：关注日志中的 `ERR_6002`（上游连接被拒绝）或 `ERR_6003`（上游响应超时）以确认具体根因 [5]。\n*   **适用场景匹配**：本案例符合“API 网关集中返回 502/504”的场景 [4]。",
+          "meta": {
+            "intent": "create_ticket",
+            "citations": [
+              "网关 502 排查手册"
+            ],
+            "ticket_id": null
+          },
+          "created_at": "2026-10-30T01:15:41"
+        }
+      ]
+    },
+    "elapsed_ms": 18.21
+  },
+  {
+    "method": "GET",
+    "path": "/api/tickets/d56dfa4a15a84c55be4f94d3588c84c6",
+    "request": null,
+    "status": 200,
+    "response": {
+      "id": "d56dfa4a15a84c55be4f94d3588c84c6",
+      "title": "[P1] API 网关集中返回 502/504 故障排查",
+      "description": "现象：API 网关出现 502 错误，当前服务 QPS=227.06，P99=112.06ms，错误率=0.33%。初步判断：极可能为上游服务实例重启或发布中导致连接被拒绝，或 keepalive 配置不一致。\n\n应急措施：\n1. 摘除异常实例：定位报错路由对应的上游服务与实例，检查其存活与发布状态，若发现未就绪或正在发布的实例，立即从负载均衡池中摘除。\n2. 滚动重启：对疑似异常的网关或上游服务进行滚动重启。\n3. 临时调大超时：若怀疑是超时导致，可临时调大网关超时配置以缓解症状。\n\n后续治理：\n1. 统一配置：检查并统一网关与上游服务的 keepalive 和 timeout 配置。\n2. 完善探针：确保发布流程使用就绪探针（readinessProbe）。\n3. 对比延迟：再次对比网关超时配置与服务 P99 延迟，确保设置合理。\n\n关键参考：关注日志中的 ERR_6002（上游连接被拒绝）或 ERR_6003（上游响应超时）。",
+      "severity": "P1",
+      "status": "open",
+      "approver": "admin",
+      "decision_comment": "",
+      "created_at": "2026-10-30T01:15:41"
+    },
+    "elapsed_ms": 8.55
+  }
+]

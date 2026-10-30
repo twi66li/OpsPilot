@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "checked_at": "2026-10-30T02:13:29.003371+00:00",
+  "result": {
+    "qdrant_client": "1.13.3",
+    "qdrant_server": "1.12.4",
+    "collection": "kb_qwen37_1024_v2",
+    "dimension": 1024,
+    "point_count": 51,
+    "strict_qdrant_failure": {
+      "raised": true,
+      "error_type": "ResponseHandlingException"
+    }
+  },
+  "raw_output": "T7_FINAL_PROBE {\"qdrant_client\": \"1.13.3\", \"qdrant_server\": \"1.12.4\", \"collection\": \"kb_qwen37_1024_v2\", \"dimension\": 1024, \"point_count\": 51, \"strict_qdrant_failure\": {\"raised\": true, \"error_type\": \"ResponseHandlingException\"}}\n\n",
+  "expected_warning": "不可达探针会产生Failed to obtain server version；正常连接已无客户端/服务端版本不兼容警告。"
+}

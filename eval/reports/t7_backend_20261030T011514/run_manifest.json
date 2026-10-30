@@ -1,0 +1,115 @@
+{
+  "code_commit": "fdb538df8d27c1efdee1c944ac3e6fb8d80547ab",
+  "source_baseline": "f738b08",
+  "completed_at": "2026-10-30T02:30:09.798027+00:00",
+  "artifacts": [
+    {
+      "file": "api_after_restart.log",
+      "bytes": 8760,
+      "sha256": "021887871e907ed78cd86f788ccad9edec5a12e5ac6fe06c0e68b19ebc696b3b"
+    },
+    {
+      "file": "api_before_restart.log",
+      "bytes": 23376,
+      "sha256": "647714084252c7c40a10920a5f229e1e27a5c597ce149aa6548a1ca47d5538b8"
+    },
+    {
+      "file": "backend_probe.json",
+      "bytes": 4284,
+      "sha256": "4e2e1800a3f5463d2e9fd074f3830d59c7e91213d95e8ccca19763bda918e847"
+    },
+    {
+      "file": "backend_probe_compatible.json",
+      "bytes": 648,
+      "sha256": "810da37d85c78ac87d220fd6053612d42c19f9f8ef9fe24b9b8e01bcc484f60a"
+    },
+    {
+      "file": "backend_probe_final.json",
+      "bytes": 786,
+      "sha256": "70c1252ed56dfe4c98e0330a6080a332cd5985b49b173caaa1ccab563afa3b09"
+    },
+    {
+      "file": "deployment.json",
+      "bytes": 2782,
+      "sha256": "ceacf9030016e3ba30a38b1bd05df494ab02d84ce1d7bdd1cb2e29f0e5cc0718"
+    },
+    {
+      "file": "environment_setup.json",
+      "bytes": 2068,
+      "sha256": "1da919002374e6f6f7561250d9920ba809f20c95c3f2e9f8dc2d811884bd9f52"
+    },
+    {
+      "file": "http.json",
+      "bytes": 32558,
+      "sha256": "c803e2e7a430112be3d157d32700570cb5b6ed00da44ad17979e0fdcfbea8a29"
+    },
+    {
+      "file": "http_after_restart.json",
+      "bytes": 9948,
+      "sha256": "1fdf560d9434cee0503dfbf79be0b50477c3ebf371f7f6b05a3523a397008f5f"
+    },
+    {
+      "file": "http_result.json",
+      "bytes": 990,
+      "sha256": "d6f6059a32504c942dbf2287514de7cdf3bd64481d567251c09d6922b8f45844"
+    },
+    {
+      "file": "persistence.json",
+      "bytes": 562,
+      "sha256": "959db329a57ac3274e77a6410baf12acc5710fec98c8fd7771052e9b976f7f14"
+    },
+    {
+      "file": "restart_persistence.json",
+      "bytes": 10532,
+      "sha256": "ff9de4dccd90ee723378d4b559c9c5c5ab7c6b59d4ac5f429f28439b865b0a1f"
+    },
+    {
+      "file": "services.json",
+      "bytes": 3387,
+      "sha256": "9204cb3093536bb533d51a8bfc14d98fcb0d7a134715ef1a6cec4dce3b9d356c"
+    },
+    {
+      "file": "summary.json",
+      "bytes": 3564,
+      "sha256": "beab435029e5aa6301eeef9c816d7d0c3c4398220f45d6c7e1dcfd9350e9fd3b"
+    },
+    {
+      "file": "usage.json",
+      "bytes": 10650,
+      "sha256": "87f67ed5a5a5bac53fed52abd2daf84b6ec5ae4fe030b6023678464e5a63114d"
+    },
+    {
+      "file": "usage_after_restart.json",
+      "bytes": 859,
+      "sha256": "ce56ed3f25d188ede7f02064f9a259052010951b7ceafff8269d9f6163510ed8"
+    },
+    {
+      "file": "usage_before_restart.json",
+      "bytes": 6748,
+      "sha256": "e94364e9a959371d003f08e4e490416a54287702d38aa5a9a7b3bfd7b8b222c9"
+    }
+  ],
+  "credential_scan": "passed_exact_secret_and_sk_pattern",
+  "protected_diff_empty": true,
+  "review_status": "pending_zcode",
+  "verification_commands": [
+    "python -m pytest tests/test_t7_real_wiring.py -q",
+    "python -m pytest tests/test_real_eval.py -q",
+    "python -m ruff check app/services/model_api.py app/rag/embeddings.py",
+    "docker compose config --quiet",
+    "docker compose up -d --wait --wait-timeout 180 mysql redis qdrant",
+    "docker compose build api",
+    "docker compose up -d --no-build api",
+    "python scripts/smoke_test.py（包装记录逐次HTTP结果）",
+    "docker compose restart api；health就绪后读取原文档/会话/工单并复验search",
+    "docker compose exec -T api python（检查实际类/数据库/Redis/Qdrant；关闭端口1的strict探针）"
+  ],
+  "usage_log_intersection": 0,
+  "artifact_notes": {
+    "persistence.json": "客户端版本修复、API容器替换后的首轮持久化证据",
+    "restart_persistence.json": "后续受控compose restart后的最终持久化证据",
+    "backend_probe.json": "初次客户端1.20.0的真实结果及兼容性告警，保留原始证据",
+    "backend_probe_final.json": "版本约束生效后的首轮探针",
+    "backend_probe_compatible.json": "最终运行环境探针，客户端1.13.3且无不兼容警告"
+  }
+}

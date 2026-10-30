@@ -1,0 +1,292 @@
+[
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 937.3674980000146,
+    "usage": {
+      "prompt_tokens": 548,
+      "total_tokens": 548
+    }
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 166.371861000016,
+    "usage": {
+      "prompt_tokens": 434,
+      "total_tokens": 434
+    }
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 215.4702840000482,
+    "usage": {
+      "prompt_tokens": 377,
+      "total_tokens": 377
+    }
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 205.8199699999932,
+    "usage": {
+      "prompt_tokens": 304,
+      "total_tokens": 304
+    }
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 161.6430529999775,
+    "usage": {
+      "prompt_tokens": 339,
+      "total_tokens": 339
+    }
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 186.23693099999628,
+    "usage": {
+      "prompt_tokens": 333,
+      "total_tokens": 333
+    }
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 171.18105800000194,
+    "usage": {
+      "prompt_tokens": 276,
+      "total_tokens": 276
+    }
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 181.4908789999663,
+    "usage": {
+      "prompt_tokens": 333,
+      "total_tokens": 333
+    }
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 152.89347200001657,
+    "usage": {
+      "prompt_tokens": 303,
+      "total_tokens": 303
+    }
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 199.65779200003908,
+    "usage": {
+      "prompt_tokens": 230,
+      "total_tokens": 230
+    }
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 177.56324000004042,
+    "usage": {
+      "prompt_tokens": 366,
+      "total_tokens": 366
+    }
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 132.14564200001178,
+    "usage": {
+      "prompt_tokens": 45,
+      "total_tokens": 45
+    }
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 832.8633300000092,
+    "usage": {
+      "prompt_tokens": 28,
+      "total_tokens": 28
+    }
+  },
+  {
+    "kind": "rerank",
+    "model": "qwen3.7-text-rerank",
+    "status": "ok",
+    "usage": {
+      "prompt_tokens": 474,
+      "total_tokens": 474
+    },
+    "elapsed_ms": 571.3844580000114
+  },
+  {
+    "kind": "chat",
+    "model": "qwen3.8-flash",
+    "status": "ok",
+    "first_token_ms": 1104.1011360000539,
+    "usage": {
+      "completion_tokens": 19,
+      "prompt_tokens": 506,
+      "total_tokens": 525,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": {
+        "audio_tokens": null,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "text_tokens": 506
+      }
+    },
+    "finish_reason": "stop",
+    "elapsed_ms": 1586.2109540000233
+  },
+  {
+    "kind": "chat",
+    "model": "qwen3.8-flash",
+    "status": "ok",
+    "first_token_ms": 1468.919614000015,
+    "usage": {
+      "completion_tokens": 542,
+      "prompt_tokens": 572,
+      "total_tokens": 1114,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": {
+        "audio_tokens": null,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "text_tokens": 572
+      }
+    },
+    "finish_reason": "stop",
+    "elapsed_ms": 9005.862503999993
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 326.25026899995646,
+    "usage": {
+      "prompt_tokens": 28,
+      "total_tokens": 28
+    }
+  },
+  {
+    "kind": "rerank",
+    "model": "qwen3.7-text-rerank",
+    "status": "ok",
+    "usage": {
+      "prompt_tokens": 383,
+      "total_tokens": 383
+    },
+    "elapsed_ms": 352.2431370000163
+  },
+  {
+    "kind": "chat",
+    "model": "qwen3.8-flash",
+    "status": "ok",
+    "first_token_ms": 619.346495000002,
+    "usage": {
+      "completion_tokens": 31,
+      "prompt_tokens": 390,
+      "total_tokens": 421,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": {
+        "audio_tokens": null,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "text_tokens": 390
+      }
+    },
+    "finish_reason": "stop",
+    "elapsed_ms": 1007.609556000034
+  },
+  {
+    "kind": "chat",
+    "model": "qwen3.8-flash",
+    "status": "ok",
+    "first_token_ms": 980.2508170000124,
+    "usage": {
+      "completion_tokens": 524,
+      "prompt_tokens": 485,
+      "total_tokens": 1009,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": {
+        "audio_tokens": null,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "text_tokens": 485
+      }
+    },
+    "finish_reason": "stop",
+    "elapsed_ms": 7107.150807999971
+  },
+  {
+    "kind": "chat",
+    "model": "qwen3.8-flash",
+    "status": "ok",
+    "first_token_ms": 603.449764000004,
+    "usage": {
+      "completion_tokens": 318,
+      "prompt_tokens": 581,
+      "total_tokens": 899,
+      "completion_tokens_details": null,
+      "prompt_tokens_details": {
+        "audio_tokens": null,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "text_tokens": 581
+      }
+    },
+    "finish_reason": "stop",
+    "elapsed_ms": 4348.654002000047
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 405.1252849999969,
+    "usage": {
+      "prompt_tokens": 72,
+      "total_tokens": 72
+    }
+  },
+  {
+    "kind": "embedding",
+    "model": "qwen3.7-text-embedding-flash",
+    "status": "ok",
+    "elapsed_ms": 127.23991099994691,
+    "usage": {
+      "prompt_tokens": 23,
+      "total_tokens": 23
+    }
+  },
+  {
+    "kind": "rerank",
+    "model": "qwen3.7-text-rerank",
+    "status": "ok",
+    "usage": {
+      "prompt_tokens": 242,
+      "total_tokens": 242
+    },
+    "elapsed_ms": 660.9751209999786
+  }
+]

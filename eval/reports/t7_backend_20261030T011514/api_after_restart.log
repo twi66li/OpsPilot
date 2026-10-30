@@ -1,0 +1,59 @@
+api-1  | 2026-10-30T02:11:22.702203716Z 2026-10-30 02:11:22,701 INFO HTTP Request: GET http://qdrant:6333 "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:11:22.721917687Z 2026-10-30 02:11:22,721 INFO HTTP Request: GET http://qdrant:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:11:22.767429987Z 2026-10-30 02:11:22,767 INFO Redis 缓存已连接: redis://redis:6379/0
+api-1  | 2026-10-30T02:11:22.834692699Z 2026-10-30 02:11:22,834 INFO 种子数据完成：新增租户 0、用户 0、文档 0、故障记录 0
+api-1  | 2026-10-30T02:11:22.834711131Z 2026-10-30 02:11:22,834 INFO 内置账号：admin/admin123（管理员）、dev01/dev123456（工程师）、viewer01/view123456（只读），租户 acme：acme_admin/acme123456
+api-1  | 2026-10-30T02:11:24.073132144Z INFO:     Started server process [15]
+api-1  | 2026-10-30T02:11:24.073162026Z INFO:     Waiting for application startup.
+api-1  | 2026-10-30T02:11:25.876259480Z 2026-10-30 02:11:25,875 INFO httpx: HTTP Request: GET http://qdrant:6333 "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:11:25.887509530Z 2026-10-30 02:11:25,887 INFO httpx: HTTP Request: GET http://qdrant:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:11:25.920329419Z 2026-10-30 02:11:25,919 INFO app.services.cache: Redis 缓存已连接: redis://redis:6379/0
+api-1  | 2026-10-30T02:11:25.966950804Z 2026-10-30 02:11:25,966 INFO httpx: HTTP Request: POST http://qdrant:6333/collections/kb_qwen37_1024_v2/points/count "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:11:27.196628859Z 2026-10-30 02:11:27,196 INFO app.main: 启动完成：索引已就绪，共 51 个分块
+api-1  | 2026-10-30T02:11:27.197559162Z INFO:     Application startup complete.
+api-1  | 2026-10-30T02:11:27.199552049Z INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+api-1  | 2026-10-30T02:12:33.471857283Z INFO:     172.18.0.1:35214 - "GET /health HTTP/1.1" 200 OK
+api-1  | 2026-10-30T02:12:33.507562236Z /usr/local/lib/python3.11/site-packages/jwt/api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 17 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+api-1  | 2026-10-30T02:12:33.507593480Z   return self._jws.encode(
+api-1  | 2026-10-30T02:12:33.508818433Z INFO:     172.18.0.1:35216 - "POST /auth/login HTTP/1.1" 200 OK
+api-1  | 2026-10-30T02:12:33.531753399Z /usr/local/lib/python3.11/site-packages/jwt/api_jwt.py:370: InsecureKeyLengthWarning: The HMAC key is 17 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+api-1  | 2026-10-30T02:12:33.531772352Z   decoded = self.decode_complete(
+api-1  | 2026-10-30T02:12:33.547937594Z INFO:     172.18.0.1:35222 - "GET /api/sessions/429e85602239460481fcb524ca22be5b HTTP/1.1" 200 OK
+api-1  | 2026-10-30T02:12:33.558810003Z INFO:     172.18.0.1:35232 - "GET /api/tickets/d56dfa4a15a84c55be4f94d3588c84c6 HTTP/1.1" 200 OK
+api-1  | 2026-10-30T02:12:33.583087698Z INFO:     172.18.0.1:35244 - "GET /api/kb/documents/e0104fbb3b0b40e4a1e433387010504a HTTP/1.1" 200 OK
+api-1  | 2026-10-30T02:12:34.256169273Z 2026-10-30 02:12:34,255 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:12:34.259182430Z 2026-10-30 02:12:34,258 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 647.0867299999554, "usage": {"prompt_tokens": 23, "total_tokens": 23}}
+api-1  | 2026-10-30T02:12:34.351812432Z 2026-10-30 02:12:34,351 INFO httpx: HTTP Request: POST http://qdrant:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:12:34.728770967Z 2026-10-30 02:12:34,728 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:12:34.729233750Z 2026-10-30 02:12:34,728 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 242, "total_tokens": 242}, "elapsed_ms": 372.3839300000691}
+api-1  | 2026-10-30T02:12:34.773945835Z INFO:     172.18.0.1:35250 - "POST /api/kb/search HTTP/1.1" 200 OK
+api-1  | 2026-10-30T02:28:33.003772500Z 2026-10-30 02:28:33,002 INFO HTTP Request: GET http://qdrant:6333 "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:28:33.022712410Z 2026-10-30 02:28:33,022 INFO HTTP Request: GET http://qdrant:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:28:33.057938438Z 2026-10-30 02:28:33,057 INFO Redis 缓存已连接: redis://redis:6379/0
+api-1  | 2026-10-30T02:28:33.119413860Z 2026-10-30 02:28:33,119 INFO 种子数据完成：新增租户 0、用户 0、文档 0、故障记录 0
+api-1  | 2026-10-30T02:28:33.119432115Z 2026-10-30 02:28:33,119 INFO 内置账号：admin/admin123（管理员）、dev01/dev123456（工程师）、viewer01/view123456（只读），租户 acme：acme_admin/acme123456
+api-1  | 2026-10-30T02:28:34.508248461Z INFO:     Started server process [15]
+api-1  | 2026-10-30T02:28:34.508271521Z INFO:     Waiting for application startup.
+api-1  | 2026-10-30T02:28:36.215596713Z 2026-10-30 02:28:36,215 INFO httpx: HTTP Request: GET http://qdrant:6333 "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:28:36.226542582Z 2026-10-30 02:28:36,226 INFO httpx: HTTP Request: GET http://qdrant:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:28:36.260583337Z 2026-10-30 02:28:36,260 INFO app.services.cache: Redis 缓存已连接: redis://redis:6379/0
+api-1  | 2026-10-30T02:28:36.300538621Z 2026-10-30 02:28:36,300 INFO httpx: HTTP Request: POST http://qdrant:6333/collections/kb_qwen37_1024_v2/points/count "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:28:37.439708386Z 2026-10-30 02:28:37,439 INFO app.main: 启动完成：索引已就绪，共 51 个分块
+api-1  | 2026-10-30T02:28:37.441197216Z INFO:     Application startup complete.
+api-1  | 2026-10-30T02:28:37.445490693Z INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+api-1  | 2026-10-30T02:28:37.938749701Z INFO:     172.18.0.1:35098 - "GET /health HTTP/1.1" 200 OK
+api-1  | 2026-10-30T02:28:38.125425373Z /usr/local/lib/python3.11/site-packages/jwt/api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 17 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+api-1  | 2026-10-30T02:28:38.125451257Z   return self._jws.encode(
+api-1  | 2026-10-30T02:28:38.126371070Z INFO:     172.18.0.1:35100 - "POST /auth/login HTTP/1.1" 200 OK
+api-1  | 2026-10-30T02:28:38.130567658Z /usr/local/lib/python3.11/site-packages/jwt/api_jwt.py:370: InsecureKeyLengthWarning: The HMAC key is 17 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+api-1  | 2026-10-30T02:28:38.130614556Z   decoded = self.decode_complete(
+api-1  | 2026-10-30T02:28:38.137217954Z INFO:     172.18.0.1:35108 - "GET /api/kb/documents/e0104fbb3b0b40e4a1e433387010504a HTTP/1.1" 200 OK
+api-1  | 2026-10-30T02:28:38.170660747Z INFO:     172.18.0.1:35122 - "GET /api/sessions/429e85602239460481fcb524ca22be5b HTTP/1.1" 200 OK
+api-1  | 2026-10-30T02:28:38.205405054Z INFO:     172.18.0.1:35126 - "GET /api/tickets/d56dfa4a15a84c55be4f94d3588c84c6 HTTP/1.1" 200 OK
+api-1  | 2026-10-30T02:28:39.127348159Z 2026-10-30 02:28:39,127 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:28:39.131151880Z 2026-10-30 02:28:39,130 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 918.6245449991475, "usage": {"prompt_tokens": 23, "total_tokens": 23}}
+api-1  | 2026-10-30T02:28:39.208259501Z 2026-10-30 02:28:39,207 INFO httpx: HTTP Request: POST http://qdrant:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:28:39.559440282Z 2026-10-30 02:28:39,559 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T02:28:39.559912257Z 2026-10-30 02:28:39,559 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 242, "total_tokens": 242}, "elapsed_ms": 337.9192860002149}
+api-1  | 2026-10-30T02:28:39.609480435Z INFO:     172.18.0.1:35128 - "POST /api/kb/search HTTP/1.1" 200 OK
+

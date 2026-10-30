@@ -1,0 +1,62 @@
+{
+  "preflight.json": {
+    "Success": true,
+    "Admin": true,
+    "Features": [
+      {
+        "FeatureName": "Microsoft-Windows-Subsystem-Linux",
+        "State": "Enabled"
+      },
+      {
+        "FeatureName": "VirtualMachinePlatform",
+        "State": "Enabled"
+      }
+    ],
+    "HypervisorPresent": true,
+    "Processors": {
+      "VirtualizationFirmwareEnabled": false,
+      "SecondLevelAddressTranslationExtensions": false,
+      "VMMonitorModeExtensions": false
+    },
+    "ServerService": {
+      "Name": "LanmanServer",
+      "Status": "Running",
+      "StartType": "Automatic"
+    },
+    "Boot": {
+      "Caption": "Microsoft Windows 11 专业版",
+      "LastBootUpTime": "2026-10-28T22:23:54.500327+08:00"
+    }
+  },
+  "package_verification.json": {
+    "Source": "https://github.com/microsoft/WSL/releases/download/3.0.3/wsl.3.0.3.0.x64.msi",
+    "Version": "3.0.3",
+    "Path": "D:\\Code\\python\\aiops-diagnosis-agent\\data\\t7_setup\\wsl.3.0.3.0.x64.msi",
+    "Bytes": 367575040,
+    "SHA256": "ae977286974255bd26bf925f00f40f5692c6b2084155cbc0563c09aea091f211",
+    "ExpectedSHA256": "ae977286974255bd26bf925f00f40f5692c6b2084155cbc0563c09aea091f211",
+    "HashMatches": true,
+    "SignatureStatus": "Valid",
+    "Signer": "CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US",
+    "CheckedAt": "2026-10-30T01:05:54.8424660+00:00"
+  },
+  "install_result.json": {
+    "Version": "3.0.3",
+    "ExitCode": 0,
+    "Success": true,
+    "InstallerRequiresRestart": false,
+    "StartedAt": "2026-10-30T01:06:15.9337082+00:00",
+    "CompletedAt": "2026-10-30T01:06:42.0347728+00:00",
+    "AutomaticRestart": false,
+    "LogPath": "D:\\Code\\python\\aiops-diagnosis-agent\\data\\t7_setup\\wsl_install.log"
+  },
+  "wsl_version_verified": "3.0.3.0",
+  "wsl_default_version_verified": 2,
+  "engine_verified": {
+    "version": "29.9.2",
+    "os_type": "linux"
+  },
+  "computer_restart_performed": false,
+  "host_mysql_port": 3306,
+  "compose_mysql_host_port": 13306
+}

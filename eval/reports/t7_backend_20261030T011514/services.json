@@ -1,0 +1,125 @@
+{
+  "mysql": {
+    "container_id": "36c6968f72f631546e9d4b440811111b798292b1d2f4a96466cab3508350d830",
+    "image": "mysql:8.0",
+    "image_id": "sha256:7dcddc01f13bab2f15cde676d44d01f61fc9f99fe7785e86196dfc07d358ae2b",
+    "mounts": [
+      {
+        "Type": "volume",
+        "Name": "aiops-diagnosis-agent_mysql_data",
+        "Source": "/var/lib/docker/volumes/aiops-diagnosis-agent_mysql_data/_data",
+        "Destination": "/var/lib/mysql",
+        "Driver": "local",
+        "Mode": "rw",
+        "RW": true,
+        "Propagation": ""
+      }
+    ],
+    "ports": {
+      "3306/tcp": [
+        {
+          "HostIp": "0.0.0.0",
+          "HostPort": "13306"
+        },
+        {
+          "HostIp": "::",
+          "HostPort": "13306"
+        }
+      ]
+    },
+    "started_at": "2026-10-30T01:10:13.782991832Z",
+    "status": "running"
+  },
+  "redis": {
+    "container_id": "3c7726f1a8953f09ddaefbed895e6febfa65d74cc7acd247083c610666fb6f08",
+    "image": "redis:7-alpine",
+    "image_id": "sha256:8da19c7399dca900c6822a1cf30f9d2285585e2c4b457ff4095b0f4500054d3f",
+    "mounts": [
+      {
+        "Type": "volume",
+        "Name": "aiops-diagnosis-agent_redis_data",
+        "Source": "/var/lib/docker/volumes/aiops-diagnosis-agent_redis_data/_data",
+        "Destination": "/data",
+        "Driver": "local",
+        "Mode": "rw",
+        "RW": true,
+        "Propagation": ""
+      }
+    ],
+    "ports": {
+      "6379/tcp": [
+        {
+          "HostIp": "0.0.0.0",
+          "HostPort": "6379"
+        },
+        {
+          "HostIp": "::",
+          "HostPort": "6379"
+        }
+      ]
+    },
+    "started_at": "2026-10-30T01:10:14.344421073Z",
+    "status": "running"
+  },
+  "qdrant": {
+    "container_id": "81e18eb3a27e18c683045ec48b5e44771263c6e1cb9b55b030d7112650d4d491",
+    "image": "qdrant/qdrant:v1.12.4",
+    "image_id": "sha256:241edb9d7778327516ef218f8c74e1bd61b5ea42cd4f193cb8d0896199705636",
+    "mounts": [
+      {
+        "Type": "volume",
+        "Name": "aiops-diagnosis-agent_qdrant_data",
+        "Source": "/var/lib/docker/volumes/aiops-diagnosis-agent_qdrant_data/_data",
+        "Destination": "/qdrant/storage",
+        "Driver": "local",
+        "Mode": "rw",
+        "RW": true,
+        "Propagation": ""
+      }
+    ],
+    "ports": {
+      "6333/tcp": [
+        {
+          "HostIp": "0.0.0.0",
+          "HostPort": "6333"
+        },
+        {
+          "HostIp": "::",
+          "HostPort": "6333"
+        }
+      ],
+      "6334/tcp": [
+        {
+          "HostIp": "0.0.0.0",
+          "HostPort": "6334"
+        },
+        {
+          "HostIp": "::",
+          "HostPort": "6334"
+        }
+      ]
+    },
+    "started_at": "2026-10-30T01:10:14.609793133Z",
+    "status": "running"
+  },
+  "api": {
+    "container_id": "2de53fc94d39c5a3b4bffe1b67f4f264bf9cba457eefe14a1dfa9a85cc24f407",
+    "image": "aiops-diagnosis-agent-api",
+    "image_id": "sha256:1bedf4a1357da761cdb5f67a008c3fa1eb5e01de4a8c0ef00201d91e7bc40070",
+    "mounts": [],
+    "ports": {
+      "8000/tcp": [
+        {
+          "HostIp": "0.0.0.0",
+          "HostPort": "8000"
+        },
+        {
+          "HostIp": "::",
+          "HostPort": "8000"
+        }
+      ]
+    },
+    "started_at": "2026-10-30T02:28:27.24120278Z",
+    "status": "running"
+  }
+}

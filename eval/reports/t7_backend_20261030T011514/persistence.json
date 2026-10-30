@@ -1,0 +1,12 @@
+{
+  "status": "passed",
+  "method": "通过 compose 重建并替换 API 容器，保持原 MySQL/Redis/Qdrant 容器与数据卷；重启前后通过正式 HTTP API 比较",
+  "message_count_before": 4,
+  "message_count_after": 4,
+  "messages_identical": true,
+  "ticket_identical": true,
+  "document_persisted": true,
+  "reranked_after_restart": true,
+  "checked_at": "2026-10-30T02:12:34.774772+00:00",
+  "limitations": "仅检验已落库文档、消息和已完成工单；待审批 LangGraph 断点跨重启恢复属于 T9，未在此验证。"
+}

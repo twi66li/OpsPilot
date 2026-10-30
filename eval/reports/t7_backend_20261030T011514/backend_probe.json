@@ -1,0 +1,85 @@
+{
+  "status": "passed",
+  "exit_code": 0,
+  "checked_at": "2026-10-30T01:16:51.811816+00:00",
+  "result": {
+    "actual_classes": {
+      "embedder": "OpenAIEmbedding",
+      "vector_store": "QdrantVectorStore",
+      "reranker": "DashScopeReranker",
+      "llm": "OpenAIChatLLM",
+      "cache": "RedisCache"
+    },
+    "strict": true,
+    "mysql": {
+      "dialect": "mysql",
+      "host": "mysql",
+      "database": "aiops",
+      "version": "8.0.46",
+      "counts": {
+        "documents": 13,
+        "messages": 4,
+        "tickets": 1
+      }
+    },
+    "redis": {
+      "ping": true,
+      "rate_limit_key_count": 1,
+      "rate_limit_values": [
+        2
+      ]
+    },
+    "qdrant": {
+      "collection": "kb_qwen37_1024_v2",
+      "dimension": 1024,
+      "point_count": 51
+    },
+    "models": {
+      "chat": "qwen3.8-flash",
+      "embedding": "qwen3.7-text-embedding-flash",
+      "rerank": "qwen3.7-text-rerank"
+    },
+    "python": "3.11.18",
+    "packages": {
+      "fastapi": "0.162.0",
+      "SQLAlchemy": "2.1.6",
+      "PyMySQL": "1.2.3",
+      "redis": "8.1.0",
+      "qdrant-client": "1.20.0",
+      "langgraph": "1.2.18",
+      "openai": "2.54.0"
+    },
+    "image_exclusions": {
+      ".env": true,
+      ".git": true,
+      ".venv": true,
+      "data/t7_setup": true
+    },
+    "unreachable_endpoint_checks": {
+      "method": "独立探针进程指向本地关闭端口1，真实连接失败，不停止在线服务、不调用真实上游；非供应商停机验证",
+      "results": {
+        "qdrant": {
+          "raised": true,
+          "error_type": "ResponseHandlingException"
+        },
+        "redis": {
+          "raised": true,
+          "error_type": "RuntimeError"
+        },
+        "chat": {
+          "raised": true,
+          "error_type": "APIConnectionError"
+        },
+        "embedding": {
+          "raised": true,
+          "error_type": "APIConnectionError"
+        },
+        "rerank": {
+          "raised": true,
+          "error_type": "ConnectError"
+        }
+      }
+    }
+  },
+  "raw_output": "T7_BACKEND_PROBE {\"actual_classes\": {\"embedder\": \"OpenAIEmbedding\", \"vector_store\": \"QdrantVectorStore\", \"reranker\": \"DashScopeReranker\", \"llm\": \"OpenAIChatLLM\", \"cache\": \"RedisCache\"}, \"strict\": true, \"mysql\": {\"dialect\": \"mysql\", \"host\": \"mysql\", \"database\": \"aiops\", \"version\": \"8.0.46\", \"counts\": {\"documents\": 13, \"messages\": 4, \"tickets\": 1}}, \"redis\": {\"ping\": true, \"rate_limit_key_count\": 1, \"rate_limit_values\": [2]}, \"qdrant\": {\"collection\": \"kb_qwen37_1024_v2\", \"dimension\": 1024, \"point_count\": 51}, \"models\": {\"chat\": \"qwen3.8-flash\", \"embedding\": \"qwen3.7-text-embedding-flash\", \"rerank\": \"qwen3.7-text-rerank\"}, \"python\": \"3.11.18\", \"packages\": {\"fastapi\": \"0.162.0\", \"SQLAlchemy\": \"2.1.6\", \"PyMySQL\": \"1.2.3\", \"redis\": \"8.1.0\", \"qdrant-client\": \"1.20.0\", \"langgraph\": \"1.2.18\", \"openai\": \"2.54.0\"}, \"image_exclusions\": {\".env\": true, \".git\": true, \".venv\": true, \"data/t7_setup\": true}, \"unreachable_endpoint_checks\": {\"method\": \"独立探针进程指向本地关闭端口1，真实连接失败，不停止在线服务、不调用真实上游；非供应商停机验证\", \"results\": {\"qdrant\": {\"raised\": true, \"error_type\": \"ResponseHandlingException\"}, \"redis\": {\"raised\": true, \"error_type\": \"RuntimeError\"}, \"chat\": {\"raised\": true, \"error_type\": \"APIConnectionError\"}, \"embedding\": {\"raised\": true, \"error_type\": \"APIConnectionError\"}, \"rerank\": {\"raised\": true, \"error_type\": \"ConnectError\"}}}}\n\n/usr/local/lib/python3.11/site-packages/qdrant_client/qdrant_remote.py:287: UserWarning: Qdrant client version 1.20.0 is incompatible with server version 1.12.4. Major versions should match and minor version difference must not exceed 1. Set check_compatibility=False to skip version check.\n  show_warning(\n/usr/local/lib/python3.11/site-packages/qdrant_client/qdrant_remote.py:295: UserWarning: Failed to obtain server version. Unable to check client-server compatibility. Set check_compatibility=False to skip version check.\n  show_warning(\n"
+}

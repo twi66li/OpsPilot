@@ -1,0 +1,120 @@
+api-1  | 2026-10-30T01:13:58.787991722Z 2026-10-30 01:13:58,787 INFO HTTP Request: GET http://qdrant:6333 "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:13:58.788598161Z /usr/local/lib/python3.11/site-packages/qdrant_client/qdrant_remote.py:287: UserWarning: Qdrant client version 1.20.0 is incompatible with server version 1.12.4. Major versions should match and minor version difference must not exceed 1. Set check_compatibility=False to skip version check.
+api-1  | 2026-10-30T01:13:58.788605665Z   show_warning(
+api-1  | 2026-10-30T01:13:58.789684169Z 2026-10-30 01:13:58,789 INFO HTTP Request: GET http://qdrant:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:13:59.028347576Z 2026-10-30 01:13:59,028 INFO HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2 "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:13:59.232273395Z 2026-10-30 01:13:59,231 INFO Redis 缓存已连接: redis://redis:6379/0
+api-1  | 2026-10-30T01:14:00.322251735Z 2026-10-30 01:14:00,321 INFO HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:00.327287692Z 2026-10-30 01:14:00,327 INFO model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 937.3674980000146, "usage": {"prompt_tokens": 548, "total_tokens": 548}}
+api-1  | 2026-10-30T01:14:00.439383774Z 2026-10-30 01:14:00,439 INFO HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2/points?wait=true "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:01.213918213Z 2026-10-30 01:14:01,213 INFO 文档 8355439efe874adb90e45343a259ad06 入库完成，6 个分块（租户 default）
+api-1  | 2026-10-30T01:14:01.380646432Z 2026-10-30 01:14:01,380 INFO HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:01.381978925Z 2026-10-30 01:14:01,381 INFO model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 166.371861000016, "usage": {"prompt_tokens": 434, "total_tokens": 434}}
+api-1  | 2026-10-30T01:14:01.390586532Z 2026-10-30 01:14:01,390 INFO HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2/points?wait=true "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:01.399709849Z 2026-10-30 01:14:01,399 INFO 文档 b2ba8100e1e441adb199d9bc71ee6af6 入库完成，5 个分块（租户 default）
+api-1  | 2026-10-30T01:14:01.616289781Z 2026-10-30 01:14:01,615 INFO HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:01.617448174Z 2026-10-30 01:14:01,617 INFO model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 215.4702840000482, "usage": {"prompt_tokens": 377, "total_tokens": 377}}
+api-1  | 2026-10-30T01:14:01.626527839Z 2026-10-30 01:14:01,626 INFO HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2/points?wait=true "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:01.637450330Z 2026-10-30 01:14:01,637 INFO 文档 6e061d34e28348debc411a01c21c0a47 入库完成，5 个分块（租户 default）
+api-1  | 2026-10-30T01:14:01.845443280Z 2026-10-30 01:14:01,844 INFO HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:01.846527359Z 2026-10-30 01:14:01,846 INFO model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 205.8199699999932, "usage": {"prompt_tokens": 304, "total_tokens": 304}}
+api-1  | 2026-10-30T01:14:01.850853927Z 2026-10-30 01:14:01,850 INFO HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2/points?wait=true "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:01.862891710Z 2026-10-30 01:14:01,862 INFO 文档 7448e30844504df28a7a0e9c4a249e4c 入库完成，4 个分块（租户 default）
+api-1  | 2026-10-30T01:14:02.026151486Z 2026-10-30 01:14:02,025 INFO HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:02.027093070Z 2026-10-30 01:14:02,026 INFO model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 161.6430529999775, "usage": {"prompt_tokens": 339, "total_tokens": 339}}
+api-1  | 2026-10-30T01:14:02.032013508Z 2026-10-30 01:14:02,031 INFO HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2/points?wait=true "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:02.044482968Z 2026-10-30 01:14:02,044 INFO 文档 826f06d03d144647b105f51d32287505 入库完成，4 个分块（租户 default）
+api-1  | 2026-10-30T01:14:02.232688463Z 2026-10-30 01:14:02,232 INFO HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:02.233824943Z 2026-10-30 01:14:02,233 INFO model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 186.23693099999628, "usage": {"prompt_tokens": 333, "total_tokens": 333}}
+api-1  | 2026-10-30T01:14:02.239583101Z 2026-10-30 01:14:02,239 INFO HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2/points?wait=true "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:02.254067466Z 2026-10-30 01:14:02,253 INFO 文档 c75b21db1c86407189caa13b21f5a728 入库完成，5 个分块（租户 default）
+api-1  | 2026-10-30T01:14:02.426379374Z 2026-10-30 01:14:02,425 INFO HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:02.427825291Z 2026-10-30 01:14:02,427 INFO model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 171.18105800000194, "usage": {"prompt_tokens": 276, "total_tokens": 276}}
+api-1  | 2026-10-30T01:14:02.433785223Z 2026-10-30 01:14:02,433 INFO HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2/points?wait=true "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:02.448039479Z 2026-10-30 01:14:02,447 INFO 文档 82336efb6cb948b4a9586a7c266c2a13 入库完成，4 个分块（租户 default）
+api-1  | 2026-10-30T01:14:02.630494325Z 2026-10-30 01:14:02,630 INFO HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:02.632008224Z 2026-10-30 01:14:02,631 INFO model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 181.4908789999663, "usage": {"prompt_tokens": 333, "total_tokens": 333}}
+api-1  | 2026-10-30T01:14:02.637544705Z 2026-10-30 01:14:02,637 INFO HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2/points?wait=true "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:02.653027734Z 2026-10-30 01:14:02,652 INFO 文档 e0665054ed03499697a6cdde82b94138 入库完成，5 个分块（租户 default）
+api-1  | 2026-10-30T01:14:02.807566815Z 2026-10-30 01:14:02,807 INFO HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:02.808316137Z 2026-10-30 01:14:02,808 INFO model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 152.89347200001657, "usage": {"prompt_tokens": 303, "total_tokens": 303}}
+api-1  | 2026-10-30T01:14:02.813134161Z 2026-10-30 01:14:02,812 INFO HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2/points?wait=true "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:02.829892887Z 2026-10-30 01:14:02,829 INFO 文档 e0f4f999bbed4019b8e337889a1c2e3c 入库完成，4 个分块（租户 default）
+api-1  | 2026-10-30T01:14:03.031551080Z 2026-10-30 01:14:03,031 INFO HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:03.032205775Z 2026-10-30 01:14:03,032 INFO model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 199.65779200003908, "usage": {"prompt_tokens": 230, "total_tokens": 230}}
+api-1  | 2026-10-30T01:14:03.036338306Z 2026-10-30 01:14:03,036 INFO HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2/points?wait=true "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:03.053027436Z 2026-10-30 01:14:03,052 INFO 文档 f725ed06848f4046a473168dbf952cd5 入库完成，3 个分块（租户 default）
+api-1  | 2026-10-30T01:14:03.232129488Z 2026-10-30 01:14:03,231 INFO HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:03.232803839Z 2026-10-30 01:14:03,232 INFO model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 177.56324000004042, "usage": {"prompt_tokens": 366, "total_tokens": 366}}
+api-1  | 2026-10-30T01:14:03.238047243Z 2026-10-30 01:14:03,237 INFO HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2/points?wait=true "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:03.255254581Z 2026-10-30 01:14:03,255 INFO 文档 2ebc9b8999034d93bd6d5016d333fdde 入库完成，4 个分块（租户 default）
+api-1  | 2026-10-30T01:14:03.388830414Z 2026-10-30 01:14:03,388 INFO HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:03.389634854Z 2026-10-30 01:14:03,389 INFO model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 132.14564200001178, "usage": {"prompt_tokens": 45, "total_tokens": 45}}
+api-1  | 2026-10-30T01:14:03.393365393Z 2026-10-30 01:14:03,393 INFO HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2/points?wait=true "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:03.399871454Z 2026-10-30 01:14:03,399 INFO 文档 7ab610517db447f38f083664c8e76add 入库完成，1 个分块（租户 acme）
+api-1  | 2026-10-30T01:14:03.414551958Z 2026-10-30 01:14:03,414 INFO 种子数据完成：新增租户 2、用户 4、文档 12、故障记录 8
+api-1  | 2026-10-30T01:14:03.414566807Z 2026-10-30 01:14:03,414 INFO 内置账号：admin/admin123（管理员）、dev01/dev123456（工程师）、viewer01/view123456（只读），租户 acme：acme_admin/acme123456
+api-1  | 2026-10-30T01:14:04.741737982Z INFO:     Started server process [17]
+api-1  | 2026-10-30T01:14:04.741766909Z INFO:     Waiting for application startup.
+api-1  | 2026-10-30T01:14:06.086995718Z 2026-10-30 01:14:06,086 INFO httpx: HTTP Request: GET http://qdrant:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:06.089777987Z 2026-10-30 01:14:06,089 INFO httpx: HTTP Request: GET http://qdrant:6333 "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:06.090722564Z /usr/local/lib/python3.11/site-packages/qdrant_client/qdrant_remote.py:287: UserWarning: Qdrant client version 1.20.0 is incompatible with server version 1.12.4. Major versions should match and minor version difference must not exceed 1. Set check_compatibility=False to skip version check.
+api-1  | 2026-10-30T01:14:06.090742191Z   show_warning(
+api-1  | 2026-10-30T01:14:06.138820282Z 2026-10-30 01:14:06,138 INFO app.services.cache: Redis 缓存已连接: redis://redis:6379/0
+api-1  | 2026-10-30T01:14:06.172410974Z 2026-10-30 01:14:06,172 INFO httpx: HTTP Request: POST http://qdrant:6333/collections/kb_qwen37_1024_v2/points/count "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:14:06.852959282Z 2026-10-30 01:14:06,852 INFO app.main: 启动完成：索引已就绪，共 50 个分块
+api-1  | 2026-10-30T01:14:06.854213574Z INFO:     Application startup complete.
+api-1  | 2026-10-30T01:14:06.856036332Z INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+api-1  | 2026-10-30T01:14:15.391252581Z INFO:     172.18.0.1:41986 - "GET /health HTTP/1.1" 200 OK
+api-1  | 2026-10-30T01:15:15.005110211Z INFO:     172.18.0.1:33040 - "GET /health HTTP/1.1" 200 OK
+api-1  | 2026-10-30T01:15:15.060962382Z /usr/local/lib/python3.11/site-packages/jwt/api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 17 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+api-1  | 2026-10-30T01:15:15.060985169Z   return self._jws.encode(
+api-1  | 2026-10-30T01:15:15.061662336Z INFO:     172.18.0.1:33048 - "POST /auth/login HTTP/1.1" 200 OK
+api-1  | 2026-10-30T01:15:15.079827326Z /usr/local/lib/python3.11/site-packages/jwt/api_jwt.py:370: InsecureKeyLengthWarning: The HMAC key is 17 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+api-1  | 2026-10-30T01:15:15.079867523Z   decoded = self.decode_complete(
+api-1  | 2026-10-30T01:15:15.092100593Z INFO:     172.18.0.1:33064 - "POST /api/sessions HTTP/1.1" 200 OK
+api-1  | 2026-10-30T01:15:15.103202310Z INFO:     172.18.0.1:33076 - "POST /api/agent/chat/stream HTTP/1.1" 200 OK
+api-1  | 2026-10-30T01:15:15.968457861Z 2026-10-30 01:15:15,968 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:15.970874090Z 2026-10-30 01:15:15,970 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 832.8633300000092, "usage": {"prompt_tokens": 28, "total_tokens": 28}}
+api-1  | 2026-10-30T01:15:16.030953864Z 2026-10-30 01:15:16,030 INFO httpx: HTTP Request: POST http://qdrant:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:16.610721975Z 2026-10-30 01:15:16,610 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:16.610823007Z 2026-10-30 01:15:16,610 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 474, "total_tokens": 474}, "elapsed_ms": 571.3844580000114}
+api-1  | 2026-10-30T01:15:16.623119864Z 2026-10-30 01:15:16,622 INFO app.services.observability: [trace] span=retrieval dur=1485.2ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': True, 'latency_ms': 1473.0}
+api-1  | 2026-10-30T01:15:17.725436685Z 2026-10-30 01:15:17,725 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:18.211348740Z 2026-10-30 01:15:18,211 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-flash", "status": "ok", "first_token_ms": 1104.1011360000539, "usage": {"completion_tokens": 19, "prompt_tokens": 506, "total_tokens": 525, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 506}}, "finish_reason": "stop", "elapsed_ms": 1586.2109540000233}
+api-1  | 2026-10-30T01:15:18.222938000Z 2026-10-30 01:15:18,222 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 1, 'tools': ['query_fault_history']}
+api-1  | 2026-10-30T01:15:19.695825608Z 2026-10-30 01:15:19,695 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:27.233888423Z 2026-10-30 01:15:27,233 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-flash", "status": "ok", "first_token_ms": 1468.919614000015, "usage": {"completion_tokens": 542, "prompt_tokens": 572, "total_tokens": 1114, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 572}}, "finish_reason": "stop", "elapsed_ms": 9005.862503999993}
+api-1  | 2026-10-30T01:15:27.234104030Z 2026-10-30 01:15:27,233 INFO app.services.observability: [trace] span=generate dur=9006.4ms meta={'answer_chars': 1084, 'tokens_in': 360, 'tokens_out': 584}
+api-1  | 2026-10-30T01:15:27.258956513Z /usr/local/lib/python3.11/site-packages/jwt/api_jwt.py:370: InsecureKeyLengthWarning: The HMAC key is 17 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+api-1  | 2026-10-30T01:15:27.258978977Z   decoded = self.decode_complete(
+api-1  | 2026-10-30T01:15:27.262774727Z INFO:     172.18.0.1:60734 - "POST /api/agent/chat/stream HTTP/1.1" 200 OK
+api-1  | 2026-10-30T01:15:27.601420343Z 2026-10-30 01:15:27,601 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:27.602187661Z 2026-10-30 01:15:27,601 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 326.25026899995646, "usage": {"prompt_tokens": 28, "total_tokens": 28}}
+api-1  | 2026-10-30T01:15:27.629092669Z 2026-10-30 01:15:27,628 INFO httpx: HTTP Request: POST http://qdrant:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:27.982715840Z 2026-10-30 01:15:27,982 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:27.983309413Z 2026-10-30 01:15:27,982 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 383, "total_tokens": 383}, "elapsed_ms": 352.2431370000163}
+api-1  | 2026-10-30T01:15:27.990211505Z 2026-10-30 01:15:27,989 INFO app.services.observability: [trace] span=retrieval dur=714.2ms meta={'mode': 'hybrid', 'tenant_id': 'default', 'hits': 5, 'reranked': True, 'latency_ms': 707.4}
+api-1  | 2026-10-30T01:15:28.610591238Z 2026-10-30 01:15:28,610 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:28.999630563Z 2026-10-30 01:15:28,999 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-flash", "status": "ok", "first_token_ms": 619.346495000002, "usage": {"completion_tokens": 31, "prompt_tokens": 390, "total_tokens": 421, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 390}}, "finish_reason": "stop", "elapsed_ms": 1007.609556000034}
+api-1  | 2026-10-30T01:15:29.004763612Z 2026-10-30 01:15:29,004 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 2, 'tools': ['query_service_metrics', 'query_fault_history']}
+api-1  | 2026-10-30T01:15:29.987989545Z 2026-10-30 01:15:29,987 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:36.113726353Z 2026-10-30 01:15:36,113 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-flash", "status": "ok", "first_token_ms": 980.2508170000124, "usage": {"completion_tokens": 524, "prompt_tokens": 485, "total_tokens": 1009, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 485}}, "finish_reason": "stop", "elapsed_ms": 7107.150807999971}
+api-1  | 2026-10-30T01:15:36.113885144Z 2026-10-30 01:15:36,113 INFO app.services.observability: [trace] span=generate dur=7107.7ms meta={'answer_chars': 843, 'tokens_in': 263, 'tokens_out': 531}
+api-1  | 2026-10-30T01:15:36.716916225Z 2026-10-30 01:15:36,716 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:40.462911638Z 2026-10-30 01:15:40,462 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-flash", "status": "ok", "first_token_ms": 603.449764000004, "usage": {"completion_tokens": 318, "prompt_tokens": 581, "total_tokens": 899, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 581}}, "finish_reason": "stop", "elapsed_ms": 4348.654002000047}
+api-1  | 2026-10-30T01:15:40.819087729Z INFO:     172.18.0.1:59040 - "POST /api/agent/approvals/e1d71181b2074f25b17874f5e71fea41/decide HTTP/1.1" 200 OK
+api-1  | 2026-10-30T01:15:41.258959288Z 2026-10-30 01:15:41,258 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:41.260320856Z 2026-10-30 01:15:41,260 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 405.1252849999969, "usage": {"prompt_tokens": 72, "total_tokens": 72}}
+api-1  | 2026-10-30T01:15:41.298398677Z 2026-10-30 01:15:41,298 INFO httpx: HTTP Request: PUT http://qdrant:6333/collections/kb_qwen37_1024_v2/points?wait=true "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:41.342400938Z 2026-10-30 01:15:41,342 INFO app.services.kb_service: 文档 e0104fbb3b0b40e4a1e433387010504a 入库完成，1 个分块（租户 default）
+api-1  | 2026-10-30T01:15:41.342867501Z INFO:     172.18.0.1:59048 - "POST /api/kb/documents HTTP/1.1" 200 OK
+api-1  | 2026-10-30T01:15:41.497337710Z 2026-10-30 01:15:41,497 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:41.497871647Z 2026-10-30 01:15:41,497 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "elapsed_ms": 127.23991099994691, "usage": {"prompt_tokens": 23, "total_tokens": 23}}
+api-1  | 2026-10-30T01:15:41.516396450Z 2026-10-30 01:15:41,516 INFO httpx: HTTP Request: POST http://qdrant:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:42.178259455Z 2026-10-30 01:15:42,177 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+api-1  | 2026-10-30T01:15:42.178533788Z 2026-10-30 01:15:42,178 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 242, "total_tokens": 242}, "elapsed_ms": 660.9751209999786}
+api-1  | 2026-10-30T01:15:42.193261313Z INFO:     172.18.0.1:59058 - "POST /api/kb/search HTTP/1.1" 200 OK
+api-1  | 2026-10-30T01:15:42.212934658Z INFO:     172.18.0.1:59072 - "GET /api/sessions/429e85602239460481fcb524ca22be5b HTTP/1.1" 200 OK
+api-1  | 2026-10-30T01:15:42.222470979Z INFO:     172.18.0.1:59074 - "GET /api/tickets/d56dfa4a15a84c55be4f94d3588c84c6 HTTP/1.1" 200 OK
+

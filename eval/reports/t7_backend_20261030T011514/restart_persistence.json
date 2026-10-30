@@ -1,0 +1,148 @@
+{
+  "started_at": "2026-10-30T02:28:23.297822+00:00",
+  "api_container": "2de53fc94d39c5a3b4bffe1b67f4f264bf9cba457eefe14a1dfa9a85cc24f407",
+  "before": {
+    "Status": "running",
+    "Running": true,
+    "Pid": 29015,
+    "StartedAt": "2026-10-30T02:11:17.565027539Z",
+    "FinishedAt": "0001-01-01T00:00:00Z",
+    "ExitCode": 0
+  },
+  "scope": "仅重启API容器，MySQL/Redis/Qdrant容器及数据卷保持运行；验证已提交业务数据，不测试等待审批的图恢复",
+  "restart_exit_code": 0,
+  "restart_output": " Container aiops-diagnosis-agent-api-1 Restarting \n Container aiops-diagnosis-agent-api-1 Started \n",
+  "health": {
+    "status": "ok",
+    "app": "aiops-diagnosis-agent"
+  },
+  "after": {
+    "Status": "running",
+    "Running": true,
+    "Pid": 36875,
+    "StartedAt": "2026-10-30T02:28:27.24120278Z",
+    "FinishedAt": "2026-10-30T02:28:26.787747805Z",
+    "ExitCode": 0
+  },
+  "status": "passed",
+  "checks": {
+    "document": {
+      "status": 200,
+      "data": {
+        "id": "e0104fbb3b0b40e4a1e433387010504a",
+        "title": "T7 真实存储验收 t7_backend_20261030T011514",
+        "source": "t7_backend_acceptance",
+        "content": "# T7_BACKEND 真实存储验收\n\n本条为演示环境验收文档。T7_BACKEND 标识用于验证正式 API 的 MySQL 文档持久化、Qdrant 1024 维向量入库与重排检索，不代表生产业务数据。",
+        "chunk_count": 1
+      }
+    },
+    "session": {
+      "status": 200,
+      "data": {
+        "id": "429e85602239460481fcb524ca22be5b",
+        "title": "smoke",
+        "messages": [
+          {
+            "role": "user",
+            "content": "ERR_5003 连接池耗尽怎么处理？",
+            "meta": {},
+            "created_at": "2026-10-30T01:15:15"
+          },
+          {
+            "role": "assistant",
+            "content": "针对 `ERR_5003` 数据库连接池耗尽问题，建议按照以下步骤进行处理：\n\n### 1. 确认适用场景与症状\n首先确认当前现象是否符合以下特征，以排除其他故障可能 [2]：\n*   **日志报错**：应用日志中出现 `ERR_5003`（Cannot get connection from pool / connection pool exhausted）[2]。\n*   **监控指标**：数据库活跃连接数长期等于 `max_connections` [2]；MySQL `Threads_connected` / `max_connections` > 85% [4]；应用侧获取连接等待时间 P99 > 100ms [4]。\n*   **业务表现**：接口大量返回 500 错误或超时，堆栈中包含 `ERR_5003` [3]；响应时间（RT）从几十毫秒飙升至数秒 [3]。\n*   **数据库状态**：执行 `SHOW PROCESSLIST` 时观察到大量 `Sleep` 状态的连接 [3]。\n\n### 2. 排查步骤\n请依次执行以下检查以确定根本原因 [1]：\n\n1.  **检查配置匹配性**：\n    确认连接池配置参数 `maxPoolSize`、`idleTimeout`、`maxWait` 是否与数据库的 `max_connections` 设置相匹配 [1]。\n2.  **检查慢查询占用**：\n    执行 SQL 查询是否存在长时间运行的慢查询占用连接：\n    ```sql\n    SELECT * FROM information_schema.processlist WHERE time > 5;\n    ```\n    [1]\n3.  **检查连接泄漏**：\n    审查代码逻辑，确认是否存在连接未在 `finally` 块中归还，或者事务未正确提交/回滚的情况 [1]。\n4.  **检查流量与下游抖动**：\n    分析是否因流量突增或下游服务抖动导致线程堆积，进而耗尽连接池 [1]。\n\n### 3. 历史相似故障参考\n根据历史故障记录，曾发生过“订单服务连接池耗尽导致大面积超时”的案例 [工具输出]。\n*   **临时措施**：上调数据库 `max_connections` 及连接池大小 [工具输出]。\n*   **根治措施**：治理慢 SQL 后恢复稳定 [工具输出]。\n\n### 4. 关联错误码提示\n在处理过程中，若遇到连接获取超时而非直接耗尽，请注意区分相关错误码 `ERR_5004` [5]。",
+            "meta": {
+              "intent": "diagnose",
+              "citations": [
+                "ERR_5003 数据库连接池耗尽处理手册"
+              ],
+              "ticket_id": null
+            },
+            "created_at": "2026-10-30T01:15:27"
+          },
+          {
+            "role": "user",
+            "content": "帮我创建工单处理网关 502 问题",
+            "meta": {},
+            "created_at": "2026-10-30T01:15:27"
+          },
+          {
+            "role": "assistant",
+            "content": "针对网关 502 问题，建议按以下步骤创建工单并处理：\n\n### 1. 工单标题与描述\n*   **标题**：[P1] API 网关集中返回 502/504 故障排查 [4]\n*   **现象描述**：API 网关出现 502 错误。根据工具输出，当前服务 QPS=227.06，P99=112.06ms，错误率=0.33%。\n*   **初步判断**：结合历史相似故障（上游发布期间连接拒绝）及常见根因，极可能为上游服务实例重启或发布中导致连接被拒绝，或 keepalive 配置不一致 [3][历史故障]。\n\n### 2. 推荐处理方案（写入工单解决方案栏）\n\n#### A. 应急措施（立即执行）\n1.  **摘除异常实例**：定位报错路由对应的上游服务与实例，检查其存活与发布状态 [2]。若发现未就绪或正在发布的实例，立即从负载均衡池中摘除 [1][历史故障]。\n2.  **滚动重启**：对疑似异常的网关或上游服务进行滚动重启 [1]。\n3.  **临时调大超时**：若怀疑是超时导致，可临时调大网关超时配置以缓解症状 [1]。\n\n#### B. 后续治理（长期修复）\n1.  **统一配置**：检查并统一网关与上游服务的 `keepalive` 和 `timeout` 配置，防止因配置不一致导致连接被对端关闭 [1][3]。\n2.  **完善探针**：确保发布流程使用就绪探针（readinessProbe），避免流量打到未完全启动的实例上 [1][历史故障]。\n3.  **对比延迟**：再次对比网关超时配置与服务 P99 延迟（当前 P99=112.06ms），确保网关超时设置合理 [2]。\n\n### 3. 关键参考信息\n*   **相关错误码**：关注日志中的 `ERR_6002`（上游连接被拒绝）或 `ERR_6003`（上游响应超时）以确认具体根因 [5]。\n*   **适用场景匹配**：本案例符合“API 网关集中返回 502/504”的场景 [4]。",
+            "meta": {
+              "intent": "create_ticket",
+              "citations": [
+                "网关 502 排查手册"
+              ],
+              "ticket_id": null
+            },
+            "created_at": "2026-10-30T01:15:41"
+          }
+        ]
+      }
+    },
+    "ticket": {
+      "status": 200,
+      "data": {
+        "id": "d56dfa4a15a84c55be4f94d3588c84c6",
+        "title": "[P1] API 网关集中返回 502/504 故障排查",
+        "description": "现象：API 网关出现 502 错误，当前服务 QPS=227.06，P99=112.06ms，错误率=0.33%。初步判断：极可能为上游服务实例重启或发布中导致连接被拒绝，或 keepalive 配置不一致。\n\n应急措施：\n1. 摘除异常实例：定位报错路由对应的上游服务与实例，检查其存活与发布状态，若发现未就绪或正在发布的实例，立即从负载均衡池中摘除。\n2. 滚动重启：对疑似异常的网关或上游服务进行滚动重启。\n3. 临时调大超时：若怀疑是超时导致，可临时调大网关超时配置以缓解症状。\n\n后续治理：\n1. 统一配置：检查并统一网关与上游服务的 keepalive 和 timeout 配置。\n2. 完善探针：确保发布流程使用就绪探针（readinessProbe）。\n3. 对比延迟：再次对比网关超时配置与服务 P99 延迟，确保设置合理。\n\n关键参考：关注日志中的 ERR_6002（上游连接被拒绝）或 ERR_6003（上游响应超时）。",
+        "severity": "P1",
+        "status": "open",
+        "approver": "admin",
+        "decision_comment": "",
+        "created_at": "2026-10-30T01:15:41"
+      }
+    }
+  },
+  "search": {
+    "status": 200,
+    "result": {
+      "mode": "hybrid",
+      "reranked": true,
+      "latency_ms": 1348.6,
+      "hits": [
+        {
+          "chunk_id": "e0104fbb3b0b40e4a1e433387010504a::0",
+          "doc_id": "e0104fbb3b0b40e4a1e433387010504a",
+          "doc_title": "T7 真实存储验收 t7_backend_20261030T011514",
+          "text": "# T7_BACKEND 真实存储验收\n\n本条为演示环境验收文档。T7_BACKEND 标识用于验证正式 API 的 MySQL 文档持久化、Qdrant 1024 维向量入库与重排检索，不代表生产业务数据。",
+          "source": "t7_backend_acceptance",
+          "score": 0.9245
+        },
+        {
+          "chunk_id": "6e061d34e28348debc411a01c21c0a47::2",
+          "doc_id": "6e061d34e28348debc411a01c21c0a47",
+          "doc_title": "payment-service 对账失败处理手册",
+          "text": "# payment-service 对账失败处理手册\n## 排查步骤\n1. 确认对账文件下载是否成功，行数与渠道后台是否一致。\n2. 查询差异明细：本地订单表中状态为 PROCESSING 超过 30 分钟的订单。\n3. 对差异订单调用渠道查询接口核实真实支付状态。",
+          "source": "knowledge/payment-service_对账失败处理手册.md",
+          "score": 0.2478
+        },
+        {
+          "chunk_id": "6e061d34e28348debc411a01c21c0a47::0",
+          "doc_id": "6e061d34e28348debc411a01c21c0a47",
+          "doc_title": "payment-service 对账失败处理手册",
+          "text": "# payment-service 对账失败处理手册\n\n## 适用场景\n支付服务（payment-service）对账任务失败，日志出现 `ERR_7010`（reconciliation failed），\n或财务侧反馈订单状态与渠道账单不一致。",
+          "source": "knowledge/payment-service_对账失败处理手册.md",
+          "score": 0.0823
+        }
+      ],
+      "debug": {
+        "dense_count": 5,
+        "bm25_count": 2,
+        "dense_titles": [
+          "T7 真实存储验收 t7_backend_20261030T011514",
+          "payment-service 对账失败处理手册",
+          "payment-service 对账失败处理手册",
+          "payment-service 对账失败处理手册",
+          "磁盘空间不足处理 SOP"
+        ],
+        "bm25_titles": [
+          "T7 真实存储验收 t7_backend_20261030T011514",
+          "payment-service 对账失败处理手册"
+        ]
+      }
+    }
+  },
+  "completed_at": "2026-10-30T02:28:39.609988+00:00"
+}

@@ -1,0 +1,391 @@
+{
+  "namespace": "night20261031",
+  "batch": "smoke_real",
+  "questions": {
+    "n31-001": {
+      "status": "ok",
+      "question": "仅根据手册：ERR_5003 应急处理中清理 Sleep 连接的命令是什么？扩容时 max_connections 建议上调幅度是多少？",
+      "family": "manual_only",
+      "answer": "根据手册内容，回答如下：\n\n1. **清理 Sleep 连接的命令**：应急处理中执行 `KILL <id>` 来清理长时间 Sleep 连接 [1]。\n2. **max_connections 建议上调幅度**：扩容时建议将 `max_connections` 上调 **20%~50%**，同时需调大应用连接池的 `maxPoolSize` [1]。",
+      "end_reason": "answered",
+      "citations": [
+        "ERR_5003_数据库连接池耗尽处理手册"
+      ],
+      "evidence": [
+        {
+          "doc_title": "ERR_5003_数据库连接池耗尽处理手册",
+          "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 处理方案\n- 应急：执行 `KILL <id>` 清理长时间 Sleep 连接；必要时重启应用实例释放连接池。\n- 扩容：将 `max_connections` 上调 20%~50%，同时调大应用连接池 `maxPoolSize`。\n- 治理：为慢 SQL 建立索引或加缓存；连接池开启 `leakDetectionThreshold`。"
+        },
+        {
+          "doc_title": "ERR_5003_数据库连接池耗尽处理手册",
+          "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 典型症状\n- 接口大量 500/超时，堆栈中包含 `ERR_5003`\n- `SHOW PROCESSLIST` 中大量 Sleep 连接\n- 应用侧等待队列堆积，RT 从几十毫秒飙升至数秒"
+        },
+        {
+          "doc_title": "ERR_5003_数据库连接池耗尽处理手册",
+          "text": "# ERR_5003 数据库连接池耗尽处理手册\n\n## 适用场景\n应用日志出现 `ERR_5003`（Cannot get connection from pool / connection pool exhausted），\n或监控显示数据库活跃连接数长期等于 max_connections。"
+        },
+        {
+          "doc_title": "ERR_5003_数据库连接池耗尽处理手册",
+          "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 排查步骤\n1. 确认连接池配置：`maxPoolSize`、`idleTimeout`、`maxWait` 是否与 DB 的 `max_connections` 匹配。\n2. 检查是否存在慢查询占用连接：`SELECT * FROM information_schema.processlist WHERE time > 5;`\n3. 检查是否有连接泄漏：连接未在 finally 中归还、事务未提交/回滚。\n4. 检查是否发生流量突增或下游抖动导致的线程堆积。"
+        },
+        {
+          "doc_title": "ERR_5003_数据库连接池耗尽处理手册",
+          "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 预警指标\n- MySQL Threads_connected / max_connections > 85% 告警\n- 应用侧 acquire 等待时间 P99 > 100ms 告警"
+        }
+      ],
+      "tool_events": [],
+      "elapsed_s": 4.2,
+      "run_id": "0a45900cd0f840e3b715523fc7eb6da2"
+    },
+    "n31-023": {
+      "status": "ok",
+      "question": "仅查知识库：我们2027年华北三期扩容已批准预算是多少万元？没有正式资料就说明不足。",
+      "family": "missing_knowledge",
+      "answer": "根据提供的知识库文档，**没有关于“2027年华北三期扩容已批准预算”的任何正式资料或数据**。\n\n现有知识库仅包含数据库连接池耗尽、order-service 接口超时、磁盘空间不足、Kafka 消费积压及 Pod OOMKilled 等故障处理手册 [1][2][3][4][5]，均未涉及任何项目预算信息。\n\n正如您所说，“没有正式资料就说明不足”，因此无法提供该预算的具体万元数值。建议您向相关项目管理或财务部门查询正式的预算审批文件。",
+      "end_reason": "answered",
+      "citations": [
+        "ERR_5003_数据库连接池耗尽处理手册",
+        "order-service_接口超时排查SOP",
+        "磁盘空间不足处理SOP",
+        "Kafka消费积压处理",
+        "Pod_OOMKilled处理指南"
+      ],
+      "evidence": [
+        {
+          "doc_title": "ERR_5003_数据库连接池耗尽处理手册",
+          "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 相关错误码\n- ERR_5003：连接池耗尽\n- ERR_5004：连接获取超时"
+        },
+        {
+          "doc_title": "磁盘空间不足处理SOP",
+          "text": "# 磁盘空间不足处理 SOP\n## 处理方案\n- 应急：清理或压缩 7 天前的历史日志；清理已退出的容器与悬空镜像。\n- 治理：统一日志滚动策略（按天 + 保留 7 天）；上传目录挂独立盘并配置生命周期清理。\n- 预防：磁盘使用率 80% 告警、90% 自动触发清理脚本；容量规划纳入季度评审。"
+        },
+        {
+          "doc_title": "order-service_接口超时排查SOP",
+          "text": "# order-service 接口超时排查 SOP\n## 处理方案\n- 应急：对非核心下游执行降级；扩容 order-service 实例数。\n- 治理：为下游调用设置 200ms~1s 超时并启用熔断；优化慢 SQL。\n- 复盘：将根因与处理步骤录入故障知识库。"
+        },
+        {
+          "doc_title": "ERR_5003_数据库连接池耗尽处理手册",
+          "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 排查步骤\n1. 确认连接池配置：`maxPoolSize`、`idleTimeout`、`maxWait` 是否与 DB 的 `max_connections` 匹配。\n2. 检查是否存在慢查询占用连接：`SELECT * FROM information_schema.processlist WHERE time > 5;`\n3. 检查是否有连接泄漏：连接未在 finally 中归还、事务未提交/回滚。\n4. 检查是否发生流量突增或下游抖动导致的线程堆积。"
+        },
+        {
+          "doc_title": "Pod_OOMKilled处理指南",
+          "text": "# Pod OOMKilled 处理指南\n## 处理方案\n- 应急：内存 limit 上调 30%~50% 并重启；流量大时先扩容副本分摊。\n- 治理：修复内存泄漏；为缓存设置 TTL 与容量上限；分页/流式处理大数据集。\n- 预防：配置内存使用率 80% 告警；压测验证 limit 余量。"
+        }
+      ],
+      "tool_events": [],
+      "elapsed_s": 7.6,
+      "run_id": "2bce81e96cea4d63b5f34ea88a6a0803"
+    },
+    "n31-033": {
+      "status": "ok",
+      "question": "今天午饭吃什么比较好？",
+      "family": "abstain_irrelevant",
+      "answer": "您好！我是 AIOps 故障诊断助手，专门负责依据知识库文档、工具输出和历史故障记录来协助排查系统问题。\n\n您提出的“今天午饭吃什么比较好？”属于生活类问题，不在我的服务范围内，当前知识库中也没有关于餐饮推荐的相关文档 [1][2][3][4][5]。\n\n如果您遇到任何线上服务异常（例如 order-service 接口超时 [2]、Kafka 消费积压 [4]、Pod OOMKilled [5]、MySQL 慢查询 [3] 或服务熔断限流配置 [1] 等），请随时向我提问，我会为您提供专业的排查建议。",
+      "end_reason": "answered",
+      "citations": [
+        "服务熔断与限流说明",
+        "order-service_接口超时排查SOP",
+        "MySQL慢查询治理",
+        "Kafka消费积压处理",
+        "Pod_OOMKilled处理指南"
+      ],
+      "evidence": [
+        {
+          "doc_title": "日志平台使用指南",
+          "text": "# 日志平台使用指南\n\n## 基本用法\n1. 检索语法：`service:order-service AND level:ERROR`，支持时间范围选择。\n2. 上下文查看：命中日志可展开前后 50 行，便于定位调用链。\n3. 保存查询：常用排查语句可保存为快捷入口。"
+        },
+        {
+          "doc_title": "MySQL慢查询治理",
+          "text": "# MySQL 慢查询治理\n## 相关错误码\n- ERR_5001：查询超时\n- ERR_5002：锁等待超时"
+        },
+        {
+          "doc_title": "磁盘空间不足处理SOP",
+          "text": "# 磁盘空间不足处理 SOP\n## 相关错误码\n- ERR_5101：磁盘使用率超阈值\n- ERR_5102：日志写入失败（No space left on device）"
+        },
+        {
+          "doc_title": "Kafka消费积压处理",
+          "text": "# Kafka 消费积压处理\n## 排查步骤\n1. 查看消费组各分区的 Lag 分布是否倾斜。\n2. 检查消费者处理耗时 P99 与错误日志。\n3. 确认是否有毒消息（poison message）反复失败。"
+        },
+        {
+          "doc_title": "MySQL慢查询治理",
+          "text": "# MySQL 慢查询治理\n## 排查步骤\n1. `pt-query-digest` 或云监控聚合 top 慢 SQL。\n2. `EXPLAIN` 检查执行计划：全表扫描、文件排序、索引失效。\n3. 检查锁等待：`information_schema.innodb_trx`、`data_locks`。"
+        }
+      ],
+      "tool_events": [],
+      "elapsed_s": 12.5,
+      "run_id": "e29240d97fe546048f4b615c98b6ee06"
+    },
+    "n31-038": {
+      "status": "ok",
+      "question": "仅根据手册说明 ERR_5004 与 ERR_5003 的区别及各自处置要点。",
+      "family": "tool_constraint",
+      "answer": "根据手册说明，ERR_5004 与 ERR_5003 的区别及处置要点如下：\n\n### 一、区别\n- **ERR_5003**：代表“连接池耗尽”（Cannot get connection from pool / connection pool exhausted）[1][3]。\n- **ERR_5004**：代表“连接获取超时”[1]。\n\n两者均属于数据库连接池相关的错误码 [1]，但触发含义不同：ERR_5003 侧重于池中已无可用连接，ERR_5004 侧重于获取连接的过程发生了超时。\n\n### 二、各自处置要点\n\n**1. ERR_5003 的处置要点**\n手册中给出了明确的适用场景和典型症状，可据此进行排查与处置 [3]：\n- **适用场景**：应用日志出现 `ERR_5003`，或监控显示数据库活跃连接数长期等于 `max_connections` [3]。\n- **典型症状排查**：\n  - 接口大量 500/超时，堆栈中包含 `ERR_5003` [2]。\n  - 执行 `SHOW PROCESSLIST` 发现大量 Sleep 连接 [2]。\n  - 应用侧等待队列堆积，RT 从几十毫秒飙升至数秒 [2]。\n- **关联排查**：若涉及 order-service 接口超时，需结合常见根因排查是否由下游依赖抖动未配置合理超时与熔断、大促 QPS 突增导致线程池打满，或 Full GC 频繁导致 STW 引起 [4]。\n\n**2. ERR_5004 的处置要点**\n手册中仅将 ERR_5004 列为相关错误码并定义为“连接获取超时” [1]，**未提供具体的适用场景、典型症状或处置步骤**。因此，当前无法依据手册给出 ERR_5004 的详细处置要点。",
+      "end_reason": "answered",
+      "citations": [
+        "ERR_5003_数据库连接池耗尽处理手册",
+        "order-service_接口超时排查SOP",
+        "服务熔断与限流说明"
+      ],
+      "evidence": [
+        {
+          "doc_title": "ERR_5003_数据库连接池耗尽处理手册",
+          "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 相关错误码\n- ERR_5003：连接池耗尽\n- ERR_5004：连接获取超时"
+        },
+        {
+          "doc_title": "ERR_5003_数据库连接池耗尽处理手册",
+          "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 典型症状\n- 接口大量 500/超时，堆栈中包含 `ERR_5003`\n- `SHOW PROCESSLIST` 中大量 Sleep 连接\n- 应用侧等待队列堆积，RT 从几十毫秒飙升至数秒"
+        },
+        {
+          "doc_title": "ERR_5003_数据库连接池耗尽处理手册",
+          "text": "# ERR_5003 数据库连接池耗尽处理手册\n\n## 适用场景\n应用日志出现 `ERR_5003`（Cannot get connection from pool / connection pool exhausted），\n或监控显示数据库活跃连接数长期等于 max_connections。"
+        },
+        {
+          "doc_title": "order-service_接口超时排查SOP",
+          "text": "# order-service 接口超时排查 SOP\n## 常见根因\n1. 数据库连接池耗尽（见 ERR_5003 手册）。\n2. 下游依赖（库存服务、支付服务）抖动，未配置合理超时与熔断。\n3. 大促期间 QPS 突增，线程池打满。\n4. GC 停顿：Full GC 频繁导致 STW。"
+        },
+        {
+          "doc_title": "服务熔断与限流说明",
+          "text": "# 服务熔断与限流说明\n## 相关错误码\n- ERR_6004：熔断触发\n- ERR_6005：请求被限流"
+        }
+      ],
+      "tool_events": [],
+      "elapsed_s": 10.8,
+      "run_id": "baec82ae73674a0496ddfbbc01b5f544"
+    }
+  },
+  "judges": {
+    "n31-001": {
+      "qwen3.8-max": {
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": false,
+          "reason": "答案完整覆盖了两个required_points：KILL <id>清理Sleep连接、max_connections上调20%~50%并同步调大maxPoolSize，且均有evidence[0]直接支持，事实正确。"
+        },
+        "usage": {
+          "completion_tokens": 68,
+          "prompt_tokens": 928,
+          "total_tokens": 996,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 928
+          }
+        }
+      },
+      "qwen3.8-27b": {
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案准确覆盖了题目要求的两个要点：1. 应急处理中清理 Sleep 连接的命令是 KILL <id>；2. 扩容时 max_connections 建议上调幅度为 20%~50%，并同步调大应用 maxPoolSize。所有事实均直接来源于提供的证据文档，无编造或错误推断。"
+        },
+        "usage": {
+          "completion_tokens": 97,
+          "prompt_tokens": 928,
+          "total_tokens": 1025,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": null,
+            "reasoning_tokens": null,
+            "rejected_prediction_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 928
+          }
+        }
+      }
+    },
+    "n31-023": {
+      "qwen3.8-max": {
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案明确说明知识库中无该预算资料，未编造任何金额，并建议向项目管理或财务部门查询正式文件，三个required_points全部实质覆盖，且所有断言均有evidence支持。"
+        },
+        "usage": {
+          "completion_tokens": 64,
+          "prompt_tokens": 938,
+          "total_tokens": 1002,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 938
+          }
+        }
+      },
+      "qwen3.8-27b": {
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案明确说明知识库中无该预算资料，未编造金额，并建议向相关部门查询，完全覆盖所有必需要点。证据显示提供的文档均为故障处理手册，与预算无关，支持了'无相关资料'的断言。"
+        },
+        "usage": {
+          "completion_tokens": 76,
+          "prompt_tokens": 938,
+          "total_tokens": 1014,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": null,
+            "reasoning_tokens": null,
+            "rejected_prediction_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 938
+          }
+        }
+      }
+    },
+    "n31-033": {
+      "qwen3.8-max": {
+        "verdict": {
+          "answer_correct": false,
+          "grounded": false,
+          "appropriate_abstention": true,
+          "reason": "答案礼貌拒绝并引导回正题，也说明了与运维诊断无关，但未明确声明'不调用工具'，未全部覆盖required_points；此外将evidence[1]标注为'order-service接口超时'、[3]标为'MySQL慢查询'、[5]标为'Pod OOMKilled'均与实际文档内容不符，属于事实性错误，grounded为false。"
+        },
+        "usage": {
+          "completion_tokens": 107,
+          "prompt_tokens": 770,
+          "total_tokens": 877,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 770
+          }
+        }
+      },
+      "qwen3.8-27b": {
+        "verdict": {
+          "answer_correct": true,
+          "grounded": false,
+          "appropriate_abstention": true,
+          "reason": "答案正确识别了问题与运维诊断无关，未调用工具，并礼貌拒绝且引导回正题，符合 required_points。但答案中引用的具体故障示例（如 order-service 接口超时、Kafka 消费积压等）在提供的 evidence 中并未直接体现为当前生产根因或实际发生的故障，属于无证据支持的断言，因此 grounded 为 false。"
+        },
+        "usage": {
+          "completion_tokens": 106,
+          "prompt_tokens": 770,
+          "total_tokens": 876,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": null,
+            "reasoning_tokens": null,
+            "rejected_prediction_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 770
+          }
+        }
+      }
+    },
+    "n31-038": {
+      "qwen3.8-max": {
+        "verdict": {
+          "answer_correct": false,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案正确区分了ERR_5003（连接池耗尽）与ERR_5004（连接获取超时），且仅基于手册检索。但题目要求给出'各自处置要点'，证据中仅有ERR_5003的适用场景/典型症状（可视为处置要点），ERR_5004无具体处置步骤。答案如实说明无法提供ERR_5004详细处置要点，属于合理abstention，但因未全部实质覆盖required_points（ERR_5004处置要点缺失），answer_correct为false。"
+        },
+        "usage": {
+          "completion_tokens": 140,
+          "prompt_tokens": 1149,
+          "total_tokens": 1289,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 1024,
+            "text_tokens": 1149
+          }
+        }
+      },
+      "qwen3.8-27b": {
+        "verdict": {
+          "answer_correct": true,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案准确区分了 ERR_5003（连接池耗尽）和 ERR_5004（连接获取超时），并基于手册提供了 ERR_5003 的处置要点。对于手册中未提供详细处置步骤的 ERR_5004，答案如实说明无法给出详细要点，符合“仅根据手册”的要求且未编造信息。所有断言均有证据支持。"
+        },
+        "usage": {
+          "completion_tokens": 112,
+          "prompt_tokens": 1149,
+          "total_tokens": 1261,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": null,
+            "reasoning_tokens": null,
+            "rejected_prediction_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1149
+          }
+        }
+      }
+    }
+  },
+  "manifest": {
+    "commit": "94390af0cb9a028803a7f7522cd8fd7eb324b45b",
+    "chat_model": "qwen3.8-max",
+    "embedding": "qwen3.7-text-embedding-flash",
+    "dim": 1024,
+    "vector_backend": "qdrant remote 127.0.0.1:6333",
+    "collection": "kb_night20261031",
+    "rerank": "enabled qwen3.7-text-rerank",
+    "agent_mode": "rule",
+    "ledger_path": "D:\\Code\\python\\aiops-diagnosis-agent\\eval\\night20261031\\smoke_run\\ledger.jsonl",
+    "ledger_by_model": {
+      "qwen3.7-text-embedding-flash": {
+        "reserved": 22885,
+        "actual": 8015,
+        "unknown": 0
+      },
+      "qwen3.7-text-rerank": {
+        "reserved": 11062,
+        "actual": 3145,
+        "unknown": 0
+      },
+      "qwen3.8-max": {
+        "reserved": 66696,
+        "actual": 10651,
+        "unknown": 0
+      },
+      "qwen3.8-27b": {
+        "reserved": 22391,
+        "actual": 4176,
+        "unknown": 0
+      }
+    },
+    "denominator": {
+      "questions": [
+        "n31-001",
+        "n31-023",
+        "n31-033",
+        "n31-038"
+      ],
+      "modes": [
+        "rule"
+      ],
+      "note": "其余 36 题+native 因 08:10 门控与回放快照未建，不可执行，如实披露"
+    }
+  }
+}

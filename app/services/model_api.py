@@ -11,7 +11,7 @@ from urllib.parse import urlsplit
 import httpx
 from openai import OpenAI
 
-from app.services.budget import BudgetExceededError, BudgetLedgerError, estimate_upper_bound, get_budget_guard
+from app.services.budget import BudgetExceededError, BudgetLedgerError, get_budget_guard
 from app.services.run_service import emit, tool_time_left
 
 logger = logging.getLogger(__name__)
@@ -19,11 +19,8 @@ logger = logging.getLogger(__name__)
 # 本文件所有 chat/tool_chat 通道的输出上界（max_tokens）；思考量在 DashScope 显式关闭记 0。
 _CHAT_OUTPUT_CAP = 1536
 _RERANK_OUTPUT_CAP = 64
+_RERANK_WRAP_BYTES = 128  # rerank 请求协议包装余量
 
-
-# 本文件所有 chat/tool_chat 通道的输出上界（max_tokens）；思考量在 DashScope 显式关闭记 0。
-_CHAT_OUTPUT_CAP = 1536
-_RERANK_OUTPUT_CAP = 64
 # chat 模板包装余量（已验证协议事实的保守放大约束，非实测常数硬编码）：
 # Qwen 模板每条消息渲染 <|im_start|>role\n…<|im_end|>\n 等 ASCII 标记（单个标记 ≤11 字节），
 # 每元素（消息/工具轮次/工具定义）放 128 字节，基础段（生成提示等）另放 128 字节；
@@ -56,6 +53,17 @@ def reserve_for_channel(calls: list, guard, kind: str, model: str, estimate: int
         raise
 
 
+def settle_for_channel(record: dict, guard, reservation):
+    """结算失败不得掩盖模型自身结果；账本内部已 fail closed，后续调用将被拒绝。"""
+    if reservation is None:
+        return
+    try:
+        guard.settle(reservation, record.get("usage") or None)
+    except BudgetLedgerError as exc:
+        record["settlement_error"] = type(exc).__name__
+        logger.error("预算结算写入失败（%s），账本 fail closed，后续真实调用将被拒绝", exc)
+
+
 class ChatAPI:
     def __init__(self, api_key: str, base_url: str, model: str):
         # 真实供应商入口：无持久账本配置即 fail closed，Mock 路径（MockLLM 等）不经过本类
@@ -73,14 +81,7 @@ class ChatAPI:
 
     @staticmethod
     def _settle(guard, reservation, record: dict):
-        """结算失败不得掩盖模型自身结果；账本内部已 fail closed，后续调用将被拒绝。"""
-        if reservation is None:
-            return
-        try:
-            guard.settle(reservation, record.get("usage") or None)
-        except BudgetLedgerError as exc:
-            record["settlement_error"] = type(exc).__name__
-            logger.error("预算结算写入失败（%s），账本 fail closed，后续真实调用将被拒绝", exc)
+        settle_for_channel(record, guard, reservation)
 
     def chat(self, system: str, user: str, *, json_mode: bool = False) -> str:
         messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
@@ -178,8 +179,11 @@ class RerankAPI:
     def rerank(self, query: str, chunks: list, top_k: int = 5) -> list:
         if not chunks:
             return []
-        texts = [query] + [c.text for c in chunks]
-        estimate = estimate_upper_bound(texts, output_cap=_RERANK_OUTPUT_CAP)
+        # 阿里云 rerank 官方成对计费口径：query tokens × 候选文档数 + 文档 tokens 总和。
+        # top_n 只影响返回条数，不减少被送入并计费的候选数；按字节上界取保守值并含包装余量。
+        query_bound = len(query.encode("utf-8"))
+        estimate = query_bound * len(chunks) + sum(len(c.text.encode("utf-8")) for c in chunks)
+        estimate = estimate + _RERANK_WRAP_BYTES + _RERANK_OUTPUT_CAP
         guard, reservation = reserve_for_channel(self.calls, self._budget, "rerank", self.model, estimate)
         started = time.perf_counter()
         record = {"model": self.model, "status": "error", "usage": {}}
@@ -210,4 +214,4 @@ class RerankAPI:
             self.calls.append(record)
             logger.info("model_api_usage kind=rerank record=%s", json.dumps(record, ensure_ascii=False))
             emit("model_call", {"kind": "rerank", **record})
-            self._settle(guard, reservation, record)
+            settle_for_channel(record, guard, reservation)

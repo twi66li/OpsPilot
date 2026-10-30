@@ -439,3 +439,42 @@ def test_error_call_is_settled_as_unknown(tmp_path, monkeypatch):
     assert usage["unknown"] == expected, "失败调用按完整请求保守预留记 unknown，不按零费用释放"
     assert usage["actual"] == 0
     assert usage["models"]["test-model"]["unknown"] == expected, "分模型记账与总额一致"
+
+
+# ---- 第 4 轮定向补救：Rerank 成对计费预留与共用结算 ----
+
+def test_rerank_reserve_follows_paired_billing_formula(tmp_path, monkeypatch):
+    """官方成对口径：query×候选数+文档总和（字节上界）+包装；top_k=1 也不减少计费候选。"""
+    reset_budget_guard()
+    settings = _settings(tmp_path, limit=1_000_000)
+    monkeypatch.setattr("app.config.get_settings", lambda: settings)
+    api = RerankAPI("key", RERANK_URL, "test-model")
+    docs = [_Chunk("字" * 100) for _ in range(3)]  # 每篇 300 字节
+    with pytest.raises(Exception):  # 不可达端点：调用失败
+        api.rerank("q" * 50, docs, top_k=1)
+    expected = 50 * 3 + 300 * 3 + 128 + 64  # query×3 + 文档总和 + 包装 + 输出封顶
+    usage = api._budget.usage_now()
+    assert usage["unknown"] == expected, "缺 usage 按成对口径预留记 unknown"
+
+
+@pytest.mark.parametrize("guard", [100], indirect=True)
+def test_rerank_over_limit_refused_even_with_small_top_n(ledger_path):
+    api = RerankAPI("key", RERANK_URL, "test-model")
+    with pytest.raises(BudgetExceededError):
+        api.rerank("q" * 50, [_Chunk("字" * 100) for _ in range(3)], top_k=1)
+    assert api.calls[-1]["status"] == "budget_refused"
+
+
+def test_rerank_success_usage_enters_ledger(tmp_path, monkeypatch):
+    reset_budget_guard()
+    settings = _settings(tmp_path, limit=1_000_000)
+    monkeypatch.setattr("app.config.get_settings", lambda: settings)
+    api = RerankAPI("key", RERANK_URL, "test-model")
+    monkeypatch.setattr(api.client, "post", lambda *a, **k: httpx.Response(
+        200, json={"output": {"results": [{"index": 0, "relevance_score": 0.9}]},
+                   "usage": {"total_tokens": 123}},
+        request=httpx.Request("POST", RERANK_URL)))
+    chunks = [_Chunk("字" * 100)]
+    out = api.rerank("q", chunks, top_k=1)
+    assert out[0].score == 0.9
+    assert api._budget.usage_now()["actual"] == 123, "成功 usage 全额入权威账本"

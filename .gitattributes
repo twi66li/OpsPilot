@@ -1,2 +1,4 @@
 eval/datasets/v1/** text eol=lf
-eval/datasets/v2/** text eol=lf
+# 冻结评测清单按原始字节校验，禁止 checkout 改变换行符。
+eval/datasets/v2/** -text
+eval/reports/t11_comparison_20261030T113700/** -text

@@ -1,0 +1,37 @@
+{
+  "metrics": {
+    "service": "unknown-t8-service",
+    "window_minutes": 5,
+    "evaluation_time": 1793329040.648,
+    "window": {
+      "start": "2026-10-30T02:52:20.648000+00:00",
+      "end": "2026-10-30T02:57:20.648000+00:00"
+    },
+    "units": {
+      "qps": "requests/s",
+      "latency_p99_ms": "ms",
+      "error_rate_pct": "%"
+    },
+    "source": {
+      "kind": "prometheus",
+      "environment": "test",
+      "faults": "测试注入",
+      "url": "http://prometheus:9090"
+    },
+    "status": "insufficient_data",
+    "avg": {
+      "qps": null,
+      "latency_p99_ms": null,
+      "error_rate_pct": null
+    },
+    "anomalies": [],
+    "queries": {
+      "scrape_up": "max(up{job=\"opspilot-demo\"})",
+      "qps": "sum(rate(aiops_demo_requests_total{service=\"unknown-t8-service\"}[300s]))",
+      "latency_p99_ms": "1000 * histogram_quantile(0.99, sum by (le) (rate(aiops_demo_request_duration_seconds_bucket{service=\"unknown-t8-service\"}[300s])))",
+      "error_rate_pct": "100 * sum(rate(aiops_demo_requests_total{service=\"unknown-t8-service\",code=~\"5..\"}[300s])) / sum(rate(aiops_demo_requests_total{service=\"unknown-t8-service\"}[300s]))"
+    },
+    "message": "未找到服务指标或采样不足，不能据此判定服务正常或根因"
+  },
+  "faults": []
+}

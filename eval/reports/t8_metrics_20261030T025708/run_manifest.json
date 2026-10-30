@@ -1,0 +1,59 @@
+{
+  "baseline": "49417bd",
+  "source_sha256": {
+    "app/config.py": "1da027d34299877289d1e98cb1cb7c81c6101e42094b7bf23d7916e0aa28f94b",
+    "app/services/metrics_service.py": "7930464565652b7031cd709c99f5a8f38527eb0f30797f9178231fb0fabf2ee2",
+    "app/agent/tools.py": "bd3eeef879755f2141f3eebab8b4675164bb78767cbc86acdfecf9bb7e510883",
+    "app/agent/nodes.py": "b9341be45f9f3742104ff18b01e7b6fb6f59649db447d192b048a02f699279e5",
+    "app/agent/llm.py": "08d3efb378d89140c423868ad395c4b9cea4ffcdce3bd44ed8d2dffe3990e746",
+    "scripts/metrics_demo.py": "664f88ab257eefb85f07b40ed66a81930c15587e7c5237faec24c3258a87a887",
+    "tests/test_t8_metrics.py": "890eb8968ed049421af154d1772dd2d8a0b10015d6515dcdf91ff269556ce83b",
+    "docker-compose.yml": "04d2c123f745a465af5d5ee35b58ba48d26b4d6eb51b7b78e17c78446612dd83",
+    "prometheus.yml": "aeb826da3f68879b76156f322d2bb9d0beee3daf3a7032de484af10e8144ff7f",
+    "requirements.txt": "d9c50cd61374b4b580202d959d5711b995500eb3f719cb2652a4806325707bff"
+  },
+  "artifacts": [
+    {
+      "file": "agent_answer.json",
+      "sha256": "825851fa8a07b09af38cdb7ff036371e03f367aa11db902c82929708fe5546dd"
+    },
+    {
+      "file": "agent_answer_threshold_fixed.json",
+      "sha256": "b2446837172b013bd2b59f460b15e8c18ffe5e841df1c44d97885144040deb4b"
+    },
+    {
+      "file": "baseline.json",
+      "sha256": "cfb9b427a8edbae4808b5a8b89d495c4a3cea1e7267c78278a49fe2781898315"
+    },
+    {
+      "file": "buildinfo.json",
+      "sha256": "ff3a207c51ae3cb654b4227e0cab4516a6fc79a8f53f625459add0419090629d"
+    },
+    {
+      "file": "injected.json",
+      "sha256": "a40029b8fdec31701f648529e08b08c0dd40a31fa61035c33ffdcc503c419ece"
+    },
+    {
+      "file": "missing_evidence.json",
+      "sha256": "b73b7106dbd5da0f5b53d3ad1db91e0212cc0321a59966cc5d92867223d187f8"
+    },
+    {
+      "file": "prometheus_same_window.json",
+      "sha256": "eca90221a53a42381c074b29a35b2a18e1c9d2d23fc71eb122c7bb949ee886b6"
+    },
+    {
+      "file": "summary.json",
+      "sha256": "ddc5510bf0a20e33cc0bbae9ba3d3d46846da5866be2de9d6aed02094fa23a47"
+    },
+    {
+      "file": "unreachable.json",
+      "sha256": "3b99beccfcfb112882b10bba288b966bab1b296acd7dde5bcf3df4ecd196befc"
+    },
+    {
+      "file": "usage.json",
+      "sha256": "87ba90befa481cd5133ae801692d8fc9658aa3de9db7856f1e576a9d4766a9f5"
+    }
+  ],
+  "credential_scan": "passed",
+  "scope": "T8，待ZCode独立复核；冻结评测不变"
+}

@@ -41,9 +41,6 @@ def query_fault_history(db: Session, tenant_id: str, service: str = "", error_co
     if error_code:
         query = query.filter(FaultRecord.error_code == error_code.upper())
     rows = query.order_by(FaultRecord.occurred_at.desc()).limit(limit).all()
-    # 无精确匹配时退化为租户内最近记录，保证工具总能提供参考
-    if not rows:
-        rows = db.query(FaultRecord).filter(FaultRecord.tenant_id == tenant_id).order_by(FaultRecord.occurred_at.desc()).limit(limit).all()
     return [
         {
             "id": r.id,
@@ -55,6 +52,7 @@ def query_fault_history(db: Session, tenant_id: str, service: str = "", error_co
             "resolution": r.resolution[:200],
             "severity": r.severity,
             "occurred_at": r.occurred_at.isoformat(),
+            "match_type": "exact" if service or error_code else "tenant_recent",
         }
         for r in rows
     ]
@@ -74,13 +72,25 @@ def run_diagnostic_tools(db: Session, tenant_id: str, question: str) -> tuple[li
         start = time.perf_counter()
         result = query_service_metrics(service)
         metrics_all[service] = result
+        source = "Prometheus测试服务实际采集（故障为测试注入）" if result["source"]["kind"] == "prometheus" else "Mock模拟数据"
+        evidence = f"{service}；来源：{source}；时间窗：{result['window']['start']} 至 {result['window']['end']}"
+        if result["status"] == "ok":
+            evidence += (
+                f"；QPS={result['avg']['qps']} requests/s, P99={result['avg']['latency_p99_ms']}ms, "
+                f"错误率={result['avg']['error_rate_pct']}%"
+            )
+        else:
+            evidence += f"；状态={result['status']}，{result.get('message', '指标证据不足')}"
+        if result["anomalies"]:
+            evidence += "；本次阈值判定：" + "；".join(result["anomalies"])
         tool_events.append(
             {
                 "name": "query_service_metrics",
                 "args": {"service": service, "window_minutes": 60},
                 "duration_ms": round((time.perf_counter() - start) * 1000, 2),
-                "summary": f"QPS={result['avg']['qps']}, P99={result['avg']['latency_p99_ms']}ms, 错误率={result['avg']['error_rate_pct']}%",
+                "summary": evidence,
                 "anomalies": result["anomalies"],
+                "result": result,
             }
         )
 
@@ -91,13 +101,18 @@ def run_diagnostic_tools(db: Session, tenant_id: str, question: str) -> tuple[li
             "name": "query_fault_history",
             "args": {"service": entities["services"][:1], "error_codes": entities["error_codes"][:1]},
             "duration_ms": round((time.perf_counter() - start) * 1000, 2),
-            "summary": f"命中 {len(fault_records)} 条历史故障",
+            "summary": (
+                f"命中 {len(fault_records)} 条精确匹配历史故障，仅供排查参考"
+                if fault_records and (entities["services"] or entities["error_codes"])
+                else f"同租户历史参考 {len(fault_records)} 条（未指定匹配条件）"
+                if fault_records else "未找到匹配历史故障，不能据此确认根因"
+            ),
         }
     )
     return tool_events, fault_records, metrics_all
 
 
 TOOL_REGISTRY = [
-    {"name": "query_service_metrics", "description": "查询服务近 1 小时的 QPS / P99 延迟 / 错误率 / CPU 指标，返回异常项"},
+    {"name": "query_service_metrics", "description": "查询测试服务近 1 小时的 QPS / P99 延迟 / 错误率，返回来源、时间窗和证据状态"},
     {"name": "query_fault_history", "description": "按服务名 / 错误码检索历史故障记录（根因与解决方案）"},
 ]

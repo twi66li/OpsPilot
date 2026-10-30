@@ -48,6 +48,11 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     rate_limit_per_minute: int = 60
 
+    # ---- 测试服务监控 ----
+    metrics_provider: str = "mock"  # 离线测试显式 Mock；Compose 使用 prometheus
+    prometheus_url: str = "http://localhost:19090"
+    prometheus_timeout_seconds: float = 3.0
+
     # ---- Langfuse ----
     langfuse_public_key: str = ""
     langfuse_secret_key: str = ""

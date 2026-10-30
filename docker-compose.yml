@@ -57,6 +57,8 @@ services:
       RERANK_ENABLED: ${RERANK_ENABLED:-true}
       RERANK_PROVIDER: ${RERANK_PROVIDER:-dashscope}
       RERANK_MODEL: ${RERANK_MODEL:-qwen3.7-text-rerank}
+      METRICS_PROVIDER: prometheus
+      PROMETHEUS_URL: http://prometheus:9090
       JWT_SECRET: ${JWT_SECRET:-change-me-in-prod}
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
@@ -72,7 +74,24 @@ services:
       sh -c "python -m scripts.seed &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000"
 
+  metrics-demo:
+    image: aiops-diagnosis-agent-api
+    ports:
+      - "127.0.0.1:18081:8081"
+    command: uvicorn scripts.metrics_demo:app --host 0.0.0.0 --port 8081
+
+  prometheus:
+    image: prom/prometheus:v3.13.5
+    ports:
+      - "127.0.0.1:19090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      - metrics-demo
+
 volumes:
   mysql_data:
   redis_data:
   qdrant_data:
+  prometheus_data:

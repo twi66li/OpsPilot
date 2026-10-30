@@ -1,0 +1,67 @@
+{
+  "source": "阈值修复后API容器日志，API实报usage",
+  "calls": [
+    {
+      "kind": "embedding",
+      "model": "qwen3.7-text-embedding-flash",
+      "status": "ok",
+      "elapsed_ms": 632.339903000684,
+      "usage": {
+        "prompt_tokens": 40,
+        "total_tokens": 40
+      }
+    },
+    {
+      "kind": "rerank",
+      "model": "qwen3.7-text-rerank",
+      "status": "ok",
+      "usage": {
+        "prompt_tokens": 517,
+        "total_tokens": 517
+      },
+      "elapsed_ms": 454.8957019997033
+    },
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "first_token_ms": 569.5694050000384,
+      "usage": {
+        "completion_tokens": 19,
+        "prompt_tokens": 471,
+        "total_tokens": 490,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 471
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 846.0046339996552
+    },
+    {
+      "kind": "chat",
+      "model": "qwen3.8-flash",
+      "status": "ok",
+      "first_token_ms": 541.0560950003855,
+      "usage": {
+        "completion_tokens": 835,
+        "prompt_tokens": 868,
+        "total_tokens": 1703,
+        "completion_tokens_details": null,
+        "prompt_tokens_details": {
+          "audio_tokens": null,
+          "cache_write_tokens": null,
+          "cached_tokens": 0,
+          "text_tokens": 868
+        }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 12067.141473999982
+    }
+  ],
+  "total_tokens": 2750,
+  "coverage_limit": "首次回答的旧容器用量在重建前未导出，未完整保全；本文件为修复后回归小计，不称本轮总用量。"
+}

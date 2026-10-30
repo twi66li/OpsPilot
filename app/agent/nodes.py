@@ -81,10 +81,7 @@ class DiagnosisNodes:
     def call_tools(self, state):
         with self.container.db_session() as db:
             tool_events, fault_records, metrics = run_diagnostic_tools(db, state["tenant_id"], state["question"])
-        events = [
-            {"type": "tool", "name": e["name"], "args": e.get("args", {}), "summary": e.get("summary", ""), "anomalies": e.get("anomalies", [])}
-            for e in tool_events
-        ]
+        events = [{"type": "tool", **event} for event in tool_events]
         with self.tracer.span("tools", count=len(tool_events)) as span:
             span.metadata["tools"] = [e["name"] for e in tool_events]
         return {"tool_events": tool_events, "fault_records": fault_records, "metrics": metrics, "events": events}
@@ -99,6 +96,9 @@ class DiagnosisNodes:
             answer = self.container.llm.generate_answer(
                 state["question"], state.get("hits", []), state.get("tool_events", []), state.get("fault_records", []), history
             )
+            metric_evidence = [event["summary"] for event in state.get("tool_events", []) if event["name"] == "query_service_metrics"]
+            if metric_evidence:
+                answer += "\n\n指标证据：\n" + "\n".join(metric_evidence)
             span.metadata["answer_chars"] = len(answer)
             span.metadata["tokens_in"] = estimate_tokens(state["question"]) + sum(estimate_tokens(h.get("text", "")) for h in state.get("hits", [])[:5])
             span.metadata["tokens_out"] = estimate_tokens(answer)

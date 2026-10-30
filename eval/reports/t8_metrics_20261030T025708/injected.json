@@ -1,0 +1,50 @@
+{
+  "injection": {
+    "service": "order-service",
+    "environment": "test",
+    "fault_injection": {
+      "delay_ms": 450,
+      "error_every": 5
+    }
+  },
+  "requests": {
+    "200": 32,
+    "500": 8
+  },
+  "metrics": {
+    "service": "order-service",
+    "window_minutes": 5,
+    "evaluation_time": 1793329040.595,
+    "window": {
+      "start": "2026-10-30T02:52:20.595000+00:00",
+      "end": "2026-10-30T02:57:20.595000+00:00"
+    },
+    "units": {
+      "qps": "requests/s",
+      "latency_p99_ms": "ms",
+      "error_rate_pct": "%"
+    },
+    "source": {
+      "kind": "prometheus",
+      "environment": "test",
+      "faults": "测试注入",
+      "url": "http://prometheus:9090"
+    },
+    "status": "ok",
+    "avg": {
+      "qps": 0.23604938271604936,
+      "latency_p99_ms": 495.625,
+      "error_rate_pct": 11.428571428571429
+    },
+    "anomalies": [
+      "P99 延迟 495.62ms 超过 300ms 阈值",
+      "错误率 11.43% 超过 1% 阈值"
+    ],
+    "queries": {
+      "scrape_up": "max(up{job=\"opspilot-demo\"})",
+      "qps": "sum(rate(aiops_demo_requests_total{service=\"order-service\"}[300s]))",
+      "latency_p99_ms": "1000 * histogram_quantile(0.99, sum by (le) (rate(aiops_demo_request_duration_seconds_bucket{service=\"order-service\"}[300s])))",
+      "error_rate_pct": "100 * sum(rate(aiops_demo_requests_total{service=\"order-service\",code=~\"5..\"}[300s])) / sum(rate(aiops_demo_requests_total{service=\"order-service\"}[300s]))"
+    }
+  }
+}

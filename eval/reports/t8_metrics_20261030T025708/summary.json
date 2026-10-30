@@ -1,0 +1,29 @@
+{
+  "status": "passed_pending_zcode_review",
+  "mock_tests": 15,
+  "ruff": "passed",
+  "source": "本地测试服务的实际请求与Prometheus采集，故障为测试注入，非生产监控",
+  "injected_request_counts": {
+    "200": 32,
+    "500": 8
+  },
+  "measured_metrics": {
+    "qps": 0.23604938271604936,
+    "latency_p99_ms": 495.625,
+    "error_rate_pct": 11.428571428571429
+  },
+  "same_window_prometheus_match": true,
+  "p99_method": "histogram_quantile近似分位数",
+  "unknown_service": "insufficient_data/null，无假正常值",
+  "unmatched_faults": [],
+  "unreachable": "实际关闭端口1返回unavailable（ConnectTimeout），保留unreachable.json",
+  "answer_keeps_source_window_threshold": true,
+  "findings_fixed": [
+    "故障探针过窄：仅接受ConnectError，实际为ConnectTimeout；应用原已正确返回unavailable",
+    "初答未获得本次300ms异常判定：补齐工具上下文和系统约束，新增测试先失败后通过，保留前后真实回答",
+    "部署命令继承了单测空密钥/非严格变量：API拒绝启动，已用独立环境读取.env恢复；后端数据未改动"
+  ],
+  "fault_injection_reset": true,
+  "usage_limit": "首次回答用量缺失，见usage.json；修复后用量完整保留",
+  "completed_at": "2026-10-30T03:04:25.327355+00:00"
+}

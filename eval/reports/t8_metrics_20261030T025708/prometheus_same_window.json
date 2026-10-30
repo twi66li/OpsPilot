@@ -1,0 +1,65 @@
+{
+  "evaluation_time": 1793329040.595,
+  "results": {
+    "scrape_up": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {},
+            "value": [
+              1793329040.595,
+              "1"
+            ]
+          }
+        ]
+      }
+    },
+    "qps": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {},
+            "value": [
+              1793329040.595,
+              "0.23604938271604936"
+            ]
+          }
+        ]
+      }
+    },
+    "latency_p99_ms": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {},
+            "value": [
+              1793329040.595,
+              "495.625"
+            ]
+          }
+        ]
+      }
+    },
+    "error_rate_pct": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {},
+            "value": [
+              1793329040.595,
+              "11.428571428571429"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

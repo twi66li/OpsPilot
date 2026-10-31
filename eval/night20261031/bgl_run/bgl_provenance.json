@@ -1,0 +1,103 @@
+{
+  "source_file": "BGL.zip/BGL.log",
+  "zip_sha256": "d67fd82a711aea0157a9b83175892c6ee60e384a2ddf5bc51f39118453816da8",
+  "corpus_lines": [
+    14700,
+    14760
+  ],
+  "label_rule": "首列标签（'-'或告警名）仅评分侧保留；正文剥离并加 L{行号} 前缀",
+  "alert_lines_in_block": [
+    {
+      "line": 14738,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14739,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14740,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14741,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14742,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14743,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14744,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14745,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14746,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14747,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14748,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14749,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14750,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14751,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14752,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14753,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14754,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14755,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14756,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14757,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14758,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14759,
+      "label": "APPREAD"
+    },
+    {
+      "line": 14760,
+      "label": "APPREAD"
+    }
+  ]
+}

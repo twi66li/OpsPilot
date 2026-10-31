@@ -1,0 +1,420 @@
+{
+  "namespace": "night20261031",
+  "batch": "bgl_real",
+  "questions": {
+    "bgl-001": {
+      "status": "ok",
+      "question": "知识库的 BGL 日志摘录中，L14738 到 L14742 这些行记录了什么级别与内容的消息？请引用行号与时间戳。",
+      "points": [
+        "这些行为 RAS APP FATAL 级别的 ciod: fail 消息（ciod: failed to read object module 类）",
+        "时间戳为 1117869872/1117869873 即 2005.06.04 00.24.32-33",
+        "引用了具体行号"
+      ],
+      "answer": "根据知识库提供的 BGL 日志摘录，L14738 到 L14742 中仅有 **L14738** 和 **L14739** 的完整记录可见，L14740、L14741、L14742 在给定文档中未提供内容。具体信息如下：\n\n*   **L14738**\n    *   **时间戳**：`2005-06-04-00.24.32.398284`（对应 Unix 时间 `1117869872`）[1]\n    *   **级别**：`FATAL`（属于 RAS APP 类别）[1]\n    *   **内容**：`ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:33399` [1]\n\n*   **L14739**\n    *   **时间戳**：`2005-06-04-00.24.32.432192`（对应 Unix 时间 `1117869872`）[1]\n    *   **级别与内容**：该行在文档中被截断，仅显示节点标识 `R04-M1-N4-I:J18-U11` 及片段 `R04-M`，无法确认完整的消息级别与内容 [1]。\n\n*   **L14740 ~ L14742**\n    *   给定的知识库文档中未包含这几行的任何记录 [1][2][3]。\n\n**总结**：在可查范围内，L14738 记录了一条 **FATAL** 级别的严重错误，表明控制流上读取消息前缀失败；L14739 因截断无法判断级别与内容；L14740 至 L14742 缺失。如需排查 L14739 的完整信息及后续行，建议获取完整的 BGL 日志文件进行补充分析。",
+      "end_reason": "answered",
+      "citations": [
+        "BGL 真实日志摘录 L14730-L14744",
+        "order-service_接口超时排查SOP",
+        "日志平台使用指南"
+      ],
+      "evidence": [
+        {
+          "doc_title": "BGL 真实日志摘录 L14730-L14744",
+          "text": "irectory\nL14737: 1117869871 2005.06.04 R23-M1-N8-I:J18-U01 2005-06-04-00.24.31.594456 R23-M1-N8-I:J18-U01 RAS APP FATAL ciod: LOGIN chdir(/p/gb2/draeger/benchmark/dat32k_060205) failed: No such file or directory\nL14738: 1117869872 2005.06.04 R23-M1-N8-I:J18-U11 2005-06-04-00.24.32.398284 R23-M1-N8-I:J18-U11 RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 17"
+        },
+        {
+          "doc_title": "BGL 真实日志摘录 L14730-L14744",
+          "text": "rforming bit sparing on R33-M1-L0-U22-C bit 3\nL14735: 1117869001 2005.06.04 R27-M1-L3-U18-C 2005-06-04-00.10.01.050649 R27-M1-L3-U18-C RAS LINKCARD INFO MidplaneSwitchController performing bit sparing on R27-M1-L3-U18-C bit 3\nL14736: 1117869871 2005.06.04 R23-M0-N4-I:J18-U11 2005-06-04-00.24.31.560279 R23-M0-N4-I:J18-U11 RAS APP FATAL ciod: LOGIN chdir(/p/gb2/draeger/benchmark/dat32k_060205) faile"
+        },
+        {
+          "doc_title": "BGL 真实日志摘录 L14730-L14744",
+          "text": "L14730: 1117867321 2005.06.03 NULL 2005-06-03-23.42.01.994539 NULL RAS MMCS INFO ciodb has been restarted.\nL14731: 1117867322 2005.06.03 NULL 2005-06-03-23.42.02.002399 NULL RAS MMCS INFO mmcs_db_server has been started: ./mmcs_db_server --useDatabase BGL --dbproperties serverdb.properties --iolog /bgl/BlueLight/logs/BGL --reconnect-blocks all\nL14732: 1117867754 2005.06.03 R33-M1-L0-U22-C 2005-06-"
+        },
+        {
+          "doc_title": "order-service_接口超时排查SOP",
+          "text": "# order-service 接口超时排查 SOP\n## 处理方案\n- 应急：对非核心下游执行降级；扩容 order-service 实例数。\n- 治理：为下游调用设置 200ms~1s 超时并启用熔断；优化慢 SQL。\n- 复盘：将根因与处理步骤录入故障知识库。"
+        },
+        {
+          "doc_title": "日志平台使用指南",
+          "text": "# 日志平台使用指南\n## 排查技巧\n- 先看错误率曲线定位时间点，再用 trace_id 串联网关/服务/DB 日志。\n- 关注发布窗口：多数故障与变更多条记录时间吻合。\n- 对高频报错建立 saved search + 告警规则。"
+        }
+      ],
+      "elapsed_s": 12.7
+    },
+    "bgl-002": {
+      "status": "ok",
+      "question": "摘录范围内 INFO 级 KERNEL 消息主要涉及什么内容？出现最多的是哪条消息？",
+      "points": [
+        "主要是 instruction cache parity error corrected（指令缓存奇偶校验错误已纠正）",
+        "该消息在摘录中重复出现次数最多",
+        "注明这些为已纠正（corrected）事件而非 FATAL"
+      ],
+      "answer": "根据提供的知识库文档，摘录范围内（L14700-L14729）INFO 级 KERNEL 消息的分析如下：\n\n### 主要涉及内容\n这些 `RAS KERNEL INFO` 级别的消息主要涉及 **DDR 内存可纠正错误（Correctable Error, CE）的检测与纠正** [1][2][3][4][5]。具体包含两类信息：\n1. **单条错误的详细信息**：记录了发生可纠正错误时的符号位（sym）、内存地址（at）和掩码（mask），例如 `CE sym 26, at 0x06f7e2e0, mask 0x08` [2][5]。\n2. **错误统计汇总信息**：记录了检测并纠正的 DDR 错误总数或特定 rank/symbol/bit 上的错误数，例如 `total of X ddr error(s) detected and corrected` [1][2][4]。\n\n### 出现最多的消息\n在给出的日志摘录中，出现频率最高的消息模式是 **DDR 错误检测与纠正的汇总报告**，即：\n> `RAS KERNEL INFO total of X ddr error(s) detected and corrected`\n\n该消息在摘录中被多次记录，例如：\n- `total of 1 ddr error(s) detected and corrected`（出现在 L14716、L14722 等多处）[1][4]\n- `total of 5 ddr error(s) detected and corrected`（出现在 L14703）[2][5]\n- `total of 7 ddr error(s) detected and corrected`（出现在 L14705）[2]\n\n此外，在具体的 CE 错误详情消息中，节点 `R03-M1-N2-C:J13-U01` 上报的 `CE sym 26, at 0x06f7e2e0, mask 0x08` 以及节点 `R12-M1-N3-C:J11-U11` 上报的 `CE sym 7, at 0x03ffa060, mask 0x04` 也在短时间内被反复记录 [1][3][4][5]。",
+      "end_reason": "answered",
+      "citations": [
+        "BGL 真实日志摘录 L14715-L14729",
+        "BGL 真实日志摘录 L14700-L14714"
+      ],
+      "evidence": [
+        {
+          "doc_title": "BGL 真实日志摘录 L14715-L14729",
+          "text": "B-C:J10-U11 RAS KERNEL INFO total of 1 ddr error(s) detected and corrected\nL14721: 1117865192 2005.06.03 R12-M1-N3-C:J11-U11 2005-06-03-23.06.32.246746 R12-M1-N3-C:J11-U11 RAS KERNEL INFO CE sym 7, at 0x03ffa060, mask 0x04\nL14722: 1117865192 2005.06.03 R07-M0-N8-C:J11-U11 2005-06-03-23.06.32.264153 R07-M0-N8-C:J11-U11 RAS KERNEL INFO total of 1 ddr error(s) detected and corrected\nL14723: 111786519"
+        },
+        {
+          "doc_title": "BGL 真实日志摘录 L14700-L14714",
+          "text": ", at 0x06f7e2e0, mask 0x08\nL14703: 1117863694 2005.06.03 R15-M1-N6-C:J04-U11 2005-06-03-22.41.34.784843 R15-M1-N6-C:J04-U11 RAS KERNEL INFO total of 5 ddr error(s) detected and corrected\nL14704: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.930115 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x0685e2e0, mask 0x08\nL14705: 1117863695 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22."
+        },
+        {
+          "doc_title": "BGL 真实日志摘录 L14700-L14714",
+          "text": "R03-M0-NB-C:J10-U11 RAS KERNEL INFO 1 ddr errors(s) detected and corrected on rank 0, symbol 12, bit 2\nL14711: 1117865191 2005.06.03 R16-M1-N2-C:J17-U01 2005-06-03-23.06.31.768286 R16-M1-N2-C:J17-U01 RAS KERNEL INFO CE sym 2, at 0x0b85ea80, mask 0x08\nL14712: 1117865191 2005.06.03 R12-M1-N3-C:J11-U11 2005-06-03-23.06.31.803435 R12-M1-N3-C:J11-U11 RAS KERNEL INFO CE sym 7, at 0x03ffa060, mask 0x04\nL"
+        },
+        {
+          "doc_title": "BGL 真实日志摘录 L14715-L14729",
+          "text": "L14715: 1117865191 2005.06.03 R03-M0-NB-C:J10-U11 2005-06-03-23.06.31.870538 R03-M0-NB-C:J10-U11 RAS KERNEL INFO CE sym 12, at 0x0b71b560, mask 0x20\nL14716: 1117865192 2005.06.03 R16-M1-N2-C:J17-U01 2005-06-03-23.06.32.029993 R16-M1-N2-C:J17-U01 RAS KERNEL INFO total of 1 ddr error(s) detected and corrected\nL14717: 1117865192 2005.06.03 R12-M1-N3-C:J11-U11 2005-06-03-23.06.32.047327 R12-M1-N3-C:J1"
+        },
+        {
+          "doc_title": "BGL 真实日志摘录 L14700-L14714",
+          "text": "L14700: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.563879 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08\nL14701: 1117863694 2005.06.03 R15-M1-N6-C:J04-U11 2005-06-03-22.41.34.605102 R15-M1-N6-C:J04-U11 RAS KERNEL INFO CE sym 14, at 0x06047860, mask 0x20\nL14702: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.751589 R03-M1-N2-C:J13-U01 RAS K"
+        }
+      ],
+      "elapsed_s": 12.6
+    },
+    "bgl-003": {
+      "status": "ok",
+      "question": "摘录范围内是否存在 FATAL 级别日志？如有请给出行号，没有请明确说明。",
+      "points": [
+        "存在 FATAL 级别日志（RAS APP FATAL ciod）",
+        "给出 L14738-L14742 行号",
+        "与 INFO 级 corrected 事件明确区分"
+      ],
+      "answer": "摘录范围内**存在** FATAL 级别日志。\n\n根据《BGL 真实日志摘录 L14730-L14744》[1]，FATAL 级别日志出现在以下行：\n\n- **L14737**：`RAS APP FATAL ciod: LOGIN chdir(/p/gb2/draeger/benchmark/dat32k_060205) failed: No such file or directory`\n- **L14738**：`RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:33399`",
+      "end_reason": "answered",
+      "citations": [
+        "BGL 真实日志摘录 L14730-L14744",
+        "日志平台使用指南",
+        "ERR_5003_数据库连接池耗尽处理手册",
+        "磁盘空间不足处理SOP"
+      ],
+      "evidence": [
+        {
+          "doc_title": "BGL 真实日志摘录 L14730-L14744",
+          "text": "irectory\nL14737: 1117869871 2005.06.04 R23-M1-N8-I:J18-U01 2005-06-04-00.24.31.594456 R23-M1-N8-I:J18-U01 RAS APP FATAL ciod: LOGIN chdir(/p/gb2/draeger/benchmark/dat32k_060205) failed: No such file or directory\nL14738: 1117869872 2005.06.04 R23-M1-N8-I:J18-U11 2005-06-04-00.24.32.398284 R23-M1-N8-I:J18-U11 RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 17"
+        },
+        {
+          "doc_title": "日志平台使用指南",
+          "text": "# 日志平台使用指南\n\n## 基本用法\n1. 检索语法：`service:order-service AND level:ERROR`，支持时间范围选择。\n2. 上下文查看：命中日志可展开前后 50 行，便于定位调用链。\n3. 保存查询：常用排查语句可保存为快捷入口。"
+        },
+        {
+          "doc_title": "ERR_5003_数据库连接池耗尽处理手册",
+          "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 排查步骤\n1. 确认连接池配置：`maxPoolSize`、`idleTimeout`、`maxWait` 是否与 DB 的 `max_connections` 匹配。\n2. 检查是否存在慢查询占用连接：`SELECT * FROM information_schema.processlist WHERE time > 5;`\n3. 检查是否有连接泄漏：连接未在 finally 中归还、事务未提交/回滚。\n4. 检查是否发生流量突增或下游抖动导致的线程堆积。"
+        },
+        {
+          "doc_title": "磁盘空间不足处理SOP",
+          "text": "# 磁盘空间不足处理 SOP\n## 排查步骤\n1. `df -h` 定位满载的挂载点；`du -sh /var/log/* | sort -h` 找大目录。\n2. 检查日志滚动配置是否生效，是否存在未压缩的历史日志。\n3. 检查临时文件、上传目录、Docker/容器运行时残留镜像与日志。\n4. 数据库节点额外检查 binlog/慢日志/WAL 的保留策略。"
+        },
+        {
+          "doc_title": "日志平台使用指南",
+          "text": "# 日志平台使用指南\n## 权限说明\n- viewer：只读检索。\n- engineer：可导出日志、添加临时告警。\n- admin：管理索引与保留策略。"
+        }
+      ],
+      "elapsed_s": 5.6
+    }
+  },
+  "judges": {
+    "bgl-001": {
+      "qwen3.8-max": {
+        "verdict": {
+          "answer_correct": false,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案如实指出证据中L14739-L14742被截断/缺失，未编造内容，grounded且abstention恰当。但required_points要求覆盖'ciod: failed to read object module类消息'及时间戳含1117869873(00.24.33)，答案仅报告了read message prefix且无1117869873，关键要点未实质覆盖，故answer_correct为false。"
+        },
+        "usage": {
+          "completion_tokens": 130,
+          "prompt_tokens": 1844,
+          "total_tokens": 1974,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1844
+          }
+        }
+      },
+      "qwen3.8-27b": {
+        "verdict": {
+          "answer_correct": false,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案正确识别了L14738的级别、时间戳和内容，并如实说明了L14739截断及L14740-L14742缺失的情况。然而，题目要求覆盖L14738到L14742所有行的记录，且金标要点明确要求指出这些行为RAS APP FATAL级别的ciod: fail消息（包括L14740-L14742）。由于证据中确实未提供L14740-L14742的内容，模型无法编造，因此其“缺失”的说明是恰当的拒答/不足声明（appropriate_abstention为true），且基于现有证据的断言均有支持（grounded为true）。但根据rubric，仅当required_points全部实质覆盖才判answer_correct为true，此处因未能覆盖L14740-L14742的具体内容（尽管是因为证据缺失），故answer_correct为false。"
+        },
+        "usage": {
+          "completion_tokens": 236,
+          "prompt_tokens": 1844,
+          "total_tokens": 2080,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": null,
+            "reasoning_tokens": null,
+            "rejected_prediction_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1844
+          }
+        }
+      }
+    },
+    "bgl-002": {
+      "qwen3.8-max": {
+        "verdict": {
+          "answer_correct": false,
+          "grounded": false,
+          "appropriate_abstention": false,
+          "reason": "答案将日志内容错误识别为DDR内存可纠正错误，而required_points要求指出是instruction cache parity error corrected（指令缓存奇偶校验错误已纠正）；同时未按要求注明这些为已纠正事件而非FATAL。证据中实际包含'CE sym'等字段，并无DDR或instruction cache字样，答案的关键事实与required_points完全不符且缺乏证据支持。"
+        },
+        "usage": {
+          "completion_tokens": 100,
+          "prompt_tokens": 2392,
+          "total_tokens": 2492,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 2392
+          }
+        }
+      },
+      "qwen3.8-27b": {
+        "verdict": {
+          "answer_correct": false,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案错误地识别了日志内容。金标要点指出主要涉及 'instruction cache parity error corrected'（指令缓存奇偶校验错误已纠正），而答案将其误判为 'DDR 内存可纠正错误'。尽管答案中的断言在提供的证据中是有据可依的（即证据确实显示的是 DDR 错误，而非金标所述的 I-cache 错误），但相对于题目要求的金标事实而言，答案是错误的。"
+        },
+        "usage": {
+          "completion_tokens": 116,
+          "prompt_tokens": 2392,
+          "total_tokens": 2508,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": null,
+            "reasoning_tokens": null,
+            "rejected_prediction_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 2392
+          }
+        }
+      }
+    },
+    "bgl-003": {
+      "qwen3.8-max": {
+        "verdict": {
+          "answer_correct": false,
+          "grounded": true,
+          "appropriate_abstention": false,
+          "reason": "答案正确识别了FATAL日志并给出L14737-L14738行号（证据支持），但未覆盖required_points中的两项：未提及L14739-L14742行号，也未与INFO级corrected事件进行区分。按rubric要求需全部实质覆盖才为true。"
+        },
+        "usage": {
+          "completion_tokens": 94,
+          "prompt_tokens": 1137,
+          "total_tokens": 1231,
+          "completion_tokens_details": null,
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1137
+          }
+        }
+      },
+      "qwen3.8-27b": {
+        "verdict": {
+          "answer_correct": false,
+          "grounded": true,
+          "appropriate_abstention": true,
+          "reason": "答案未覆盖 required_points 中要求的 L14738-L14742 行号范围，且未明确区分 FATAL 与 INFO 级 corrected 事件，因此 answer_correct 为 false。但答案中的事实断言均有证据支持，grounded 为 true；在证据充分的情况下作答，appropriate_abstention 为 true。"
+        },
+        "usage": {
+          "completion_tokens": 103,
+          "prompt_tokens": 1137,
+          "total_tokens": 1240,
+          "completion_tokens_details": {
+            "accepted_prediction_tokens": null,
+            "audio_tokens": null,
+            "reasoning_tokens": null,
+            "rejected_prediction_tokens": null
+          },
+          "prompt_tokens_details": {
+            "audio_tokens": null,
+            "cache_write_tokens": null,
+            "cached_tokens": 0,
+            "text_tokens": 1137
+          }
+        }
+      }
+    }
+  },
+  "manifest": {
+    "commit": "58568f3bb02c9c86a2be7ddef366b71f8ba69248",
+    "data": {
+      "source_file": "BGL.zip/BGL.log",
+      "zip_sha256": "d67fd82a711aea0157a9b83175892c6ee60e384a2ddf5bc51f39118453816da8",
+      "corpus_lines": [
+        14700,
+        14760
+      ],
+      "label_rule": "首列标签（'-'或告警名）仅评分侧保留；正文剥离并加 L{行号} 前缀",
+      "alert_lines_in_block": [
+        {
+          "line": 14738,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14739,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14740,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14741,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14742,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14743,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14744,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14745,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14746,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14747,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14748,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14749,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14750,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14751,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14752,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14753,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14754,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14755,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14756,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14757,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14758,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14759,
+          "label": "APPREAD"
+        },
+        {
+          "line": 14760,
+          "label": "APPREAD"
+        }
+      ]
+    },
+    "models": {
+      "generation": "qwen3.8-max",
+      "judges": [
+        "qwen3.8-max",
+        "qwen3.8-27b"
+      ]
+    },
+    "retrieval": {
+      "collection": "kb_night20261031",
+      "embedding": "qwen3.7-text-embedding-flash",
+      "dim": 1024,
+      "rerank": "qwen3.7-text-rerank"
+    },
+    "task_scope_limit": "BGL 为日志 RAG 任务；native 工具循环与指标/历史工具不适用，未覆盖并如实限定",
+    "denominator": {
+      "questions": [
+        "bgl-001",
+        "bgl-002",
+        "bgl-003"
+      ],
+      "modes": [
+        "rule"
+      ],
+      "note": "night20261031 原 40 场景与 native 模式不可执行（时间门控/数据口径变更），如实披露"
+    },
+    "ledger_path": "D:\\Code\\python\\aiops-diagnosis-agent\\eval\\night20261031\\bgl_run\\ledger.jsonl",
+    "ledger_by_model": {
+      "qwen3.7-text-embedding-flash": {
+        "reserved": 39638,
+        "actual": 8993,
+        "unknown": 26364
+      },
+      "qwen3.7-text-rerank": {
+        "reserved": 8514,
+        "actual": 4155,
+        "unknown": 0
+      },
+      "qwen3.8-max": {
+        "reserved": 47133,
+        "actual": 14139,
+        "unknown": 0
+      },
+      "qwen3.8-27b": {
+        "reserved": 19552,
+        "actual": 5828,
+        "unknown": 0
+      }
+    }
+  }
+}

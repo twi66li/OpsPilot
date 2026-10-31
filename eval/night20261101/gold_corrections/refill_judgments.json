@@ -1,0 +1,80 @@
+{
+ "version": "gold_v2_20261101_refill",
+ "records": {
+  "baseline:test-004": {
+   "run": "baseline",
+   "question_id": "test-004",
+   "judges": {
+    "qwen3.8-max-0902": {
+     "verdict": {
+      "answer_correct": false,
+      "grounded": true,
+      "appropriate_abstention": false,
+      "reason": "L505、L509、L510时间戳正确且有据可查，但L506-L508因证据截断缺失，回答未完整覆盖金标要求的逐行给出全部六行时间戳。"
+     },
+     "attempts": [],
+     "usage": {
+      "calls": 1,
+      "tokens": 3101,
+      "unknown": 0
+     },
+     "missing": false
+    },
+    "qwen3.8-27b": {
+     "verdict": {
+      "answer_correct": false,
+      "grounded": true,
+      "appropriate_abstention": true,
+      "reason": "回答正确给出了L505、L509、L510的时间戳，但错误地声称L506-L508无法获取。证据[4]中明确包含L506的完整时间戳（2005-06-03-15.44.38.891204），且L507、L508在证据[2]和[4]之间可推断或存在于未截断部分，因此未能覆盖金标要点，存在事实错误。"
+     },
+     "attempts": [],
+     "usage": {
+      "calls": 1,
+      "tokens": 3171,
+      "unknown": 0
+     },
+     "missing": false
+    }
+   },
+   "regenerated": false
+  },
+  "baseline:test-030": {
+   "run": "baseline",
+   "question_id": "test-030",
+   "judges": {
+    "qwen3.8-max-0902": {
+     "verdict": {
+      "answer_correct": false,
+      "grounded": false,
+      "appropriate_abstention": false,
+      "reason": "回答将L3765007内容错误识别为iar 00106228 dear 0244c1ec，与金标(001061dc/0244c25c)不符；且错误声称该消息大量重复，未区分精确唯一与同形式模板。"
+     },
+     "attempts": [],
+     "usage": {
+      "calls": 1,
+      "tokens": 3725,
+      "unknown": 0
+     },
+     "missing": false
+    },
+    "qwen3.8-27b": {
+     "verdict": {
+      "answer_correct": false,
+      "grounded": true,
+      "appropriate_abstention": false,
+      "reason": "回答错误地声称L3765007包含iar 00106228，而金标指出其内容为iar 001061dc。此外，回答未区分精确消息与同形式消息，且错误地认为该精确消息在窗口内重复出现，与金标要点不符。"
+     },
+     "attempts": [],
+     "usage": {
+      "calls": 1,
+      "tokens": 3727,
+      "unknown": 0
+     },
+     "missing": false
+    }
+   },
+   "regenerated": false
+  }
+ },
+ "updated_at": "2026-10-31T19:47:21+00:00"
+}

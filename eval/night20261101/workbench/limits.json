@@ -1,11 +1,11 @@
 {
  "effective_model_limits": {
-  "qwen3.8-max-0902": 11359,
-  "qwen3.8-27b": 42260,
-  "deepseek-v4-pro-0813": 33152,
-  "qwen3.7-text-embedding-flash": 8797,
-  "qwen3.7-text-rerank": 49667
+  "qwen3.8-max-0902": 15936,
+  "qwen3.8-27b": 7162,
+  "deepseek-v4-pro-0813": 23612,
+  "qwen3.7-text-embedding-flash": 7941,
+  "qwen3.7-text-rerank": 19871
  },
- "effective_total_limit": 145235,
+ "effective_total_limit": 74522,
  "note": "budget.json p1 份额 − 评测账本已用；启动时快照，运行中以账本为准"
 }

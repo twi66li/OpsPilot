@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 from app.agent.tools import TOOL_REGISTRY
 from app.db.models import ApprovalRequest, Ticket
 from app.services import chat_service, ticket_service
+from app.services.budget import BudgetExceededError
 from app.services.run_service import RunRecorder, capture_run, current_run
 
 logger = logging.getLogger(__name__)
@@ -77,6 +78,10 @@ def chat_once(container, db: Session, tenant_id: str, user_id: str, username: st
         result["run_id"] = recorder.id
         recorder.finish(result)
         return result
+    except BudgetExceededError as exc:
+        # 预算门控拒绝（请求未到达供应商）：给出明确语义而非 5xx，便于操作者分辨额度与故障
+        recorder.finish({"status": "budget_refused", "error": str(exc)[:200]})
+        raise HTTPException(status.HTTP_409_CONFLICT, detail=f"预算不足：{exc}") from exc
     except Exception as exc:
         recorder.finish({"status": "failed", "error_type": type(exc).__name__})
         raise
@@ -166,8 +171,15 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
         }
         yield _sse({"type": "start", "session_id": session_id, "question": question})
         stream = container.graph.stream(input_state, config, stream_mode="updates")
-        for event in _iter_graph_events(stream):
-            yield _sse(event)  # 到达即推送，避免先耗尽整图再补发
+        try:
+            for event in _iter_graph_events(stream):
+                yield _sse(event)  # 到达即推送，避免先耗尽整图再补发
+        except BudgetExceededError as exc:
+            # 预算门控拒绝（请求未到达供应商）：流内给出明确错误事件，不让前端只见断流
+            current_run().finish({"status": "budget_refused", "error": str(exc)[:200]})
+            yield _sse({"type": "error", "error_type": "budget_exceeded", "message": str(exc)[:300],
+                        "hint": "预算不足，请求在到达供应商前被拒绝（fail closed）；补充授权后重试即可恢复"})
+            return
         with container.db_session() as db:
             events: list[dict] = []
             _ensure_approval_event(container, db, config, tenant_id, session_id, events)

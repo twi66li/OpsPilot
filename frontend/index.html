@@ -265,6 +265,11 @@ function handleEvent(evt) {
     if (bubble && evt.answer != null) { bubble.classList.remove("pending"); bubble.innerHTML = renderAnswer(evt.answer); }
     if (evt.run_id) evidence("运行结束", `run_id=${esc(evt.run_id)} <a href="/docs" target="_blank">查看 runs 接口</a>`);
   }
+  else if (t === "error") {
+    const bubble = $("#chat").querySelector(".msg.assistant:last-child");
+    if (bubble) { bubble.classList.remove("pending"); bubble.innerHTML = `<span class="err">${esc(evt.message || "运行失败")}</span><div class="meta" style="margin-top:6px">${esc(evt.hint || "")}</div>`; }
+    evidence(`运行错误（${esc(evt.error_type || "error")}）`, `<span class="err">${esc(evt.message || "")}</span><div class="meta">${esc(evt.hint || "")}</div>`);
+  }
   else if (t === "done") { /* 流结束 */ }
 }
 async function send() {

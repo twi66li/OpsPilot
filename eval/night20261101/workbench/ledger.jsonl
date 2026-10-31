@@ -16,3 +16,7 @@
 {"type": "committed", "id": "0dee98623f1b4b6da7b4af15df2cd6bc", "at": "2026-10-31T18:46:36.231+00:00", "pid": 17352, "model": "qwen3.8-max-0902", "estimate": 5193, "actual": 2690, "over_reserve": false}
 {"type": "reserved", "id": "a8566dbbf1184819a43c157a25960014", "at": "2026-10-31T18:46:36.234+00:00", "pid": 17352, "kind": "chat", "model": "qwen3.8-max-0902", "estimate": 3623}
 {"type": "committed", "id": "a8566dbbf1184819a43c157a25960014", "at": "2026-10-31T18:46:39.931+00:00", "pid": 17352, "model": "qwen3.8-max-0902", "estimate": 3623, "actual": 792, "over_reserve": false}
+{"type": "reserved", "id": "0b0afba9868f48debbf5de9e021cc73c", "at": "2026-10-31T20:12:14.262+00:00", "pid": 6812, "kind": "embedding", "model": "qwen3.7-text-embedding-flash", "estimate": 44}
+{"type": "committed", "id": "0b0afba9868f48debbf5de9e021cc73c", "at": "2026-10-31T20:12:15.450+00:00", "pid": 6812, "model": "qwen3.7-text-embedding-flash", "estimate": 44, "actual": 33, "over_reserve": false}
+{"type": "reserved", "id": "3ce2c318536b40fc9b41e5a9c567a582", "at": "2026-10-31T20:14:12.249+00:00", "pid": 15136, "kind": "embedding", "model": "qwen3.7-text-embedding-flash", "estimate": 44}
+{"type": "committed", "id": "3ce2c318536b40fc9b41e5a9c567a582", "at": "2026-10-31T20:14:13.593+00:00", "pid": 15136, "model": "qwen3.7-text-embedding-flash", "estimate": 44, "actual": 33, "over_reserve": false}

@@ -160,7 +160,7 @@ class DiagnosisNodes:
         payload = {"answer": answer, "citations": citations, "citations_indexed": citations_indexed,
                    "used_evidence": evidence_items, "range_assembly": range_meta,
                    "events": [{"type": "answer", "answer": answer, "citations": citations,
-                               "citations_indexed": citations_indexed}]}
+                               "citations_indexed": citations_indexed, "used_evidence": evidence_items}]}
         if state.get("intent") == "create_ticket":
             payload["ticket_draft"] = self.container.llm.draft_ticket(state["question"], answer)
         return payload

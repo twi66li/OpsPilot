@@ -1,9 +1,11 @@
 """FastAPI 应用入口：uvicorn app.main:app --reload"""
 import logging
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api import router_admin, router_agent, router_kb, router_session, router_ticket
 from app.auth.router import router as auth_router
@@ -82,3 +84,9 @@ app.include_router(router_ticket.router)
 @app.get("/health")
 def health():
     return {"status": "ok", "app": get_settings().app_name}
+
+
+# 诊断工作台单页（同源挂载）。必须最后注册：通配 mount 会吞掉其后定义的所有路由。
+_FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+if _FRONTEND_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=_FRONTEND_DIR, html=True), name="frontend")

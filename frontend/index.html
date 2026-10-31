@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpsPilot 诊断工作台 · AIOps 智能故障诊断 Agent</title>
+<style>
+  :root { --bg:#0f1420; --panel:#161d2e; --panel2:#1c2438; --line:#2a3550; --txt:#dfe6f5; --dim:#8fa0c0;
+          --acc:#4f8cff; --ok:#3ecf8e; --warn:#ffb454; --err:#ff6b6b; }
+  * { box-sizing:border-box; margin:0; }
+  body { background:var(--bg); color:var(--txt); font:14px/1.6 "Segoe UI","Microsoft YaHei",sans-serif; height:100vh; display:flex; flex-direction:column; }
+  header { display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid var(--line); background:var(--panel); }
+  header h1 { font-size:16px; font-weight:600; }
+  .badge { font-size:11px; padding:2px 8px; border-radius:10px; border:1px solid var(--line); color:var(--dim); }
+  .badge.warn { color:var(--warn); border-color:var(--warn); }
+  header a { color:var(--acc); font-size:12px; text-decoration:none; margin-left:auto; }
+  main { flex:1; display:grid; grid-template-columns:240px 1fr 320px; min-height:0; }
+  .col { border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:0; background:var(--panel); }
+  .col:last-child { border-right:none; }
+  .col h2 { font-size:12px; color:var(--dim); padding:10px 12px 6px; text-transform:uppercase; letter-spacing:.05em; }
+  .scroll { overflow-y:auto; padding:0 12px 12px; flex:1; }
+  /* 左栏 */
+  .field { margin-bottom:8px; }
+  .field input { width:100%; padding:7px 9px; border-radius:6px; border:1px solid var(--line); background:var(--panel2); color:var(--txt); }
+  button { padding:7px 12px; border-radius:6px; border:1px solid var(--acc); background:var(--acc); color:#fff; cursor:pointer; font-size:13px; }
+  button.ghost { background:transparent; color:var(--acc); }
+  button:hover { filter:brightness(1.15); }
+  .session { padding:7px 9px; border-radius:6px; cursor:pointer; margin-bottom:4px; border:1px solid transparent; word-break:break-all; }
+  .session:hover { background:var(--panel2); }
+  .session.active { border-color:var(--acc); background:var(--panel2); }
+  .toolchip { font-size:11px; padding:4px 8px; border:1px solid var(--line); border-radius:10px; margin:0 4px 4px 0; display:inline-block; color:var(--dim); }
+  /* 中栏 */
+  #chat { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:12px; }
+  .msg { max-width:78%; padding:10px 14px; border-radius:12px; white-space:pre-wrap; word-break:break-word; }
+  .msg.user { align-self:flex-end; background:var(--acc); color:#fff; border-bottom-right-radius:4px; }
+  .msg.assistant { align-self:flex-start; background:var(--panel2); border:1px solid var(--line); border-bottom-left-radius:4px; }
+  .msg.assistant.pending { color:var(--dim); font-style:italic; }
+  .msg sup.cite { color:var(--acc); cursor:help; font-weight:600; }
+  .card { align-self:stretch; max-width:100%; background:var(--panel2); border:1px solid var(--warn); border-radius:10px; padding:12px 14px; }
+  .card h3 { font-size:13px; color:var(--warn); margin-bottom:6px; }
+  .card pre { white-space:pre-wrap; font-size:12px; color:var(--dim); margin-bottom:8px; }
+  .inputbar { display:flex; gap:8px; padding:12px; border-top:1px solid var(--line); background:var(--panel); }
+  .inputbar textarea { flex:1; resize:none; height:52px; padding:8px 10px; border-radius:8px; border:1px solid var(--line); background:var(--panel2); color:var(--txt); font:inherit; }
+  /* 右栏 */
+  .ev { border:1px solid var(--line); border-radius:8px; padding:8px 10px; margin-bottom:8px; font-size:12px; background:var(--panel2); }
+  .ev b { color:var(--acc); }
+  .ev .snippet { color:var(--dim); margin-top:4px; }
+  .ev .meta { color:var(--dim); font-size:11px; }
+  .ok { color:var(--ok); } .err { color:var(--err); } .warn { color:var(--warn); }
+  #toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:var(--panel2); border:1px solid var(--line); padding:8px 16px; border-radius:8px; display:none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🛠 OpsPilot 诊断工作台</h1>
+  <span class="badge" id="who">未登录</span>
+  <span class="badge warn">指标源 = 测试演示数据</span>
+  <span class="badge warn">评测：T23 终审未通过，暂无已验收准确率</span>
+  <a href="/docs" target="_blank">接口手册</a>
+  <a href="https://github.com/loresraatlogparser/BGL" target="_blank" hidden></a>
+</header>
+<main>
+  <!-- 左栏：登录 + 会话 -->
+  <div class="col">
+    <h2>登录</h2>
+    <div class="scroll">
+      <div class="field"><input id="username" placeholder="用户名（演示 admin）" value="admin"></div>
+      <div class="field"><input id="password" type="password" placeholder="密码（演示 admin123）" value="admin123"></div>
+      <button onclick="login()">登录</button>
+      <div id="loginState" class="meta" style="margin-top:6px;color:var(--dim);font-size:11px"></div>
+      <h2 style="margin-top:14px">会话</h2>
+      <button class="ghost" onclick="createSession()">＋ 新建会话</button>
+      <div id="sessions" style="margin-top:8px"></div>
+      <h2 style="margin-top:14px">只读工具</h2>
+      <div id="tools"></div>
+    </div>
+  </div>
+  <!-- 中栏：对话 -->
+  <div class="col" style="background:var(--bg)">
+    <div id="chat"><div class="msg assistant pending">登录并选择会话后，描述故障即可开始诊断。示例：order-service 出现 ERR_5003，大量请求超时，请给出排查步骤并说明依据。</div></div>
+    <div class="inputbar">
+      <textarea id="question" placeholder="描述故障，例如：order-service 出现 ERR_5003，大量请求超时……（Ctrl+Enter 发送）"></textarea>
+      <button onclick="send()">发送</button>
+    </div>
+  </div>
+  <!-- 右栏：过程证据 -->
+  <div class="col">
+    <h2>过程证据（最近一次运行）</h2>
+    <div class="scroll" id="evidence"><div class="ev meta" style="border:none">尚无运行记录</div></div>
+  </div>
+</main>
+<div id="toast"></div>
+<script>
+const $ = s => document.querySelector(s);
+const api = (path, opts={}) => {
+  opts.headers = { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}), ...(opts.headers || {}) };
+  return fetch(path, opts).then(async r => {
+    if (!r.ok) { const d = await r.json().catch(() => ({})); throw new Error(d.detail || r.statusText); }
+    return r.status === 204 ? null : r.json();
+  });
+};
+const esc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const toast = m => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 2600); };
+let token = localStorage.getItem("opspilot_token") || "";
+let sessionId = localStorage.getItem("opspilot_sid") || "";
+let citations = [];  // [n] → 文档标题
+let citationsMap = new Map();
+let running = false;
+
+/* ---------- 登录 / 会话 / 工具 ---------- */
+async function login() {
+  try {
+    const r = await api("/auth/login", { method: "POST", body: JSON.stringify({ username: $("#username").value, password: $("#password").value }) });
+    token = r.access_token; localStorage.setItem("opspilot_token", token);
+    const me = await api("/auth/me").catch(() => null);
+    $("#who").textContent = "已登录：" + (me ? me.username : $("#username").value);
+    $("#loginState").textContent = "";
+    await Promise.all([loadSessions(), loadTools()]);
+  } catch (e) { $("#loginState").textContent = "登录失败：" + e.message; }
+}
+async function loadSessions() {
+  const list = await api("/api/sessions");
+  const box = $("#sessions"); box.innerHTML = "";
+  list.forEach(s => {
+    const d = document.createElement("div");
+    d.className = "session" + (s.id === sessionId ? " active" : "");
+    d.textContent = (s.title || s.id).slice(0, 40);
+    d.onclick = () => { sessionId = s.id; localStorage.setItem("opspilot_sid", s.id); loadSessions(); $("#chat").innerHTML = ""; addMsg("assistant", "已切换会话 " + s.id.slice(0, 8) + "，历史消息请在会话接口查看。"); };
+    box.appendChild(d);
+  });
+}
+async function createSession() {
+  const r = await api("/api/sessions", { method: "POST", body: JSON.stringify({ title: "工作台会话 " + new Date().toLocaleTimeString() }) });
+  sessionId = r.id; localStorage.setItem("opspilot_sid", r.id);
+  await loadSessions(); $("#chat").innerHTML = "";
+  addMsg("assistant", "新会话已创建：" + r.id.slice(0, 8));
+}
+async function loadTools() {
+  try {
+    const tools = await api("/api/agent/tools");
+    $("#tools").innerHTML = tools.map(t => `<span class="toolchip" title="${esc(t.description)}">${esc(t.name)}</span>`).join("");
+  } catch (e) { /* 未登录时忽略 */ }
+}
+
+/* ---------- 对话（SSE 流式） ---------- */
+function addMsg(kind, text) {
+  const d = document.createElement("div");
+  d.className = "msg " + kind; d.textContent = text;
+  $("#chat").appendChild(d); $("#chat").scrollTop = 1e9;
+  return d;
+}
+function evidence(title, html) {
+  const box = $("#evidence");
+  if (box.firstElementChild && box.firstElementChild.classList.contains("meta")) box.innerHTML = "";
+  const d = document.createElement("div"); d.className = "ev";
+  d.innerHTML = `<b>${esc(title)}</b><div>${html}</div>`;
+  box.prepend(d);
+}
+function renderAnswer(text) {
+  // [n] 角标 → 悬停显示对应文档
+  return esc(text).replace(/\[(\d{1,2})\]/g, (m, n) => {
+    const title = citations[Number(n) - 1] || citationsMap.get(Number(n));
+    return title ? `<sup class="cite" title="${esc(title)}">[${n}]</sup>` : m;
+  });
+}
+async function decide(approvalId, approved) {
+  try {
+    const r = await api(`/api/agent/approvals/${approvalId}/decide`, { method: "POST", body: JSON.stringify({ approved, comment: approved ? "工作台批准" : "工作台拒绝" }) });
+    addMsg("assistant", approved ? `✅ 已批准，工单创建：${r.ticket_id ? r.ticket_id.slice(0, 8) : JSON.stringify(r)}` : "❌ 已拒绝该工单创建申请。");
+    evidence("审批决定", approved ? `<span class="ok">批准</span>` : `<span class="err">拒绝</span>`);
+  } catch (e) { toast("审批失败：" + e.message); }
+}
+function handleEvent(evt) {
+  const t = evt.type;
+  if (t === "start") { evidence("运行开始", `run_id ${esc(evt.run_id || "")}<br>${esc(evt.question || "")}`); }
+  else if (t === "node_status") { evidence("节点完成", esc(evt.node)); }
+  else if (t === "retrieval") {
+    const hits = (evt.hits || []).map(h => `<div class="snippet">📄 ${esc(h.doc_title)} <span class="meta">score=${h.score != null ? Number(h.score).toFixed(3) : "?"}</span><br>${esc((h.text || "").slice(0, 120))}…</div>`).join("");
+    evidence(`检索（第 ${evt.round || 1} 轮，mode=${esc(evt.mode)}，${evt.latency_ms}ms）`, hits || "无命中");
+  }
+  else if (t === "tool") {
+    const r = evt.result || {};
+    evidence(`工具 ${esc(evt.name)} <span class="${r.status === "ok" ? "ok" : r.status === "no_data" ? "warn" : "err"}">${esc(r.status || "")}</span> ${evt.duration_ms}ms`,
+      `<div class="meta">参数：${esc(JSON.stringify(evt.args || {}))}</div>${r.summary ? `<div class="snippet">${esc(r.summary).slice(0, 220)}</div>` : ""}`);
+  }
+  else if (t === "answer" || t === "final") {
+    if (evt.citations) citations = evt.citations;
+    const bubble = $("#chat").querySelector(".msg.assistant:last-child");
+    if (bubble) { bubble.classList.remove("pending"); bubble.innerHTML = renderAnswer(evt.answer || evt.answer === "" ? evt.answer : ""); }
+  }
+  else if (t === "assistant_message") { /* 原生模式的中间消息，跳过 */ }
+  else if (t === "approval_required") {
+    const d = document.createElement("div"); d.className = "card";
+    d.innerHTML = `<h3>⚠ 需要人工审批（不会自动建单）</h3><pre>${esc(JSON.stringify(evt.ticket_draft || evt, null, 2))}</pre>
+      <button onclick='decide("${evt.approval_id}", true)'>批准建单</button>
+      <button class="ghost" onclick='decide("${evt.approval_id}", false)'>拒绝</button>`;
+    $("#chat").appendChild(d); $("#chat").scrollTop = 1e9;
+    evidence("审批请求", `approval_id=${esc(evt.approval_id)}`);
+  }
+  else if (t === "ticket_created") { evidence("工单已创建", `<span class="ok">${esc(evt.ticket_id)}</span> ${esc(evt.title || "")}`); }
+  else if (t === "final") {
+    const bubble = $("#chat").querySelector(".msg.assistant:last-child");
+    if (bubble && evt.answer != null) { bubble.classList.remove("pending"); bubble.innerHTML = renderAnswer(evt.answer); }
+    if (evt.run_id) evidence("运行结束", `run_id=${esc(evt.run_id)} <a href="/docs" target="_blank">查看 runs 接口</a>`);
+  }
+  else if (t === "done") { /* 流结束 */ }
+}
+async function send() {
+  if (running) return toast("当前有运行中的诊断");
+  const q = $("#question").value.trim();
+  if (!q) return;
+  if (!token) return toast("请先登录");
+  if (!sessionId) return createSession().then(send);
+  $("#question").value = "";
+  addMsg("user", q);
+  const pending = addMsg("assistant", "诊断中…（检索 → 工具 → 生成，过程见右侧）");
+  pending.classList.add("pending");
+  running = true; citations = [];
+  try {
+    const res = await fetch("/api/agent/chat/stream", {
+      method: "POST", headers: { "Content-Type": "application/json", Authorization: "Bearer " + token },
+      body: JSON.stringify({ session_id: sessionId, message: q }),
+    });
+    if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.detail || res.statusText); }
+    const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = "";
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      let idx;
+      while ((idx = buf.indexOf("\n\n")) >= 0) {
+        const frame = buf.slice(0, idx); buf = buf.slice(idx + 2);
+        for (const line of frame.split("\n")) if (line.startsWith("data: ")) {
+          try { handleEvent(JSON.parse(line.slice(6))); } catch (e) { /* 忽略坏帧 */ }
+        }
+      }
+    }
+  } catch (e) {
+    pending.textContent = "诊断失败：" + e.message; pending.classList.add("err");
+    evidence("错误", `<span class="err">${esc(e.message)}</span>`);
+  } finally {
+    $("#chat").querySelectorAll(".msg.assistant").forEach(b => b.classList.remove("pending"));
+    running = false;
+  }
+}
+document.addEventListener("keydown", e => { if (e.ctrlKey && e.key === "Enter") send(); });
+if (token) { $("#who").textContent = "已登录（本地凭据）"; Promise.all([loadSessions(), loadTools()]).catch(() => {}); }
+</script>
+</body>
+</html>

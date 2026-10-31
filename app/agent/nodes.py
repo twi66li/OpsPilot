@@ -34,19 +34,22 @@ class DiagnosisNodes:
             history=state.get("history", []), timeout=self.container.settings.tool_timeout_seconds,
         )
         answer, citations, hits = result["answer"], [], []
+        citations_indexed = []
         events = []
         for event in result["tool_events"]:
             output = event["result"]
             if event["name"] == "search_runbook":
                 hits.extend(output.get("hits", []))
                 for hit in output.get("hits", []):
+                    citations_indexed.append(hit["doc_title"])
                     if hit["doc_title"] not in citations:
                         citations.append(hit["doc_title"])
             if event["name"] == "query_service_metrics" and "source" in output:
                 answer += "\n\n指标证据：\n" + output["summary"]
             events.append({"type": "tool", **event, "summary": output.get("summary", output.get("message", "")), "anomalies": output.get("anomalies", [])})
-        payload = {"answer": answer, "citations": citations, "hits": hits, "docs_sufficient": None, "end_reason": result["end_reason"],
-                   "tool_events": result["tool_events"], "events": events + [{"type": "answer", "answer": answer, "citations": citations}]}
+        payload = {"answer": answer, "citations": citations, "citations_indexed": citations_indexed, "hits": hits,
+                   "docs_sufficient": None, "end_reason": result["end_reason"],
+                   "tool_events": result["tool_events"], "events": events + [{"type": "answer", "answer": answer, "citations": citations, "citations_indexed": citations_indexed}]}
         if state.get("intent") == "create_ticket" and result["end_reason"] == "answered":
             payload["ticket_draft"] = self.container.llm.draft_ticket(state["question"], answer)
         return payload
@@ -129,22 +132,35 @@ class DiagnosisNodes:
             from app.services.chat_service import get_history
 
             history = get_history(db, state["session_id"], limit=6)
+            # 证据组装：范围查询的完整行摘录置首 + 分块摘录行边界安全；生成器、评测记录、裁判同用一份
+            from app.rag.evidence import assemble_evidence
+
+            evidence_items, range_meta = assemble_evidence(
+                state.get("hits", []), state["question"], db, state["tenant_id"],
+                per_hit_chars=getattr(self.container.settings, "evidence_excerpt_chars", 500),
+                range_chars=getattr(self.container.settings, "evidence_range_chars", 8000))
         with self.tracer.span("generate") as span:
             answer = self.container.llm.generate_answer(
-                state["question"], state.get("hits", []), state.get("tool_events", []), state.get("fault_records", []), history
+                state["question"], state.get("hits", []), state.get("tool_events", []), state.get("fault_records", []), history,
+                evidence_items=evidence_items,
             )
             metric_evidence = [event["summary"] for event in state.get("tool_events", []) if event["name"] == "query_service_metrics"]
             if metric_evidence:
                 answer += "\n\n指标证据：\n" + "\n".join(metric_evidence)
             span.metadata["answer_chars"] = len(answer)
-            span.metadata["tokens_in"] = estimate_tokens(state["question"]) + sum(estimate_tokens(h.get("text", "")) for h in state.get("hits", [])[:5])
+            span.metadata["tokens_in"] = estimate_tokens(state["question"]) + sum(
+                estimate_tokens(it.get("text", "")) for it in evidence_items)
             span.metadata["tokens_out"] = estimate_tokens(answer)
+        # 引用映射与生成器编号同源：[n] 一律对应第 n 条证据（重复文档保留各自 chunk 编号）
+        citations_indexed = [it.get("doc_title", "") for it in evidence_items]
         citations = []
-        for hit in state.get("hits", []):
-            title = hit.get("doc_title", "")
+        for title in citations_indexed:
             if title and title not in citations:
                 citations.append(title)
-        payload = {"answer": answer, "citations": citations, "events": [{"type": "answer", "answer": answer, "citations": citations}]}
+        payload = {"answer": answer, "citations": citations, "citations_indexed": citations_indexed,
+                   "used_evidence": evidence_items, "range_assembly": range_meta,
+                   "events": [{"type": "answer", "answer": answer, "citations": citations,
+                               "citations_indexed": citations_indexed}]}
         if state.get("intent") == "create_ticket":
             payload["ticket_draft"] = self.container.llm.draft_ticket(state["question"], answer)
         return payload

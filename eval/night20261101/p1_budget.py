@@ -23,16 +23,30 @@ FALLBACK_SHARES = {
 }
 EMBEDDING_UNKNOWN_RESERVE = 26364  # 历史未知预留，单列保留核对，不扣减新增份额
 
+# 2026-11-01 终审整改追加授权：用户在会话内以选项明确"全额授权"（AskUserQuestion 记录），
+# 用于审查验收的真实 API 验证（重跑 12 道受影响题含 reg3、金标复判、工作台典型流程演示）。
+# 追加到 budget.json p1 列之上，仅本轮有效；实报全部走本轮账本。
+REVIEW_FIX_GRANTS = {
+    "qwen3.8-max-0902": 130000,
+    "qwen3.8-27b": 15000,
+    "qwen3.7-text-rerank": 65000,
+}
+
 
 def p1_shares() -> dict[str, int]:
     try:
         budget = json.loads(BUDGET_JSON.read_text(encoding="utf-8"))
         shares = {m: int(cfg["p1"]) for m, cfg in budget["models"].items() if int(cfg.get("p1", 0)) > 0}
         if shares:
+            for m, g in REVIEW_FIX_GRANTS.items():
+                shares[m] = shares.get(m, 0) + g
             return shares
     except (OSError, KeyError, ValueError):
         pass
-    return dict(FALLBACK_SHARES)
+    shares = dict(FALLBACK_SHARES)
+    for m, g in REVIEW_FIX_GRANTS.items():
+        shares[m] = shares.get(m, 0) + g
+    return shares
 
 
 def ledger_usage(path: str | Path) -> dict[str, dict[str, int]]:

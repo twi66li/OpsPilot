@@ -65,3 +65,34 @@ INFO:     127.0.0.1:14164 - "GET /favicon.ico HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:10493 - "GET /favicon.ico HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:3794 - "POST /api/agent/approvals/edd241d977254dd2aa1e0bda6ae6456b/decide HTTP/1.1" 200 OK
 INFO:     127.0.0.1:9977 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:23894 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:15102 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:48717 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:34598 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48717 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3003 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:12736 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12736 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:5894 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5894 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:15674 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5894 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51301 - "GET /api/eval/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51301 - "GET /api/eval/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32126 - "GET /api/eval/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:15316 - "GET /api/eval/results?run=night20261101%2Frerank_run HTTP/1.1" 200 OK
+INFO:     127.0.0.1:15316 - "GET /api/eval/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5575 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:22231 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5575 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:22129 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:26593 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:20477 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:13894 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:9109 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:37706 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40093 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:56095 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:58920 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56095 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:15397 - "GET /favicon.ico HTTP/1.1" 404 Not Found

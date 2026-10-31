@@ -151,7 +151,8 @@ const esc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(
 const toast = m => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 2600); };
 let token = localStorage.getItem("opspilot_token") || "";
 let sessionId = localStorage.getItem("opspilot_sid") || "";
-let citations = [];  // [n] → 文档标题
+let citations = [];  // 去重标题列表（展示用）
+let citationsIndexed = [];  // [n] → 第 n 条证据的文档标题（与生成器编号同源，重复文档保留各自编号）
 let citationsMap = new Map();
 let running = false;
 let evalData = null, evalFilter = "all", evalOpen = new Set(), evalRun = "";
@@ -215,9 +216,9 @@ function evidence(title, html) {
   box.prepend(d);
 }
 function renderAnswer(text) {
-  // [n] 角标 → 悬停显示对应文档
+  // [n] 角标 → 悬停显示对应文档（优先逐命中映射，与生成器编号同源）
   return esc(text).replace(/\[(\d{1,2})\]/g, (m, n) => {
-    const title = citations[Number(n) - 1] || citationsMap.get(Number(n));
+    const title = citationsIndexed[Number(n) - 1] || citations[Number(n) - 1] || citationsMap.get(Number(n));
     return title ? `<sup class="cite" title="${esc(title)}">[${n}]</sup>` : m;
   });
 }
@@ -243,6 +244,7 @@ function handleEvent(evt) {
   }
   else if (t === "answer") {
     if (evt.citations) citations = evt.citations;
+    if (evt.citations_indexed) citationsIndexed = evt.citations_indexed;
     const bubble = $("#chat").querySelector(".msg.assistant:last-child");
     if (bubble && evt.answer != null) { bubble.classList.remove("pending"); bubble.innerHTML = renderAnswer(evt.answer); }
   }
@@ -258,6 +260,7 @@ function handleEvent(evt) {
   else if (t === "ticket_created") { evidence("工单已创建", `<span class="ok">${esc(evt.ticket_id)}</span> ${esc(evt.title || "")}`); }
   else if (t === "final") {
     if (evt.citations) citations = evt.citations;
+    if (evt.citations_indexed) citationsIndexed = evt.citations_indexed;
     const bubble = $("#chat").querySelector(".msg.assistant:last-child");
     if (bubble && evt.answer != null) { bubble.classList.remove("pending"); bubble.innerHTML = renderAnswer(evt.answer); }
     if (evt.run_id) evidence("运行结束", `run_id=${esc(evt.run_id)} <a href="/docs" target="_blank">查看 runs 接口</a>`);

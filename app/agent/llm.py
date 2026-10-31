@@ -38,7 +38,7 @@ class BaseLLM:
     def rewrite_query(self, question: str) -> str:
         raise NotImplementedError
 
-    def generate_answer(self, question: str, hits: list[dict], tool_events: list[dict], fault_records: list[dict], history: list[dict]) -> str:
+    def generate_answer(self, question: str, hits: list[dict], tool_events: list[dict], fault_records: list[dict], history: list[dict], evidence_items: list[dict] | None = None) -> str:
         raise NotImplementedError
 
     def draft_ticket(self, question: str, answer: str) -> dict:
@@ -63,7 +63,7 @@ class MockLLM(BaseLLM):
     def rewrite_query(self, question: str) -> str:
         return f"{question} 排查步骤 根因分析 处理方案 SOP"
 
-    def generate_answer(self, question, hits, tool_events, fault_records, history) -> str:
+    def generate_answer(self, question, hits, tool_events, fault_records, history, evidence_items=None) -> str:
         q_tokens = set(tokenize(question))
         relevant = [
             h for h in hits[:5] if len(q_tokens & set(tokenize(h.get("text", "")))) >= 2
@@ -185,11 +185,15 @@ class OpenAIChatLLM(BaseLLM):
             logger.warning("LLM 查询改写失败，回退规则: %s", exc)
             return self._fallback.rewrite_query(question)
 
-    def generate_answer(self, question, hits, tool_events, fault_records, history) -> str:
+    def generate_answer(self, question, hits, tool_events, fault_records, history, evidence_items=None) -> str:
         from app.config import get_settings
 
         limit = getattr(get_settings(), "evidence_excerpt_chars", 500)
-        context = "\n".join(f"[{i}] 《{h.get('doc_title', '')}》 {evidence_excerpt(h.get('text', ''), limit)}" for i, h in enumerate(hits, 1))
+        if evidence_items:
+            # 证据组装（app.rag.evidence）已做行边界安全与范围摘录，直接使用同一份编号证据
+            context = "\n".join(f"[{i}] 《{it.get('doc_title', '')}》 {it.get('text', '')}" for i, it in enumerate(evidence_items, 1))
+        else:
+            context = "\n".join(f"[{i}] 《{h.get('doc_title', '')}》 {evidence_excerpt(h.get('text', ''), limit)}" for i, h in enumerate(hits, 1))
         tools_info = "\n".join(f"- {e.get('name')}: {e.get('summary', '')}" for e in tool_events) or "（无）"
         faults = "\n".join(f"- {f['title']}: {f['resolution']}" for f in fault_records) or "（无）"
         system = (
@@ -200,6 +204,8 @@ class OpenAIChatLLM(BaseLLM):
             "指标必须注明来源和时间窗；模拟数据须明确说明。指标不可用或采样不足不等于服务正常，"
             "此时只能给出排查建议，不能确认当前状态或根因。历史故障仅为参考。"
             "工具的本次阈值判定优先于手册中其他场景的阈值；不得把已触发阈值的指标写成正常。"
+            "用户询问某行号范围或统计计数时：若证据未能完整覆盖该范围，必须明确说明证据只覆盖到"
+            "哪些行、哪些行缺失，不得把局部计数当作全范围计数，也不得对缺失行编造数值。"
         )
         user = f"用户问题：{question}\n\n知识库文档：\n{context}\n\n工具输出：\n{tools_info}\n\n历史相似故障：\n{faults}"
         try:

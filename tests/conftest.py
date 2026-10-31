@@ -1,12 +1,15 @@
 """pytest 公共夹具：全部使用离线 Mock（内存 SQLite / 进程内向量库 / MockLLM）。"""
 import os
 
-os.environ.setdefault("DATABASE_URL", "sqlite:///:memory:")
-os.environ.setdefault("EMBEDDING_PROVIDER", "mock")
-os.environ.setdefault("LLM_PROVIDER", "mock")
-os.environ.setdefault("QDRANT_MODE", "memory")
-os.environ.setdefault("RERANK_ENABLED", "false")
-os.environ.setdefault("REDIS_URL", "redis://127.0.0.1:1/0")  # 不可达 → 缓存退化为进程内
+# 离线契约显式钉死（不用 setdefault）：项目 .env 会被真实评测改为 MODEL_STRICT=true 等，
+# 若不覆盖，strict 分支会在夹具内拒绝 mock 组件，全部测试无法离线运行。
+os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+os.environ["EMBEDDING_PROVIDER"] = "mock"
+os.environ["LLM_PROVIDER"] = "mock"
+os.environ["MODEL_STRICT"] = "false"
+os.environ["QDRANT_MODE"] = "memory"
+os.environ["RERANK_ENABLED"] = "false"
+os.environ["REDIS_URL"] = "redis://127.0.0.1:1/0"  # 不可达 → 缓存退化为进程内
 
 import pytest
 from fastapi.testclient import TestClient

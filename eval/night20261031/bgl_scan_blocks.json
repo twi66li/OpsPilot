@@ -1,0 +1,3175 @@
+{
+ "1-250000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 213820,
+   "FATAL": 36125,
+   "WARNING": 25,
+   "SEVERE": 15,
+   "ERROR": 15
+  },
+  "kinds": {
+   "KERNEL": 245214,
+   "APP": 4648,
+   "LINKCARD": 80,
+   "DISCOVERY": 51,
+   "HARDWARE": 4,
+   "MMCS": 3
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO generating core.<N>",
+    172825
+   ],
+   [
+    "KERNEL FATAL data TLB error interrupt",
+    27761
+   ],
+   [
+    "KERNEL INFO instruction cache parity error corrected",
+    22619
+   ],
+   [
+    "KERNEL INFO <N> double-hummer alignment exceptions",
+    4737
+   ],
+   [
+    "APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to <N>.<N>.<N>.<N>:<N>",
+    2164
+   ],
+   [
+    "KERNEL INFO ciod: cpu <N> at treeaddr <N> sent unrecognized message <N>xffffffff",
+    2065
+   ],
+   [
+    "KERNEL INFO ciod: Message code <N> is not <N> or <N>",
+    1773
+   ],
+   [
+    "APP FATAL ciod: LOGIN chdir(/p/gb<N>/draeger/benchmark/dat<N>k_<N>) failed: No such file or directory",
+    1540
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    888
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    726
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>b<N>f<N>, mask <N>x<N>",
+    581
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>a<N>, mask <N>x<N>",
+    393
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>b<N>ea<N>, mask <N>x<N>",
+    381
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>e<N>, mask <N>x<N>",
+    346
+   ],
+   [
+    "KERNEL INFO <N> L<N> EDRAM error(s) (dcr <N>x<N>) detected and corrected",
+    315
+   ],
+   [
+    "APP FATAL ciod: LOGIN chdir(/p/gb<N>/glosli/<N>M_<N>K/t<N>) failed: No such file or directory",
+    256
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>c<N>, mask <N>x<N>",
+    237
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>b<N>f<N>a<N>, mask <N>x<N>",
+    236
+   ]
+  ],
+  "distinct_templates": 616,
+  "alert_labels": {
+   "KERNDTLB": 27761,
+   "APPREAD": 2164,
+   "KERNRTSP": 127,
+   "KERNMC": 8
+  },
+  "alert_lines_total": 30060,
+  "distinct_nodes": 29767,
+  "sample_nodes": [
+   "NULL",
+   "R00-M0-N0-C:J03-U01",
+   "R00-M0-N0-C:J03-U11",
+   "R00-M0-N0-C:J04-U01",
+   "R00-M0-N0-C:J05-U11",
+   "R00-M0-N0-C:J06-U01",
+   "R00-M0-N0-C:J06-U11",
+   "R00-M0-N0-C:J07-U01"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 14738,
+    "text": "APPREAD 1117869872 2005.06.04 R23-M1-N8-I:J18-U11 2005-06-04-00.24.32.398284 R23-M1-N8-I:J18-U11 RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:33399"
+   },
+   {
+    "line": 14739,
+    "text": "APPREAD 1117869872 2005.06.04 R04-M1-N4-I:J18-U11 2005-06-04-00.24.32.432192 R04-M1-N4-I:J18-U11 RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:33569"
+   },
+   {
+    "line": 14740,
+    "text": "APPREAD 1117869872 2005.06.04 R04-M1-N4-I:J18-U01 2005-06-04-00.24.32.481570 R04-M1-N4-I:J18-U01 RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:33570"
+   },
+   {
+    "line": 14741,
+    "text": "APPREAD 1117869873 2005.06.04 R35-M1-N0-I:J18-U11 2005-06-04-00.24.33.168659 R35-M1-N0-I:J18-U11 RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:33459"
+   },
+   {
+    "line": 14742,
+    "text": "APPREAD 1117869873 2005.06.04 R35-M1-N0-I:J18-U01 2005-06-04-00.24.33.203068 R35-M1-N0-I:J18-U01 RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:33460"
+   },
+   {
+    "line": 14743,
+    "text": "APPREAD 1117869873 2005.06.04 R36-M0-N8-I:J18-U11 2005-06-04-00.24.33.236793 R36-M0-N8-I:J18-U11 RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:33231"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 977,
+    "text": "- 1117838749 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.45.49.833944 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+   },
+   {
+    "line": 1954,
+    "text": "- 1117838949 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.49.09.218214 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+   },
+   {
+    "line": 2931,
+    "text": "- 1117839115 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.51.55.864424 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+   },
+   {
+    "line": 3908,
+    "text": "- 1117839417 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.56.57.850629 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+   },
+   {
+    "line": 4885,
+    "text": "- 1117839711 2005.06.03 R16-M1-N2-C:J17-U01 2005-06-03-16.01.51.141964 R16-M1-N2-C:J17-U01 RAS KERNEL INFO total of 1 ddr error(s) detected and corrected"
+   },
+   {
+    "line": 5862,
+    "text": "- 1117842901 2005.06.03 R20-M1-NE-C:J10-U11 2005-06-03-16.55.01.015222 R20-M1-NE-C:J10-U11 RAS KERNEL INFO 222 double-hummer alignment exceptions"
+   }
+  ]
+ },
+ "250001-500000": {
+  "lines": 250000,
+  "levels": {
+   "FATAL": 230604,
+   "INFO": 19327,
+   "WARNING": 31,
+   "SEVERE": 19,
+   "ERROR": 19
+  },
+  "kinds": {
+   "KERNEL": 248599,
+   "APP": 1313,
+   "DISCOVERY": 65,
+   "LINKCARD": 10,
+   "MMCS": 6,
+   "HARDWARE": 4,
+   "CMCS": 3
+  },
+  "top_templates": [
+   [
+    "KERNEL FATAL data TLB error interrupt",
+    124898
+   ],
+   [
+    "KERNEL FATAL data storage interrupt",
+    50864
+   ],
+   [
+    "KERNEL FATAL instruction address: <N>x<N>ed<N>",
+    37049
+   ],
+   [
+    "KERNEL INFO generating core.<N>",
+    16509
+   ],
+   [
+    "KERNEL FATAL data address: <N>x<N>",
+    4096
+   ],
+   [
+    "KERNEL FATAL exception syndrome register: <N>x<N>",
+    4096
+   ],
+   [
+    "KERNEL FATAL machine check: i-fetch......................<N>",
+    4096
+   ],
+   [
+    "KERNEL FATAL program interrupt: illegal instruction......<N>",
+    4096
+   ],
+   [
+    "APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to <N>.<N>.<N>.<N>:<N>",
+    1017
+   ],
+   [
+    "KERNEL INFO ciod: Message code <N> is not <N> or <N>",
+    505
+   ],
+   [
+    "KERNEL INFO ciod: cpu <N> at treeaddr <N> sent unrecognized message <N>xffffffff",
+    504
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>a<N>, mask <N>x<N>",
+    349
+   ],
+   [
+    "APP FATAL ciod: Error loading /home/yates/MPI_testing/Presta/presta-<N>.<N>.<N>b/./glob: invalid or missing program image, No such",
+    256
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    114
+   ],
+   [
+    "KERNEL INFO ciod: for node <N>, read continuation request but ioState is <N>",
+    104
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    97
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>b<N>f<N>a<N>, mask <N>x<N>",
+    70
+   ],
+   [
+    "KERNEL INFO <N> L<N> EDRAM error(s) (dcr <N>x<N>) detected and corrected",
+    60
+   ]
+  ],
+  "distinct_templates": 222,
+  "alert_labels": {
+   "KERNDTLB": 124898,
+   "KERNSTOR": 50864,
+   "APPREAD": 1017,
+   "KERNRTSP": 6,
+   "KERNMC": 2
+  },
+  "alert_lines_total": 176787,
+  "distinct_nodes": 28466,
+  "sample_nodes": [
+   "NULL",
+   "R00-M0-N0-C:J02-U01",
+   "R00-M0-N0-C:J02-U11",
+   "R00-M0-N0-C:J03-U01",
+   "R00-M0-N0-C:J03-U11",
+   "R00-M0-N0-C:J04-U01",
+   "R00-M0-N0-C:J04-U11",
+   "R00-M0-N0-C:J05-U01"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 250001,
+    "text": "KERNDTLB 1118539377 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.22.57.427932 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+   },
+   {
+    "line": 250002,
+    "text": "KERNDTLB 1118539377 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.22.57.605081 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+   },
+   {
+    "line": 250003,
+    "text": "KERNDTLB 1118539377 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.22.57.713685 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+   },
+   {
+    "line": 250004,
+    "text": "KERNDTLB 1118539377 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.22.57.848832 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+   },
+   {
+    "line": 250005,
+    "text": "KERNDTLB 1118539377 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.22.57.947516 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+   },
+   {
+    "line": 250006,
+    "text": "KERNDTLB 1118539378 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.22.58.119683 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 376145,
+    "text": "- 1118629642 2005.06.12 R15-M1-NC-C:J10-U01 2005-06-12-19.27.22.527682 R15-M1-NC-C:J10-U01 RAS KERNEL INFO generating core.5773"
+   },
+   {
+    "line": 377122,
+    "text": "- 1118631351 2005.06.12 R37-M1-ND-C:J13-U11 2005-06-12-19.55.51.636581 R37-M1-ND-C:J13-U11 RAS KERNEL INFO generating core.12953"
+   },
+   {
+    "line": 378099,
+    "text": "- 1118631378 2005.06.12 R32-M1-N2-C:J10-U11 2005-06-12-19.56.18.935575 R32-M1-N2-C:J10-U11 RAS KERNEL INFO generating core.15853"
+   },
+   {
+    "line": 379076,
+    "text": "- 1118686960 2005.06.13 R26-M0-NB-C:J07-U01 2005-06-13-11.22.40.410911 R26-M0-NB-C:J07-U01 RAS KERNEL INFO CE sym 10, at 0x08f90580, mask 0x08"
+   },
+   {
+    "line": 380053,
+    "text": "- 1118687344 2005.06.13 R22-M1-NE-C:J08-U01 2005-06-13-11.29.04.698036 R22-M1-NE-C:J08-U01 RAS KERNEL INFO generating core.6"
+   },
+   {
+    "line": 382007,
+    "text": "- 1118699426 2005.06.13 R22-M0-NC-I:J18-U01 2005-06-13-14.50.26.918470 R22-M0-NC-I:J18-U01 RAS KERNEL INFO ciod: cpu 0 at treeaddr 131 sent unrecognized message 0xffffffff"
+   }
+  ]
+ },
+ "500001-750000": {
+  "lines": 250000,
+  "levels": {
+   "FATAL": 249995,
+   "INFO": 5
+  },
+  "kinds": {
+   "KERNEL": 249999,
+   "LINKCARD": 1
+  },
+  "top_templates": [
+   [
+    "KERNEL FATAL data storage interrupt",
+    12624
+   ],
+   [
+    "KERNEL FATAL data address: <N>x<N>",
+    10240
+   ],
+   [
+    "KERNEL FATAL exception syndrome register: <N>x<N>",
+    10240
+   ],
+   [
+    "KERNEL FATAL machine check: i-fetch......................<N>",
+    10240
+   ],
+   [
+    "KERNEL FATAL instruction address: <N>x<N>ed<N>",
+    10055
+   ],
+   [
+    "KERNEL FATAL floating pt ex mode <N> enable......<N>",
+    8192
+   ],
+   [
+    "KERNEL FATAL program interrupt: illegal instruction......<N>",
+    6144
+   ],
+   [
+    "KERNEL FATAL program interrupt: privileged instruction...<N>",
+    6144
+   ],
+   [
+    "KERNEL FATAL program interrupt: trap instruction.........<N>",
+    6144
+   ],
+   [
+    "KERNEL FATAL floating point operation....................<N>",
+    6144
+   ],
+   [
+    "KERNEL FATAL store operation.............................<N>",
+    6144
+   ],
+   [
+    "KERNEL FATAL data store interrupt caused by dcbf.........<N>",
+    6144
+   ],
+   [
+    "KERNEL FATAL data store interrupt caused by icbi.........<N>",
+    6144
+   ],
+   [
+    "KERNEL FATAL auxiliary processor.........................<N>",
+    6144
+   ],
+   [
+    "KERNEL FATAL program interrupt: unimplemented operation..<N>",
+    6144
+   ],
+   [
+    "KERNEL FATAL byte ordering exception.....................<N>",
+    6144
+   ],
+   [
+    "KERNEL FATAL program interrupt: imprecise exception......<N>",
+    6144
+   ],
+   [
+    "KERNEL FATAL program interrupt: fp cr update.............<N>",
+    6144
+   ]
+  ],
+  "distinct_templates": 285,
+  "alert_labels": {
+   "KERNSTOR": 12624,
+   "KERNRTSP": 2048
+  },
+  "alert_lines_total": 14672,
+  "distinct_nodes": 12627,
+  "sample_nodes": [
+   "R00-M0-N0-C:J02-U01",
+   "R00-M0-N0-C:J02-U11",
+   "R00-M0-N0-C:J03-U01",
+   "R00-M0-N0-C:J03-U11",
+   "R00-M0-N0-C:J04-U01",
+   "R00-M0-N0-C:J04-U11",
+   "R00-M0-N0-C:J05-U01",
+   "R00-M0-N0-C:J05-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 500001,
+    "text": "KERNSTOR 1118768001 2005.06.14 R07-M1-N2-C:J16-U11 2005-06-14-09.53.21.319371 R07-M1-N2-C:J16-U11 RAS KERNEL FATAL data storage interrupt"
+   },
+   {
+    "line": 500003,
+    "text": "KERNSTOR 1118768001 2005.06.14 R07-M1-N2-C:J08-U11 2005-06-14-09.53.21.346967 R07-M1-N2-C:J08-U11 RAS KERNEL FATAL data storage interrupt"
+   },
+   {
+    "line": 500006,
+    "text": "KERNSTOR 1118768001 2005.06.14 R07-M1-N2-C:J14-U11 2005-06-14-09.53.21.380780 R07-M1-N2-C:J14-U11 RAS KERNEL FATAL data storage interrupt"
+   },
+   {
+    "line": 500008,
+    "text": "KERNSTOR 1118768001 2005.06.14 R07-M1-N2-C:J10-U11 2005-06-14-09.53.21.410561 R07-M1-N2-C:J10-U11 RAS KERNEL FATAL data storage interrupt"
+   },
+   {
+    "line": 500010,
+    "text": "KERNSTOR 1118768001 2005.06.14 R07-M1-N2-C:J06-U11 2005-06-14-09.53.21.438747 R07-M1-N2-C:J06-U11 RAS KERNEL FATAL data storage interrupt"
+   },
+   {
+    "line": 500012,
+    "text": "KERNSTOR 1118768001 2005.06.14 R07-M1-N2-C:J12-U11 2005-06-14-09.53.21.466508 R07-M1-N2-C:J12-U11 RAS KERNEL FATAL data storage interrupt"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 503155,
+    "text": "- 1118768047 2005.06.14 R25-M0-N7-C:J10-U01 2005-06-14-09.54.07.260961 R25-M0-N7-C:J10-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+   },
+   {
+    "line": 504132,
+    "text": "- 1118768061 2005.06.14 R21-M1-N6-C:J09-U01 2005-06-14-09.54.21.441553 R21-M1-N6-C:J09-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+   },
+   {
+    "line": 505109,
+    "text": "- 1118768075 2005.06.14 R24-M0-N9-C:J17-U11 2005-06-14-09.54.35.532333 R24-M0-N9-C:J17-U11 RAS KERNEL FATAL instruction address: 0x00004ed8"
+   },
+   {
+    "line": 508040,
+    "text": "- 1118768119 2005.06.14 R25-M0-N2-C:J07-U11 2005-06-14-09.55.19.442569 R25-M0-N2-C:J07-U11 RAS KERNEL FATAL data address: 0x00000002"
+   },
+   {
+    "line": 509017,
+    "text": "- 1118768133 2005.06.14 R20-M0-N3-C:J15-U11 2005-06-14-09.55.33.646697 R20-M0-N3-C:J15-U11 RAS KERNEL FATAL data address: 0x00000002"
+   },
+   {
+    "line": 509994,
+    "text": "- 1118768147 2005.06.14 R20-M0-N1-C:J08-U01 2005-06-14-09.55.47.773566 R20-M0-N1-C:J08-U01 RAS KERNEL FATAL data address: 0x00000002"
+   }
+  ]
+ },
+ "750001-1000000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 220639,
+   "FATAL": 28739,
+   "WARNING": 243,
+   "SEVERE": 211,
+   "ERROR": 163,
+   "Kill": 5
+  },
+  "kinds": {
+   "KERNEL": 244031,
+   "APP": 5256,
+   "DISCOVERY": 598,
+   "LINKCARD": 78,
+   "HARDWARE": 21,
+   "MMCS": 6,
+   "FATAL": 5,
+   "CMCS": 3
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO generating core.<N>",
+    104083
+   ],
+   [
+    "KERNEL INFO <N> double-hummer alignment exceptions",
+    61568
+   ],
+   [
+    "KERNEL INFO instruction cache parity error corrected",
+    39728
+   ],
+   [
+    "KERNEL FATAL floating pt ex mode <N> enable......<N>",
+    4114
+   ],
+   [
+    "KERNEL FATAL instruction address space.........<N>",
+    4105
+   ],
+   [
+    "KERNEL FATAL data address space................<N>",
+    4105
+   ],
+   [
+    "KERNEL FATAL core configuration register: <N>x<N>",
+    4105
+   ],
+   [
+    "KERNEL FATAL disable store gathering..................<N>",
+    4105
+   ],
+   [
+    "APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to <N>.<N>.<N>.<N>:<N>",
+    2802
+   ],
+   [
+    "KERNEL FATAL debug interrupt enable............<N>",
+    2069
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    1344
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>b<N>, mask <N>x<N>",
+    1207
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    978
+   ],
+   [
+    "KERNEL INFO <N> L<N> EDRAM error(s) (dcr <N>x<N>) detected and corrected",
+    755
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>b<N>f<N>, mask <N>x<N>",
+    659
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>a<N>, mask <N>x<N>",
+    603
+   ],
+   [
+    "APP FATAL ciod: Error loading /home/draeger/testQboxhang-nozerobytebug-nosleepnocomm: invalid or missing program image, No such fi",
+    512
+   ],
+   [
+    "APP FATAL ciod: Error loading /home/draeger/testQboxhang-nozerobytebug-nosleepyescomm: invalid or missing program image, No such f",
+    512
+   ]
+  ],
+  "distinct_templates": 751,
+  "alert_labels": {
+   "APPREAD": 2802,
+   "APPCHILD": 256,
+   "KERNRTSP": 188,
+   "APPALLOC": 144,
+   "KERNMC": 12
+  },
+  "alert_lines_total": 3402,
+  "distinct_nodes": 33272,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0-N0-C:J02-U01",
+   "R00-M0-N0-C:J02-U11",
+   "R00-M0-N0-C:J03-U01",
+   "R00-M0-N0-C:J03-U11",
+   "R00-M0-N0-C:J04-U01",
+   "R00-M0-N0-C:J04-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 784833,
+    "text": "KERNMC 1118811265 2005.06.14 R36-M0-N9-C:J12-U11 2005-06-14-21.54.25.815220 R36-M0-N9-C:J12-U11 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 784913,
+    "text": "KERNRTSP 1118811274 2005.06.14 R36-M0-N9-C:J12-U11 2005-06-14-21.54.34.514354 R36-M0-N9-C:J12-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 811638,
+    "text": "KERNRTSP 1118901734 2005.06.15 R27-M0-NF-C:J16-U11 2005-06-15-23.02.14.102364 R27-M0-NF-C:J16-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 811655,
+    "text": "KERNRTSP 1118901734 2005.06.15 R27-M0-NA-C:J14-U11 2005-06-15-23.02.14.734226 R27-M0-NA-C:J14-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 811656,
+    "text": "KERNRTSP 1118901734 2005.06.15 R27-M0-N7-C:J14-U01 2005-06-15-23.02.14.748456 R27-M0-N7-C:J14-U01 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 811657,
+    "text": "KERNRTSP 1118901734 2005.06.15 R27-M0-ND-C:J05-U11 2005-06-15-23.02.14.762609 R27-M0-ND-C:J05-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 750336,
+    "text": "- 1118773354 2005.06.14 R21-M0-N6-C:J13-U11 2005-06-14-11.22.34.942659 R21-M0-N6-C:J13-U11 RAS KERNEL FATAL debug interrupt enable............0"
+   },
+   {
+    "line": 751313,
+    "text": "- 1118773384 2005.06.14 R24-M0-N8-C:J06-U11 2005-06-14-11.23.04.169529 R24-M0-N8-C:J06-U11 RAS KERNEL FATAL debug interrupt enable............0"
+   },
+   {
+    "line": 752290,
+    "text": "- 1118773417 2005.06.14 R20-M1-N1-C:J05-U01 2005-06-14-11.23.37.451413 R20-M1-N1-C:J05-U01 RAS KERNEL FATAL floating pt ex mode 1 enable......0"
+   },
+   {
+    "line": 753267,
+    "text": "- 1118773445 2005.06.14 R24-M0-N7-C:J14-U01 2005-06-14-11.24.05.810542 R24-M0-N7-C:J14-U01 RAS KERNEL FATAL floating pt ex mode 1 enable......0"
+   },
+   {
+    "line": 754244,
+    "text": "- 1118773474 2005.06.14 R25-M0-N6-C:J05-U11 2005-06-14-11.24.34.776537 R25-M0-N6-C:J05-U11 RAS KERNEL FATAL floating pt ex mode 1 enable......0"
+   },
+   {
+    "line": 755221,
+    "text": "- 1118773504 2005.06.14 R20-M0-N8-C:J10-U01 2005-06-14-11.25.04.319182 R20-M0-N8-C:J10-U01 RAS KERNEL FATAL floating pt ex mode 1 enable......0"
+   }
+  ]
+ },
+ "1000001-1250000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 240361,
+   "FATAL": 3016,
+   "WARNING": 2269,
+   "SEVERE": 2189,
+   "ERROR": 2154,
+   "Kill": 10,
+   "FAILURE": 1
+  },
+  "kinds": {
+   "KERNEL": 241094,
+   "DISCOVERY": 6576,
+   "APP": 2192,
+   "LINKCARD": 78,
+   "HARDWARE": 40,
+   "FATAL": 10,
+   "CMCS": 6,
+   "MMCS": 3
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO generating core.<N>",
+    134523
+   ],
+   [
+    "KERNEL INFO <N> double-hummer alignment exceptions",
+    25799
+   ],
+   [
+    "KERNEL INFO program interrupt",
+    3661
+   ],
+   [
+    "KERNEL INFO exception syndrome register: <N>x<N>",
+    3661
+   ],
+   [
+    "KERNEL INFO machine check: i-fetch......................<N>",
+    3661
+   ],
+   [
+    "KERNEL INFO program interrupt: illegal instruction......<N>",
+    3661
+   ],
+   [
+    "KERNEL INFO program interrupt: privileged instruction...<N>",
+    3661
+   ],
+   [
+    "KERNEL INFO program interrupt: trap instruction.........<N>",
+    3661
+   ],
+   [
+    "KERNEL INFO floating point operation....................<N>",
+    3661
+   ],
+   [
+    "KERNEL INFO store operation.............................<N>",
+    3661
+   ],
+   [
+    "KERNEL INFO data store interrupt caused by dcbf.........<N>",
+    3661
+   ],
+   [
+    "KERNEL INFO data store interrupt caused by icbi.........<N>",
+    3661
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>b<N>, mask <N>x<N>",
+    3101
+   ],
+   [
+    "KERNEL INFO instruction cache parity error corrected",
+    2575
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>f<N>, mask <N>x<N>",
+    2314
+   ],
+   [
+    "KERNEL INFO auxiliary processor.........................<N>",
+    2257
+   ],
+   [
+    "DISCOVERY WARNING Node card is not fully functional",
+    2154
+   ],
+   [
+    "DISCOVERY SEVERE Can not get assembly information for node card",
+    2153
+   ]
+  ],
+  "distinct_templates": 400,
+  "alert_labels": {
+   "KERNRTSP": 212,
+   "LINKDISC": 12,
+   "KERNSOCK": 6,
+   "KERNMC": 3,
+   "MASNORM": 1
+  },
+  "alert_lines_total": 234,
+  "distinct_nodes": 33319,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0-N0-C:J02-U01",
+   "R00-M0-N0-C:J02-U11",
+   "R00-M0-N0-C:J03-U01",
+   "R00-M0-N0-C:J03-U11",
+   "R00-M0-N0-C:J04-U01",
+   "R00-M0-N0-C:J04-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 1089806,
+    "text": "KERNMC 1119825782 2005.06.26 R24-M1-NB-C:J02-U01 2005-06-26-15.43.02.805726 R24-M1-NB-C:J02-U01 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 1099126,
+    "text": "KERNSOCK 1119975388 2005.06.28 R22-M0-NC-I:J18-U11 2005-06-28-09.16.28.078870 R22-M0-NC-I:J18-U11 RAS KERNEL FATAL MailboxMonitor::serviceMailboxes() lib_ido_error: -1019 socket closed"
+   },
+   {
+    "line": 1099127,
+    "text": "KERNSOCK 1119975388 2005.06.28 R20-M1-NC-I:J18-U11 2005-06-28-09.16.28.083256 R20-M1-NC-I:J18-U11 RAS KERNEL FATAL MailboxMonitor::serviceMailboxes() lib_ido_error: -1019 socket closed"
+   },
+   {
+    "line": 1099128,
+    "text": "KERNSOCK 1119975388 2005.06.28 R26-M1-NC-I:J18-U11 2005-06-28-09.16.28.083267 R26-M1-NC-I:J18-U11 RAS KERNEL FATAL MailboxMonitor::serviceMailboxes() lib_ido_error: -1019 socket closed"
+   },
+   {
+    "line": 1099129,
+    "text": "KERNSOCK 1119975388 2005.06.28 R23-M0-NC-I:J18-U11 2005-06-28-09.16.28.263272 R23-M0-NC-I:J18-U11 RAS KERNEL FATAL MailboxMonitor::serviceMailboxes() lib_ido_error: -1019 socket closed"
+   },
+   {
+    "line": 1099130,
+    "text": "KERNSOCK 1119975388 2005.06.28 R22-M1-NC-I:J18-U11 2005-06-28-09.16.28.286986 R22-M1-NC-I:J18-U11 RAS KERNEL FATAL MailboxMonitor::serviceMailboxes() lib_ido_error: -1019 socket closed"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 1000448,
+    "text": "- 1119725245 2005.06.25 R33-M1-NE-C:J13-U01 2005-06-25-11.47.25.580882 R33-M1-NE-C:J13-U01 RAS KERNEL INFO generating core.50005"
+   },
+   {
+    "line": 1001425,
+    "text": "- 1119725276 2005.06.25 R37-M1-N1-C:J02-U11 2005-06-25-11.47.56.412036 R37-M1-N1-C:J02-U11 RAS KERNEL INFO generating core.24243"
+   },
+   {
+    "line": 1002402,
+    "text": "- 1119725306 2005.06.25 R27-M1-N9-C:J10-U11 2005-06-25-11.48.26.195438 R27-M1-N9-C:J10-U11 RAS KERNEL INFO generating core.48697"
+   },
+   {
+    "line": 1003379,
+    "text": "- 1119725336 2005.06.25 R20-M0-N3-C:J03-U01 2005-06-25-11.48.56.501951 R20-M0-N3-C:J03-U01 RAS KERNEL INFO generating core.29915"
+   },
+   {
+    "line": 1004356,
+    "text": "- 1119725366 2005.06.25 R20-M1-N3-C:J04-U01 2005-06-25-11.49.26.411458 R20-M1-N3-C:J04-U01 RAS KERNEL INFO generating core.37019"
+   },
+   {
+    "line": 1005333,
+    "text": "- 1119725396 2005.06.25 R21-M0-NF-C:J13-U01 2005-06-25-11.49.56.560817 R21-M0-NF-C:J13-U01 RAS KERNEL INFO generating core.16473"
+   }
+  ]
+ },
+ "1250001-1500000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 245152,
+   "WARNING": 2256,
+   "FATAL": 1261,
+   "SEVERE": 688,
+   "ERROR": 633,
+   "Kill": 10
+  },
+  "kinds": {
+   "KERNEL": 245020,
+   "DISCOVERY": 3303,
+   "HARDWARE": 1076,
+   "APP": 544,
+   "LINKCARD": 47,
+   "FATAL": 10
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO generating core.<N>",
+    151535
+   ],
+   [
+    "KERNEL INFO <N> double-hummer alignment exceptions",
+    90756
+   ],
+   [
+    "DISCOVERY WARNING Node card is not fully functional",
+    638
+   ],
+   [
+    "DISCOVERY SEVERE Can not get assembly information for node card",
+    633
+   ],
+   [
+    "DISCOVERY ERROR Node card status: no ALERTs are active. Clock Mode is Low. Clock Select is Midplane. Phy JTAG Reset is asserted. ASIC JT",
+    633
+   ],
+   [
+    "KERNEL FATAL rts: kernel terminated for reason <N>rts: bad message header: expecting type <N>, type=<N>, cpu=<N>, index=<N>, total=<N",
+    512
+   ],
+   [
+    "APP FATAL ciod: Error loading /p/gb/spelce<N>/Raptor/_pasci<N>/_hyperclaw.mf.rich/run/_jag_work/raptor<N>d.BGL.CXX_XL.MPI.ex: inva",
+    288
+   ],
+   [
+    "APP FATAL ciod: Error loading /home/glosli/src/ddcMD/ddcMD<N>.<N>.<N>/bin/ddcMDbglV: invalid or missing program image, No such fil",
+    256
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    202
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    179
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>c<N>, mask <N>x<N>",
+    102
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>a<N>, mask <N>x<N>",
+    73
+   ],
+   [
+    "HARDWARE WARNING PrepareForService shutting down NodeCard(mLctn(R<N>-M<N>-N<N>), mCardSernum(<N>c<N>b<N>), mLp(FF:F<N>:<N>F:<N>:E<N>:<N>:",
+    70
+   ],
+   [
+    "KERNEL INFO <N> torus receiver x+ input pipe error(s) (dcr <N>x<N>ec) detected and corrected",
+    70
+   ],
+   [
+    "KERNEL INFO <N> torus receiver z+ input pipe error(s) (dcr <N>x<N>f<N>) detected and corrected",
+    70
+   ],
+   [
+    "KERNEL INFO <N> torus receiver y+ input pipe error(s) (dcr <N>x<N>ee) detected and corrected",
+    69
+   ],
+   [
+    "KERNEL INFO <N> torus receiver z- input pipe error(s) (dcr <N>x<N>f<N>) detected and corrected",
+    69
+   ],
+   [
+    "KERNEL INFO <N> torus receiver x- input pipe error(s) (dcr <N>x<N>ed) detected and corrected",
+    66
+   ]
+  ],
+  "distinct_templates": 1631,
+  "alert_labels": {
+   "KERNTERM": 512,
+   "LINKDISC": 12,
+   "KERNMC": 5,
+   "KERNNOETH": 5,
+   "KERNRTSP": 5
+  },
+  "alert_lines_total": 539,
+  "distinct_nodes": 31053,
+  "sample_nodes": [
+   "-",
+   "R00-M0",
+   "R00-M0-L0",
+   "R00-M0-L1",
+   "R00-M0-L2",
+   "R00-M0-L3",
+   "R00-M0-N0",
+   "R00-M0-N0-C:J02-U01"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 1285213,
+    "text": "KERNMC 1120217196 2005.07.01 R11-M0-N1-C:J09-U11 2005-07-01-04.26.36.265276 R11-M0-N1-C:J09-U11 RAS KERNEL FATAL machine check interrupt (bit=0x09): Torus/Tree/GI read error 0"
+   },
+   {
+    "line": 1286974,
+    "text": "LINKDISC 1120226913 2005.07.01 R07-M1-L1-U19-E 2005-07-01-07.08.33.484998 R07-M1-L1-U19-E RAS LINKCARD FATAL MidplaneSwitchController::sendTrain() port disconnected: R07-M1-L1-U19-E"
+   },
+   {
+    "line": 1286975,
+    "text": "LINKDISC 1120226913 2005.07.01 R07-M1-L1-U19-E 2005-07-01-07.08.33.765322 R07-M1-L1-U19-E RAS LINKCARD FATAL MidplaneSwitchController::sendTrain() port disconnected: R07-M1-L1-U19-E"
+   },
+   {
+    "line": 1287109,
+    "text": "LINKDISC 1120228155 2005.07.01 R07-M1-L1-U19-E 2005-07-01-07.29.15.034869 R07-M1-L1-U19-E RAS LINKCARD FATAL MidplaneSwitchController::sendTrain() port disconnected: R07-M1-L1-U19-E"
+   },
+   {
+    "line": 1287110,
+    "text": "LINKDISC 1120228155 2005.07.01 R07-M1-L1-U19-E 2005-07-01-07.29.15.305617 R07-M1-L1-U19-E RAS LINKCARD FATAL MidplaneSwitchController::sendTrain() port disconnected: R07-M1-L1-U19-E"
+   },
+   {
+    "line": 1287111,
+    "text": "LINKDISC 1120228291 2005.07.01 R07-M1-L1-U19-E 2005-07-01-07.31.31.304665 R07-M1-L1-U19-E RAS LINKCARD FATAL MidplaneSwitchController::sendTrain() port disconnected: R07-M1-L1-U19-E"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 1250560,
+    "text": "- 1120216118 2005.07.01 R34-M1-NA-C:J05-U11 2005-07-01-04.08.38.294581 R34-M1-NA-C:J05-U11 RAS KERNEL INFO generating core.14519"
+   },
+   {
+    "line": 1251537,
+    "text": "- 1120216141 2005.07.01 R33-M1-N2-C:J15-U11 2005-07-01-04.09.01.386606 R33-M1-N2-C:J15-U11 RAS KERNEL INFO generating core.11252"
+   },
+   {
+    "line": 1252514,
+    "text": "- 1120216164 2005.07.01 R30-M1-ND-C:J08-U11 2005-07-01-04.09.24.365480 R30-M1-ND-C:J08-U11 RAS KERNEL INFO generating core.13330"
+   },
+   {
+    "line": 1253491,
+    "text": "- 1120216187 2005.07.01 R34-M1-N6-C:J04-U01 2005-07-01-04.09.47.662585 R34-M1-N6-C:J04-U01 RAS KERNEL INFO generating core.28871"
+   },
+   {
+    "line": 1254468,
+    "text": "- 1120216210 2005.07.01 R36-M0-N2-C:J06-U11 2005-07-01-04.10.10.807461 R36-M0-N2-C:J06-U11 RAS KERNEL INFO generating core.2902"
+   },
+   {
+    "line": 1255445,
+    "text": "- 1120216233 2005.07.01 R26-M0-N5-C:J06-U01 2005-07-01-04.10.33.649887 R26-M0-N5-C:J06-U01 RAS KERNEL INFO generating core.30538"
+   }
+  ]
+ },
+ "1500001-1750000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 244684,
+   "FATAL": 4204,
+   "WARNING": 790,
+   "SEVERE": 167,
+   "ERROR": 150,
+   "Kill": 5
+  },
+  "kinds": {
+   "KERNEL": 245831,
+   "APP": 2896,
+   "DISCOVERY": 1053,
+   "LINKCARD": 126,
+   "HARDWARE": 56,
+   "CMCS": 28,
+   "FATAL": 5,
+   "MMCS": 4
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO generating core.<N>",
+    222653
+   ],
+   [
+    "KERNEL INFO <N> double-hummer alignment exceptions",
+    12758
+   ],
+   [
+    "KERNEL INFO ciod: Missing or invalid fields on line <N> of node map file /home/auselton/bgl/<N>mps.sequential.mapfile",
+    1024
+   ],
+   [
+    "APP FATAL ciod: Error creating node map from file /home/auselton/bgl/<N>mps.sequential.mapfile: Resource temporarily unavailable",
+    1024
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    768
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    722
+   ],
+   [
+    "KERNEL FATAL rts: kernel terminated for reason <N>rts: bad message header: invalid cpu, type=<N>, cpu=<N>, index=<N>, total=<N>",
+    582
+   ],
+   [
+    "APP FATAL ciod: Error loading /p/gb<N>/spelce<N>/raptor.dev.new<N>d.BGL.CXX_XL.MPI.ex: invalid or missing program image, No such f",
+    512
+   ],
+   [
+    "KERNEL INFO ciod: duplicate canonical-rank <N> to logical-rank <N> mapping at line <N> of node map file /p/gb<N>/pakin<N>/sweep<N>d-",
+    512
+   ],
+   [
+    "APP FATAL ciod: Error creating node map from file /p/gb<N>/pakin<N>/sweep<N>d-<N>x<N>x<N>-<N>mk-<N>mmi-<N>pes-sweep/sweep.map: Dev",
+    512
+   ],
+   [
+    "KERNEL INFO ciod: T coordinate <N> exceeds physical dimension <N> at line <N> of node map file /p/gb<N>/pakin<N>/sweep<N>d-<N>x<N>x<",
+    512
+   ],
+   [
+    "APP FATAL ciod: Error creating node map from file /p/gb<N>/pakin<N>/sweep<N>d-<N>x<N>x<N>-<N>mk-<N>mmi-<N>pes-xyzt/xyzt.map: Block",
+    512
+   ],
+   [
+    "KERNEL INFO <N> torus receiver z- input pipe error(s) (dcr <N>x<N>f<N>) detected and corrected",
+    377
+   ],
+   [
+    "KERNEL INFO <N> torus receiver y+ input pipe error(s) (dcr <N>x<N>ee) detected and corrected",
+    376
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>d<N>da<N>, mask <N>x<N>",
+    376
+   ],
+   [
+    "KERNEL INFO <N> torus receiver x+ input pipe error(s) (dcr <N>x<N>ec) detected and corrected",
+    354
+   ],
+   [
+    "KERNEL INFO <N> torus receiver z+ input pipe error(s) (dcr <N>x<N>f<N>) detected and corrected",
+    348
+   ],
+   [
+    "KERNEL INFO <N> torus receiver x- input pipe error(s) (dcr <N>x<N>ed) detected and corrected",
+    317
+   ]
+  ],
+  "distinct_templates": 459,
+  "alert_labels": {
+   "APPUNAV": 1024,
+   "KERNTERM": 649,
+   "APPBUSY": 512,
+   "KERNPOW": 48,
+   "KERNMC": 6,
+   "LINKPAP": 6,
+   "KERNRTSP": 2,
+   "KERNPROG": 1
+  },
+  "alert_lines_total": 2248,
+  "distinct_nodes": 33363,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0-N0-C:J02-U01",
+   "R00-M0-N0-C:J02-U11",
+   "R00-M0-N0-C:J03-U01",
+   "R00-M0-N0-C:J03-U11",
+   "R00-M0-N0-C:J04-U01",
+   "R00-M0-N0-C:J04-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 1508317,
+    "text": "KERNMC 1120497789 2005.07.04 R25-M0-N7-C:J04-U01 2005-07-04-10.23.09.874471 R25-M0-N7-C:J04-U01 RAS KERNEL FATAL machine check interrupt (bit=0x1d): L2 dcache unit data parity error"
+   },
+   {
+    "line": 1508362,
+    "text": "KERNRTSP 1120497825 2005.07.04 R25-M0-N7-C:J04-U01 2005-07-04-10.23.45.430009 R25-M0-N7-C:J04-U01 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 1509499,
+    "text": "APPUNAV 1120591342 2005.07.05 R35-M1-N0-I:J18-U11 2005-07-05-12.22.22.994592 R35-M1-N0-I:J18-U11 RAS APP FATAL ciod: Error creating node map from file /home/auselton/bgl/64mps.sequential.mapfile: Resource temporarily unavailable"
+   },
+   {
+    "line": 1509500,
+    "text": "APPUNAV 1120591343 2005.07.05 R35-M1-N0-I:J18-U01 2005-07-05-12.22.23.028735 R35-M1-N0-I:J18-U01 RAS APP FATAL ciod: Error creating node map from file /home/auselton/bgl/64mps.sequential.mapfile: Resource temporarily unavailable"
+   },
+   {
+    "line": 1509501,
+    "text": "APPUNAV 1120591343 2005.07.05 R36-M0-N8-I:J18-U11 2005-07-05-12.22.23.056060 R36-M0-N8-I:J18-U11 RAS APP FATAL ciod: Error creating node map from file /home/auselton/bgl/64mps.sequential.mapfile: Resource temporarily unavailable"
+   },
+   {
+    "line": 1509502,
+    "text": "APPUNAV 1120591343 2005.07.05 R36-M0-N8-I:J18-U01 2005-07-05-12.22.23.084095 R36-M0-N8-I:J18-U01 RAS APP FATAL ciod: Error creating node map from file /home/auselton/bgl/64mps.sequential.mapfile: Resource temporarily unavailable"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 1500672,
+    "text": "- 1120487677 2005.07.04 R02-M1-N3-C:J14-U01 2005-07-04-07.34.37.068680 R02-M1-N3-C:J14-U01 RAS KERNEL INFO generating core.352"
+   },
+   {
+    "line": 1501649,
+    "text": "- 1120487693 2005.07.04 R24-M1-N8-C:J02-U01 2005-07-04-07.34.53.810916 R24-M1-N8-C:J02-U01 RAS KERNEL INFO generating core.3727"
+   },
+   {
+    "line": 1502626,
+    "text": "- 1120487790 2005.07.04 R02-M1-N1-C:J13-U11 2005-07-04-07.36.30.396038 R02-M1-N1-C:J13-U11 RAS KERNEL INFO generating core.441"
+   },
+   {
+    "line": 1503603,
+    "text": "- 1120488658 2005.07.04 R02-M1-NF-C:J06-U11 2005-07-04-07.50.58.422785 R02-M1-NF-C:J06-U11 RAS KERNEL INFO generating core.74"
+   },
+   {
+    "line": 1504580,
+    "text": "- 1120490265 2005.07.04 R22-M1-NF-C:J05-U11 2005-07-04-08.17.45.135513 R22-M1-NF-C:J05-U11 RAS KERNEL INFO generating core.891"
+   },
+   {
+    "line": 1505557,
+    "text": "- 1120490300 2005.07.04 R32-M0-ND-C:J10-U01 2005-07-04-08.18.20.142253 R32-M0-ND-C:J10-U01 RAS KERNEL INFO generating core.3857"
+   }
+  ]
+ },
+ "1750001-2000000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 247554,
+   "FATAL": 2095,
+   "WARNING": 286,
+   "SEVERE": 31,
+   "ERROR": 30,
+   "Kill": 4
+  },
+  "kinds": {
+   "KERNEL": 248808,
+   "APP": 783,
+   "DISCOVERY": 338,
+   "LINKCARD": 42,
+   "HARDWARE": 9,
+   "MMCS": 9,
+   "CMCS": 6,
+   "FATAL": 4
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO generating core.<N>",
+    236831
+   ],
+   [
+    "KERNEL INFO <N> double-hummer alignment exceptions",
+    8192
+   ],
+   [
+    "APP FATAL ciod: Error loading /home/greeno/raptor.new.dev.<N>d.BGL.CXX_XL.MPI.ex: invalid or missing program image, No such file o",
+    768
+   ],
+   [
+    "KERNEL FATAL rts: kernel terminated for reason <N>rts: bad message header: invalid cpu, type=<N>, cpu=<N>, index=<N>, total=<N>",
+    566
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    342
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    318
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>a<N>, mask <N>x<N>",
+    184
+   ],
+   [
+    "KERNEL FATAL <N>",
+    179
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>e<N>, mask <N>x<N>",
+    158
+   ],
+   [
+    "KERNEL FATAL rts panic! - stopping execution",
+    150
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>c<N>, mask <N>x<N>",
+    138
+   ],
+   [
+    "KERNEL FATAL ",
+    76
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>f<N>ffe<N>, mask <N>x<N>",
+    74
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>a<N>e<N>, mask <N>x<N>",
+    72
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>c<N>e<N>, mask <N>x<N>",
+    72
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>, mask <N>x<N>",
+    59
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>bb<N>fe<N>, mask <N>x<N>",
+    59
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>c<N>b<N>, mask <N>x<N>",
+    57
+   ]
+  ],
+  "distinct_templates": 381,
+  "alert_labels": {
+   "KERNTERM": 606,
+   "KERNRTSP": 150,
+   "KERNPOW": 32,
+   "KERNMC": 2,
+   "APPTORUS": 1
+  },
+  "alert_lines_total": 791,
+  "distinct_nodes": 31310,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0-N0-C:J02-U01",
+   "R00-M0-N0-C:J02-U11",
+   "R00-M0-N0-C:J03-U01",
+   "R00-M0-N0-C:J03-U11",
+   "R00-M0-N0-C:J04-U01",
+   "R00-M0-N0-C:J04-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 1816527,
+    "text": "APPTORUS 1120944043 2005.07.09 R05-M1-N3-C:J10-U11 2005-07-09-14.20.43.769922 R05-M1-N3-C:J10-U11 RAS APP FATAL external input interrupt (unit=0x02 bit=0x00): uncorrectable torus error"
+   },
+   {
+    "line": 1984977,
+    "text": "KERNMC 1121006904 2005.07.10 R14-M1-NE-C:J06-U11 2005-07-10-07.48.24.967862 R14-M1-NE-C:J06-U11 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 1985445,
+    "text": "KERNRTSP 1121006915 2005.07.10 R14-M1-NE-C:J06-U11 2005-07-10-07.48.35.454935 R14-M1-NE-C:J06-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 1994878,
+    "text": "KERNPOW 1121071828 2005.07.11 NULL 2005-07-11-01.50.28.210732 NULL RAS KERNEL FATAL Power deactivated: R05-M0-N4"
+   },
+   {
+    "line": 1994879,
+    "text": "KERNPOW 1121071828 2005.07.11 NULL 2005-07-11-01.50.28.217474 NULL RAS KERNEL FATAL Power deactivated: R05-M0-N8"
+   },
+   {
+    "line": 1994880,
+    "text": "KERNPOW 1121071828 2005.07.11 NULL 2005-07-11-01.50.28.231786 NULL RAS KERNEL FATAL Power deactivated: R05-M0-NE"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 1750784,
+    "text": "- 1120937937 2005.07.09 R31-M1-NB-C:J06-U01 2005-07-09-12.38.57.663739 R31-M1-NB-C:J06-U01 RAS KERNEL INFO generating core.54290"
+   },
+   {
+    "line": 1751761,
+    "text": "- 1120937968 2005.07.09 R30-M1-NF-C:J05-U01 2005-07-09-12.39.28.045117 R30-M1-NF-C:J05-U01 RAS KERNEL INFO generating core.24659"
+   },
+   {
+    "line": 1752738,
+    "text": "- 1120937997 2005.07.09 R21-M0-N9-C:J07-U01 2005-07-09-12.39.57.835665 R21-M0-N9-C:J07-U01 RAS KERNEL INFO generating core.56410"
+   },
+   {
+    "line": 1753715,
+    "text": "- 1120938028 2005.07.09 R30-M0-NF-C:J14-U01 2005-07-09-12.40.28.049372 R30-M0-NF-C:J14-U01 RAS KERNEL INFO generating core.1040"
+   },
+   {
+    "line": 1754692,
+    "text": "- 1120938058 2005.07.09 R23-M0-N7-C:J02-U01 2005-07-09-12.40.58.129751 R23-M0-N7-C:J02-U01 RAS KERNEL INFO generating core.51099"
+   },
+   {
+    "line": 1755669,
+    "text": "- 1120938088 2005.07.09 R23-M0-N1-C:J05-U11 2005-07-09-12.41.28.186552 R23-M0-N1-C:J05-U11 RAS KERNEL INFO generating core.23547"
+   }
+  ]
+ },
+ "2000001-2250000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 244401,
+   "FATAL": 5461,
+   "WARNING": 59,
+   "SEVERE": 29,
+   "ERROR": 29,
+   "Kill": 20,
+   "FAILURE": 1
+  },
+  "kinds": {
+   "KERNEL": 245821,
+   "APP": 3904,
+   "LINKCARD": 124,
+   "DISCOVERY": 90,
+   "HARDWARE": 28,
+   "FATAL": 20,
+   "MMCS": 7,
+   "BGLMASTER": 3
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO generating core.<N>",
+    214311
+   ],
+   [
+    "KERNEL INFO <N> double-hummer alignment exceptions",
+    22285
+   ],
+   [
+    "KERNEL INFO ciod: Y coordinate <N> exceeds physical dimension <N> at line <N> of node map file /home/pakin<N>/sweep<N>d-<N>.<N>b/res",
+    1216
+   ],
+   [
+    "KERNEL FATAL rts: kernel terminated for reason <N>rts: bad message header: invalid cpu, type=<N>, cpu=<N>, index=<N>, total=<N>",
+    1037
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    869
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    843
+   ],
+   [
+    "APP FATAL ciod: Error creating node map from file /home/pakin<N>/sweep<N>d-<N>.<N>b/results/random<N>-<N>x<N>x<N>x<N>.map: Permiss",
+    576
+   ],
+   [
+    "APP FATAL ciod: Error loading /home/glosli/src/ddcMD/ddcMD<N>.<N>.<N>/bin/ddcMDbglV: invalid or missing program image, Exec format",
+    512
+   ],
+   [
+    "KERNEL INFO ciod: Z coordinate <N> exceeds physical dimension <N> at line <N> of node map file /p/gb<N>/pakin<N>/contention-<N>cpes-",
+    512
+   ],
+   [
+    "APP FATAL ciod: Error creating node map from file /p/gb<N>/pakin<N>/contention-<N>cpes-torus/xyzt-<N>x<N>x<N>x<N>.map: Bad address",
+    512
+   ],
+   [
+    "KERNEL INFO ciod: Z coordinate <N> exceeds physical dimension <N> at line <N> of node map file /home/pakin<N>/comms-conc/xyzt-<N>x<N",
+    512
+   ],
+   [
+    "APP FATAL ciod: Error creating node map from file /home/pakin<N>/comms-conc/xyzt-<N>x<N>x<N>x<N>.map: Bad address",
+    512
+   ],
+   [
+    "APP FATAL ciod: Error loading /home/pakin<N>/contention: invalid or missing program image, No such file or directory",
+    512
+   ],
+   [
+    "KERNEL INFO ciod: T coordinate <N> exceeds physical dimension <N> at line <N> of node map file /home/pakin<N>/sweep<N>d-<N>.<N>b/res",
+    392
+   ],
+   [
+    "KERNEL FATAL <N>",
+    265
+   ],
+   [
+    "APP FATAL ciod: Error creating node map from file /home/pakin<N>/sweep<N>d-<N>.<N>b/results/sweep-<N>x<N>x<N>x<N>.map: Permission ",
+    256
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>efc<N>, mask <N>x<N>",
+    251
+   ],
+   [
+    "APP FATAL ciod: Error creating node map from file /home/pakin<N>/sweep<N>d-<N>.<N>b/results/random<N>-<N>x<N>x<N>x<N>.map: Block d",
+    216
+   ]
+  ],
+  "distinct_templates": 275,
+  "alert_labels": {
+   "KERNTERM": 1103,
+   "KERNSOCK": 5,
+   "KERNMC": 3,
+   "KERNRTSP": 2,
+   "MASABNORM": 1,
+   "KERNDTLB": 1
+  },
+  "alert_lines_total": 1115,
+  "distinct_nodes": 32731,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0-N0-C:J02-U01",
+   "R00-M0-N0-C:J02-U11",
+   "R00-M0-N0-C:J03-U01",
+   "R00-M0-N0-C:J03-U11",
+   "R00-M0-N0-C:J04-U01",
+   "R00-M0-N0-C:J04-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 2025184,
+    "text": "MASABNORM 1121213733 2005.07.12 NULL 2005-07-12-17.15.33.769604 NULL RAS BGLMASTER FAILURE mmcs_server exited abnormally due to signal: Aborted"
+   },
+   {
+    "line": 2025186,
+    "text": "KERNSOCK 1121214510 2005.07.12 R02-M1-NC-I:J18-U11 2005-07-12-17.28.30.392127 R02-M1-NC-I:J18-U11 RAS KERNEL FATAL MailboxMonitor::serviceMailboxes() lib_ido_error: -1019 socket closed"
+   },
+   {
+    "line": 2025187,
+    "text": "KERNSOCK 1121214510 2005.07.12 R02-M0-NC-I:J18-U11 2005-07-12-17.28.30.457858 R02-M0-NC-I:J18-U11 RAS KERNEL FATAL MailboxMonitor::serviceMailboxes() lib_ido_error: -1019 socket closed"
+   },
+   {
+    "line": 2025188,
+    "text": "KERNSOCK 1121214510 2005.07.12 R06-M0-NC-I:J18-U11 2005-07-12-17.28.30.546208 R06-M0-NC-I:J18-U11 RAS KERNEL FATAL MailboxMonitor::serviceMailboxes() lib_ido_error: -1019 socket closed"
+   },
+   {
+    "line": 2025189,
+    "text": "KERNSOCK 1121214510 2005.07.12 R03-M1-NC-I:J18-U11 2005-07-12-17.28.30.624941 R03-M1-NC-I:J18-U11 RAS KERNEL FATAL MailboxMonitor::serviceMailboxes() lib_ido_error: -1019 socket closed"
+   },
+   {
+    "line": 2025190,
+    "text": "KERNSOCK 1121214510 2005.07.12 R00-M0-NC-I:J18-U11 2005-07-12-17.28.30.787980 R00-M0-NC-I:J18-U11 RAS KERNEL FATAL MailboxMonitor::serviceMailboxes() lib_ido_error: -1019 socket closed"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 2000896,
+    "text": "- 1121172142 2005.07.12 R31-M0-NB-C:J04-U01 2005-07-12-05.42.22.220338 R31-M0-NB-C:J04-U01 RAS KERNEL INFO generating core.6147"
+   },
+   {
+    "line": 2001873,
+    "text": "- 1121172170 2005.07.12 R37-M1-N2-C:J11-U01 2005-07-12-05.42.50.648472 R37-M1-N2-C:J11-U01 RAS KERNEL INFO generating core.11109"
+   },
+   {
+    "line": 2002850,
+    "text": "- 1121172198 2005.07.12 R26-M1-N2-C:J04-U11 2005-07-12-05.43.18.668441 R26-M1-N2-C:J04-U11 RAS KERNEL INFO generating core.2399"
+   },
+   {
+    "line": 2003827,
+    "text": "- 1121172227 2005.07.12 R27-M0-N3-C:J13-U01 2005-07-12-05.43.47.315033 R27-M0-N3-C:J13-U01 RAS KERNEL INFO generating core.10601"
+   },
+   {
+    "line": 2004804,
+    "text": "- 1121172255 2005.07.12 R36-M0-NB-C:J02-U11 2005-07-12-05.44.15.761074 R36-M0-NB-C:J02-U11 RAS KERNEL INFO generating core.2835"
+   },
+   {
+    "line": 2005781,
+    "text": "- 1121172284 2005.07.12 R23-M1-NB-C:J16-U11 2005-07-12-05.44.44.268162 R23-M1-NB-C:J16-U11 RAS KERNEL INFO generating core.6552"
+   }
+  ]
+ },
+ "2250001-2500000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 244572,
+   "FATAL": 5159,
+   "WARNING": 134,
+   "ERROR": 61,
+   "SEVERE": 61,
+   "Kill": 12,
+   "FAILURE": 1
+  },
+  "kinds": {
+   "KERNEL": 248352,
+   "APP": 1175,
+   "DISCOVERY": 240,
+   "LINKCARD": 195,
+   "HARDWARE": 17,
+   "FATAL": 12,
+   "CMCS": 6,
+   "MMCS": 2
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO generating core.<N>",
+    171540
+   ],
+   [
+    "KERNEL INFO <N> floating point alignment exceptions",
+    65603
+   ],
+   [
+    "KERNEL INFO instruction cache parity error corrected",
+    1008
+   ],
+   [
+    "KERNEL FATAL rts: kernel terminated for reason <N>rts: bad message header: invalid cpu, type=<N>, cpu=<N>, index=<N>, total=<N>",
+    985
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    778
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    707
+   ],
+   [
+    "KERNEL FATAL rts: kernel terminated for reason <N>rts: bad message header: expecting type <N>, type=<N>, cpu=<N>, index=<N>, total=<N",
+    566
+   ],
+   [
+    "KERNEL INFO ciod: Error opening node map file /home/williams/miranda/src/vx_<N>k_<N>x<N>x<N>_<N>x<N>x<N>.map, No such file or direct",
+    512
+   ],
+   [
+    "APP FATAL ciod: Error creating node map from file /home/williams/miranda/src/vx_<N>k_<N>x<N>x<N>_<N>x<N>x<N>.map: Bad file descrip",
+    512
+   ],
+   [
+    "KERNEL INFO ciod: Error opening node map file /home/williams/miranda/src/res-apc-strong<N>-bgl-<N>-<N>Kmap-<N>:<N>:<N>Tue<N>Jul<N>/.",
+    384
+   ],
+   [
+    "APP FATAL ciod: Error creating node map from file /home/williams/miranda/src/res-apc-strong<N>-bgl-<N>-<N>Kmap-<N>:<N>:<N>Tue<N>Ju",
+    384
+   ],
+   [
+    "KERNEL FATAL <N>",
+    316
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>, mask <N>x<N>",
+    197
+   ],
+   [
+    "LINKCARD INFO MidplaneSwitchController performing bit sparing on R<N>-M<N>-L<N>-U<N>-C bit <N>",
+    195
+   ],
+   [
+    "KERNEL FATAL ",
+    190
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>b<N>, mask <N>x<N>",
+    189
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>e<N>, mask <N>x<N>",
+    158
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>a<N>, mask <N>x<N>",
+    145
+   ]
+  ],
+  "distinct_templates": 521,
+  "alert_labels": {
+   "KERNTERM": 1706,
+   "KERNRTSP": 40,
+   "APPCHILD": 32,
+   "KERNDTLB": 30,
+   "KERNPOW": 16,
+   "KERNMC": 10,
+   "APPSEV": 6,
+   "APPTORUS": 1,
+   "KERNCON": 1
+  },
+  "alert_lines_total": 1842,
+  "distinct_nodes": 33346,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0-N0-C:J02-U01",
+   "R00-M0-N0-C:J02-U11",
+   "R00-M0-N0-C:J03-U01",
+   "R00-M0-N0-C:J03-U11",
+   "R00-M0-N0-C:J04-U01",
+   "R00-M0-N0-C:J04-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 2380657,
+    "text": "KERNMC 1121628299 2005.07.17 R37-M0-N5-C:J16-U11 2005-07-17-12.24.59.352214 R37-M0-N5-C:J16-U11 RAS KERNEL FATAL machine check interrupt (bit=0x1d): L2 dcache unit data parity error"
+   },
+   {
+    "line": 2380702,
+    "text": "KERNRTSP 1121628303 2005.07.17 R37-M0-N5-C:J16-U11 2005-07-17-12.25.03.186569 R37-M0-N5-C:J16-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 2381393,
+    "text": "KERNMC 1121704723 2005.07.18 R03-M0-ND-C:J08-U01 2005-07-18-09.38.43.564365 R03-M0-ND-C:J08-U01 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 2381438,
+    "text": "KERNRTSP 1121704724 2005.07.18 R03-M0-ND-C:J08-U01 2005-07-18-09.38.44.795330 R03-M0-ND-C:J08-U01 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 2408536,
+    "text": "KERNTERM 1121716545 2005.07.18 R24-M1-NA-C:J13-U01 2005-07-18-12.55.45.740292 R24-M1-NA-C:J13-U01 RAS KERNEL FATAL rts: kernel terminated for reason 1001rts: bad message header: invalid cpu, type=11736, cpu=127, index=268892392, total=26869484"
+   },
+   {
+    "line": 2408537,
+    "text": "KERNTERM 1121716545 2005.07.18 R20-M1-N9-C:J12-U01 2005-07-18-12.55.45.770717 R20-M1-N9-C:J12-U01 RAS KERNEL FATAL rts: kernel terminated for reason 1002rts: bad message header: too many packets, type=1, cpu=0, index=1207960132, total=34316544"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 2250031,
+    "text": "- 1121493944 2005.07.15 R37-M0-NE-C:J06-U01 2005-07-15-23.05.44.348248 R37-M0-NE-C:J06-U01 RAS KERNEL INFO generating core.42518"
+   },
+   {
+    "line": 2251008,
+    "text": "- 1121493974 2005.07.15 R22-M0-ND-C:J05-U01 2005-07-15-23.06.14.340616 R22-M0-ND-C:J05-U01 RAS KERNEL INFO generating core.27483"
+   },
+   {
+    "line": 2251985,
+    "text": "- 1121494003 2005.07.15 R21-M1-NB-C:J07-U01 2005-07-15-23.06.43.757845 R21-M1-NB-C:J07-U01 RAS KERNEL INFO generating core.46170"
+   },
+   {
+    "line": 2252962,
+    "text": "- 1121494033 2005.07.15 R27-M1-N6-C:J14-U01 2005-07-15-23.07.13.064418 R27-M1-N6-C:J14-U01 RAS KERNEL INFO generating core.9884"
+   },
+   {
+    "line": 2253939,
+    "text": "- 1121494062 2005.07.15 R20-M1-N9-C:J02-U01 2005-07-15-23.07.42.294123 R20-M1-N9-C:J02-U01 RAS KERNEL INFO generating core.39963"
+   },
+   {
+    "line": 2254916,
+    "text": "- 1121494092 2005.07.15 R27-M1-N1-C:J05-U11 2005-07-15-23.08.12.033592 R27-M1-N1-C:J05-U11 RAS KERNEL INFO generating core.15099"
+   }
+  ]
+ },
+ "2500001-2750000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 249081,
+   "FATAL": 907,
+   "Kill": 11,
+   "FAILURE": 1
+  },
+  "kinds": {
+   "KERNEL": 249397,
+   "APP": 544,
+   "LINKCARD": 46,
+   "FATAL": 11,
+   "BGLMASTER": 1,
+   "MMCS": 1
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO generating core.<N>",
+    126813
+   ],
+   [
+    "KERNEL INFO <N> floating point alignment exceptions",
+    118615
+   ],
+   [
+    "KERNEL INFO instruction cache parity error corrected",
+    432
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    429
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    393
+   ],
+   [
+    "APP FATAL ciod: Error loading main<N>d: invalid or missing program image, No such file or directory",
+    288
+   ],
+   [
+    "APP FATAL ciod: Error loading /home/dahn/JeffGreenough/raptor.dev<N>d.BGL.CXX_XL.PROF.MPI.ex: invalid or missing program image, No",
+    256
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>e<N>, mask <N>x<N>",
+    164
+   ],
+   [
+    "KERNEL FATAL rts: kernel terminated for reason <N>rts: bad message header: invalid cpu, type=<N>, cpu=<N>, index=<N>, total=<N>",
+    164
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>a<N>, mask <N>x<N>",
+    149
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>ed<N>, mask <N>x<N>",
+    137
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>, mask <N>x<N>",
+    137
+   ],
+   [
+    "KERNEL INFO <N> L<N> EDRAM error(s) (dcr <N>x<N>) detected and corrected",
+    99
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>aae<N>, mask <N>x<N>",
+    83
+   ],
+   [
+    "KERNEL INFO <N> tree receiver <N> in re-synch state event(s) (dcr <N>x<N>a) detected",
+    82
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>e<N>e<N>, mask <N>x<N>",
+    73
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>f<N>e<N>, mask <N>x<N>",
+    68
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>d<N>a<N>, mask <N>x<N>",
+    61
+   ]
+  ],
+  "distinct_templates": 242,
+  "alert_labels": {
+   "KERNTERM": 175,
+   "KERNMC": 3,
+   "KERNRTSP": 3,
+   "MASABNORM": 1
+  },
+  "alert_lines_total": 182,
+  "distinct_nodes": 30222,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0-N0-C:J02-U01",
+   "R00-M0-N0-C:J02-U11",
+   "R00-M0-N0-C:J03-U01",
+   "R00-M0-N0-C:J03-U11",
+   "R00-M0-N0-C:J04-U01",
+   "R00-M0-N0-C:J04-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 2686651,
+    "text": "KERNMC 1122179492 2005.07.23 R27-M0-N0-C:J11-U11 2005-07-23-21.31.32.486160 R27-M0-N0-C:J11-U11 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 2686727,
+    "text": "KERNRTSP 1122179530 2005.07.23 R27-M0-N0-C:J11-U11 2005-07-23-21.32.10.155131 R27-M0-N0-C:J11-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 2686846,
+    "text": "KERNMC 1122190129 2005.07.24 R12-M0-N4-C:J05-U11 2005-07-24-00.28.49.799532 R12-M0-N4-C:J05-U11 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 2686891,
+    "text": "KERNRTSP 1122190166 2005.07.24 R12-M0-N4-C:J05-U11 2005-07-24-00.29.26.235757 R12-M0-N4-C:J05-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 2725352,
+    "text": "KERNTERM 1122261244 2005.07.24 R20-M1-N6-C:J12-U01 2005-07-24-20.14.04.280961 R20-M1-N6-C:J12-U01 RAS KERNEL FATAL rts: kernel terminated for reason 1002rts: bad message header: too many packets, type=1, cpu=0, index=1207960132, total=16064034"
+   },
+   {
+    "line": 2725353,
+    "text": "KERNTERM 1122261244 2005.07.24 R31-M0-N8-C:J12-U01 2005-07-24-20.14.04.312727 R31-M0-N8-C:J12-U01 RAS KERNEL FATAL rts: kernel terminated for reason 1001rts: bad message header: invalid cpu, type=2238, cpu=16, index=133207584, total=269102552"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 2500143,
+    "text": "- 1122133149 2005.07.23 R22-M1-N5-C:J07-U01 2005-07-23-08.39.09.616707 R22-M1-N5-C:J07-U01 RAS KERNEL INFO generating core.2026"
+   },
+   {
+    "line": 2501120,
+    "text": "- 1122133176 2005.07.23 R20-M0-N6-C:J02-U01 2005-07-23-08.39.36.342850 R20-M0-N6-C:J02-U01 RAS KERNEL INFO generating core.12879"
+   },
+   {
+    "line": 2502097,
+    "text": "- 1122133203 2005.07.23 R37-M1-NB-C:J09-U01 2005-07-23-08.40.03.558565 R37-M1-NB-C:J09-U01 RAS KERNEL INFO generating core.10530"
+   },
+   {
+    "line": 2503074,
+    "text": "- 1122133230 2005.07.23 R27-M1-N5-C:J09-U11 2005-07-23-08.40.30.415348 R27-M1-N5-C:J09-U11 RAS KERNEL INFO generating core.5498"
+   },
+   {
+    "line": 2504051,
+    "text": "- 1122133257 2005.07.23 R21-M0-ND-C:J08-U11 2005-07-23-08.40.57.394039 R21-M0-ND-C:J08-U11 RAS KERNEL INFO generating core.9242"
+   },
+   {
+    "line": 2505028,
+    "text": "- 1122133284 2005.07.23 R33-M0-N3-C:J11-U11 2005-07-23-08.41.24.869696 R33-M0-N3-C:J11-U11 RAS KERNEL INFO generating core.7153"
+   }
+  ]
+ },
+ "2750001-3000000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 188583,
+   "ERROR": 36398,
+   "SEVERE": 10579,
+   "WARNING": 10267,
+   "FATAL": 4151,
+   "Kill": 15,
+   "FAILURE": 7
+  },
+  "kinds": {
+   "KERNEL": 168331,
+   "DISCOVERY": 58878,
+   "MMCS": 20372,
+   "HARDWARE": 1163,
+   "APP": 1089,
+   "LINKCARD": 90,
+   "CMCS": 42,
+   "FATAL": 15
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO generating core.<N>",
+    155128
+   ],
+   [
+    "MMCS ERROR idoproxydb hit ASSERT condition: ASSERT expression=<N> Source file=idotransportmgr.cpp Source line=<N> Function=int IdoT",
+    19320
+   ],
+   [
+    "DISCOVERY WARNING Node card is not fully functional",
+    9627
+   ],
+   [
+    "DISCOVERY SEVERE Can not get assembly information for node card",
+    9583
+   ],
+   [
+    "DISCOVERY ERROR Node card status: no ALERTs are active. Clock Mode is Low. Clock Select is Midplane. Phy JTAG Reset is asserted. ASIC JT",
+    9583
+   ],
+   [
+    "DISCOVERY ERROR Found invalid node ecid in processor card slot J<N>, ecid <N>",
+    5558
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    1758
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    1086
+   ],
+   [
+    "MMCS ERROR Ido packet timeout",
+    1008
+   ],
+   [
+    "KERNEL FATAL Error: unable to mount filesystem",
+    638
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>, mask <N>x<N>",
+    600
+   ],
+   [
+    "APP FATAL ciod: Error reading message prefix after LOAD_MESSAGE on CioStream socket to <N>.<N>.<N>.<N>:<N>: Link has been severed",
+    523
+   ],
+   [
+    "KERNEL FATAL Microloader Assertion",
+    446
+   ],
+   [
+    "DISCOVERY ERROR Missing reverse cable: Cable R<N>-M<N>-L<N> <N> F (J<N>) --> R<N>-M<N>-L<N> <N> C (J<N>) is present BUT the reverse cabl",
+    354
+   ],
+   [
+    "KERNEL FATAL rts panic! - stopping execution",
+    309
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>a<N>, mask <N>x<N>",
+    299
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>e<N>, mask <N>x<N>",
+    283
+   ],
+   [
+    "APP FATAL ciod: LOGIN chdir(/home/ckapfer/samrai/linadv_input) failed: No such file or directory",
+    256
+   ]
+  ],
+  "distinct_templates": 11457,
+  "alert_labels": {
+   "KERNMNT": 638,
+   "APPSEV": 523,
+   "KERNMICRO": 446,
+   "KERNRTSP": 309,
+   "APPRES": 54,
+   "KERNMC": 38,
+   "KERNMNTF": 8,
+   "LINKIAP": 6,
+   "MASNORM": 4,
+   "KERNCON": 4
+  },
+  "alert_lines_total": 2038,
+  "distinct_nodes": 31416,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0-N0",
+   "R00-M0-N0-C:J02-U01",
+   "R00-M0-N0-C:J02-U11",
+   "R00-M0-N0-C:J03-U01",
+   "R00-M0-N0-C:J03-U11",
+   "R00-M0-N0-C:J04-U01"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 2786494,
+    "text": "KERNMC 1122442958 2005.07.26 R01-M1-ND-C:J10-U01 2005-07-26-22.42.38.464959 R01-M1-ND-C:J10-U01 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 2786563,
+    "text": "KERNRTSP 1122442997 2005.07.26 R01-M1-ND-C:J10-U01 2005-07-26-22.43.17.600627 R01-M1-ND-C:J10-U01 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 2786570,
+    "text": "KERNMC 1122470244 2005.07.27 R23-M1-N3-C:J05-U11 2005-07-27-06.17.24.434197 R23-M1-N3-C:J05-U11 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 2786688,
+    "text": "KERNRTSP 1122470282 2005.07.27 R23-M1-N3-C:J05-U11 2005-07-27-06.18.02.201979 R23-M1-N3-C:J05-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 2787758,
+    "text": "KERNMC 1122492313 2005.07.27 R36-M1-N6-C:J07-U11 2005-07-27-12.25.13.264430 R36-M1-N6-C:J07-U11 RAS KERNEL FATAL machine check interrupt (bit=0x09): Torus/Tree/GI read error 0"
+   },
+   {
+    "line": 2790801,
+    "text": "KERNMC 1122532048 2005.07.27 R07-M1-NA-C:J13-U11 2005-07-27-23.27.28.930642 R07-M1-NA-C:J13-U11 RAS KERNEL FATAL machine check interrupt"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 2750255,
+    "text": "- 1122430712 2005.07.26 R36-M0-NB-C:J10-U01 2005-07-26-19.18.32.897555 R36-M0-NB-C:J10-U01 RAS KERNEL INFO generating core.5649"
+   },
+   {
+    "line": 2751232,
+    "text": "- 1122430742 2005.07.26 R33-M0-N7-C:J09-U11 2005-07-26-19.19.02.943069 R33-M0-N7-C:J09-U11 RAS KERNEL INFO generating core.41970"
+   },
+   {
+    "line": 2752209,
+    "text": "- 1122430773 2005.07.26 R23-M1-NB-C:J07-U11 2005-07-26-19.19.33.029971 R23-M1-NB-C:J07-U11 RAS KERNEL INFO generating core.14202"
+   },
+   {
+    "line": 2753186,
+    "text": "- 1122430802 2005.07.26 R34-M1-N5-C:J08-U11 2005-07-26-19.20.02.625586 R34-M1-N5-C:J08-U11 RAS KERNEL INFO generating core.59826"
+   },
+   {
+    "line": 2754163,
+    "text": "- 1122430831 2005.07.26 R25-M0-ND-C:J08-U01 2005-07-26-19.20.31.887563 R25-M0-ND-C:J08-U01 RAS KERNEL INFO generating core.18714"
+   },
+   {
+    "line": 2755140,
+    "text": "- 1122430861 2005.07.26 R34-M1-N9-C:J11-U11 2005-07-26-19.21.01.624332 R34-M1-N9-C:J11-U11 RAS KERNEL INFO generating core.64881"
+   }
+  ]
+ },
+ "3000001-3250000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 189279,
+   "FATAL": 59683,
+   "WARNING": 388,
+   "SEVERE": 298,
+   "ERROR": 278,
+   "Kill": 55,
+   "FAILURE": 19
+  },
+  "kinds": {
+   "KERNEL": 203120,
+   "APP": 45163,
+   "DISCOVERY": 1444,
+   "HARDWARE": 113,
+   "MMCS": 67,
+   "FATAL": 55,
+   "BGLMASTER": 29,
+   "CMCS": 9
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO <N> double-hummer alignment exceptions",
+    54913
+   ],
+   [
+    "APP FATAL ciod: Error loading /bgl/apps/scaletest/performance/MINIBEN/mb_<N>_<N>/allreduce.rts: invalid or missing program image, ",
+    20480
+   ],
+   [
+    "KERNEL INFO ciod: generated <N> core files for program /home/germann<N>/BGL-demo/SPaSM_mpi",
+    12288
+   ],
+   [
+    "KERNEL FATAL rts: kernel terminated for reason <N>",
+    11349
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    5442
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    4948
+   ],
+   [
+    "KERNEL INFO ciod: generated <N> core files for program /bgl/apps/swl-prep/ibm-swl/functional/sppm_chkpt/run/sppm",
+    4306
+   ],
+   [
+    "APP FATAL ciod: LOGIN chdir(/home/germann<N>/SPaSM_static) failed: No such file or directory",
+    4070
+   ],
+   [
+    "KERNEL INFO iar <N>a<N> dear <N>e<N>",
+    3279
+   ],
+   [
+    "KERNEL INFO iar <N>a<N> dear <N>",
+    3182
+   ],
+   [
+    "KERNEL INFO ",
+    3156
+   ],
+   [
+    "KERNEL INFO iar <N>a<N> dear <N>b<N>",
+    3112
+   ],
+   [
+    "APP FATAL ciod: LOGIN chdir(/home/germann<N>/BGL-demo) failed: No such file or directory",
+    2646
+   ],
+   [
+    "APP FATAL ciod: Error loading /bgl/apps/hwstab/RAPTOR/temp/raptor: invalid or missing program image, No such file or directory",
+    2432
+   ],
+   [
+    "APP FATAL ciod: Error reading message prefix after LOGIN_MESSAGE on CioStream socket to <N>.<N>.<N>.<N>:<N>: Link has been severed",
+    2349
+   ],
+   [
+    "KERNEL INFO iar <N>a<N> dear <N>f<N>",
+    2285
+   ],
+   [
+    "APP FATAL ciod: Error reading message prefix after LOAD_MESSAGE on CioStream socket to <N>.<N>.<N>.<N>:<N>: Link has been severed",
+    2243
+   ],
+   [
+    "APP FATAL ciod: Error reading message prefix after VERSION_MESSAGE on CioStream socket to <N>.<N>.<N>.<N>:<N>: Link has been sever",
+    2048
+   ]
+  ],
+  "distinct_templates": 3420,
+  "alert_labels": {
+   "KERNTERM": 11349,
+   "APPSEV": 6688,
+   "APPUNAV": 1024,
+   "KERNMNTF": 694,
+   "KERNRTSP": 200,
+   "KERNSOCK": 92,
+   "APPRES": 55,
+   "KERNDTLB": 33,
+   "KERNMC": 29,
+   "MASABNORM": 15
+  },
+  "alert_lines_total": 20195,
+  "distinct_nodes": 28167,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0-N0-C:J09-U11",
+   "R00-M0-N0-C:J13-U01",
+   "R00-M0-N0-C:J13-U11",
+   "R00-M0-N0-C:J17-U11",
+   "R00-M0-N0-I:J18-U01",
+   "R00-M0-N0-I:J18-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 3000916,
+    "text": "KERNMC 1123644327 2005.08.09 R54-M1-NF-C:J05-U11 2005-08-09-20.25.27.267908 R54-M1-NF-C:J05-U11 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 3000961,
+    "text": "KERNRTSP 1123644331 2005.08.09 R54-M1-NF-C:J05-U11 2005-08-09-20.25.31.703110 R54-M1-NF-C:J05-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 3001049,
+    "text": "KERNRTSP 1123646847 2005.08.09 R45-M0-N6-C:J07-U11 2005-08-09-21.07.27.643275 R45-M0-N6-C:J07-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 3007511,
+    "text": "MASNORM 1123690198 2005.08.10 NULL 2005-08-10-09.09.58.139632 NULL RAS BGLMASTER FAILURE mmcs_server exited normally with exit code 15"
+   },
+   {
+    "line": 3007514,
+    "text": "KERNRTSP 1123691617 2005.08.10 R45-M0-N6-C:J07-U11 2005-08-10-09.33.37.457394 R45-M0-N6-C:J07-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 3008326,
+    "text": "KERNMC 1123707034 2005.08.10 R52-M1-N6-C:J05-U11 2005-08-10-13.50.34.885132 R52-M1-N6-C:J05-U11 RAS KERNEL FATAL machine check interrupt (bit=0x1d): L2 dcache unit data parity error"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 3000367,
+    "text": "- 1123637113 2005.08.09 R43-M1-N8-C:J13-U11 2005-08-09-18.25.13.796356 R43-M1-N8-C:J13-U11 RAS KERNEL INFO CE sym 10, at 0x0b7c2060, mask 0x01"
+   },
+   {
+    "line": 3001344,
+    "text": "- 1123648409 2005.08.09 R30-M0-NB-C:J15-U01 2005-08-09-21.33.29.394056 R30-M0-NB-C:J15-U01 RAS KERNEL INFO CE sym 12, at 0x1100df00, mask 0x02"
+   },
+   {
+    "line": 3002321,
+    "text": "- 1123654906 2005.08.09 R34-M1-N4-C:J10-U01 2005-08-09-23.21.46.490424 R34-M1-N4-C:J10-U01 RAS KERNEL INFO 1 ddr errors(s) detected and corrected on rank 0, symbol 4, bit 4"
+   },
+   {
+    "line": 3003298,
+    "text": "- 1123661398 2005.08.10 R32-M1-N9-C:J16-U11 2005-08-10-01.09.58.220812 R32-M1-N9-C:J16-U11 RAS KERNEL INFO CE sym 15, at 0x096de080, mask 0x08"
+   },
+   {
+    "line": 3004275,
+    "text": "- 1123667861 2005.08.10 R32-M1-N9-C:J16-U11 2005-08-10-02.57.41.439347 R32-M1-N9-C:J16-U11 RAS KERNEL INFO CE sym 15, at 0x096de080, mask 0x08"
+   },
+   {
+    "line": 3005252,
+    "text": "- 1123674233 2005.08.10 R00-M1-NF-C:J13-U11 2005-08-10-04.43.53.059692 R00-M1-NF-C:J13-U11 RAS KERNEL INFO total of 2 ddr error(s) detected and corrected"
+   }
+  ]
+ },
+ "3250001-3500000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 95657,
+   "FATAL": 78945,
+   "ERROR": 69912,
+   "WARNING": 2998,
+   "SEVERE": 2460,
+   "Kill": 24,
+   "FAILURE": 4
+  },
+  "kinds": {
+   "KERNEL": 119850,
+   "MMCS": 68059,
+   "APP": 45777,
+   "DISCOVERY": 14816,
+   "HARDWARE": 1204,
+   "LINKCARD": 241,
+   "FATAL": 24,
+   "CMCS": 15
+  },
+  "top_templates": [
+   [
+    "MMCS ERROR idoproxydb hit ASSERT condition: ASSERT expression=<N> Source file=idotransportmgr.cpp Source line=<N> Function=int IdoT",
+    64848
+   ],
+   [
+    "KERNEL FATAL Lustre mount FAILED : bglio<N> : point /p/gb<N>",
+    26426
+   ],
+   [
+    "KERNEL INFO <N> double-hummer alignment exceptions",
+    14756
+   ],
+   [
+    "APP FATAL ciod: LOGIN chdir(/bgl/apps/SWL/performance/MINIBEN///<N>.<N>.<N>-<N>.<N>.<N>) failed: No such file or directory",
+    11088
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    4713
+   ],
+   [
+    "APP FATAL ciod: Error reading message prefix after LOAD_MESSAGE on CioStream socket to <N>.<N>.<N>.<N>:<N>: Link has been severed",
+    4416
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    4126
+   ],
+   [
+    "APP FATAL ciod: Error loading /home/yates//torus-latency.rts: invalid or missing program image, No such file or directory",
+    4032
+   ],
+   [
+    "MMCS ERROR Ido packet timeout",
+    3167
+   ],
+   [
+    "APP FATAL ciod: Error loading /home/yates//broadcast.rts: invalid or missing program image, No such file or directory",
+    3120
+   ],
+   [
+    "APP FATAL ciod: Error loading /home/greeno/_dev<N>/_pasci<N>/_hyperclaw.mf.rich/run/_jag_work/raptor.dev.new<N>d.BGL.CXX_XL.MPI.ex",
+    3072
+   ],
+   [
+    "KERNEL INFO ciod: generated <N> core files for program IMB-MPI<N>.<N>KB_perf",
+    2911
+   ],
+   [
+    "KERNEL INFO NFS Mount failed on bglio<N>, slept <N> seconds, retrying (<N>)",
+    2670
+   ],
+   [
+    "APP FATAL ciod: Error loading /bgl/apps/SWL/performance/MINIBEN//torus-latency.rts: invalid or missing program image, No such file",
+    2464
+   ],
+   [
+    "KERNEL INFO iar <N>a<N> dear <N>",
+    2331
+   ],
+   [
+    "KERNEL INFO iar <N>a<N> dear <N>a<N>",
+    2173
+   ],
+   [
+    "APP FATAL ciod: Error loading /bgl/apps/swl-prep/rky-swl/MPI-PERF/IMB/perf_tests/IMB-MPI<N>.<N>MB: invalid or missing program imag",
+    2048
+   ],
+   [
+    "DISCOVERY WARNING Node card is not fully functional",
+    1899
+   ]
+  ],
+  "distinct_templates": 6696,
+  "alert_labels": {
+   "KERNMNTF": 26722,
+   "APPSEV": 5488,
+   "KERNTERM": 1087,
+   "KERNMICRO": 1040,
+   "KERNRTSP": 537,
+   "LINKIAP": 152,
+   "KERNMNT": 80,
+   "KERNPOW": 48,
+   "KERNMC": 44,
+   "KERNSOCK": 11
+  },
+  "alert_lines_total": 35222,
+  "distinct_nodes": 21011,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0-N0-I:J18-U01",
+   "R00-M0-N0-I:J18-U11",
+   "R00-M0-N2-C:J15-U01",
+   "R00-M0-N4-C:J02-U01",
+   "R00-M0-N4-C:J05-U11",
+   "R00-M0-N4-C:J06-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 3297330,
+    "text": "KERNMC 1125251135 2005.08.28 R51-M1-N8-C:J16-U01 2005-08-28-10.45.35.167146 R51-M1-N8-C:J16-U01 RAS KERNEL FATAL machine check interrupt (bit=0x06): L3 major internal error"
+   },
+   {
+    "line": 3297912,
+    "text": "KERNRTSP 1125284361 2005.08.28 R63-M0-N3-C:J14-U01 2005-08-28-19.59.21.072178 R63-M0-N3-C:J14-U01 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 3297933,
+    "text": "KERNRTSP 1125284361 2005.08.28 R63-M0-N2-C:J03-U01 2005-08-28-19.59.21.460776 R63-M0-N2-C:J03-U01 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 3297936,
+    "text": "KERNRTSP 1125284361 2005.08.28 R63-M0-N2-C:J04-U11 2005-08-28-19.59.21.515755 R63-M0-N2-C:J04-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 3297981,
+    "text": "KERNRTSP 1125284362 2005.08.28 R63-M0-N8-C:J03-U01 2005-08-28-19.59.22.734622 R63-M0-N8-C:J03-U01 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 3298038,
+    "text": "KERNRTSP 1125284364 2005.08.28 R63-M0-N2-C:J05-U01 2005-08-28-19.59.24.850759 R63-M0-N2-C:J05-U01 RAS KERNEL FATAL rts panic! - stopping execution"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 3250479,
+    "text": "- 1125222207 2005.08.28 R42-M1-NF-C:J04-U11 2005-08-28-02.43.27.358213 R42-M1-NF-C:J04-U11 RAS KERNEL INFO 34173092 double-hummer alignment exceptions"
+   },
+   {
+    "line": 3251456,
+    "text": "- 1125222264 2005.08.28 R52-M0-N9-C:J05-U01 2005-08-28-02.44.24.025064 R52-M0-N9-C:J05-U01 RAS KERNEL INFO 37732582 double-hummer alignment exceptions"
+   },
+   {
+    "line": 3252433,
+    "text": "- 1125222320 2005.08.28 R47-M0-N9-C:J13-U01 2005-08-28-02.45.20.928319 R47-M0-N9-C:J13-U01 RAS KERNEL INFO 32209090 double-hummer alignment exceptions"
+   },
+   {
+    "line": 3253410,
+    "text": "- 1125222379 2005.08.28 R42-M1-N9-C:J14-U01 2005-08-28-02.46.19.350707 R42-M1-N9-C:J14-U01 RAS KERNEL INFO 31019332 double-hummer alignment exceptions"
+   },
+   {
+    "line": 3254387,
+    "text": "- 1125222434 2005.08.28 R46-M1-N2-C:J02-U11 2005-08-28-02.47.14.905525 R46-M1-N2-C:J02-U11 RAS KERNEL INFO 38472464 double-hummer alignment exceptions"
+   },
+   {
+    "line": 3255364,
+    "text": "- 1125222492 2005.08.28 R42-M1-NE-C:J05-U11 2005-08-28-02.48.12.168956 R42-M1-NE-C:J05-U11 RAS KERNEL INFO 37536928 double-hummer alignment exceptions"
+   }
+  ]
+ },
+ "3500001-3750000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 188586,
+   "FATAL": 57372,
+   "WARNING": 1399,
+   "SEVERE": 1330,
+   "ERROR": 1253,
+   "Kill": 59,
+   "FAILURE": 1
+  },
+  "kinds": {
+   "KERNEL": 194869,
+   "APP": 50064,
+   "DISCOVERY": 4616,
+   "HARDWARE": 253,
+   "MMCS": 84,
+   "FATAL": 59,
+   "CMCS": 27,
+   "BGLMASTER": 26
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO iar <N> dear <N>c<N>c",
+    17492
+   ],
+   [
+    "KERNEL INFO data cache search parity error detected. attempting to correct",
+    13923
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    12036
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    9633
+   ],
+   [
+    "KERNEL INFO <N> floating point alignment exceptions",
+    8832
+   ],
+   [
+    "KERNEL INFO iar <N>dc dear <N>c<N>c",
+    8592
+   ],
+   [
+    "APP FATAL ciod: Error reading message prefix after LOAD_MESSAGE on CioStream socket to <N>.<N>.<N>.<N>:<N>: Link has been severed",
+    6767
+   ],
+   [
+    "KERNEL INFO suppressing further interrupts of same type",
+    6525
+   ],
+   [
+    "APP FATAL ciod: Error loading /home/spelce<N>/HPCC_IBM/Urgent/VNM/<N>K/vnm.rts: invalid or missing program image, Permission denie",
+    5120
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>a<N>, mask <N>x<N>",
+    4902
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>, mask <N>x<N>",
+    4745
+   ],
+   [
+    "KERNEL INFO instruction cache parity error corrected",
+    4317
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>c<N>dc",
+    4288
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>c<N>ec",
+    3888
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>b<N>, mask <N>x<N>",
+    3029
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>e<N>, mask <N>x<N>",
+    2766
+   ],
+   [
+    "KERNEL INFO ciod: generated <N> core files for program /home/spelce<N>/HPCC_IBM/Urgent/VNM/<N>K/vnm.rts",
+    2560
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>c<N>, mask <N>x<N>",
+    2506
+   ]
+  ],
+  "distinct_templates": 2282,
+  "alert_labels": {
+   "APPSEV": 8868,
+   "KERNMNTF": 1667,
+   "KERNTERM": 1031,
+   "KERNREC": 1024,
+   "KERNMC": 91,
+   "KERNRTSP": 64,
+   "KERNPOW": 48,
+   "KERNMICRO": 17,
+   "KERNSOCK": 8,
+   "KERNCON": 6
+  },
+  "alert_lines_total": 12850,
+  "distinct_nodes": 13276,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0-N0-C:J05-U11",
+   "R00-M0-N0-C:J07-U11",
+   "R00-M0-N0-I:J18-U01",
+   "R00-M0-N0-I:J18-U11",
+   "R00-M0-N1-C:J02-U01",
+   "R00-M0-N1-C:J02-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 3500072,
+    "text": "KERNMC 1127502210 2005.09.23 R12-M1-ND-C:J03-U11 2005-09-23-12.03.30.788248 R12-M1-ND-C:J03-U11 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 3500196,
+    "text": "KERNRTSP 1127502285 2005.09.23 R12-M1-ND-C:J03-U11 2005-09-23-12.04.45.643654 R12-M1-ND-C:J03-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 3500801,
+    "text": "KERNSOCK 1127516256 2005.09.23 R00-M0-NC-I:J18-U11 2005-09-23-15.57.36.206225 R00-M0-NC-I:J18-U11 RAS KERNEL FATAL MailboxMonitor::serviceMailboxes() lib_ido_error: -1019 socket closed"
+   },
+   {
+    "line": 3501099,
+    "text": "KERNMC 1127537920 2005.09.23 R20-M1-N6-C:J02-U01 2005-09-23-21.58.40.833250 R20-M1-N6-C:J02-U01 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 3501219,
+    "text": "KERNMC 1127545070 2005.09.23 R66-M0-NC-C:J11-U01 2005-09-23-23.57.50.093089 R66-M0-NC-C:J11-U01 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 3502008,
+    "text": "KERNMC 1127567361 2005.09.24 R36-M1-N2-C:J08-U01 2005-09-24-06.09.21.936186 R36-M1-N2-C:J08-U01 RAS KERNEL FATAL machine check interrupt"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 3500591,
+    "text": "- 1127515916 2005.09.23 R21-M0-ND-C:J04-U01 2005-09-23-15.51.56.146633 R21-M0-ND-C:J04-U01 RAS KERNEL INFO CE sym 25, at 0x18d25040, mask 0x20"
+   },
+   {
+    "line": 3501568,
+    "text": "- 1127545123 2005.09.23 R73-M1-N1-C:J16-U11 2005-09-23-23.58.43.104219 R73-M1-N1-C:J16-U11 RAS KERNEL INFO total of 1 ddr error(s) detected and corrected"
+   },
+   {
+    "line": 3502545,
+    "text": "- 1127579624 2005.09.24 R56-M0-N8-C:J10-U01 2005-09-24-09.33.44.289336 R56-M0-N8-C:J10-U01 RAS KERNEL INFO CE sym 27, at 0x014dd100, mask 0x20"
+   },
+   {
+    "line": 3503522,
+    "text": "- 1127609977 2005.09.24 R34-M1-N5-C:J05-U11 2005-09-24-17.59.37.549504 R34-M1-N5-C:J05-U11 RAS KERNEL INFO CE sym 4, at 0x09e885a0, mask 0x40"
+   },
+   {
+    "line": 3504499,
+    "text": "- 1127640141 2005.09.25 R43-M1-N1-C:J16-U01 2005-09-25-02.22.21.880716 R43-M1-N1-C:J16-U01 RAS KERNEL INFO CE sym 22, at 0x029a87a0, mask 0x01"
+   },
+   {
+    "line": 3505476,
+    "text": "- 1127668532 2005.09.25 R63-M1-NC-C:J06-U01 2005-09-25-10.15.32.147684 R63-M1-NC-C:J06-U01 RAS KERNEL INFO CE sym 13, at 0x03975c80, mask 0x01"
+   }
+  ]
+ },
+ "3750001-4000000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 249910,
+   "FATAL": 81,
+   "Kill": 9
+  },
+  "kinds": {
+   "KERNEL": 249911,
+   "APP": 80,
+   "FATAL": 9
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO <N> floating point alignment exceptions",
+    59433
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>c<N>c",
+    36994
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>e<N>c",
+    18102
+   ],
+   [
+    "KERNEL INFO ",
+    14413
+   ],
+   [
+    "KERNEL INFO iar <N>dc dear <N>c<N>c",
+    8198
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>a<N>c",
+    8156
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>b<N>c",
+    4125
+   ],
+   [
+    "KERNEL INFO iar <N>c dear <N>b<N>c",
+    3891
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>bbc",
+    3840
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>bcc",
+    3840
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>bec",
+    3840
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>bfc",
+    3840
+   ],
+   [
+    "KERNEL INFO iar <N>c dear <N>f<N>c",
+    3758
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>c<N>ec",
+    2016
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>c<N>dc",
+    1920
+   ],
+   [
+    "KERNEL INFO iar <N>c dear <N>f<N>fc",
+    1790
+   ],
+   [
+    "KERNEL INFO iar <N>c dear <N>f<N>ec",
+    1648
+   ],
+   [
+    "KERNEL INFO iar <N>d<N> dear <N>b<N>c",
+    1543
+   ]
+  ],
+  "distinct_templates": 455,
+  "alert_labels": {
+   "KERNNOETH": 1
+  },
+  "alert_lines_total": 1,
+  "distinct_nodes": 30607,
+  "sample_nodes": [
+   "-",
+   "R00-M0-N0-C:J04-U01",
+   "R00-M0-N0-C:J06-U01",
+   "R00-M0-N0-C:J06-U11",
+   "R00-M0-N0-C:J10-U01",
+   "R00-M0-N0-C:J10-U11",
+   "R00-M0-N0-C:J12-U01",
+   "R00-M0-N0-C:J12-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 3893393,
+    "text": "KERNNOETH 1131113126 2005.11.04 R70-M0-N4-I:J18-U11 2005-11-04-06.05.26.826558 R70-M0-N4-I:J18-U11 RAS KERNEL FATAL no ethernet link"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 3750703,
+    "text": "- 1131058468 2005.11.03 R61-M0-N3-C:J11-U01 2005-11-03-14.54.28.177515 R61-M0-N3-C:J11-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c"
+   },
+   {
+    "line": 3751680,
+    "text": "- 1131058479 2005.11.03 R64-M1-NC-C:J07-U01 2005-11-03-14.54.39.706171 R64-M1-NC-C:J07-U01 RAS KERNEL INFO iar 001061dc dear 0244c25c"
+   },
+   {
+    "line": 3752657,
+    "text": "- 1131058495 2005.11.03 R67-M0-NB-C:J08-U11 2005-11-03-14.54.55.524596 R67-M0-NB-C:J08-U11 RAS KERNEL INFO iar 00106210 dear 0244c23c"
+   },
+   {
+    "line": 3753634,
+    "text": "- 1131058516 2005.11.03 R66-M1-N8-C:J12-U01 2005-11-03-14.55.16.517245 R66-M1-N8-C:J12-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c"
+   },
+   {
+    "line": 3754611,
+    "text": "- 1131059138 2005.11.03 R66-M1-N2-C:J03-U11 2005-11-03-15.05.38.025210 R66-M1-N2-C:J03-U11 RAS KERNEL INFO 640404 floating point alignment exceptions"
+   },
+   {
+    "line": 3755588,
+    "text": "- 1131059159 2005.11.03 R67-M0-NC-C:J05-U11 2005-11-03-15.05.59.105918 R67-M0-NC-C:J05-U11 RAS KERNEL INFO 640404 floating point alignment exceptions"
+   }
+  ]
+ },
+ "4000001-4250000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 225037,
+   "FATAL": 21332,
+   "FAILURE": 1660,
+   "WARNING": 807,
+   "ERROR": 583,
+   "SEVERE": 551,
+   "Kill": 30
+  },
+  "kinds": {
+   "KERNEL": 236483,
+   "APP": 9091,
+   "DISCOVERY": 2246,
+   "MONITOR": 1676,
+   "HARDWARE": 340,
+   "MMCS": 110,
+   "FATAL": 30,
+   "CMCS": 15
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO ",
+    15724
+   ],
+   [
+    "KERNEL INFO <N> floating point alignment exceptions",
+    15212
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>c",
+    14036
+   ],
+   [
+    "KERNEL INFO MACHINE CHECK DCR read timeout (mc=e<N>x iar <N>x<N> lr <N>xc<N>a<N>)",
+    10793
+   ],
+   [
+    "KERNEL INFO iar <N>e<N> dear <N>c",
+    9000
+   ],
+   [
+    "KERNEL INFO ciod: Received signal <N>, code=<N>, errno=<N>, address=<N>x<N>b<N>",
+    6623
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>db<N>c",
+    6321
+   ],
+   [
+    "KERNEL FATAL rts: kernel terminated for reason <N>",
+    5120
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>fee<N>c<N>c",
+    4094
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>fee<N>d<N>c",
+    4092
+   ],
+   [
+    "KERNEL INFO iar <N>ac dear <N>c",
+    3768
+   ],
+   [
+    "KERNEL INFO iar <N> dear <N>a<N>c",
+    3684
+   ],
+   [
+    "KERNEL INFO iar <N>c<N> dear <N>c",
+    3328
+   ],
+   [
+    "KERNEL INFO L<N> DCACHE summary averages: #ofDirtyLines: <N> out of <N> #ofDirtyDblWord: <N> out of <N>",
+    3149
+   ],
+   [
+    "KERNEL INFO iar <N>b<N> dear <N>ac",
+    3111
+   ],
+   [
+    "KERNEL INFO ciod: generated <N> core files for program /bgl/apps/followup/RAPTOR/raptor.rel<N>",
+    3072
+   ],
+   [
+    "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+    3037
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+    2903
+   ]
+  ],
+  "distinct_templates": 2664,
+  "alert_labels": {
+   "KERNTERM": 5120,
+   "KERNREC": 5120,
+   "APPSEV": 2407,
+   "APPRES": 316,
+   "KERNMNTF": 227,
+   "KERNSERV": 79,
+   "KERNSOCK": 48,
+   "APPCHILD": 32,
+   "KERNMC": 26,
+   "KERNRTSP": 22
+  },
+  "alert_lines_total": 13421,
+  "distinct_nodes": 7308,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0-L0",
+   "R00-M0-L1",
+   "R00-M0-L2",
+   "R00-M0-L3",
+   "R00-M0-N0",
+   "R00-M0-N0-I:J18-U01"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 4022441,
+    "text": "KERNMC 1131143766 2005.11.04 R35-M1-NA-C:J08-U01 2005-11-04-14.36.06.220414 R35-M1-NA-C:J08-U01 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 4022647,
+    "text": "KERNRTSP 1131143822 2005.11.04 R35-M1-NA-C:J08-U01 2005-11-04-14.37.02.170925 R35-M1-NA-C:J08-U01 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 4022682,
+    "text": "KERNMC 1131146365 2005.11.04 R77-M0-NC-C:J03-U11 2005-11-04-15.19.25.578287 R77-M0-NC-C:J03-U11 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 4022773,
+    "text": "KERNRTSP 1131146378 2005.11.04 R77-M0-NC-C:J03-U11 2005-11-04-15.19.38.448252 R77-M0-NC-C:J03-U11 RAS KERNEL FATAL rts panic! - stopping execution"
+   },
+   {
+    "line": 4043400,
+    "text": "KERNMC 1131154140 2005.11.04 R77-M1-NA-C:J02-U11 2005-11-04-17.29.00.290605 R77-M1-NA-C:J02-U11 RAS KERNEL FATAL machine check interrupt"
+   },
+   {
+    "line": 4045442,
+    "text": "KERNMC 1131206801 2005.11.05 R51-M1-N4-C:J10-U11 2005-11-05-08.06.41.481448 R51-M1-N4-C:J10-U11 RAS KERNEL FATAL machine check interrupt"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 4000815,
+    "text": "- 1131139993 2005.11.04 R63-M0-N0-C:J11-U01 2005-11-04-13.33.13.650829 R63-M0-N0-C:J11-U01 RAS KERNEL INFO iar 001066ac dear 0252527c"
+   },
+   {
+    "line": 4001792,
+    "text": "- 1131140008 2005.11.04 R63-M0-NA-C:J08-U01 2005-11-04-13.33.28.049032 R63-M0-NA-C:J08-U01 RAS KERNEL INFO"
+   },
+   {
+    "line": 4002769,
+    "text": "- 1131141195 2005.11.04 R63-M0-N0-C:J03-U11 2005-11-04-13.53.15.442631 R63-M0-N0-C:J03-U11 RAS KERNEL INFO iar 001066ac dear 0252521c"
+   },
+   {
+    "line": 4003746,
+    "text": "- 1131141211 2005.11.04 R63-M0-N5-C:J12-U01 2005-11-04-13.53.31.383972 R63-M0-N5-C:J12-U01 RAS KERNEL INFO iar 00106678 dear 0252523c"
+   },
+   {
+    "line": 4004723,
+    "text": "- 1131141225 2005.11.04 R63-M0-NA-C:J15-U01 2005-11-04-13.53.45.785798 R63-M0-NA-C:J15-U01 RAS KERNEL INFO iar 001066c4 dear 0252525c"
+   },
+   {
+    "line": 4005700,
+    "text": "- 1131141241 2005.11.04 R63-M0-NE-C:J04-U01 2005-11-04-13.54.01.581832 R63-M0-NE-C:J04-U01 RAS KERNEL INFO iar 00106348 dear 0303188c"
+   }
+  ]
+ },
+ "4250001-4500000": {
+  "lines": 250000,
+  "levels": {
+   "INFO": 228826,
+   "FATAL": 20576,
+   "WARNING": 259,
+   "ERROR": 202,
+   "SEVERE": 119,
+   "Kill": 8,
+   "FAILURE": 6,
+   "single": 2,
+   "microseconds": 2
+  },
+  "kinds": {
+   "KERNEL": 231336,
+   "APP": 17799,
+   "DISCOVERY": 540,
+   "HARDWARE": 140,
+   "MMCS": 135,
+   "BGLMASTER": 21,
+   "CMCS": 15,
+   "FATAL": 8
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO <N> microseconds spent in the rbs signal handler during <N> calls. <N> microseconds was the maximum time for a single in",
+    87675
+   ],
+   [
+    "KERNEL INFO <N> total interrupts. <N> critical input interrupts. <N> microseconds total spent on critical input interrupts, <N> micr",
+    87667
+   ],
+   [
+    "KERNEL INFO ciod: Received signal <N>, code=<N>, errno=<N>, address=<N>x<N>f<N>",
+    26826
+   ],
+   [
+    "APP FATAL ciod: Error reading message prefix on CioStream socket to <N>.<N>.<N>.<N>:<N>, Link has been severed",
+    10597
+   ],
+   [
+    "KERNEL INFO MACHINE CHECK DCR read timeout (mc=e<N>x iar <N>x<N> lr <N>xc<N>a<N>)",
+    3688
+   ],
+   [
+    "APP FATAL ciod: LOGIN chdir(/g/g<N>/spelce<N>/Linpack_SWL) failed: No such file or directory",
+    3071
+   ],
+   [
+    "KERNEL INFO ciod: Received signal <N>, code=<N>, errno=<N>, address=<N>x<N>b<N>",
+    2270
+   ],
+   [
+    "APP FATAL ciod: Error reading message prefix on CioStream socket to <N>.<N>.<N>.<N>:<N>, Connection timed out",
+    1991
+   ],
+   [
+    "APP FATAL ciod: Error reading message prefix on CioStream socket to <N>.<N>.<N>.<N>:<N>, Connection reset by peer",
+    1940
+   ],
+   [
+    "KERNEL INFO <N> ddr error(s) detected and corrected on rank <N>, symbol <N> over <N> seconds",
+    1470
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected over <N> seconds",
+    1469
+   ],
+   [
+    "KERNEL INFO ciod: pollControlDescriptors: Detected the debugger died.",
+    963
+   ],
+   [
+    "KERNEL INFO ciod: Received signal <N>, code=<N>, errno=<N>, address=<N>x<N>",
+    952
+   ],
+   [
+    "KERNEL INFO ciod: Received signal <N>, code=<N>, errno=<N>, address=<N>x<N>a<N>",
+    734
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>, mask <N>x<N>",
+    646
+   ],
+   [
+    "KERNEL INFO ciod: Received signal <N>, code=<N>, errno=<N>, address=<N>x<N>d",
+    614
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>a<N>, mask <N>x<N>",
+    581
+   ],
+   [
+    "KERNEL INFO CE sym <N>, at <N>x<N>e<N>, mask <N>x<N>",
+    469
+   ]
+  ],
+  "distinct_templates": 1302,
+  "alert_labels": {
+   "APPSEV": 10597,
+   "APPTO": 1991,
+   "APPRES": 1940,
+   "KERNRTSP": 23,
+   "KERNSOCK": 13,
+   "KERNMC": 12,
+   "KERNDTLB": 11,
+   "MASABNORM": 6,
+   "KERNMNTF": 3,
+   "KERNCON": 2
+  },
+  "alert_lines_total": 14601,
+  "distinct_nodes": 66668,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0",
+   "R00-M0-N0",
+   "R00-M0-N0-C:J02-U01",
+   "R00-M0-N0-C:J02-U11",
+   "R00-M0-N0-C:J03-U01",
+   "R00-M0-N0-C:J03-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 4253689,
+    "text": "KERNSOCK 1132586595 2005.11.21 R00-M0-NC-I:J18-U11 2005-11-21-07.23.15.945788 R00-M0-NC-I:J18-U11 RAS KERNEL FATAL idoproxy communication failure: socket closed"
+   },
+   {
+    "line": 4254302,
+    "text": "KERNMNTF 1132595918 2005.11.21 R00-M0-N4-I:J18-U11 2005-11-21-09.58.38.473986 R00-M0-N4-I:J18-U11 RAS KERNEL FATAL Lustre mount FAILED : bglio3 : block_id : location"
+   },
+   {
+    "line": 4254303,
+    "text": "KERNMNTF 1132595918 2005.11.21 R00-M0-N4-I:J18-U01 2005-11-21-09.58.38.623791 R00-M0-N4-I:J18-U01 RAS KERNEL FATAL Lustre mount FAILED : bglio4 : block_id : location"
+   },
+   {
+    "line": 4254304,
+    "text": "KERNMNTF 1132595918 2005.11.21 R00-M0-N0-I:J18-U01 2005-11-21-09.58.38.973643 R00-M0-N0-I:J18-U01 RAS KERNEL FATAL Lustre mount FAILED : bglio2 : block_id : location"
+   },
+   {
+    "line": 4254997,
+    "text": "APPTO 1132600018 2005.11.21 R31-M0-N4-I:J18-U01 2005-11-21-11.06.58.577919 R31-M0-N4-I:J18-U01 RAS APP FATAL ciod: Error reading message prefix on CioStream socket to 172.16.96.116:41739, Connection timed out"
+   },
+   {
+    "line": 4254998,
+    "text": "APPTO 1132600018 2005.11.21 R76-M1-NC-I:J18-U11 2005-11-21-11.06.58.800166 R76-M1-NC-I:J18-U11 RAS APP FATAL ciod: Error reading message prefix on CioStream socket to 172.16.96.116:42146, Connection timed out"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 4250927,
+    "text": "- 1132586159 2005.11.21 R26-M0-N0-I:J18-U11 2005-11-21-07.15.59.315749 R26-M0-N0-I:J18-U11 RAS KERNEL INFO MACHINE CHECK DCR read timeout (mc=e08x iar 0x00000000 lr 0xc00045a4)"
+   },
+   {
+    "line": 4251904,
+    "text": "- 1132586313 2005.11.21 R26-M0-N0-I:J18-U11 2005-11-21-07.18.33.542442 R26-M0-N0-I:J18-U11 RAS KERNEL INFO MACHINE CHECK DCR read timeout (mc=e08x iar 0x00000000 lr 0xc00045a4)"
+   },
+   {
+    "line": 4252881,
+    "text": "- 1132586467 2005.11.21 R26-M0-N0-I:J18-U11 2005-11-21-07.21.07.586694 R26-M0-N0-I:J18-U11 RAS KERNEL INFO MACHINE CHECK DCR read timeout (mc=e08x iar 0x00000000 lr 0xc00045a4)"
+   },
+   {
+    "line": 4253858,
+    "text": "- 1132588366 2005.11.21 R67-M0-N8-I:J18-U11 2005-11-21-07.52.46.066518 R67-M0-N8-I:J18-U11 RAS KERNEL INFO ciod: Received signal 15, code=0, errno=0, address=0x000001b0"
+   },
+   {
+    "line": 4254835,
+    "text": "- 1132596019 2005.11.21 R03-M1-NC-I:J18-U01 2005-11-21-10.00.19.759943 R03-M1-NC-I:J18-U01 RAS KERNEL INFO ciod: Received signal 15, code=0, errno=0, address=0x000001b2"
+   },
+   {
+    "line": 4255812,
+    "text": "- 1132600347 2005.11.21 R26-M1-N8-I:J18-U01 2005-11-21-11.12.27.778154 R26-M1-N8-I:J18-U01 RAS KERNEL INFO ciod: Received signal 15, code=0, errno=0, address=0x000001f2"
+   }
+  ]
+ },
+ "4500001-4750000": {
+  "lines": 247963,
+  "levels": {
+   "INFO": 200339,
+   "FATAL": 45489,
+   "WARNING": 1146,
+   "ERROR": 475,
+   "SEVERE": 466,
+   "Kill": 29,
+   "FAILURE": 13,
+   "single": 2,
+   "microseconds": 2,
+   "0x00544eb8,": 2
+  },
+  "kinds": {
+   "KERNEL": 208585,
+   "APP": 36218,
+   "DISCOVERY": 2318,
+   "HARDWARE": 680,
+   "MMCS": 62,
+   "CMCS": 33,
+   "FATAL": 29,
+   "BGLMASTER": 24
+  },
+  "top_templates": [
+   [
+    "KERNEL INFO <N> total interrupts. <N> critical input interrupts. <N> microseconds total spent on critical input interrupts, <N> micr",
+    47425
+   ],
+   [
+    "KERNEL INFO <N> microseconds spent in the rbs signal handler during <N> calls. <N> microseconds was the maximum time for a single in",
+    47417
+   ],
+   [
+    "KERNEL INFO instruction cache parity error corrected",
+    33537
+   ],
+   [
+    "APP FATAL ciod: Error reading message prefix on CioStream socket to <N>.<N>.<N>.<N>:<N>, Link has been severed",
+    14738
+   ],
+   [
+    "KERNEL INFO <N> ddr error(s) detected and corrected on rank <N>, symbol <N> over <N> seconds",
+    8763
+   ],
+   [
+    "KERNEL INFO total of <N> ddr error(s) detected and corrected over <N> seconds",
+    8743
+   ],
+   [
+    "KERNEL INFO ciod: pollControlDescriptors: Detected the debugger died.",
+    4640
+   ],
+   [
+    "APP FATAL ciod: Error loading /bgl/apps/SWL/stability/MDCASK/WORK/<N>/inferno: invalid or missing program image, Permission denied",
+    3976
+   ],
+   [
+    "APP FATAL ciod: Error loading /p/gb<N>/stella/SPPM/<N>/sppm_DD: invalid or missing program image, Permission denied",
+    2952
+   ],
+   [
+    "KERNEL INFO Kernel detected <N> integer alignment exceptions (<N>) iar <N>x<N>ea<N>, dear <N>x<N>ef<N> (<N>) iar <N>x<N>eb<N>, dear ",
+    2946
+   ],
+   [
+    "KERNEL FATAL Lustre mount FAILED : bglio<N> : block_id : location",
+    2210
+   ],
+   [
+    "KERNEL INFO ciod: generated <N> core files for program /g/g<N>/germann<N>/SPaSM_static/SPaSM_mpi",
+    2176
+   ],
+   [
+    "APP FATAL ciod: Error loading /g/g<N>/spelce<N>/Tuned/SPaSM-base/rundir/SPaSM.baseline: invalid or missing program image, Permissi",
+    2048
+   ],
+   [
+    "APP FATAL ciod: Error loading /bgl/apps/SWL/stability/HPL/WORK/<N>./hpl_DD: invalid or missing program image, No such file or dire",
+    1896
+   ],
+   [
+    "KERNEL INFO <N> tree receiver <N> in re-synch state event(s) (dcr <N>x<N>a) detected over <N> seconds",
+    1595
+   ],
+   [
+    "KERNEL INFO Kernel detected <N> integer alignment exceptions (<N>) iar <N>x<N>ea<N>, dear <N>x<N>fc<N> (<N>) iar <N>x<N>eb<N>, dear ",
+    1575
+   ],
+   [
+    "APP FATAL ciod: Error loading /bgl/apps/SWL/stability/NEWS<N>/news<N>_DD: invalid or missing program image, Permission denied",
+    1384
+   ],
+   [
+    "APP FATAL ciod: Error loading /p/gb<N>/stella/UMT<N>K/<N>/umt<N>k_DD: invalid or missing program image, Permission denied",
+    1280
+   ]
+  ],
+  "distinct_templates": 3952,
+  "alert_labels": {
+   "APPSEV": 15074,
+   "KERNMNTF": 2210,
+   "APPOUT": 816,
+   "KERNMC": 48,
+   "KERNRTSP": 45,
+   "KERNSOCK": 26,
+   "KERNSERV": 15,
+   "MASABNORM": 13,
+   "LINKIAP": 8,
+   "MMCS": 2
+  },
+  "alert_lines_total": 18260,
+  "distinct_nodes": 52546,
+  "sample_nodes": [
+   "-",
+   "NULL",
+   "R00-M0-N0-C:J02-U01",
+   "R00-M0-N0-C:J02-U11",
+   "R00-M0-N0-C:J03-U01",
+   "R00-M0-N0-C:J03-U11",
+   "R00-M0-N0-C:J04-U01",
+   "R00-M0-N0-C:J04-U11"
+  ],
+  "alert_line_examples": [
+   {
+    "line": 4588193,
+    "text": "APPSEV 1133457431 2005.12.01 R47-M1-NC-I:J18-U11 2005-12-01-09.17.11.808809 R47-M1-NC-I:J18-U11 RAS APP FATAL ciod: Error reading message prefix on CioStream socket to 172.16.96.116:36727, Link has been severed"
+   },
+   {
+    "line": 4588194,
+    "text": "APPSEV 1133457431 2005.12.01 R47-M1-NC-I:J18-U01 2005-12-01-09.17.11.982094 R47-M1-NC-I:J18-U01 RAS APP FATAL ciod: Error reading message prefix on CioStream socket to 172.16.96.116:36726, Link has been severed"
+   },
+   {
+    "line": 4588195,
+    "text": "APPSEV 1133457432 2005.12.01 R47-M1-N8-I:J18-U11 2005-12-01-09.17.12.118926 R47-M1-N8-I:J18-U11 RAS APP FATAL ciod: Error reading message prefix on CioStream socket to 172.16.96.116:36722, Link has been severed"
+   },
+   {
+    "line": 4588196,
+    "text": "APPSEV 1133457432 2005.12.01 R47-M1-N8-I:J18-U01 2005-12-01-09.17.12.250060 R47-M1-N8-I:J18-U01 RAS APP FATAL ciod: Error reading message prefix on CioStream socket to 172.16.96.116:36719, Link has been severed"
+   },
+   {
+    "line": 4588197,
+    "text": "APPSEV 1133457432 2005.12.01 R47-M1-N0-I:J18-U11 2005-12-01-09.17.12.385571 R47-M1-N0-I:J18-U11 RAS APP FATAL ciod: Error reading message prefix on CioStream socket to 172.16.96.116:36725, Link has been severed"
+   },
+   {
+    "line": 4588198,
+    "text": "APPSEV 1133457432 2005.12.01 R47-M1-N0-I:J18-U01 2005-12-01-09.17.12.516558 R47-M1-N0-I:J18-U01 RAS APP FATAL ciod: Error reading message prefix on CioStream socket to 172.16.96.116:36724, Link has been severed"
+   }
+  ],
+  "info_line_examples": [
+   {
+    "line": 4500062,
+    "text": "- 1133454913 2005.12.01 R54-M1-N3-C:J04-U01 2005-12-01-08.35.13.029926 R54-M1-N3-C:J04-U01 RAS KERNEL INFO 0 microseconds spent in the rbs signal handler during 0 calls. 0 microseconds was the maximum time for a single instance of a correctable ddr."
+   },
+   {
+    "line": 4501039,
+    "text": "- 1133454919 2005.12.01 R32-M0-NA-C:J03-U11 2005-12-01-08.35.19.810462 R32-M0-NA-C:J03-U11 RAS KERNEL INFO 10744 total interrupts. 0 critical input interrupts. 0 microseconds total spent on critical input interrupts, 0 microseconds max time in a critical input"
+   },
+   {
+    "line": 4502016,
+    "text": "- 1133454926 2005.12.01 R55-M0-N6-C:J15-U01 2005-12-01-08.35.26.318343 R55-M0-N6-C:J15-U01 RAS KERNEL INFO 0 microseconds spent in the rbs signal handler during 0 calls. 0 microseconds was the maximum time for a single instance of a correctable ddr."
+   },
+   {
+    "line": 4502993,
+    "text": "- 1133454932 2005.12.01 R55-M0-N2-C:J13-U11 2005-12-01-08.35.32.988594 R55-M0-N2-C:J13-U11 RAS KERNEL INFO 0 microseconds spent in the rbs signal handler during 0 calls. 0 microseconds was the maximum time for a single instance of a correctable ddr."
+   },
+   {
+    "line": 4503970,
+    "text": "- 1133454939 2005.12.01 R32-M0-N2-C:J09-U01 2005-12-01-08.35.39.183617 R32-M0-N2-C:J09-U01 RAS KERNEL INFO 10712 total interrupts. 0 critical input interrupts. 0 microseconds total spent on critical input interrupts, 0 microseconds max time in a critical input"
+   },
+   {
+    "line": 4504947,
+    "text": "- 1133454944 2005.12.01 R54-M1-ND-C:J10-U11 2005-12-01-08.35.44.776955 R54-M1-ND-C:J10-U11 RAS KERNEL INFO 0 microseconds spent in the rbs signal handler during 0 calls. 0 microseconds was the maximum time for a single instance of a correctable ddr."
+   }
+  ]
+ }
+}

@@ -1,0 +1,396 @@
+{
+ "docs": [
+  {
+   "doc_id": "reg",
+   "title": "BGL 真实日志摘录 L14700-L14760",
+   "file": "bgl_reg_L14700_L14760.txt",
+   "line_range": [
+    14700,
+    14760
+   ],
+   "lines": 61,
+   "sha256": "05cf8dbf69dc80918f398998375d68416f90ee264358e9d3e1d90942f440e061",
+   "templates": [
+    {
+     "template": "APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to <N>.<N>.<N>.<N>:<N>",
+     "count": 23,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "APPREAD"
+     ]
+    },
+    {
+     "template": "LINKCARD INFO MidplaneSwitchController performing bit sparing on R<N>-M<N>-L<N>-U<N>-C bit <N>",
+     "count": 8,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+     "count": 7,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+     "count": 5,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>ffa<N>, mask <N>x<N>",
+     "count": 3,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>f<N>e<N>e<N>, mask <N>x<N>",
+     "count": 2,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "APP FATAL ciod: LOGIN chdir(/p/gb<N>/draeger/benchmark/dat<N>k_<N>) failed: No such file or directory",
+     "count": 2,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>, mask <N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>e<N>e<N>, mask <N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO instruction cache parity error corrected",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO <N> L<N> EDRAM error(s) (dcr <N>x<N>) detected and corrected",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>b<N>ea<N>, mask <N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>b<N>b<N>, mask <N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>a<N>bf<N>, mask <N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>c<N>c<N>, mask <N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "MMCS INFO idoproxydb has been started: $Name: DRV<N>_<N> $ Input parameters: -enableflush -loguserinfo db.properties BlueGene<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "MMCS INFO ciodb has been restarted.",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "MMCS INFO mmcs_db_server has been started: ./mmcs_db_server --useDatabase BGL --dbproperties serverdb.properties --iolog /bgl/BlueLight/logs/BGL --reconnect-blocks all",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "devA",
+   "title": "BGL 真实日志摘录 L505000-L505034",
+   "file": "bgl_devA_L505000_L505034.txt",
+   "line_range": [
+    505000,
+    505034
+   ],
+   "lines": 35,
+   "sha256": "6534244e6ad8d0952e4aceaf5919f51b626931a6bbeb0467b0d386688a4d2fcd",
+   "templates": [
+    {
+     "template": "KERNEL FATAL instruction address: <N>x<N>ed<N>",
+     "count": 19,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL FATAL data storage interrupt",
+     "count": 16,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "KERNSTOR"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "devB",
+   "title": "BGL 真实日志摘录 L1510000-L1510034",
+   "file": "bgl_devB_L1510000_L1510034.txt",
+   "line_range": [
+    1510000,
+    1510034
+   ],
+   "lines": 35,
+   "sha256": "00d4a36c94a09086209fddf5ad59e0ae76d977ebdc8480d0a8c1d772fa694153",
+   "templates": [
+    {
+     "template": "KERNEL INFO ciod: Missing or invalid fields on line <N> of node map file /home/auselton/bgl/<N>mps.sequential.mapfile",
+     "count": 24,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "APP FATAL ciod: Error creating node map from file /home/auselton/bgl/<N>mps.sequential.mapfile: Resource temporarily unavailable",
+     "count": 11,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "APPUNAV"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "devC",
+   "title": "BGL 真实日志摘录 L4270000-L4270034",
+   "file": "bgl_devC_L4270000_L4270034.txt",
+   "line_range": [
+    4270000,
+    4270034
+   ],
+   "lines": 35,
+   "sha256": "02262a48a58ef69e99db53e2be4f589f1f25ffdc4fa097c91c24989b36c829de",
+   "templates": [
+    {
+     "template": "APP FATAL ciod: Error reading message prefix on CioStream socket to <N>.<N>.<N>.<N>:<N>, Link has been severed",
+     "count": 13,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "APPSEV"
+     ]
+    },
+    {
+     "template": "KERNEL INFO ciod: pollControlDescriptors: Detected the debugger died.",
+     "count": 9,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO ciod: Received signal <N>, code=<N>, errno=<N>, address=<N>x<N>e",
+     "count": 6,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO ciod: Received signal <N>, code=<N>, errno=<N>, address=<N>x<N>d",
+     "count": 4,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO ciod: In packet from node <N>.<N> (R<N>-M<N>-N<N>-C:J<N>-U<N>), message code <N> is not <N> or <N> (softheader=<N>d<N>ad <N> <N> <N>)",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO ciod: In packet from node <N>.<N> (R<N>-M<N>-N<N>-C:J<N>-U<N>), message code <N> is not <N> or <N> (softheader=<N>b<N> <N> <N> <N>)",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO ciod: Received signal <N>, code=<N>, errno=<N>, address=<N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "testA",
+   "title": "BGL 真实日志摘录 L500-L534",
+   "file": "bgl_testA_L500_L534.txt",
+   "line_range": [
+    500,
+    534
+   ],
+   "lines": 35,
+   "sha256": "894a90312224555d14340a4641883ad2e9894cc73f61b073a22111350cb6afed",
+   "templates": [
+    {
+     "template": "KERNEL INFO instruction cache parity error corrected",
+     "count": 35,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "testB",
+   "title": "BGL 真实日志摘录 L253000-L253034",
+   "file": "bgl_testB_L253000_L253034.txt",
+   "line_range": [
+    253000,
+    253034
+   ],
+   "lines": 35,
+   "sha256": "9c1612b7eaa04984f43ecbf993fba2cc5dc2d224656ae74a69eda5b762418d89",
+   "templates": [
+    {
+     "template": "KERNEL FATAL data TLB error interrupt",
+     "count": 35,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "KERNDTLB"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "testC",
+   "title": "BGL 真实日志摘录 L1120000-L1120034",
+   "file": "bgl_testC_L1120000_L1120034.txt",
+   "line_range": [
+    1120000,
+    1120034
+   ],
+   "lines": 35,
+   "sha256": "4b5a56503064b8cfd2acbbe80bf4a3ee0db56f0d0541a31ede871df131845282",
+   "templates": [
+    {
+     "template": "KERNEL INFO generating core.<N>",
+     "count": 35,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "testD",
+   "title": "BGL 真实日志摘录 L3765000-L3765034",
+   "file": "bgl_testD_L3765000_L3765034.txt",
+   "line_range": [
+    3765000,
+    3765034
+   ],
+   "lines": 35,
+   "sha256": "463fb7d6c30e984ca2f43948d7eed69463cfc1e9df19828fb09c10cf6305faa1",
+   "templates": [
+    {
+     "template": "KERNEL INFO iar <N> dear <N>c<N>ec",
+     "count": 17,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO iar <N> dear <N>c<N>c",
+     "count": 16,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO iar <N>dc dear <N>c<N>c",
+     "count": 2,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    }
+   ]
+  }
+ ],
+ "source": {
+  "zip": "C:\\Users\\86187\\Documents\\Codex\\2026-10-30\\codex-4-codex-reviewer-gpt-6\\work\\public-data-source-cache\\BGL.zip",
+  "zip_sha256": "d67fd82a711aea0157a9b83175892c6ee60e384a2ddf5bc51f39118453816da8",
+  "log_file": "BGL.zip/BGL.log",
+  "label_rule": "首列告警标签（'-'或告警名）仅评分侧/清单留存；模型输入正文剥离标签列，保留 L{行号} 前缀与全部原始列",
+  "alert_labels_are_not_root_cause": "告警标签不得作为故障根因，也不得出现在模型输入"
+ },
+ "label_rule": "首列告警标签（'-'或告警名）仅评分侧/清单留存；模型输入正文剥离标签列，保留 L{行号} 前缀与全部原始列"
+}

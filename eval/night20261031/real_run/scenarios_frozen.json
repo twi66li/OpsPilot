@@ -1,0 +1,1282 @@
+{
+ "namespace": "n31real",
+ "frozen_at": "2026-10-31",
+ "seed": 20261031,
+ "source": {
+  "zip": "C:\\Users\\86187\\Documents\\Codex\\2026-10-30\\codex-4-codex-reviewer-gpt-6\\work\\public-data-source-cache\\BGL.zip",
+  "zip_sha256": "d67fd82a711aea0157a9b83175892c6ee60e384a2ddf5bc51f39118453816da8",
+  "log_file": "BGL.zip/BGL.log",
+  "label_rule": "首列告警标签（'-'或告警名）仅评分侧/清单留存；模型输入正文剥离标签列，保留 L{行号} 前缀与全部原始列",
+  "alert_labels_are_not_root_cause": "告警标签不得作为故障根因，也不得出现在模型输入"
+ },
+ "windows": {
+  "reg": {
+   "range": [
+    14700,
+    14760
+   ],
+   "lines": 61,
+   "distinct_templates": 18,
+   "levels": {
+    "INFO": 36,
+    "FATAL": 25
+   },
+   "labels_hidden": [
+    "APPREAD"
+   ]
+  },
+  "devA": {
+   "range": [
+    505000,
+    505034
+   ],
+   "lines": 35,
+   "distinct_templates": 2,
+   "levels": {
+    "FATAL": 35
+   },
+   "labels_hidden": [
+    "KERNSTOR"
+   ]
+  },
+  "devB": {
+   "range": [
+    1510000,
+    1510034
+   ],
+   "lines": 35,
+   "distinct_templates": 2,
+   "levels": {
+    "FATAL": 11,
+    "INFO": 24
+   },
+   "labels_hidden": [
+    "APPUNAV"
+   ]
+  },
+  "devC": {
+   "range": [
+    4270000,
+    4270034
+   ],
+   "lines": 35,
+   "distinct_templates": 7,
+   "levels": {
+    "INFO": 22,
+    "FATAL": 13
+   },
+   "labels_hidden": [
+    "APPSEV"
+   ]
+  },
+  "testA": {
+   "range": [
+    500,
+    534
+   ],
+   "lines": 35,
+   "distinct_templates": 1,
+   "levels": {
+    "INFO": 35
+   },
+   "labels_hidden": []
+  },
+  "testB": {
+   "range": [
+    253000,
+    253034
+   ],
+   "lines": 35,
+   "distinct_templates": 1,
+   "levels": {
+    "FATAL": 35
+   },
+   "labels_hidden": [
+    "KERNDTLB"
+   ]
+  },
+  "testC": {
+   "range": [
+    1120000,
+    1120034
+   ],
+   "lines": 35,
+   "distinct_templates": 1,
+   "levels": {
+    "INFO": 35
+   },
+   "labels_hidden": []
+  },
+  "testD": {
+   "range": [
+    3765000,
+    3765034
+   ],
+   "lines": 35,
+   "distinct_templates": 3,
+   "levels": {
+    "INFO": 35
+   },
+   "labels_hidden": []
+  }
+ },
+ "isolation": "dev/test/reg 窗口互斥且相距≥24万行；reg 为旧三题回归窗口；40 题成绩不含回归题",
+ "splits": {
+  "dev": 10,
+  "test": 30,
+  "regression": 3
+ },
+ "scenarios": [
+  {
+   "id": "reg-001",
+   "split": "regression",
+   "family": "line_lookup",
+   "window": "reg",
+   "question": "知识库的 BGL 日志摘录中，L14738 到 L14742 这些行记录了什么级别与内容的消息？请引用行号与时间戳。",
+   "required_points": [
+    "这 5 行均为 RAS APP FATAL 级别的 ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:<端口> 消息（不是 failed to read object module）",
+    "时间戳 2005-06-04-00.24.32.398284 至 2005-06-04-00.24.33.203068（epoch 1117869872/1117869873）",
+    "引用了具体行号 L14738-L14742"
+   ],
+   "gold_facts_checked": [
+    "14738-14742 每行 level 均为 FATAL",
+    "消息均为 failed to read message prefix",
+    "时间戳为 2005-06-04 00.24.32-33"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "reg-002",
+   "split": "regression",
+   "family": "template_count",
+   "window": "reg",
+   "question": "摘录范围（L14700-L14760）内 INFO 级 KERNEL 消息主要涉及什么内容？出现最多的是哪条消息？",
+   "required_points": [
+    "INFO 级 KERNEL 消息共 25 条，主要是可纠正（corrected）的缓存/内存错误",
+    "出现最多的是 CE sym <符号> 消息（11 条）；DDR 相关 corrected 消息合计 12 条",
+    "instruction cache parity error corrected 只有 1 条（L14706），不是主要消息——若回答称主要为 instruction cache 即金标不符"
+   ],
+   "gold_facts_checked": [
+    "INFO KERNEL 总数 = 24",
+    "CE sym 共 11 条且为最多",
+    "DDR corrected 合计 12 条",
+    "instruction cache parity 仅 1 条"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "reg-003",
+   "split": "regression",
+   "family": "level_classify",
+   "window": "reg",
+   "question": "摘录范围（L14700-L14760）内是否存在 FATAL 级别日志？如有请给出行号，没有请明确说明。",
+   "required_points": [
+    "存在 FATAL 级别日志：L14736-L14760 共 25 行，均为 RAS APP FATAL",
+    "L14736-L14737 为 ciod: LOGIN chdir(...) failed: No such file or directory；L14738-L14760 为 ciod: failed to read message prefix on control stream",
+    "与 INFO 级 corrected 事件明确区分"
+   ],
+   "gold_facts_checked": [
+    "FATAL 共 25 行且连续 14736-14760",
+    "其中 2 行为 LOGIN chdir failed",
+    "其余 23 行为 failed to read message prefix"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "dev-001",
+   "split": "dev",
+   "family": "line_lookup",
+   "window": "devA",
+   "question": "语料文档“BGL 真实日志摘录 L505000-L505034”中，L505000 到 L505034 记录了哪些类型的消息？请说明涉及的级别与消息种类，并引用行号。",
+   "required_points": [
+    "窗口共 35 行、两类 KERNEL FATAL 消息：instruction address: <n>x<n>ed<n>（19 条）与 data storage interrupt（16 条）",
+    "两条 FATAL 消息的行号区间引用正确（允许只给区间不逐行列举）",
+    "说明这些均为 RAS KERNEL FATAL 级别"
+   ],
+   "gold_facts_checked": [
+    "全窗两类消息：instruction address(19) + data storage interrupt(16)",
+    "两类级别均为 FATAL",
+    "窗口连续 35 行"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "dev-002",
+   "split": "dev",
+   "family": "template_count",
+   "window": "devA",
+   "question": "L505000-L505034 中 data storage interrupt 消息出现在哪些行？共多少条？",
+   "required_points": [
+    "共 16 条",
+    "行号引用正确（L505001、L505003、L505005、L505007、L505010、L505012 等）",
+    "级别为 KERNEL FATAL"
+   ],
+   "gold_facts_checked": [
+    "16 条",
+    "行号列表与原始行一致"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "dev-003",
+   "split": "dev",
+   "family": "level_classify",
+   "window": "devA",
+   "question": "L505000-L505034 中 instruction address 消息是什么级别？该窗口里有没有 INFO 级日志？",
+   "required_points": [
+    "instruction address: <n>x<n>ed<n> 消息为 RAS KERNEL FATAL 级别（不是 INFO）",
+    "该窗口内没有任何 INFO 级日志（35 行全部为 FATAL）"
+   ],
+   "gold_facts_checked": [
+    "instruction address 均为 FATAL",
+    "全窗无 INFO"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "dev-004",
+   "split": "dev",
+   "family": "line_lookup",
+   "window": "devB",
+   "question": "L1510000-L1510006 记录了什么？请逐行给出行号、级别与消息内容。",
+   "required_points": [
+    "L1510000-L1510006 均为 RAS KERNEL INFO：ciod: Missing or invalid fields on line <n> of node map file ...",
+    "逐行（或区间）引用了这 7 行的行号与时间戳"
+   ],
+   "gold_facts_checked": [
+    "前 7 行均为 Missing or invalid fields on line",
+    "级别均为 INFO"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "dev-005",
+   "split": "dev",
+   "family": "template_count",
+   "window": "devB",
+   "question": "L1510000-L1510034 中 ciod: Error creating node map from file 消息出现在哪些行？共几条？",
+   "required_points": [
+    "共 11 条，行号引用正确",
+    "级别为 APP FATAL（ciod: Error creating node map from file /home/auselton/...）"
+   ],
+   "gold_facts_checked": [
+    "11 条",
+    "与原始行号一致"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "dev-006",
+   "split": "dev",
+   "family": "level_classify",
+   "window": "devB",
+   "question": "L1510000-L1510034 中是否存在 FATAL 级别日志？如有请给出行号，没有请明确说明。",
+   "required_points": [
+    "存在：Error creating node map 消息的行（共 11 行）为 RAS APP FATAL",
+    "Missing or invalid fields 消息行为 KERNEL INFO，两类要区分"
+   ],
+   "gold_facts_checked": [
+    "FATAL 恰为 APPUNAV 11 行",
+    "Missing or invalid fields 行为 INFO"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "dev-007",
+   "split": "dev",
+   "family": "distinct_line",
+   "window": "devC",
+   "question": "L4270000-L4270034 中 ciod: pollControlDescriptors: Detected the debugger died 消息出现在哪些行？",
+   "required_points": [
+    "行号引用正确（L4270000、L4270001、L4270002、L4270012、L4270013、L4270014、L4270015、L4270016、L4270017）",
+    "级别为 KERNEL INFO，消息原文为 ciod: pollControlDescriptors: Detected the debugger died"
+   ],
+   "gold_facts_checked": [
+    "debugger died 行数≥1"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "dev-008",
+   "split": "dev",
+   "family": "template_count",
+   "window": "devC",
+   "question": "L4270000-L4270034 中 ciod: Received signal 消息共出现几次？第一次出现在哪一行？",
+   "required_points": [
+    "共 11 次",
+    "首次出现在 L4270024",
+    "级别为 KERNEL INFO"
+   ],
+   "gold_facts_checked": [
+    "计数与首行号可从原始行推导"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "dev-009",
+   "split": "dev",
+   "family": "abstain_out_of_corpus",
+   "window": null,
+   "question": "语料中 L2000000 到 L2000030 记录了什么内容？",
+   "required_points": [
+    "明确说明知识库语料中不存在 L2000000-L2000030 这个行范围（语料只覆盖清单列出的窗口）",
+    "不编造该范围的内容",
+    "不把其他窗口的内容冒充该范围"
+   ],
+   "gold_facts_checked": [
+    "该范围不在任何语料窗口内"
+   ],
+   "must_abstain": true,
+   "search_terms": [
+    "L2000000",
+    "日志"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "dev-010",
+   "split": "dev",
+   "family": "abstain_no_such_template",
+   "window": "devC",
+   "question": "L4270000-L4270034 中有没有 DDR 内存错误纠正（corrected）消息？如有请给出行号。",
+   "required_points": [
+    "明确说明该窗口内没有 DDR 内存错误纠正消息",
+    "不把 Error reading message prefix 等其他消息当作 DDR 错误"
+   ],
+   "gold_facts_checked": [
+    "devC 窗口无 ddr 消息"
+   ],
+   "must_abstain": true,
+   "search_terms": [
+    "DDR",
+    "corrected",
+    "L4270000"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "test-001",
+   "split": "test",
+   "family": "template_count",
+   "window": "testA",
+   "question": "L500-L534 中 instruction cache parity error corrected 消息出现多少次？",
+   "required_points": [
+    "共 35 次（窗口内每行都是该消息）",
+    "说明消息为 RAS KERNEL INFO 级别"
+   ],
+   "gold_facts_checked": [
+    "35 次"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-002",
+   "split": "test",
+   "family": "node_attribution",
+   "window": "testA",
+   "question": "L500-L534 的这些消息都来自哪个节点？",
+   "required_points": [
+    "节点为 R02-M1-N0-C:J12-U11（单一节点）"
+   ],
+   "gold_facts_checked": [
+    "单一节点 R02-M1-N0-C:J12-U11"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-003",
+   "split": "test",
+   "family": "level_classify",
+   "window": "testA",
+   "question": "L500-L534 中是否存在 FATAL 级别日志？如有给出行号，没有请明确说明。",
+   "required_points": [
+    "没有 FATAL：L500-L534 全部为 KERNEL INFO 级别的已纠正（corrected）事件",
+    "不把 corrected 事件说成 FATAL 故障"
+   ],
+   "gold_facts_checked": [
+    "全部 INFO，无 FATAL"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-004",
+   "split": "test",
+   "family": "line_lookup",
+   "window": "testA",
+   "question": "L505 到 L510 各行的完整时间戳（形如 2005-06-03-15.42.50.…）分别是什么？",
+   "required_points": [
+    "逐行给出 L505-L510 的时间戳且数值正确（2005-06-03-15.42.50.823719 起）",
+    "时间戳列为日志第 5 列（精确到微秒）"
+   ],
+   "gold_facts_checked": [
+    "6 行时间戳可从原始行取回"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-005",
+   "split": "test",
+   "family": "root_cause_guard",
+   "window": "testA",
+   "question": "L500-L534 中大量 instruction cache parity 错误的根因是什么？需要更换硬件吗？",
+   "required_points": [
+    "说明这些是已纠正（corrected）的可纠正奇偶校验错误事件，共 35 条",
+    "明确表示仅凭这些日志行无法断定根因（不编造硬件故障结论）",
+    "对“是否更换硬件”不给确定性结论（可给排查建议但注明依据不足）",
+    "不提任何告警标签（输入中不存在标签列）"
+   ],
+   "gold_facts_checked": [
+    "全部为 corrected 已纠正事件"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-006",
+   "split": "test",
+   "family": "template_count",
+   "window": "testB",
+   "question": "L253000-L253034 中 data TLB error interrupt 消息共多少条？",
+   "required_points": [
+    "共 35 条",
+    "级别为 RAS KERNEL FATAL"
+   ],
+   "gold_facts_checked": [
+    "35 条"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-007",
+   "split": "test",
+   "family": "level_classify",
+   "window": "testB",
+   "question": "L253000-L253034 的日志级别分布是什么？",
+   "required_points": [
+    "全部 35 行均为 RAS KERNEL FATAL（data TLB error interrupt）",
+    "没有 INFO 级行"
+   ],
+   "gold_facts_checked": [
+    "全部 FATAL"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-008",
+   "split": "test",
+   "family": "line_lookup",
+   "window": "testB",
+   "question": "L253000 到 L253004 各行记录的节点名与精确时间戳是什么？",
+   "required_points": [
+    "逐行给出 5 行的节点名与时间戳且与原始日志一致",
+    "引用了行号"
+   ],
+   "gold_facts_checked": [
+    "前 5 行节点/时间戳存在"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-009",
+   "split": "test",
+   "family": "first_last",
+   "window": "testB",
+   "question": "L253000-L253034 中第一条与最后一条消息的精确时间戳（第 5 列）分别是什么？",
+   "required_points": [
+    "第一条：2005-06-11-18.30.17.356251（L253000）",
+    "最后一条：2005-06-11-18.30.23.247318（L253034）"
+   ],
+   "gold_facts_checked": [
+    "首末时间戳可推导"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-010",
+   "split": "test",
+   "family": "root_cause_guard",
+   "window": "testB",
+   "question": "这批 data TLB error interrupt FATAL 的根本原因是什么？是硬件故障还是软件缺陷？",
+   "required_points": [
+    "说明日志行仅记录“data TLB error interrupt”事实，无法从这些行断定根因",
+    "不对“硬件故障还是软件缺陷”下确定性结论",
+    "不提告警标签，不编造根因"
+   ],
+   "gold_facts_checked": [
+    "消息本身无根因信息"
+   ],
+   "must_abstain": true,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-011",
+   "split": "test",
+   "family": "template_count",
+   "window": "testC",
+   "question": "L1120000-L1120034 中 generating core 消息出现多少次？",
+   "required_points": [
+    "共 35 次",
+    "级别为 KERNEL INFO"
+   ],
+   "gold_facts_checked": [
+    "35 次"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-012",
+   "split": "test",
+   "family": "distinct_line",
+   "window": "testC",
+   "question": "生成 30340 这个 core 文件的消息出现在哪一行？",
+   "required_points": [
+    "出现在 L1120000",
+    "引用了该行的时间戳或节点作为佐证"
+   ],
+   "gold_facts_checked": [
+    "该 core 编号恰出现 1 次"
+   ],
+   "must_abstain": false,
+   "search_terms": [
+    "30340",
+    "generating core"
+   ],
+   "notes": ""
+  },
+  {
+   "id": "test-013",
+   "split": "test",
+   "family": "level_classify",
+   "window": "testC",
+   "question": "L1120000-L1120034 有没有 FATAL 级别日志？",
+   "required_points": [
+    "没有 FATAL：35 行全部为 KERNEL INFO（generating core.<n>）"
+   ],
+   "gold_facts_checked": [
+    "全部 INFO"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-014",
+   "split": "test",
+   "family": "abstain_no_such_template",
+   "window": "testC",
+   "question": "L1120000-L1120034 中 DDR 内存错误纠正消息出现在哪些行？",
+   "required_points": [
+    "明确说明该窗口没有 DDR 错误纠正消息",
+    "不把 generating core 消息当作 DDR 错误"
+   ],
+   "gold_facts_checked": [
+    "testC 无 ddr 消息"
+   ],
+   "must_abstain": true,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-015",
+   "split": "test",
+   "family": "template_variants",
+   "window": "testD",
+   "question": "L3765000-L3765034 中 iar/dear 消息有哪几种不同形式（数字归一后）？",
+   "required_points": [
+    "列出 3 种数字归一后的消息形式（如 iar <N> dear <N>c<N>ec / iar <N> dear <N>c<N>c 等）",
+    "说明全部为 KERNEL INFO 级别"
+   ],
+   "gold_facts_checked": [
+    "变体数 = 3"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-016",
+   "split": "test",
+   "family": "template_count",
+   "window": "testD",
+   "question": "形式为“iar <N> dear <N>c<N>ec”的消息出现多少次？",
+   "required_points": [
+    "共 17 次",
+    "级别为 KERNEL INFO"
+   ],
+   "gold_facts_checked": [
+    "主变体计数 = 17"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-017",
+   "split": "test",
+   "family": "distinct_line",
+   "window": "testD",
+   "question": "L3765000-L3765034 中最后一条 iar/dear 消息在哪一行？其完整时间戳是什么？",
+   "required_points": [
+    "L3765034，时间戳 2005-11-03-15.09.11.384780",
+    "引用消息内容作为佐证"
+   ],
+   "gold_facts_checked": [
+    "最后一行存在"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-018",
+   "split": "test",
+   "family": "level_classify",
+   "window": "testD",
+   "question": "L3765000-L3765034 的日志级别分布是什么？",
+   "required_points": [
+    "全部为 KERNEL INFO（iar/dear 寄存器消息）",
+    "没有 FATAL/WARNING"
+   ],
+   "gold_facts_checked": [
+    "全部 INFO"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-019",
+   "split": "test",
+   "family": "abstain_beyond_eof",
+   "window": null,
+   "question": "语料中 L9000000 到 L9000010 记录了什么？",
+   "required_points": [
+    "明确说明语料中不存在该行范围，无法回答该范围的内容",
+    "不编造内容"
+   ],
+   "gold_facts_checked": [
+    "范围不在语料"
+   ],
+   "must_abstain": true,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-020",
+   "split": "test",
+   "family": "abstain_out_of_corpus",
+   "window": null,
+   "question": "语料中 L3300000 到 L3300020 记录了什么内容？请给出行号与消息。",
+   "required_points": [
+    "明确说明知识库语料不含 L3300000-L3300020 这个范围",
+    "不编造该范围的行号或消息"
+   ],
+   "gold_facts_checked": [
+    "该范围不在任何语料窗口内"
+   ],
+   "must_abstain": true,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-021",
+   "split": "test",
+   "family": "cross_window",
+   "window": null,
+   "question": "语料中哪些行范围包含 data TLB error interrupt 消息？请给出文档名与行号范围。",
+   "required_points": [
+    "指出文档“BGL 真实日志摘录 L253000-L253034”，行号范围 L253000-L253034",
+    "不把其他窗口列为包含该消息"
+   ],
+   "gold_facts_checked": [
+    "仅 testB 窗口含该消息"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-022",
+   "split": "test",
+   "family": "root_cause_guard",
+   "window": "testC",
+   "question": "L1120000-L1120034 中大量 generating core 消息说明系统出了什么故障？根因是什么？",
+   "required_points": [
+    "说明该窗口仅有“generating core.<n>”KERNEL INFO 消息（35 条）这一事实",
+    "明确表示仅凭这些行不能断定故障根因（core 文件生成的上下文不在窗口内）",
+    "不编造根因，不提告警标签"
+   ],
+   "gold_facts_checked": [
+    "窗口只有 generating core INFO 消息"
+   ],
+   "must_abstain": true,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-023",
+   "split": "test",
+   "family": "first_last",
+   "window": "testA",
+   "question": "L500-L534 中第一行与最后一行的 epoch 时间戳（第 2 列整数）分别是什么？",
+   "required_points": [
+    "第一行 L500：epoch 1117838677",
+    "最后一行 L534：epoch 1117838683"
+   ],
+   "gold_facts_checked": [
+    "可推导"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-024",
+   "split": "test",
+   "family": "node_attribution",
+   "window": "testB",
+   "question": "L253000-L253034 的 data TLB error interrupt 消息来自哪些节点？请列出全部不同节点名。",
+   "required_points": [
+    "列出全部 1 个节点：R30-M0-N9-C:J16-U01",
+    "不遗漏、不编造节点名"
+   ],
+   "gold_facts_checked": [
+    "节点集合可枚举"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-025",
+   "split": "test",
+   "family": "line_lookup",
+   "window": "testB",
+   "question": "L253015 到 L253019 各行的级别与消息内容是什么？",
+   "required_points": [
+    "逐行（或区间）给出 5 行的 KERNEL FATAL data TLB error interrupt 与行号",
+    "不与其他窗口内容混淆"
+   ],
+   "gold_facts_checked": [
+    "5 行存在"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-026",
+   "split": "test",
+   "family": "line_lookup",
+   "window": "testC",
+   "question": "L1120005 到 L1120009 各行记录了什么？",
+   "required_points": [
+    "逐行（或区间）给出 generating core.<n> KERNEL INFO 与行号、时间戳"
+   ],
+   "gold_facts_checked": [
+    "5 行存在"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-027",
+   "split": "test",
+   "family": "line_lookup",
+   "window": "testD",
+   "question": "L3765000 到 L3765004 各行记录了什么？",
+   "required_points": [
+    "逐行（或区间）给出 iar/dear KERNEL INFO 消息与行号"
+   ],
+   "gold_facts_checked": [
+    "5 行存在"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-028",
+   "split": "test",
+   "family": "abstain_no_such_template",
+   "window": "testA",
+   "question": "L500-L534 中除 instruction cache parity error corrected 之外还有其他消息吗？如有请给出行号。",
+   "required_points": [
+    "明确说明该窗口内没有其他消息（35 行全部为 instruction cache parity error corrected）"
+   ],
+   "gold_facts_checked": [
+    "无其他消息"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-029",
+   "split": "test",
+   "family": "node_attribution",
+   "window": "testC",
+   "question": "L1120000-L1120034 的 generating core 消息来自哪些节点？请举例说明。",
+   "required_points": [
+    "举出至少 3 个真实存在的节点名（全部不同节点共 35 个，正确示例：R25-M1-NF-C:J02-U01、R25-M1-NF-C:J02-U11、R30-M0-NA-C:J02-U01 等）",
+    "说明这些消息涉及多个节点（不能声称只有单一节点）",
+    "不编造不存在的节点名"
+   ],
+   "gold_facts_checked": [
+    "节点集合 ≥3 个",
+    "testA 为单一节点，两窗口节点集合不同"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  },
+  {
+   "id": "test-030",
+   "split": "test",
+   "family": "distinct_line",
+   "window": "testD",
+   "question": "L3765007 这一行记录了什么消息？这条含具体数字的消息是否还出现在窗口内其他行？",
+   "required_points": [
+    "L3765007 内容为：iar 001061dc dear 0244c25c（RAS KERNEL INFO），时间戳 2005-11-03-15.09.10.956251",
+    "这条精确消息（含数字）只出现这一次，不在其他行重复",
+    "能区分“精确消息唯一”与“同形式消息共 17 条”更佳，不混淆两者"
+   ],
+   "gold_facts_checked": [
+    "锚行精确消息在窗口内恰出现 1 次",
+    "同形式（数字归一）主变体有 17 条"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": ""
+  }
+ ],
+ "corpus_docs": [
+  {
+   "doc_id": "reg",
+   "title": "BGL 真实日志摘录 L14700-L14760",
+   "file": "bgl_reg_L14700_L14760.txt",
+   "line_range": [
+    14700,
+    14760
+   ],
+   "lines": 61,
+   "sha256": "05cf8dbf69dc80918f398998375d68416f90ee264358e9d3e1d90942f440e061",
+   "templates": [
+    {
+     "template": "APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to <N>.<N>.<N>.<N>:<N>",
+     "count": 23,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "APPREAD"
+     ]
+    },
+    {
+     "template": "LINKCARD INFO MidplaneSwitchController performing bit sparing on R<N>-M<N>-L<N>-U<N>-C bit <N>",
+     "count": 8,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO total of <N> ddr error(s) detected and corrected",
+     "count": 7,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO <N> ddr errors(s) detected and corrected on rank <N>, symbol <N>, bit <N>",
+     "count": 5,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>ffa<N>, mask <N>x<N>",
+     "count": 3,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>f<N>e<N>e<N>, mask <N>x<N>",
+     "count": 2,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "APP FATAL ciod: LOGIN chdir(/p/gb<N>/draeger/benchmark/dat<N>k_<N>) failed: No such file or directory",
+     "count": 2,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>, mask <N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>e<N>e<N>, mask <N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO instruction cache parity error corrected",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO <N> L<N> EDRAM error(s) (dcr <N>x<N>) detected and corrected",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>b<N>ea<N>, mask <N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>b<N>b<N>, mask <N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>a<N>bf<N>, mask <N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO CE sym <N>, at <N>x<N>c<N>c<N>, mask <N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "MMCS INFO idoproxydb has been started: $Name: DRV<N>_<N> $ Input parameters: -enableflush -loguserinfo db.properties BlueGene<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "MMCS INFO ciodb has been restarted.",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "MMCS INFO mmcs_db_server has been started: ./mmcs_db_server --useDatabase BGL --dbproperties serverdb.properties --iolog /bgl/BlueLight/logs/BGL --reconnect-blocks all",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "devA",
+   "title": "BGL 真实日志摘录 L505000-L505034",
+   "file": "bgl_devA_L505000_L505034.txt",
+   "line_range": [
+    505000,
+    505034
+   ],
+   "lines": 35,
+   "sha256": "6534244e6ad8d0952e4aceaf5919f51b626931a6bbeb0467b0d386688a4d2fcd",
+   "templates": [
+    {
+     "template": "KERNEL FATAL instruction address: <N>x<N>ed<N>",
+     "count": 19,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL FATAL data storage interrupt",
+     "count": 16,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "KERNSTOR"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "devB",
+   "title": "BGL 真实日志摘录 L1510000-L1510034",
+   "file": "bgl_devB_L1510000_L1510034.txt",
+   "line_range": [
+    1510000,
+    1510034
+   ],
+   "lines": 35,
+   "sha256": "00d4a36c94a09086209fddf5ad59e0ae76d977ebdc8480d0a8c1d772fa694153",
+   "templates": [
+    {
+     "template": "KERNEL INFO ciod: Missing or invalid fields on line <N> of node map file /home/auselton/bgl/<N>mps.sequential.mapfile",
+     "count": 24,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "APP FATAL ciod: Error creating node map from file /home/auselton/bgl/<N>mps.sequential.mapfile: Resource temporarily unavailable",
+     "count": 11,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "APPUNAV"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "devC",
+   "title": "BGL 真实日志摘录 L4270000-L4270034",
+   "file": "bgl_devC_L4270000_L4270034.txt",
+   "line_range": [
+    4270000,
+    4270034
+   ],
+   "lines": 35,
+   "sha256": "02262a48a58ef69e99db53e2be4f589f1f25ffdc4fa097c91c24989b36c829de",
+   "templates": [
+    {
+     "template": "APP FATAL ciod: Error reading message prefix on CioStream socket to <N>.<N>.<N>.<N>:<N>, Link has been severed",
+     "count": 13,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "APPSEV"
+     ]
+    },
+    {
+     "template": "KERNEL INFO ciod: pollControlDescriptors: Detected the debugger died.",
+     "count": 9,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO ciod: Received signal <N>, code=<N>, errno=<N>, address=<N>x<N>e",
+     "count": 6,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO ciod: Received signal <N>, code=<N>, errno=<N>, address=<N>x<N>d",
+     "count": 4,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO ciod: In packet from node <N>.<N> (R<N>-M<N>-N<N>-C:J<N>-U<N>), message code <N> is not <N> or <N> (softheader=<N>d<N>ad <N> <N> <N>)",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO ciod: In packet from node <N>.<N> (R<N>-M<N>-N<N>-C:J<N>-U<N>), message code <N> is not <N> or <N> (softheader=<N>b<N> <N> <N> <N>)",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO ciod: Received signal <N>, code=<N>, errno=<N>, address=<N>x<N>",
+     "count": 1,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "testA",
+   "title": "BGL 真实日志摘录 L500-L534",
+   "file": "bgl_testA_L500_L534.txt",
+   "line_range": [
+    500,
+    534
+   ],
+   "lines": 35,
+   "sha256": "894a90312224555d14340a4641883ad2e9894cc73f61b073a22111350cb6afed",
+   "templates": [
+    {
+     "template": "KERNEL INFO instruction cache parity error corrected",
+     "count": 35,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "testB",
+   "title": "BGL 真实日志摘录 L253000-L253034",
+   "file": "bgl_testB_L253000_L253034.txt",
+   "line_range": [
+    253000,
+    253034
+   ],
+   "lines": 35,
+   "sha256": "9c1612b7eaa04984f43ecbf993fba2cc5dc2d224656ae74a69eda5b762418d89",
+   "templates": [
+    {
+     "template": "KERNEL FATAL data TLB error interrupt",
+     "count": 35,
+     "levels": "FATAL",
+     "labels_hidden": [
+      "KERNDTLB"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "testC",
+   "title": "BGL 真实日志摘录 L1120000-L1120034",
+   "file": "bgl_testC_L1120000_L1120034.txt",
+   "line_range": [
+    1120000,
+    1120034
+   ],
+   "lines": 35,
+   "sha256": "4b5a56503064b8cfd2acbbe80bf4a3ee0db56f0d0541a31ede871df131845282",
+   "templates": [
+    {
+     "template": "KERNEL INFO generating core.<N>",
+     "count": 35,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    }
+   ]
+  },
+  {
+   "doc_id": "testD",
+   "title": "BGL 真实日志摘录 L3765000-L3765034",
+   "file": "bgl_testD_L3765000_L3765034.txt",
+   "line_range": [
+    3765000,
+    3765034
+   ],
+   "lines": 35,
+   "sha256": "463fb7d6c30e984ca2f43948d7eed69463cfc1e9df19828fb09c10cf6305faa1",
+   "templates": [
+    {
+     "template": "KERNEL INFO iar <N> dear <N>c<N>ec",
+     "count": 17,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO iar <N> dear <N>c<N>c",
+     "count": 16,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    },
+    {
+     "template": "KERNEL INFO iar <N>dc dear <N>c<N>c",
+     "count": 2,
+     "levels": "INFO",
+     "labels_hidden": [
+      "-"
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -13,7 +13,11 @@
   header h1 { font-size:16px; font-weight:600; }
   .badge { font-size:11px; padding:2px 8px; border-radius:10px; border:1px solid var(--line); color:var(--dim); }
   .badge.warn { color:var(--warn); border-color:var(--warn); }
-  header a { color:var(--acc); font-size:12px; text-decoration:none; margin-left:auto; }
+  header a { color:var(--acc); font-size:12px; text-decoration:none; }
+  nav { margin-left:auto; display:flex; gap:6px; align-items:center; }
+  nav button { font-size:12px; padding:5px 10px; }
+  nav button.ghost { border-color:var(--line); color:var(--dim); }
+  nav button.active { border-color:var(--acc); color:#fff; }
   main { flex:1; display:grid; grid-template-columns:240px 1fr 320px; min-height:0; }
   .col { border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:0; background:var(--panel); }
   .col:last-child { border-right:none; }
@@ -47,7 +51,35 @@
   .ev .snippet { color:var(--dim); margin-top:4px; }
   .ev .meta { color:var(--dim); font-size:11px; }
   .ok { color:var(--ok); } .err { color:var(--err); } .warn { color:var(--warn); }
-  #toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:var(--panel2); border:1px solid var(--line); padding:8px 16px; border-radius:8px; display:none; }
+  #toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:var(--panel2); border:1px solid var(--line); padding:8px 16px; border-radius:8px; display:none; z-index:30; }
+  /* 评测结果视图 */
+  #viewEval { display:none; grid-template-columns:1fr; min-height:0; background:var(--bg); }
+  #viewEval.on { display:grid; }
+  #viewChat.off { display:none; }
+  .evbanner { margin:12px 16px 0; border:1px solid var(--warn); border-radius:8px; padding:8px 12px; font-size:12px; color:var(--warn); background:var(--panel); }
+  .stats { display:flex; flex-wrap:wrap; gap:10px; margin:12px 16px; }
+  .stat { background:var(--panel); border:1px solid var(--line); border-radius:8px; padding:8px 12px; font-size:12px; min-width:130px; }
+  .stat b { font-size:16px; display:block; }
+  .stat .meta { color:var(--dim); font-size:11px; }
+  .filters { margin:0 16px 8px; display:flex; gap:6px; flex-wrap:wrap; }
+  .filters button { font-size:12px; padding:4px 10px; background:transparent; color:var(--dim); border-color:var(--line); }
+  .filters button.active { color:#fff; border-color:var(--acc); }
+  #qlist { overflow-y:auto; flex:1; margin:0 16px 16px; display:flex; flex-direction:column; gap:8px; }
+  .q { border:1px solid var(--line); border-radius:8px; background:var(--panel); }
+  .q > .row { display:flex; gap:10px; align-items:center; padding:8px 12px; cursor:pointer; font-size:13px; }
+  .q > .row:hover { background:var(--panel2); }
+  .q .qid { color:var(--acc); font-weight:600; min-width:70px; }
+  .q .fam { color:var(--dim); font-size:11px; border:1px solid var(--line); border-radius:8px; padding:1px 8px; }
+  .q .spacer { flex:1; }
+  .q .detail { border-top:1px dashed var(--line); padding:10px 14px; display:none; font-size:13px; }
+  .q.open .detail { display:block; }
+  .detail h4 { font-size:12px; color:var(--dim); margin:10px 0 4px; text-transform:uppercase; letter-spacing:.04em; }
+  .detail pre { white-space:pre-wrap; word-break:break-word; background:var(--panel2); border:1px solid var(--line); border-radius:6px; padding:8px 10px; font-size:12px; max-height:340px; overflow-y:auto; }
+  .detail pre.evline { margin-bottom:4px; }
+  .detail .judge { border:1px solid var(--line); border-radius:6px; padding:6px 10px; margin-bottom:6px; background:var(--panel2); font-size:12px; }
+  .detail sup.cite { color:var(--acc); cursor:help; font-weight:600; }
+  .pill { font-size:11px; padding:1px 8px; border-radius:8px; border:1px solid var(--line); color:var(--dim); }
+  .pill.ok { color:var(--ok); border-color:var(--ok); } .pill.err { color:var(--err); border-color:var(--err); } .pill.warn { color:var(--warn); border-color:var(--warn); }
 </style>
 </head>
 <body>
@@ -55,11 +87,15 @@
   <h1>🛠 OpsPilot 诊断工作台</h1>
   <span class="badge" id="who">未登录</span>
   <span class="badge warn">指标源 = 测试演示数据</span>
-  <span class="badge warn">评测：T23 终审未通过，暂无已验收准确率</span>
-  <a href="/docs" target="_blank">接口手册</a>
-  <a href="https://github.com/loresraatlogparser/BGL" target="_blank" hidden></a>
+  <span class="badge" id="evalBadge">BGL 评测：n31real（未人工复核）</span>
+  <nav>
+    <button id="tabChat" class="active" onclick="switchView('chat')">诊断对话</button>
+    <button id="tabEval" class="ghost" onclick="switchView('eval')">评测结果</button>
+    <a href="/docs" target="_blank">接口手册</a>
+  </nav>
 </header>
-<main>
+<!-- ============ 视图 1：诊断对话 ============ -->
+<main id="viewChat">
   <!-- 左栏：登录 + 会话 -->
   <div class="col">
     <h2>登录</h2>
@@ -89,6 +125,15 @@
     <div class="scroll" id="evidence"><div class="ev meta" style="border:none">尚无运行记录</div></div>
   </div>
 </main>
+<!-- ============ 视图 2：评测结果 ============ -->
+<main id="viewEval">
+  <div style="display:flex;flex-direction:column;min-height:0;flex:1">
+    <div class="evbanner" id="evBanner">数据来源说明：逐题语料为公开真实 BGL 日志（来源行号可回溯、告警标签列已剥离且不作为根因）；工作台“指标源”为测试演示数据，与 BGL 评测无关；全部判分为模型双裁判自动评分，未经人工复核，不宣称人工准确率。</div>
+    <div class="stats" id="evStats"><div class="stat">加载中…</div></div>
+    <div class="filters" id="evFilters"></div>
+    <div id="qlist"><div class="stat">加载中…</div></div>
+  </div>
+</main>
 <div id="toast"></div>
 <script>
 const $ = s => document.querySelector(s);
@@ -106,6 +151,16 @@ let sessionId = localStorage.getItem("opspilot_sid") || "";
 let citations = [];  // [n] → 文档标题
 let citationsMap = new Map();
 let running = false;
+let evalData = null, evalFilter = "all", evalOpen = new Set();
+
+/* ---------- 视图切换 ---------- */
+function switchView(v) {
+  $("#viewChat").classList.toggle("off", v === "eval");
+  $("#viewEval").classList.toggle("on", v === "eval");
+  $("#tabChat").className = v === "chat" ? "active" : "ghost";
+  $("#tabEval").className = v === "eval" ? "active" : "ghost";
+  if (v === "eval") loadEval();
+}
 
 /* ---------- 登录 / 会话 / 工具 ---------- */
 async function login() {
@@ -183,10 +238,10 @@ function handleEvent(evt) {
     evidence(`工具 ${esc(evt.name)} <span class="${r.status === "ok" ? "ok" : r.status === "no_data" ? "warn" : "err"}">${esc(r.status || "")}</span> ${evt.duration_ms}ms`,
       `<div class="meta">参数：${esc(JSON.stringify(evt.args || {}))}</div>${r.summary ? `<div class="snippet">${esc(r.summary).slice(0, 220)}</div>` : ""}`);
   }
-  else if (t === "answer" || t === "final") {
+  else if (t === "answer") {
     if (evt.citations) citations = evt.citations;
     const bubble = $("#chat").querySelector(".msg.assistant:last-child");
-    if (bubble) { bubble.classList.remove("pending"); bubble.innerHTML = renderAnswer(evt.answer || evt.answer === "" ? evt.answer : ""); }
+    if (bubble && evt.answer != null) { bubble.classList.remove("pending"); bubble.innerHTML = renderAnswer(evt.answer); }
   }
   else if (t === "assistant_message") { /* 原生模式的中间消息，跳过 */ }
   else if (t === "approval_required") {
@@ -199,6 +254,7 @@ function handleEvent(evt) {
   }
   else if (t === "ticket_created") { evidence("工单已创建", `<span class="ok">${esc(evt.ticket_id)}</span> ${esc(evt.title || "")}`); }
   else if (t === "final") {
+    if (evt.citations) citations = evt.citations;
     const bubble = $("#chat").querySelector(".msg.assistant:last-child");
     if (bubble && evt.answer != null) { bubble.classList.remove("pending"); bubble.innerHTML = renderAnswer(evt.answer); }
     if (evt.run_id) evidence("运行结束", `run_id=${esc(evt.run_id)} <a href="/docs" target="_blank">查看 runs 接口</a>`);
@@ -243,7 +299,94 @@ async function send() {
     running = false;
   }
 }
-document.addEventListener("keydown", e => { if (e.ctrlKey && e.key === "Enter") send(); });
+document.addEventListener("keydown", e => { if (e.ctrlKey && e.key === "Enter" && $("#viewEval").classList.contains("on") === false) send(); });
+
+/* ---------- 评测结果视图 ---------- */
+function statusPill(st) {
+  if (st === "answered") return '<span class="pill ok">answered</span>';
+  if (st === "approval_required") return '<span class="pill warn">approval_required</span>';
+  if (st === "failed") return '<span class="pill err">failed</span>';
+  return `<span class="pill err">${esc(String(st || "?"))}</span>`;
+}
+function usageStr(u) {
+  if (!u || !Object.keys(u).length) return '<span class="meta">无调用记录</span>';
+  return Object.entries(u).map(([m, s]) =>
+    `<span class="pill">${esc(m)}: ${s.tokens || 0} tok / ${s.calls} 次${s.errors ? ` / <span class="err">错误 ${s.errors}</span>` : ""}${s.budget_refused ? ` / 预算拒绝 ${s.budget_refused}` : ""}</span>`).join(" ");
+}
+function renderAnswerEval(text, evidenceArr) {
+  return esc(text).replace(/\[(\d{1,2})\]/g, (m, n) => {
+    const ev = evidenceArr[Number(n) - 1];
+    return ev ? `<sup class="cite" title="${esc(ev.doc_title)}">[${n}]</sup>` : m;
+  });
+}
+function renderEval() {
+  const d = evalData;
+  if (!d) return;
+  const s = d.summary || {}, mf = d.manifest || {}, cfg = d.config || {};
+  const byModel = mf.ledger_by_model || {}, ml = (cfg.budget || {}).model_limits || {};
+  $("#evStats").innerHTML = `
+    <div class="stat"><b>${s.completed || 0} / ${s.target || 43}</b><span class="meta">完成题数（未运行不计完成）</span></div>
+    <div class="stat"><b>${Object.entries(s.status_counts || {}).map(([k, v]) => `${k}:${v}`).join(" ") || "-"}</b><span class="meta">状态分布</span></div>
+    <div class="stat"><b>${s.judge_agreement_on_answer_correct || "-"}</b><span class="meta">双裁判 answer_correct 一致（非人工准确率）</span></div>
+    <div class="stat"><b>${s.judged_main || 0}</b><span class="meta">主裁判已判题数</span></div>
+    <div class="stat"><b>${Object.entries(byModel).map(([m, v]) => `${m.split("-").slice(-1)[0]} ${v.actual}${v.unknown ? "+" + v.unknown + "?" : ""}`).join("<br>") || "-"}</b>
+      <span class="meta">账本实报 tokens（?为缺 usage 未知预留）<br>${Object.entries(ml).map(([m, v]) => `${esc(m)} ≤ ${v}`).join("<br>")}</span></div>
+    <div class="stat"><b>${esc(cfg.generation || "-")}</b><span class="meta">回答模型<br>裁判：${(cfg.judges || []).map(esc).join(" + ") || "-"}<br>Embedding：${esc(cfg.embedding || "")} / Rerank：${esc(cfg.rerank || "")}</span></div>`;
+  const fams = ["all", "dev", "test", "regression", "failed", "abstain"];
+  $("#evFilters").innerHTML = fams.map(f =>
+    `<button class="${evalFilter === f ? "active" : ""}" onclick="setFilter('${f}')">${f === "all" ? "全部" : f === "failed" ? "仅失败" : f === "abstain" ? "拒答题" : f}</button>`).join("");
+  const qs = (d.questions || []).filter(q => {
+    if (evalFilter === "all") return true;
+    if (evalFilter === "failed") return String(q.status) !== "answered" && String(q.status) !== "approval_required";
+    if (evalFilter === "abstain") return !!q.must_abstain;
+    return q.split === evalFilter;
+  });
+  $("#qlist").innerHTML = qs.map(q => {
+    const open = evalOpen.has(q.id);
+    const main = (q.judges || {})[(d.config || {}).judges?.[0] || ""] || {};
+    const v = main.verdict;
+    const detail = !open ? "" : `
+      <div class="detail">
+        <h4>输入</h4><pre>${esc(q.question)}</pre>
+        <h4>金标要点（逐项对应原始日志行）</h4><pre>${esc((q.required_points || []).map((p, i) => `${i + 1}. ${p}`).join("\n"))}</pre>
+        <h4>实际取得的编号证据（top-${(q.evidence || []).length}，正文与检索一致）</h4>
+        ${(q.evidence || []).map(e => `<pre class="evline">[${e.n}] 📄 ${esc(e.doc_title)}（score=${e.score ?? "?"}，chunk=${esc(e.chunk_id || "")}）\n${esc(e.text)}${(e.text || "").length >= 500 ? " …" : ""}</pre>`).join("") || "<pre>（无证据返回）</pre>"}
+        <h4>最终回答 ${statusPill(q.status)} <span class="meta">end_reason=${esc(q.end_reason || "-")} · 引用：${(q.citations || []).map(esc).join("；") || "无"}</span></h4>
+        <pre>${q.answer ? renderAnswerEval(q.answer, q.evidence) : "（无回答）"}</pre>
+        <h4>双裁判判分（同答案、同 rubric、同编号证据）</h4>
+        ${Object.entries(q.judges || {}).map(([m, j]) => {
+          const jd = j.verdict;
+          return `<div class="judge"><b>${esc(m)}</b> ${j.missing || !jd ? '<span class="pill warn">缺判（计 0，未宣称准确率）</span>' :
+            `${jd.answer_correct ? '<span class="pill ok">answer_correct</span>' : '<span class="pill err">answer_correct✗</span>'} ${jd.grounded ? '<span class="pill ok">grounded</span>' : '<span class="pill err">grounded✗</span>'} ${jd.appropriate_abstention ? '<span class="pill ok">abstain✓</span>' : '<span class="pill err">abstain✗</span>'}`}
+            <div class="meta">${esc((jd && jd.reason) || j.attempts?.map(a => a.error_type).join("→") || "")}</div></div>`;
+        }).join("") || "<div class='judge meta'>未评分</div>"}
+        <h4>本题实际用量（供应商 usage 实报）</h4><div>${usageStr(q.usage)}</div>
+        ${q.error ? `<h4>失败 / 重试留痕（最多额外重试 1 次）</h4><pre>${esc(JSON.stringify(q.error, null, 1))}</pre>` : ""}
+        <div class="meta">耗时 ${q.elapsed_s ?? "?"}s · split=${esc(q.split)} · family=${esc(q.family)} · 窗口=${esc(q.window || "无（拒答/跨窗）")} · must_abstain=${q.must_abstain}</div>
+      </div>`;
+    return `<div class="q ${open ? "open" : ""}" onclick="toggleQ('${q.id}')">
+      <div class="row">
+        <span class="qid">${esc(q.id)}</span>
+        <span class="fam">${esc(q.family || "")}</span>
+        ${statusPill(q.status)}
+        ${q.must_abstain ? '<span class="pill warn">须拒答</span>' : ""}
+        <span class="meta">${v ? (v.answer_correct ? '<span class="ok">✓</span>' : '<span class="err">✗</span>') : "未判"}</span>
+        <span class="spacer"></span>
+        <span class="meta">${Object.values(q.usage || {}).reduce((a, u) => a + (u.tokens || 0), 0)} tok · ${q.elapsed_s ?? "?"}s</span>
+      </div>${detail}</div>`;
+  }).join("") || '<div class="stat">该过滤条件下无题目</div>';
+}
+function setFilter(f) { evalFilter = f; renderEval(); }
+function toggleQ(id) { evalOpen.has(id) ? evalOpen.delete(id) : evalOpen.add(id); renderEval(); }
+async function loadEval() {
+  try {
+    evalData = await api("/api/eval/results");
+    renderEval();
+  } catch (e) {
+    $("#evStats").innerHTML = `<div class="stat err">评测结果加载失败：${esc(e.message)}</div>`;
+    $("#qlist").innerHTML = "";
+  }
+}
 if (token) { $("#who").textContent = "已登录（本地凭据）"; Promise.all([loadSessions(), loadTools()]).catch(() => {}); }
 </script>
 </body>

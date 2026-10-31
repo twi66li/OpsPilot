@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.api import router_admin, router_agent, router_kb, router_session, router_ticket
+from app.api import router_admin, router_agent, router_eval, router_kb, router_session, router_ticket
 from app.auth.router import router as auth_router
 from app.auth.security import hash_password
 from app.config import get_settings
@@ -78,6 +78,7 @@ app.include_router(router_admin.router)
 app.include_router(router_kb.router)
 app.include_router(router_session.router)
 app.include_router(router_agent.router)
+app.include_router(router_eval.router)
 app.include_router(router_ticket.router)
 
 

@@ -106,6 +106,20 @@ def extract_service_hint(question: str) -> str | None:
     return m.group(0).lower() if m else None
 
 
+def evidence_excerpt(text: str, limit: int) -> str:
+    """证据摘录：超过上限时在最后一个完整行边界收口，不把一行日志从中间切断。
+
+    历史 [:500] 硬截断会产生"行号只剩前几位"的伪影（如以 '45' 开头的残行），
+    直接导致计数与行号类回答出错；行边界收口保证模型看到的每行都完整。
+    """
+    if limit <= 0 or len(text) <= limit:
+        return text
+    cut = text.rfind("\n", 0, limit + 1)
+    if cut <= 0:  # 首行即超长：退化为该行内硬截断（无行边界可依）
+        return text[:limit]
+    return text[:cut]
+
+
 def extract_error_code_hint(question: str) -> str | None:
     m = re.search(r"(?:ERR|ERROR)[_-]?[A-Za-z0-9]+", question, re.IGNORECASE)
     return m.group(0).upper().replace("-", "_") if m else None
@@ -138,7 +152,10 @@ class OpenAIChatLLM(BaseLLM):
     def is_sufficient(self, question: str, hits: list[dict]) -> bool:
         if not hits:
             return False
-        docs = "\n".join(f"[{i}] {h.get('doc_title', '')}: {h.get('text', '')[:300]}" for i, h in enumerate(hits[:5], 1))
+        from app.config import get_settings
+
+        limit = getattr(get_settings(), "evidence_excerpt_chars", 500)
+        docs = "\n".join(f"[{i}] {h.get('doc_title', '')}: {evidence_excerpt(h.get('text', ''), min(300, limit))}" for i, h in enumerate(hits[:5], 1))
         prompt = f"问题：{question}\n\n候选文档：\n{docs}\n\n判断每个文档是否与问题相关，输出 JSON: {{\"relevant\": [true/false, ...]}}"
         try:
             data = self._parse_json(self._chat("你是运维知识库检索相关性判断助手，只输出 JSON。", prompt))
@@ -169,7 +186,10 @@ class OpenAIChatLLM(BaseLLM):
             return self._fallback.rewrite_query(question)
 
     def generate_answer(self, question, hits, tool_events, fault_records, history) -> str:
-        context = "\n".join(f"[{i}] 《{h.get('doc_title', '')}》 {h.get('text', '')[:500]}" for i, h in enumerate(hits, 1))
+        from app.config import get_settings
+
+        limit = getattr(get_settings(), "evidence_excerpt_chars", 500)
+        context = "\n".join(f"[{i}] 《{h.get('doc_title', '')}》 {evidence_excerpt(h.get('text', ''), limit)}" for i, h in enumerate(hits, 1))
         tools_info = "\n".join(f"- {e.get('name')}: {e.get('summary', '')}" for e in tool_events) or "（无）"
         faults = "\n".join(f"- {f['title']}: {f['resolution']}" for f in fault_records) or "（无）"
         system = (

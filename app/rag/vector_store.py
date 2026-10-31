@@ -90,6 +90,14 @@ class InMemoryVectorStore:
             return len(self._points)
         return sum(1 for p in self._points.values() if p["payload"].get("tenant_id") == tenant_id)
 
+    def scroll_tenant(self, tenant_id: str) -> list[dict]:
+        """返回该租户全部原始分块 payload（与稠密臂同源同界），供 BM25 重建使用。"""
+        return [
+            dict(point["payload"])
+            for point in self._points.values()
+            if point["payload"].get("tenant_id") == tenant_id
+        ]
+
 
 def _point_id(chunk_id: str) -> str:
     """由逻辑 chunk_id 派生确定性合法 UUID 作为 Qdrant point id（重复入库幂等覆盖）。
@@ -168,6 +176,20 @@ class QdrantVectorStore:
             flt = Filter(must=[FieldCondition(key="tenant_id", match=MatchValue(value=tenant_id))])
         result = self.client.count(self.collection, count_filter=flt, exact=True)
         return result.count
+
+    def scroll_tenant(self, tenant_id: str) -> list[dict]:
+        """分页取回该租户全部原始分块 payload（与稠密臂同源同界），供 BM25 重建使用。"""
+        from qdrant_client.models import FieldCondition, Filter, MatchValue
+
+        flt = Filter(must=[FieldCondition(key="tenant_id", match=MatchValue(value=tenant_id))])
+        chunks, offset = [], None
+        while True:
+            points, offset = self.client.scroll(
+                self.collection, scroll_filter=flt, with_payload=True, with_vectors=False, limit=256, offset=offset
+            )
+            chunks.extend(dict(p.payload) for p in points)
+            if offset is None:
+                return chunks
 
 
 def get_vector_store(settings):

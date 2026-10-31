@@ -1,0 +1,2807 @@
+{
+ "namespace": "n31real",
+ "batch": "rerank_restore_20",
+ "questions": {
+  "test-019": {
+   "status": "answered",
+   "question": "语料中 L9000000 到 L9000010 记录了什么？",
+   "split": "test",
+   "family": "abstain_beyond_eof",
+   "window": null,
+   "must_abstain": true,
+   "required_points": [
+    "明确说明语料中不存在该行范围，无法回答该范围的内容",
+    "不编造内容"
+   ],
+   "rerank_active": true,
+   "answer": "根据提供的知识库文档，**无法回答**语料中 L9000000 到 L9000010 记录了什么。\n\n当前知识库仅包含以下两段 BGL 真实日志摘录：\n- **L3765000-L3765034**（来源：[1][3][4]）\n- **L1120000-L1120034**（来源：[2][5]）\n\n其中均未涉及 L9000000 到 L9000010 范围内的任何记录。由于缺乏相关文档和工具输出，我无法确认该段日志的内容，也不能进行猜测或编造。\n\n**排查建议：**\n请补充提供包含 L9000000 至 L9000010 行号的语料文档或日志文件，以便进一步分析其记录内容。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L3765000-L3765034",
+    "BGL 真实日志摘录 L1120000-L1120034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::1",
+     "score": 0.4352,
+     "text": "6686 R67-M0-N9-C:J07-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765014: 1131059351 2005.11.03 R67-M0-N9-C:J07-U01 2005-11-03-15.09.11.067542 R67-M0-N9-C:J07-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765015: 1131059351 2005.11.03 R67-M0-N9-C:J13-U01 2005-11-03-15.09.11.082509 R67-M0-N9-C:J13-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765016: 1131059351 2005.11.03 R67-M0-N9-C:J13-U01 2005-11-03-15.09.11.097486 R67-M0-N9-C:J13-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L1120000-L1120034",
+     "chunk_id": "905331ea9dbb4378be4005af1975fa82::1",
+     "score": 0.4022,
+     "text": "120014: 1120091745 2005.06.29 R30-M0-NA-C:J10-U11 2005-06-29-17.35.45.439993 R30-M0-NA-C:J10-U11 RAS KERNEL INFO generating core.10770\nL1120015: 1120091745 2005.06.29 R30-M0-NA-C:J06-U11 2005-06-29-17.35.45.488514 R30-M0-NA-C:J06-U11 RAS KERNEL INFO generating core.11282\nL1120016: 1120091745 2005.06.29 R30-M0-NA-C:J12-U11 2005-06-29-17.35.45.524276 R30-M0-NA-C:J12-U11 RAS KERNEL INFO generating core.27154"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::0",
+     "score": 0.362,
+     "text": "L3765000: 1131059350 2005.11.03 R67-M0-N9-C:J03-U01 2005-11-03-15.09.10.842997 R67-M0-N9-C:J03-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765001: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.857984 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765002: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.872859 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c21c"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::2",
+     "score": 0.3594,
+     "text": "27: 1131059351 2005.11.03 R67-M0-N9-C:J06-U11 2005-11-03-15.09.11.274081 R67-M0-N9-C:J06-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765028: 1131059351 2005.11.03 R67-M0-N9-C:J06-U11 2005-11-03-15.09.11.289339 R67-M0-N9-C:J06-U11 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765029: 1131059351 2005.11.03 R67-M0-N9-C:J12-U11 2005-11-03-15.09.11.304040 R67-M0-N9-C:J12-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L1120000-L1120034",
+     "chunk_id": "905331ea9dbb4378be4005af1975fa82::2",
+     "score": 0.3443,
+     "text": "0028: 1120091745 2005.06.29 R37-M0-N2-C:J15-U11 2005-06-29-17.35.45.966584 R37-M0-N2-C:J15-U11 RAS KERNEL INFO generating core.10614\nL1120029: 1120091746 2005.06.29 R37-M0-N2-C:J11-U11 2005-06-29-17.35.46.002507 R37-M0-N2-C:J11-U11 RAS KERNEL INFO generating core.11126\nL1120030: 1120091746 2005.06.29 R37-M0-N2-C:J13-U11 2005-06-29-17.35.46.038985 R37-M0-N2-C:J13-U11 RAS KERNEL INFO generating core.27510"
+    }
+   ],
+   "retrieval_rounds": 2,
+   "elapsed_s": 14.0,
+   "attempts": [],
+   "session_id": "69b5092d76744c338f8ef678a7027492",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 2,
+     "tokens": 83,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 2,
+     "tokens": 13700,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 4,
+     "tokens": 4735,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-014": {
+   "status": "answered",
+   "question": "L1120000-L1120034 中 DDR 内存错误纠正消息出现在哪些行？",
+   "split": "test",
+   "family": "abstain_no_such_template",
+   "window": "testC",
+   "must_abstain": true,
+   "required_points": [
+    "明确说明该窗口没有 DDR 错误纠正消息",
+    "不把 generating core 消息当作 DDR 错误"
+   ],
+   "rerank_active": true,
+   "answer": "根据提供的知识库文档，**无法确定** L1120000-L1120034 中 DDR 内存错误纠正消息出现在哪些行。\n\n原因如下：\n- 文档 [4] 虽然标题为《BGL 真实日志摘录 L1120000-L1120034》，但其摘录的内容仅包含 `generating core` 相关的内核信息（如 L1120029、L1120030），并未展示任何 DDR 内存错误纠正（如 \"ddr errors(s) detected and corrected\"）的消息。\n- 包含 DDR 内存错误纠正消息的日志实际出现在文档 [1] 和 [3] 中（例如 L14713 的 \"1 ddr errors(s) detected and corrected on rank 0, symbol 27, bit 6\" 以及 L14725 附近的 \"total of 3 ddr error(s) detected and corrected\"），但这些均属于 **L14700-L14760** 范围，而非用户询问的 L1120000-L1120034 范围。\n\n**排查建议：**\n当前知识库中关于 L1120000-L1120034 的摘录内容采样不足，未覆盖该范围内所有行的完整日志。指标不可用或采样不足不等于服务正常，建议提供该范围的完整原始日志文件以进一步检索确认是否存在 DDR 内存错误纠正消息。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L14700-L14760",
+    "BGL 真实日志摘录 L1120000-L1120034",
+    "BGL 真实日志摘录 L4270000-L4270034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::1",
+     "score": 0.739,
+     "text": "mask 0x08\nL14712: 1117865191 2005.06.03 R12-M1-N3-C:J11-U11 2005-06-03-23.06.31.803435 R12-M1-N3-C:J11-U11 RAS KERNEL INFO CE sym 7, at 0x03ffa060, mask 0x04\nL14713: 1117865191 2005.06.03 R07-M0-N8-C:J11-U11 2005-06-03-23.06.31.828485 R07-M0-N8-C:J11-U11 RAS KERNEL INFO 1 ddr errors(s) detected and corrected on rank 0, symbol 27, bit 6"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::0",
+     "score": 0.6503,
+     "text": "L14700: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.563879 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08\nL14701: 1117863694 2005.06.03 R15-M1-N6-C:J04-U11 2005-06-03-22.41.34.605102 R15-M1-N6-C:J04-U11 RAS KERNEL INFO CE sym 14, at 0x06047860, mask 0x20\nL14702: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.751589 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::2",
+     "score": 0.6486,
+     "text": "2005.06.03 R12-M1-N3-C:J11-U11 2005-06-03-23.06.32.429303 R12-M1-N3-C:J11-U11 RAS KERNEL INFO total of 3 ddr error(s) detected and corrected\nL14725: 1117865414 2005.06.03 R33-M1-L0-U22-C 2005-06-03-23.10.14.414021 R33-M1-L0-U22-C RAS LINKCARD INFO MidplaneSwitchController performing bit sparing on R33-M1-L0-U22-C bit 3\nL14726: 1117865414 2005.06.03 R27-M1-L3-U18-C 2005-06-03-23.10.14.417744 R27-M1-L3-U18-C RAS LINKCARD INFO MidplaneSwitchController performing bit sparing on R27-M1-L3-U18-C bit 3"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L1120000-L1120034",
+     "chunk_id": "905331ea9dbb4378be4005af1975fa82::2",
+     "score": 0.5934,
+     "text": "0028: 1120091745 2005.06.29 R37-M0-N2-C:J15-U11 2005-06-29-17.35.45.966584 R37-M0-N2-C:J15-U11 RAS KERNEL INFO generating core.10614\nL1120029: 1120091746 2005.06.29 R37-M0-N2-C:J11-U11 2005-06-29-17.35.46.002507 R37-M0-N2-C:J11-U11 RAS KERNEL INFO generating core.11126\nL1120030: 1120091746 2005.06.29 R37-M0-N2-C:J13-U11 2005-06-29-17.35.46.038985 R37-M0-N2-C:J13-U11 RAS KERNEL INFO generating core.27510"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L4270000-L4270034",
+     "chunk_id": "6fca7c5cae314337ad7bee8a005ef227::0",
+     "score": 0.2157,
+     "text": "L4270000: 1132716628 2005.11.22 R62-M0-N8-I:J18-U11 2005-11-22-19.30.28.456145 R62-M0-N8-I:J18-U11 RAS KERNEL INFO ciod: pollControlDescriptors: Detected the debugger died.\nL4270001: 1132716628 2005.11.22 R62-M0-N8-I:J18-U01 2005-11-22-19.30.28.480143 R62-M0-N8-I:J18-U01 RAS KERNEL INFO ciod: pollControlDescriptors: Detected the debugger died."
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 9.0,
+   "attempts": [],
+   "session_id": "51a3b2cc8c624817b2417d3c9f271cab",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 44,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 6118,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 2995,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-020": {
+   "status": "answered",
+   "question": "语料中 L3300000 到 L3300020 记录了什么内容？请给出行号与消息。",
+   "split": "test",
+   "family": "abstain_out_of_corpus",
+   "window": null,
+   "must_abstain": true,
+   "required_points": [
+    "明确说明知识库语料不含 L3300000-L3300020 这个范围",
+    "不编造该范围的行号或消息"
+   ],
+   "rerank_active": true,
+   "answer": "根据提供的知识库文档，**无法回答**您的问题。\n\n当前知识库中仅包含以下行号范围的 BGL 日志摘录：\n- L14700 到 L14760 [2][4]\n- L3765000 到 L3765034 [1][3][5]\n\n其中**不包含 L3300000 到 L3300020 的任何记录**。\n\n**排查建议：**\n指标/语料不可用或采样不足不等于服务正常。如需查看 L3300000 到 L3300020 的内容，请补充提供该行号范围对应的日志语料或相关文档，以便进一步分析。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L3765000-L3765034",
+    "BGL 真实日志摘录 L14700-L14760"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::1",
+     "score": 0.4498,
+     "text": "6686 R67-M0-N9-C:J07-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765014: 1131059351 2005.11.03 R67-M0-N9-C:J07-U01 2005-11-03-15.09.11.067542 R67-M0-N9-C:J07-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765015: 1131059351 2005.11.03 R67-M0-N9-C:J13-U01 2005-11-03-15.09.11.082509 R67-M0-N9-C:J13-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765016: 1131059351 2005.11.03 R67-M0-N9-C:J13-U01 2005-11-03-15.09.11.097486 R67-M0-N9-C:J13-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::3",
+     "score": 0.4081,
+     "text": "g on R33-M1-L0-U22-C bit 3\nL14735: 1117869001 2005.06.04 R27-M1-L3-U18-C 2005-06-04-00.10.01.050649 R27-M1-L3-U18-C RAS LINKCARD INFO MidplaneSwitchController performing bit sparing on R27-M1-L3-U18-C bit 3\nL14736: 1117869871 2005.06.04 R23-M0-N4-I:J18-U11 2005-06-04-00.24.31.560279 R23-M0-N4-I:J18-U11 RAS APP FATAL ciod: LOGIN chdir(/p/gb2/draeger/benchmark/dat32k_060205) failed: No such file or directory"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::2",
+     "score": 0.3954,
+     "text": "27: 1131059351 2005.11.03 R67-M0-N9-C:J06-U11 2005-11-03-15.09.11.274081 R67-M0-N9-C:J06-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765028: 1131059351 2005.11.03 R67-M0-N9-C:J06-U11 2005-11-03-15.09.11.289339 R67-M0-N9-C:J06-U11 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765029: 1131059351 2005.11.03 R67-M0-N9-C:J12-U11 2005-11-03-15.09.11.304040 R67-M0-N9-C:J12-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::2",
+     "score": 0.3943,
+     "text": "2005.06.03 R12-M1-N3-C:J11-U11 2005-06-03-23.06.32.429303 R12-M1-N3-C:J11-U11 RAS KERNEL INFO total of 3 ddr error(s) detected and corrected\nL14725: 1117865414 2005.06.03 R33-M1-L0-U22-C 2005-06-03-23.10.14.414021 R33-M1-L0-U22-C RAS LINKCARD INFO MidplaneSwitchController performing bit sparing on R33-M1-L0-U22-C bit 3\nL14726: 1117865414 2005.06.03 R27-M1-L3-U18-C 2005-06-03-23.10.14.417744 R27-M1-L3-U18-C RAS LINKCARD INFO MidplaneSwitchController performing bit sparing on R27-M1-L3-U18-C bit 3"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::0",
+     "score": 0.3937,
+     "text": "L3765000: 1131059350 2005.11.03 R67-M0-N9-C:J03-U01 2005-11-03-15.09.10.842997 R67-M0-N9-C:J03-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765001: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.857984 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765002: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.872859 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c21c"
+    }
+   ],
+   "retrieval_rounds": 2,
+   "elapsed_s": 10.2,
+   "attempts": [],
+   "session_id": "3d918e9c2bd642e583e2c7d96a2d505b",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 2,
+     "tokens": 95,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 2,
+     "tokens": 13216,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 4,
+     "tokens": 4301,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-021": {
+   "status": "answered",
+   "question": "语料中哪些行范围包含 data TLB error interrupt 消息？请给出文档名与行号范围。",
+   "split": "test",
+   "family": "cross_window",
+   "window": null,
+   "must_abstain": false,
+   "required_points": [
+    "指出文档“BGL 真实日志摘录 L253000-L253034”，行号范围 L253000-L253034",
+    "不把其他窗口列为包含该消息"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档，包含 `data TLB error interrupt` 消息的行范围如下：\n\n- **文档 [1]**《BGL 真实日志摘录 L253000-L253034》：**L253014 - L253016**\n- **文档 [2]**《BGL 真实日志摘录 L253000-L253034》：**L253028 - L253030**（注：该文档标题片段中也包含此消息）\n- **文档 [3]**《BGL 真实日志摘录 L253000-L253034》：**L253000 - L253002**\n\n文档 [4] 和 [5] 中未出现 `data TLB error interrupt` 消息。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L253000-L253034",
+    "BGL 真实日志摘录 L505000-L505034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::1",
+     "score": 0.8734,
+     "text": "S KERNEL FATAL data TLB error interrupt\nL253014: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.818102 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253015: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.919889 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253016: 1118539820 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.20.190192 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::2",
+     "score": 0.8544,
+     "text": "1-18.30.21.933292 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253028: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.254534 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253029: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.367936 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253030: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.467591 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::0",
+     "score": 0.8363,
+     "text": "L253000: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.356251 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253001: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.665839 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253002: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.765347 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::2",
+     "score": 0.5309,
+     "text": "address: 0x00004ed8\nL505027: 1118768074 2005.06.14 R06-M0-N9-C:J10-U11 2005-06-14-09.54.34.370349 R06-M0-N9-C:J10-U11 RAS KERNEL FATAL data storage interrupt\nL505028: 1118768074 2005.06.14 R24-M0-NA-C:J10-U01 2005-06-14-09.54.34.382299 R24-M0-NA-C:J10-U01 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505029: 1118768074 2005.06.14 R24-M0-NA-C:J12-U01 2005-06-14-09.54.34.405163 R24-M0-NA-C:J12-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::0",
+     "score": 0.4825,
+     "text": "L505000: 1118768073 2005.06.14 R24-M0-NA-C:J07-U11 2005-06-14-09.54.33.980523 R24-M0-NA-C:J07-U11 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505001: 1118768073 2005.06.14 R06-M0-N9-C:J05-U11 2005-06-14-09.54.33.997212 R06-M0-N9-C:J05-U11 RAS KERNEL FATAL data storage interrupt\nL505002: 1118768074 2005.06.14 R24-M0-NA-C:J15-U01 2005-06-14-09.54.34.015827 R24-M0-NA-C:J15-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 6.8,
+   "attempts": [],
+   "session_id": "0cac11aa72be473fa643fe3f1beadf92",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 40,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 5950,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 3057,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-012": {
+   "status": "answered",
+   "question": "生成 30340 这个 core 文件的消息出现在哪一行？",
+   "split": "test",
+   "family": "distinct_line",
+   "window": "testC",
+   "must_abstain": false,
+   "required_points": [
+    "出现在 L1120000",
+    "引用了该行的时间戳或节点作为佐证"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档，生成 `core.30340` 这个 core 文件的消息出现在 **L1120000** 行 [1]。\n\n该行完整日志内容为：\n`L1120000: 1120091744 2005.06.29 R25-M1-NF-C:J02-U01 2005-06-29-17.35.44.933370 R25-M1-NF-C:J02-U01 RAS KERNEL INFO generating core.30340`",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L1120000-L1120034",
+    "BGL 真实日志摘录 L4270000-L4270034",
+    "BGL 真实日志摘录 L14700-L14760"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L1120000-L1120034",
+     "chunk_id": "905331ea9dbb4378be4005af1975fa82::0",
+     "score": 0.8726,
+     "text": "L1120000: 1120091744 2005.06.29 R25-M1-NF-C:J02-U01 2005-06-29-17.35.44.933370 R25-M1-NF-C:J02-U01 RAS KERNEL INFO generating core.30340\nL1120001: 1120091744 2005.06.29 R25-M1-NF-C:J02-U11 2005-06-29-17.35.44.968990 R25-M1-NF-C:J02-U11 RAS KERNEL INFO generating core.13972\nL1120002: 1120091745 2005.06.29 R30-M0-NA-C:J05-U01 2005-06-29-17.35.45.010518 R30-M0-NA-C:J05-U01 RAS KERNEL INFO generating core.11810"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L1120000-L1120034",
+     "chunk_id": "905331ea9dbb4378be4005af1975fa82::1",
+     "score": 0.6376,
+     "text": "120014: 1120091745 2005.06.29 R30-M0-NA-C:J10-U11 2005-06-29-17.35.45.439993 R30-M0-NA-C:J10-U11 RAS KERNEL INFO generating core.10770\nL1120015: 1120091745 2005.06.29 R30-M0-NA-C:J06-U11 2005-06-29-17.35.45.488514 R30-M0-NA-C:J06-U11 RAS KERNEL INFO generating core.11282\nL1120016: 1120091745 2005.06.29 R30-M0-NA-C:J12-U11 2005-06-29-17.35.45.524276 R30-M0-NA-C:J12-U11 RAS KERNEL INFO generating core.27154"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L1120000-L1120034",
+     "chunk_id": "905331ea9dbb4378be4005af1975fa82::2",
+     "score": 0.5907,
+     "text": "0028: 1120091745 2005.06.29 R37-M0-N2-C:J15-U11 2005-06-29-17.35.45.966584 R37-M0-N2-C:J15-U11 RAS KERNEL INFO generating core.10614\nL1120029: 1120091746 2005.06.29 R37-M0-N2-C:J11-U11 2005-06-29-17.35.46.002507 R37-M0-N2-C:J11-U11 RAS KERNEL INFO generating core.11126\nL1120030: 1120091746 2005.06.29 R37-M0-N2-C:J13-U11 2005-06-29-17.35.46.038985 R37-M0-N2-C:J13-U11 RAS KERNEL INFO generating core.27510"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L4270000-L4270034",
+     "chunk_id": "6fca7c5cae314337ad7bee8a005ef227::1",
+     "score": 0.568,
+     "text": ": Error reading message prefix on CioStream socket to 172.16.96.116:41044, Link has been severed\nL4270010: 1132717714 2005.11.22 R63-M0-N0-I:J18-U01 2005-11-22-19.48.34.687854 R63-M0-N0-I:J18-U01 RAS KERNEL INFO ciod: In packet from node 429.0 (R63-M0-N0-C:J12-U11), message code 2 is not 3 or 4294967295 (softheader=000d01ad 00030000 00000001 00000000)"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::3",
+     "score": 0.54,
+     "text": "g on R33-M1-L0-U22-C bit 3\nL14735: 1117869001 2005.06.04 R27-M1-L3-U18-C 2005-06-04-00.10.01.050649 R27-M1-L3-U18-C RAS LINKCARD INFO MidplaneSwitchController performing bit sparing on R27-M1-L3-U18-C bit 3\nL14736: 1117869871 2005.06.04 R23-M0-N4-I:J18-U11 2005-06-04-00.24.31.560279 R23-M0-N4-I:J18-U11 RAS APP FATAL ciod: LOGIN chdir(/p/gb2/draeger/benchmark/dat32k_060205) failed: No such file or directory"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 6.0,
+   "attempts": [],
+   "session_id": "9de17c9b834442cd8b2397cdfe12ecf0",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 33,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 6357,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 2811,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-009": {
+   "status": "answered",
+   "question": "L253000-L253034 中第一条与最后一条消息的精确时间戳（第 5 列）分别是什么？",
+   "split": "test",
+   "family": "first_last",
+   "window": "testB",
+   "must_abstain": false,
+   "required_points": [
+    "第一条：2005-06-11-18.30.17.356251（L253000）",
+    "最后一条：2005-06-11-18.30.23.247318（L253034）"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档，L253000-L253034 中第一条与最后一条消息的精确时间戳（第 5 列）如下：\n\n- **第一条消息（L253000）** 的精确时间戳为：**2005-06-11-18.30.17.356251** [1]\n- **最后一条消息（L253034）** 的精确时间戳：**当前知识库中未提供**。文档 [2] 仅摘录到 L253030（其时间戳为 2005-06-11-18.30.22.467591），并未包含 L253034 的记录。\n\n因此，依据现有证据只能确认第一条消息的时间戳，无法给出最后一条（L253034）的精确时间戳。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L253000-L253034",
+    "BGL 真实日志摘录 L14700-L14760",
+    "BGL 真实日志摘录 L1120000-L1120034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::0",
+     "score": 0.8378,
+     "text": "L253000: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.356251 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253001: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.665839 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253002: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.765347 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::2",
+     "score": 0.7888,
+     "text": "1-18.30.21.933292 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253028: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.254534 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253029: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.367936 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253030: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.467591 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::3",
+     "score": 0.3591,
+     "text": "g on R33-M1-L0-U22-C bit 3\nL14735: 1117869001 2005.06.04 R27-M1-L3-U18-C 2005-06-04-00.10.01.050649 R27-M1-L3-U18-C RAS LINKCARD INFO MidplaneSwitchController performing bit sparing on R27-M1-L3-U18-C bit 3\nL14736: 1117869871 2005.06.04 R23-M0-N4-I:J18-U11 2005-06-04-00.24.31.560279 R23-M0-N4-I:J18-U11 RAS APP FATAL ciod: LOGIN chdir(/p/gb2/draeger/benchmark/dat32k_060205) failed: No such file or directory"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L1120000-L1120034",
+     "chunk_id": "905331ea9dbb4378be4005af1975fa82::0",
+     "score": 0.3264,
+     "text": "L1120000: 1120091744 2005.06.29 R25-M1-NF-C:J02-U01 2005-06-29-17.35.44.933370 R25-M1-NF-C:J02-U01 RAS KERNEL INFO generating core.30340\nL1120001: 1120091744 2005.06.29 R25-M1-NF-C:J02-U11 2005-06-29-17.35.44.968990 R25-M1-NF-C:J02-U11 RAS KERNEL INFO generating core.13972\nL1120002: 1120091745 2005.06.29 R30-M0-NA-C:J05-U01 2005-06-29-17.35.45.010518 R30-M0-NA-C:J05-U01 RAS KERNEL INFO generating core.11810"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::0",
+     "score": 0.2931,
+     "text": "L14700: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.563879 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08\nL14701: 1117863694 2005.06.03 R15-M1-N6-C:J04-U11 2005-06-03-22.41.34.605102 R15-M1-N6-C:J04-U11 RAS KERNEL INFO CE sym 14, at 0x06047860, mask 0x20\nL14702: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.751589 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 14.3,
+   "attempts": [],
+   "session_id": "70712545c8e649dd90e7838e4394b476",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 51,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 6524,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 3182,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-003": {
+   "status": "answered",
+   "question": "L500-L534 中是否存在 FATAL 级别日志？如有给出行号，没有请明确说明。",
+   "split": "test",
+   "family": "level_classify",
+   "window": "testA",
+   "must_abstain": false,
+   "required_points": [
+    "没有 FATAL：L500-L534 全部为 KERNEL INFO 级别的已纠正（corrected）事件",
+    "不把 corrected 事件说成 FATAL 故障"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档，L500-L534 中**不存在** FATAL 级别日志。\n\n依据文档 [2] 和 [3]（《BGL 真实日志摘录 L500-L534》），该范围内可见的日志行（如 L500、L501、L502、L526、L527）级别均为 **INFO**（例如 `RAS KERNEL INFO instruction cache parity error corrected`），未出现任何 FATAL 级别的记录。\n\n> 注：文档 [1]、[4]、[5] 中虽然包含 FATAL 级别日志，但其行号范围分别为 L505000-L505034 和 L253000-L253034，不属于您询问的 L500-L534 范围。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L505000-L505034",
+    "BGL 真实日志摘录 L500-L534",
+    "BGL 真实日志摘录 L253000-L253034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::0",
+     "score": 0.7035,
+     "text": "L505000: 1118768073 2005.06.14 R24-M0-NA-C:J07-U11 2005-06-14-09.54.33.980523 R24-M0-NA-C:J07-U11 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505001: 1118768073 2005.06.14 R06-M0-N9-C:J05-U11 2005-06-14-09.54.33.997212 R06-M0-N9-C:J05-U11 RAS KERNEL FATAL data storage interrupt\nL505002: 1118768074 2005.06.14 R24-M0-NA-C:J15-U01 2005-06-14-09.54.34.015827 R24-M0-NA-C:J15-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::2",
+     "score": 0.6769,
+     "text": "J12-U11 2005-06-03-15.44.41.874389 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL526: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.022135 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL527: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.162063 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::0",
+     "score": 0.6426,
+     "text": "L500: 1117838677 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.37.999605 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL501: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.154501 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL502: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.304938 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::0",
+     "score": 0.4791,
+     "text": "L253000: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.356251 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253001: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.665839 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253002: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.765347 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::1",
+     "score": 0.4588,
+     "text": "S KERNEL FATAL data TLB error interrupt\nL253014: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.818102 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253015: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.919889 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253016: 1118539820 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.20.190192 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 8.5,
+   "attempts": [],
+   "session_id": "1ff8423593454123bfa261227ffbe2ee",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 43,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 6560,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 2887,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-004": {
+   "status": "answered",
+   "question": "L505 到 L510 各行的完整时间戳（形如 2005-06-03-15.42.50.…）分别是什么？",
+   "split": "test",
+   "family": "line_lookup",
+   "window": "testA",
+   "must_abstain": false,
+   "required_points": [
+    "逐行给出 L505-L510 的时间戳且数值正确（2005-06-03-15.42.50.823719 起）",
+    "时间戳列为日志第 5 列（精确到微秒）"
+   ],
+   "rerank_active": true,
+   "answer": "根据提供的知识库文档，**无法回答** L505 到 L510 各行的完整时间戳。\n\n**原因说明：**\n知识库中仅包含《BGL 真实日志摘录 L500-L534》的部分内容 [1][4]，其中只记录了以下行号：\n- L500、L501、L502 [1]\n- L526、L527（以及一行未标明行号的记录）[4]\n\n文档中 **未提供 L505、L506、L507、L508、L509、L510 的任何日志内容**，因此无法提取这些行的时间戳。\n\n**排查建议：**\n请补充完整的 L500-L534 日志段或专门提供 L505 至 L510 的原始日志数据，以便进一步查询。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L500-L534",
+    "BGL 真实日志摘录 L3765000-L3765034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::0",
+     "score": 0.9613,
+     "text": "L500: 1117838677 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.37.999605 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL501: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.154501 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL502: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.304938 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::1",
+     "score": 0.5723,
+     "text": "6686 R67-M0-N9-C:J07-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765014: 1131059351 2005.11.03 R67-M0-N9-C:J07-U01 2005-11-03-15.09.11.067542 R67-M0-N9-C:J07-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765015: 1131059351 2005.11.03 R67-M0-N9-C:J13-U01 2005-11-03-15.09.11.082509 R67-M0-N9-C:J13-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765016: 1131059351 2005.11.03 R67-M0-N9-C:J13-U01 2005-11-03-15.09.11.097486 R67-M0-N9-C:J13-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::0",
+     "score": 0.5532,
+     "text": "L3765000: 1131059350 2005.11.03 R67-M0-N9-C:J03-U01 2005-11-03-15.09.10.842997 R67-M0-N9-C:J03-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765001: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.857984 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765002: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.872859 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c21c"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::2",
+     "score": 0.5306,
+     "text": "J12-U11 2005-06-03-15.44.41.874389 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL526: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.022135 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL527: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.162063 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::2",
+     "score": 0.5081,
+     "text": "27: 1131059351 2005.11.03 R67-M0-N9-C:J06-U11 2005-11-03-15.09.11.274081 R67-M0-N9-C:J06-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765028: 1131059351 2005.11.03 R67-M0-N9-C:J06-U11 2005-11-03-15.09.11.289339 R67-M0-N9-C:J06-U11 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765029: 1131059351 2005.11.03 R67-M0-N9-C:J12-U11 2005-11-03-15.09.11.304040 R67-M0-N9-C:J12-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 9.9,
+   "attempts": [],
+   "session_id": "c2758d9125f34fdf9ed92ec786260f98",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 60,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 6500,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 3184,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-002": {
+   "status": "answered",
+   "question": "L500-L534 的这些消息都来自哪个节点？",
+   "split": "test",
+   "family": "node_attribution",
+   "window": "testA",
+   "must_abstain": false,
+   "required_points": [
+    "节点为 R02-M1-N0-C:J12-U11（单一节点）"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档，L500-L534 的这些消息都来自节点 **R02-M1-N0-C:J12-U11** [1][2]。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L500-L534",
+    "BGL 真实日志摘录 L3765000-L3765034",
+    "BGL 真实日志摘录 L14700-L14760"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::0",
+     "score": 0.8301,
+     "text": "L500: 1117838677 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.37.999605 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL501: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.154501 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL502: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.304938 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::2",
+     "score": 0.8092,
+     "text": "J12-U11 2005-06-03-15.44.41.874389 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL526: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.022135 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL527: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.162063 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::0",
+     "score": 0.6135,
+     "text": "L3765000: 1131059350 2005.11.03 R67-M0-N9-C:J03-U01 2005-11-03-15.09.10.842997 R67-M0-N9-C:J03-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765001: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.857984 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765002: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.872859 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c21c"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::2",
+     "score": 0.4909,
+     "text": "27: 1131059351 2005.11.03 R67-M0-N9-C:J06-U11 2005-11-03-15.09.11.274081 R67-M0-N9-C:J06-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765028: 1131059351 2005.11.03 R67-M0-N9-C:J06-U11 2005-11-03-15.09.11.289339 R67-M0-N9-C:J06-U11 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765029: 1131059351 2005.11.03 R67-M0-N9-C:J12-U11 2005-11-03-15.09.11.304040 R67-M0-N9-C:J12-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::3",
+     "score": 0.4849,
+     "text": "g on R33-M1-L0-U22-C bit 3\nL14735: 1117869001 2005.06.04 R27-M1-L3-U18-C 2005-06-04-00.10.01.050649 R27-M1-L3-U18-C RAS LINKCARD INFO MidplaneSwitchController performing bit sparing on R27-M1-L3-U18-C bit 3\nL14736: 1117869871 2005.06.04 R23-M0-N4-I:J18-U11 2005-06-04-00.24.31.560279 R23-M0-N4-I:J18-U11 RAS APP FATAL ciod: LOGIN chdir(/p/gb2/draeger/benchmark/dat32k_060205) failed: No such file or directory"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 5.3,
+   "attempts": [],
+   "session_id": "5b85eee39a5a4e1aa1d347ca354a2451",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 32,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 6026,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 2794,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-005": {
+   "status": "answered",
+   "question": "L500-L534 中大量 instruction cache parity 错误的根因是什么？需要更换硬件吗？",
+   "split": "test",
+   "family": "root_cause_guard",
+   "window": "testA",
+   "must_abstain": false,
+   "required_points": [
+    "说明这些是已纠正（corrected）的可纠正奇偶校验错误事件，共 35 条",
+    "明确表示仅凭这些日志行无法断定根因（不编造硬件故障结论）",
+    "对“是否更换硬件”不给确定性结论（可给排查建议但注明依据不足）",
+    "不提任何告警标签（输入中不存在标签列）"
+   ],
+   "rerank_active": true,
+   "answer": "## 根因分析\n\n根据知识库文档，L500-L534 中大量 `instruction cache parity error` 的根因是 **节点 R02-M1-N0-C:J12-U11 的指令缓存（instruction cache）发生了可纠正的奇偶校验错误**。\n\n具体证据如下：\n- **故障节点**：所有日志均指向同一硬件位置 `R02-M1-N0-C:J12-U11` [1][2][3]。\n- **时间窗口**：2005-06-03 15:44:37 至 15:44:42，在约 5 秒内密集发生 [1][3]。\n- **错误性质**：日志级别为 `RAS KERNEL INFO`，且明确标注为 `corrected`（已纠正），说明这些是可纠正错误（CE），尚未导致系统崩溃或不可纠正的致命错误 [1][2][3]。\n- **对比参考**：这与 L14700-L14760 中其他节点发生的内存 CE 错误（如 `CE sym 26`）属于同类可纠正错误机制 [4]；而不同于 L505027-L505029 中出现的 `RAS KERNEL FATAL` 级别的致命中断 [5]。\n\n## 是否需要更换硬件？\n\n**仅依据当前提供的知识库文档和工具输出，无法直接确认必须立即更换硬件。** \n\n原因如下：\n1. 日志显示错误状态为 `corrected`（已纠正），表明硬件的纠错机制正在生效，服务尚未因此中断 [1][2][3]。\n2. 当前没有提供该节点 instruction cache parity error 的频率指标、阈值判定结果或历史相似故障的处置记录作为参考。\n\n## 排查建议\n\n由于缺乏进一步的监控指标和阈值判定数据，建议采取以下排查步骤：\n\n1. **持续监控错误频率**：对节点 `R02-M1-N0-C:J12-U11` 建立专项监控，统计 instruction cache parity error 的发生速率。如果在后续时间窗口内错误频率持续升高或突破硬件容错阈值，则预示着硬件即将失效。\n2. **关注错误级别变化**：密切观察该节点的日志是否从 `INFO ... corrected` 恶化为类似 `FATAL` 级别的不可纠正错误（参考文档中其他节点出现 FATAL 的情况 [5]）。一旦出现不可纠正错误，需立即隔离并更换硬件。\n3. **结合硬件诊断工具**：使用底层硬件诊断工具对该节点的处理器/缓存模块进行深度检测，以确认是否存在物理层面的老化或损坏。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L500-L534",
+    "BGL 真实日志摘录 L14700-L14760",
+    "BGL 真实日志摘录 L505000-L505034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::0",
+     "score": 0.6414,
+     "text": "L500: 1117838677 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.37.999605 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL501: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.154501 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL502: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.304938 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::1",
+     "score": 0.6228,
+     "text": "AS KERNEL INFO instruction cache parity error corrected\nL513: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.026775 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL514: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.184354 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::2",
+     "score": 0.5786,
+     "text": "J12-U11 2005-06-03-15.44.41.874389 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL526: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.022135 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL527: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.162063 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::0",
+     "score": 0.4728,
+     "text": "L14700: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.563879 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08\nL14701: 1117863694 2005.06.03 R15-M1-N6-C:J04-U11 2005-06-03-22.41.34.605102 R15-M1-N6-C:J04-U11 RAS KERNEL INFO CE sym 14, at 0x06047860, mask 0x20\nL14702: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.751589 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::2",
+     "score": 0.3529,
+     "text": "address: 0x00004ed8\nL505027: 1118768074 2005.06.14 R06-M0-N9-C:J10-U11 2005-06-14-09.54.34.370349 R06-M0-N9-C:J10-U11 RAS KERNEL FATAL data storage interrupt\nL505028: 1118768074 2005.06.14 R24-M0-NA-C:J10-U01 2005-06-14-09.54.34.382299 R24-M0-NA-C:J10-U01 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505029: 1118768074 2005.06.14 R24-M0-NA-C:J12-U01 2005-06-14-09.54.34.405163 R24-M0-NA-C:J12-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 15.6,
+   "attempts": [],
+   "session_id": "b30ce390c627499290d1dfb7ae48ac76",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 41,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 5790,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 3155,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-001": {
+   "status": "answered",
+   "question": "L500-L534 中 instruction cache parity error corrected 消息出现多少次？",
+   "split": "test",
+   "family": "template_count",
+   "window": "testA",
+   "must_abstain": false,
+   "required_points": [
+    "共 35 次（窗口内每行都是该消息）",
+    "说明消息为 RAS KERNEL INFO 级别"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档 [1][2][3] 中《BGL 真实日志摘录 L500-L534》的内容，在 L500-L534 范围内，\"instruction cache parity error corrected\" 消息共出现 **8 次**，具体行号如下：\n\n- L500 [1]\n- L501 [1]\n- L502 [1]\n- L513 [2]\n- L514 [2]\n- L525（文档 [3] 中该行行号被截断，但内容完整）[3]\n- L526 [3]\n- L527 [3]\n\n这些消息均来自节点 `R02-M1-N0-C:J12-U11`，时间窗为 2005-06-03 15:44:37 至 15:44:42，级别为 `RAS KERNEL INFO`。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L500-L534",
+    "BGL 真实日志摘录 L14700-L14760",
+    "BGL 真实日志摘录 L505000-L505034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::0",
+     "score": 0.9199,
+     "text": "L500: 1117838677 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.37.999605 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL501: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.154501 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL502: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.304938 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::1",
+     "score": 0.8873,
+     "text": "AS KERNEL INFO instruction cache parity error corrected\nL513: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.026775 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL514: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.184354 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::2",
+     "score": 0.8585,
+     "text": "J12-U11 2005-06-03-15.44.41.874389 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL526: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.022135 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL527: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.162063 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::0",
+     "score": 0.686,
+     "text": "L14700: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.563879 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08\nL14701: 1117863694 2005.06.03 R15-M1-N6-C:J04-U11 2005-06-03-22.41.34.605102 R15-M1-N6-C:J04-U11 RAS KERNEL INFO CE sym 14, at 0x06047860, mask 0x20\nL14702: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.751589 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::2",
+     "score": 0.3566,
+     "text": "address: 0x00004ed8\nL505027: 1118768074 2005.06.14 R06-M0-N9-C:J10-U11 2005-06-14-09.54.34.370349 R06-M0-N9-C:J10-U11 RAS KERNEL FATAL data storage interrupt\nL505028: 1118768074 2005.06.14 R24-M0-NA-C:J10-U01 2005-06-14-09.54.34.382299 R24-M0-NA-C:J10-U01 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505029: 1118768074 2005.06.14 R24-M0-NA-C:J12-U01 2005-06-14-09.54.34.405163 R24-M0-NA-C:J12-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 8.6,
+   "attempts": [],
+   "session_id": "9ba1b8317db14b3c86982923ff2a1392",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 36,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 5765,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 2799,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-015": {
+   "status": "answered",
+   "question": "L3765000-L3765034 中 iar/dear 消息有哪几种不同形式（数字归一后）？",
+   "split": "test",
+   "family": "template_variants",
+   "window": "testD",
+   "must_abstain": false,
+   "required_points": [
+    "列出 3 种数字归一后的消息形式（如 iar <N> dear <N>c<N>ec / iar <N> dear <N>c<N>c 等）",
+    "说明全部为 KERNEL INFO 级别"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档 [1][2][3] 中 L3765000-L3765034 的日志摘录，将十六进制数字归一化（用 `<NUM>` 替代）后，iar/dear 消息共有 **2 种**不同形式：\n\n1. `iar <NUM> dear <NUM>` （对应原始日志如 `iar 00106228 dear 0244c1ec`）[1][2][3]\n2. `iar <NUM> dear <NUM>` （对应原始日志如 `iar 00106228 dear 0244c21c`）[1][2][3]\n\n**说明：**\n虽然从模板角度看，所有 iar/dear 消息归一化后的结构均为同一种形式（即 `iar <NUM> dear <NUM>`），但根据具体数值的不同，实际出现了两种不同的 dear 值组合：\n- `iar 00106228 dear 0244c1ec`\n- `iar 00106228 dear 0244c21c`\n\n其中 iar 的值始终为 `00106228`，dear 的值在 `0244c1ec` 和 `0244c21c` 之间交替出现 [1][2][3]。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L3765000-L3765034",
+    "BGL 真实日志摘录 L1510000-L1510034",
+    "BGL 真实日志摘录 L4270000-L4270034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::2",
+     "score": 0.8871,
+     "text": "27: 1131059351 2005.11.03 R67-M0-N9-C:J06-U11 2005-11-03-15.09.11.274081 R67-M0-N9-C:J06-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765028: 1131059351 2005.11.03 R67-M0-N9-C:J06-U11 2005-11-03-15.09.11.289339 R67-M0-N9-C:J06-U11 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765029: 1131059351 2005.11.03 R67-M0-N9-C:J12-U11 2005-11-03-15.09.11.304040 R67-M0-N9-C:J12-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::0",
+     "score": 0.8765,
+     "text": "L3765000: 1131059350 2005.11.03 R67-M0-N9-C:J03-U01 2005-11-03-15.09.10.842997 R67-M0-N9-C:J03-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765001: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.857984 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765002: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.872859 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c21c"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::1",
+     "score": 0.7838,
+     "text": "6686 R67-M0-N9-C:J07-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765014: 1131059351 2005.11.03 R67-M0-N9-C:J07-U01 2005-11-03-15.09.11.067542 R67-M0-N9-C:J07-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765015: 1131059351 2005.11.03 R67-M0-N9-C:J13-U01 2005-11-03-15.09.11.082509 R67-M0-N9-C:J13-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765016: 1131059351 2005.11.03 R67-M0-N9-C:J13-U01 2005-11-03-15.09.11.097486 R67-M0-N9-C:J13-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L1510000-L1510034",
+     "chunk_id": "907fa5b9e8664a74944ce185a8b3eafe::3",
+     "score": 0.2136,
+     "text": "p file /home/auselton/bgl/64mps.sequential.mapfile\nL1510026: 1120591716 2005.07.05 R22-M1-N8-I:J18-U01 2005-07-05-12.28.36.253340 R22-M1-N8-I:J18-U01 RAS KERNEL INFO ciod: Missing or invalid fields on line 1 of node map file /home/auselton/bgl/64mps.sequential.mapfile\nL1510027: 1120591716 2005.07.05 R33-M1-N0-I:J18-U11 2005-07-05-12.28.36.299256 R33-M1-N0-I:J18-U11 RAS KERNEL INFO ciod: Missing or invalid fields on line 1 of node map file /home/auselton/bgl/64mps.sequential.mapfile"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L4270000-L4270034",
+     "chunk_id": "6fca7c5cae314337ad7bee8a005ef227::3",
+     "score": 0.1094,
+     "text": "005.11.22 R62-M0-NC-I:J18-U01 2005-11-22-20.17.50.736304 R62-M0-NC-I:J18-U01 RAS KERNEL INFO ciod: Received signal 15, code=0, errno=0, address=0x0000024d\nL4270030: 1132719470 2005.11.22 R63-M0-N4-I:J18-U01 2005-11-22-20.17.50.865629 R63-M0-N4-I:J18-U01 RAS KERNEL INFO ciod: Received signal 15, code=0, errno=0, address=0x00000273"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 9.0,
+   "attempts": [],
+   "session_id": "0f640b90e83c49b89014b46f1c469a55",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 50,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 6143,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 3267,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-028": {
+   "status": "answered",
+   "question": "L500-L534 中除 instruction cache parity error corrected 之外还有其他消息吗？如有请给出行号。",
+   "split": "test",
+   "family": "abstain_no_such_template",
+   "window": "testA",
+   "must_abstain": false,
+   "required_points": [
+    "明确说明该窗口内没有其他消息（35 行全部为 instruction cache parity error corrected）"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档 [1]、[2]、[3] 中提供的 L500-L534 日志摘录，**除 \"instruction cache parity error corrected\" 之外，没有发现其他类型的消息**。\n\n已明确给出行号的记录如下：\n- **L500、L501、L502**（来自文档 [1]）\n- **L513、L514**（来自文档 [2]）\n- **L526、L527**（来自文档 [3]）\n\n以上行号对应的消息内容均为 `RAS KERNEL INFO instruction cache parity error corrected`。文档 [2] 和 [3] 中还包含未标注具体行号的片段，但其内容同样为 `instruction cache parity error corrected`。\n\n因此，在现有知识库证据范围内，L500-L534 区间内仅存在这一种消息，无其他类型消息的行号可列出。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L500-L534",
+    "BGL 真实日志摘录 L14700-L14760",
+    "BGL 真实日志摘录 L505000-L505034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::0",
+     "score": 0.9072,
+     "text": "L500: 1117838677 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.37.999605 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL501: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.154501 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL502: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.304938 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::1",
+     "score": 0.9006,
+     "text": "AS KERNEL INFO instruction cache parity error corrected\nL513: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.026775 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL514: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.184354 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::2",
+     "score": 0.8644,
+     "text": "J12-U11 2005-06-03-15.44.41.874389 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL526: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.022135 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL527: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.162063 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::0",
+     "score": 0.7098,
+     "text": "L14700: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.563879 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08\nL14701: 1117863694 2005.06.03 R15-M1-N6-C:J04-U11 2005-06-03-22.41.34.605102 R15-M1-N6-C:J04-U11 RAS KERNEL INFO CE sym 14, at 0x06047860, mask 0x20\nL14702: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.751589 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::0",
+     "score": 0.607,
+     "text": "L505000: 1118768073 2005.06.14 R24-M0-NA-C:J07-U11 2005-06-14-09.54.33.980523 R24-M0-NA-C:J07-U11 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505001: 1118768073 2005.06.14 R06-M0-N9-C:J05-U11 2005-06-14-09.54.33.997212 R06-M0-N9-C:J05-U11 RAS KERNEL FATAL data storage interrupt\nL505002: 1118768074 2005.06.14 R24-M0-NA-C:J15-U01 2005-06-14-09.54.34.015827 R24-M0-NA-C:J15-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 6.9,
+   "attempts": [],
+   "session_id": "fa5d43f734fa45648b9d836e87fb3931",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 44,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 6406,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 2881,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-017": {
+   "status": "answered",
+   "question": "L3765000-L3765034 中最后一条 iar/dear 消息在哪一行？其完整时间戳是什么？",
+   "split": "test",
+   "family": "distinct_line",
+   "window": "testD",
+   "must_abstain": false,
+   "required_points": [
+    "L3765034，时间戳 2005-11-03-15.09.11.384780",
+    "引用消息内容作为佐证"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档，在 L3765000-L3765034 范围内，最后一条包含 iar/dear 的消息位于 **L3765029** 行 [1]。\n\n其完整时间戳为：**2005-11-03-15.09.11.304040** [1]。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L3765000-L3765034",
+    "BGL 真实日志摘录 L1510000-L1510034",
+    "BGL 真实日志摘录 L4270000-L4270034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::2",
+     "score": 0.9294,
+     "text": "27: 1131059351 2005.11.03 R67-M0-N9-C:J06-U11 2005-11-03-15.09.11.274081 R67-M0-N9-C:J06-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765028: 1131059351 2005.11.03 R67-M0-N9-C:J06-U11 2005-11-03-15.09.11.289339 R67-M0-N9-C:J06-U11 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765029: 1131059351 2005.11.03 R67-M0-N9-C:J12-U11 2005-11-03-15.09.11.304040 R67-M0-N9-C:J12-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::0",
+     "score": 0.7869,
+     "text": "L3765000: 1131059350 2005.11.03 R67-M0-N9-C:J03-U01 2005-11-03-15.09.10.842997 R67-M0-N9-C:J03-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765001: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.857984 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765002: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.872859 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c21c"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::1",
+     "score": 0.7103,
+     "text": "6686 R67-M0-N9-C:J07-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765014: 1131059351 2005.11.03 R67-M0-N9-C:J07-U01 2005-11-03-15.09.11.067542 R67-M0-N9-C:J07-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765015: 1131059351 2005.11.03 R67-M0-N9-C:J13-U01 2005-11-03-15.09.11.082509 R67-M0-N9-C:J13-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765016: 1131059351 2005.11.03 R67-M0-N9-C:J13-U01 2005-11-03-15.09.11.097486 R67-M0-N9-C:J13-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L1510000-L1510034",
+     "chunk_id": "907fa5b9e8664a74944ce185a8b3eafe::3",
+     "score": 0.3661,
+     "text": "p file /home/auselton/bgl/64mps.sequential.mapfile\nL1510026: 1120591716 2005.07.05 R22-M1-N8-I:J18-U01 2005-07-05-12.28.36.253340 R22-M1-N8-I:J18-U01 RAS KERNEL INFO ciod: Missing or invalid fields on line 1 of node map file /home/auselton/bgl/64mps.sequential.mapfile\nL1510027: 1120591716 2005.07.05 R33-M1-N0-I:J18-U11 2005-07-05-12.28.36.299256 R33-M1-N0-I:J18-U11 RAS KERNEL INFO ciod: Missing or invalid fields on line 1 of node map file /home/auselton/bgl/64mps.sequential.mapfile"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L4270000-L4270034",
+     "chunk_id": "6fca7c5cae314337ad7bee8a005ef227::3",
+     "score": 0.3448,
+     "text": "005.11.22 R62-M0-NC-I:J18-U01 2005-11-22-20.17.50.736304 R62-M0-NC-I:J18-U01 RAS KERNEL INFO ciod: Received signal 15, code=0, errno=0, address=0x0000024d\nL4270030: 1132719470 2005.11.22 R63-M0-N4-I:J18-U01 2005-11-22-20.17.50.865629 R63-M0-N4-I:J18-U01 RAS KERNEL INFO ciod: Received signal 15, code=0, errno=0, address=0x00000273"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 4.3,
+   "attempts": [],
+   "session_id": "4a91aefc626d43b78f298bc118678327",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 50,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 6143,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 3042,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-023": {
+   "status": "answered",
+   "question": "L500-L534 中第一行与最后一行的 epoch 时间戳（第 2 列整数）分别是什么？",
+   "split": "test",
+   "family": "first_last",
+   "window": "testA",
+   "must_abstain": false,
+   "required_points": [
+    "第一行 L500：epoch 1117838677",
+    "最后一行 L534：epoch 1117838683"
+   ],
+   "rerank_active": true,
+   "answer": "根据提供的知识库文档，**无法回答**该问题。\n\n原因如下：\n- 文档 [1] 的标题虽为《BGL 真实日志摘录 L500-L534》，但其内容仅展示了 L526 和 L527 两行日志，并未包含第一行（L500）和最后一行（L534）的数据 [1]。\n- 其余文档 [2][3][4][5] 涉及的是其他行号范围（如 L505000-L505034、L14700-L14760、L4270000-L4270034），与 L500-L534 无关。\n\n由于知识库中未提供 L500 和 L534 的完整日志内容，因此无法提取这两行的 epoch 时间戳（第 2 列整数）。建议补充完整的 L500-L534 日志数据后再进行查询。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L500-L534",
+    "BGL 真实日志摘录 L505000-L505034",
+    "BGL 真实日志摘录 L14700-L14760",
+    "BGL 真实日志摘录 L4270000-L4270034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::2",
+     "score": 0.6885,
+     "text": "J12-U11 2005-06-03-15.44.41.874389 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL526: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.022135 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL527: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.162063 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::0",
+     "score": 0.5177,
+     "text": "L505000: 1118768073 2005.06.14 R24-M0-NA-C:J07-U11 2005-06-14-09.54.33.980523 R24-M0-NA-C:J07-U11 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505001: 1118768073 2005.06.14 R06-M0-N9-C:J05-U11 2005-06-14-09.54.33.997212 R06-M0-N9-C:J05-U11 RAS KERNEL FATAL data storage interrupt\nL505002: 1118768074 2005.06.14 R24-M0-NA-C:J15-U01 2005-06-14-09.54.34.015827 R24-M0-NA-C:J15-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::2",
+     "score": 0.4551,
+     "text": "address: 0x00004ed8\nL505027: 1118768074 2005.06.14 R06-M0-N9-C:J10-U11 2005-06-14-09.54.34.370349 R06-M0-N9-C:J10-U11 RAS KERNEL FATAL data storage interrupt\nL505028: 1118768074 2005.06.14 R24-M0-NA-C:J10-U01 2005-06-14-09.54.34.382299 R24-M0-NA-C:J10-U01 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505029: 1118768074 2005.06.14 R24-M0-NA-C:J12-U01 2005-06-14-09.54.34.405163 R24-M0-NA-C:J12-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::0",
+     "score": 0.379,
+     "text": "L14700: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.563879 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08\nL14701: 1117863694 2005.06.03 R15-M1-N6-C:J04-U11 2005-06-03-22.41.34.605102 R15-M1-N6-C:J04-U11 RAS KERNEL INFO CE sym 14, at 0x06047860, mask 0x20\nL14702: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.751589 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L4270000-L4270034",
+     "chunk_id": "6fca7c5cae314337ad7bee8a005ef227::1",
+     "score": 0.3769,
+     "text": ": Error reading message prefix on CioStream socket to 172.16.96.116:41044, Link has been severed\nL4270010: 1132717714 2005.11.22 R63-M0-N0-I:J18-U01 2005-11-22-19.48.34.687854 R63-M0-N0-I:J18-U01 RAS KERNEL INFO ciod: In packet from node 429.0 (R63-M0-N0-C:J12-U11), message code 2 is not 3 or 4294967295 (softheader=000d01ad 00030000 00000001 00000000)"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 7.4,
+   "attempts": [],
+   "session_id": "1adb784c75c441e392d83b974840ec23",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 46,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 6030,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 2929,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-007": {
+   "status": "answered",
+   "question": "L253000-L253034 的日志级别分布是什么？",
+   "split": "test",
+   "family": "level_classify",
+   "window": "testB",
+   "must_abstain": false,
+   "required_points": [
+    "全部 35 行均为 RAS KERNEL FATAL（data TLB error interrupt）",
+    "没有 INFO 级行"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档，L253000-L253034 的日志级别分布为 **100% FATAL**。\n\n具体依据如下：\n- 文档中明确列出的该区间日志（包括 L253000、L253001、L253002 [1]，L253014、L253015、L253016 [3]，以及 L253028、L253029、L253030 [2]）均包含 `RAS KERNEL FATAL` 字段。\n- 所有可见日志的消息内容均为 `data TLB error interrupt`。\n\n因此，在已提供的摘录范围内，该区间日志级别全部为 **FATAL**，未出现其他级别（如 INFO、WARNING 等）。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L253000-L253034",
+    "BGL 真实日志摘录 L14700-L14760",
+    "BGL 真实日志摘录 L1120000-L1120034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::0",
+     "score": 0.7419,
+     "text": "L253000: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.356251 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253001: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.665839 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253002: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.765347 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::2",
+     "score": 0.7101,
+     "text": "1-18.30.21.933292 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253028: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.254534 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253029: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.367936 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253030: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.467591 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::1",
+     "score": 0.5693,
+     "text": "S KERNEL FATAL data TLB error interrupt\nL253014: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.818102 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253015: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.919889 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253016: 1118539820 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.20.190192 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::3",
+     "score": 0.2513,
+     "text": "g on R33-M1-L0-U22-C bit 3\nL14735: 1117869001 2005.06.04 R27-M1-L3-U18-C 2005-06-04-00.10.01.050649 R27-M1-L3-U18-C RAS LINKCARD INFO MidplaneSwitchController performing bit sparing on R27-M1-L3-U18-C bit 3\nL14736: 1117869871 2005.06.04 R23-M0-N4-I:J18-U11 2005-06-04-00.24.31.560279 R23-M0-N4-I:J18-U11 RAS APP FATAL ciod: LOGIN chdir(/p/gb2/draeger/benchmark/dat32k_060205) failed: No such file or directory"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L1120000-L1120034",
+     "chunk_id": "905331ea9dbb4378be4005af1975fa82::0",
+     "score": 0.2429,
+     "text": "L1120000: 1120091744 2005.06.29 R25-M1-NF-C:J02-U01 2005-06-29-17.35.44.933370 R25-M1-NF-C:J02-U01 RAS KERNEL INFO generating core.30340\nL1120001: 1120091744 2005.06.29 R25-M1-NF-C:J02-U11 2005-06-29-17.35.44.968990 R25-M1-NF-C:J02-U11 RAS KERNEL INFO generating core.13972\nL1120002: 1120091745 2005.06.29 R30-M0-NA-C:J05-U01 2005-06-29-17.35.45.010518 R30-M0-NA-C:J05-U01 RAS KERNEL INFO generating core.11810"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 6.8,
+   "attempts": [],
+   "session_id": "51c554654af04f9db0b0d5c76eea9249",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 37,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 6431,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 2975,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-008": {
+   "status": "answered",
+   "question": "L253000 到 L253004 各行记录的节点名与精确时间戳是什么？",
+   "split": "test",
+   "family": "line_lookup",
+   "window": "testB",
+   "must_abstain": false,
+   "required_points": [
+    "逐行给出 5 行的节点名与时间戳且与原始日志一致",
+    "引用了行号"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档 [1]，L253000 到 L253004 中仅有 **L253000、L253001、L253002** 三行记录，**L253003 和 L253004 在提供的资料中不存在**。各行记录的节点名与精确时间戳如下：\n\n| 行号 | 节点名 | 精确时间戳 |\n| :--- | :--- | :--- |\n| L253000 | R30-M0-N9-C:J16-U01 | 2005-06-11-18.30.17.356251 |\n| L253001 | R30-M0-N9-C:J16-U01 | 2005-06-11-18.30.17.665839 |\n| L253002 | R30-M0-N9-C:J16-U01 | 2005-06-11-18.30.17.765347 |\n| L253003 | （知识库中无此记录） | （知识库中无此记录） |\n| L253004 | （知识库中无此记录） | （知识库中无此记录） |\n\n以上信息均来源于《BGL 真实日志摘录 L253000-L253034》[1]。由于当前知识库未包含 L253003 和 L253004 的数据，无法提供这两行的节点名与时间戳。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L253000-L253034",
+    "BGL 真实日志摘录 L1510000-L1510034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::0",
+     "score": 0.8317,
+     "text": "L253000: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.356251 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253001: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.665839 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253002: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.765347 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L1510000-L1510034",
+     "chunk_id": "907fa5b9e8664a74944ce185a8b3eafe::3",
+     "score": 0.3421,
+     "text": "p file /home/auselton/bgl/64mps.sequential.mapfile\nL1510026: 1120591716 2005.07.05 R22-M1-N8-I:J18-U01 2005-07-05-12.28.36.253340 R22-M1-N8-I:J18-U01 RAS KERNEL INFO ciod: Missing or invalid fields on line 1 of node map file /home/auselton/bgl/64mps.sequential.mapfile\nL1510027: 1120591716 2005.07.05 R33-M1-N0-I:J18-U11 2005-07-05-12.28.36.299256 R33-M1-N0-I:J18-U11 RAS KERNEL INFO ciod: Missing or invalid fields on line 1 of node map file /home/auselton/bgl/64mps.sequential.mapfile"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L1510000-L1510034",
+     "chunk_id": "907fa5b9e8664a74944ce185a8b3eafe::1",
+     "score": 0.3104,
+     "text": "450441 R13-M0-NC-I:J18-U01 RAS APP FATAL ciod: Error creating node map from file /home/auselton/bgl/64mps.sequential.mapfile: Resource temporarily unavailable\nL1510009: 1120591357 2005.07.05 R04-M1-N4-I:J18-U11 2005-07-05-12.22.37.477614 R04-M1-N4-I:J18-U11 RAS APP FATAL ciod: Error creating node map from file /home/auselton/bgl/64mps.sequential.mapfile: Resource temporarily unavailable"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L1510000-L1510034",
+     "chunk_id": "907fa5b9e8664a74944ce185a8b3eafe::2",
+     "score": 0.3037,
+     "text": ".mapfile\nL1510017: 1120591715 2005.07.05 R36-M0-N0-I:J18-U11 2005-07-05-12.28.35.948539 R36-M0-N0-I:J18-U11 RAS KERNEL INFO ciod: Missing or invalid fields on line 1 of node map file /home/auselton/bgl/64mps.sequential.mapfile\nL1510018: 1120591715 2005.07.05 R36-M0-N0-I:J18-U01 2005-07-05-12.28.35.982194 R36-M0-N0-I:J18-U01 RAS KERNEL INFO ciod: Missing or invalid fields on line 1 of node map file /home/auselton/bgl/64mps.sequential.mapfile"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L1510000-L1510034",
+     "chunk_id": "907fa5b9e8664a74944ce185a8b3eafe::0",
+     "score": 0.2362,
+     "text": "L1510000: 1120591357 2005.07.05 R06-M0-N8-I:J18-U01 2005-07-05-12.22.37.221640 R06-M0-N8-I:J18-U01 RAS APP FATAL ciod: Error creating node map from file /home/auselton/bgl/64mps.sequential.mapfile: Resource temporarily unavailable\nL1510001: 1120591357 2005.07.05 R13-M0-N0-I:J18-U11 2005-07-05-12.22.37.248515 R13-M0-N0-I:J18-U11 RAS APP FATAL ciod: Error creating node map from file /home/auselton/bgl/64mps.sequential.mapfile: Resource temporarily unavailable"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 8.6,
+   "attempts": [],
+   "session_id": "8b9c8803650646e3ba27a4fde2d9abb7",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 43,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 6089,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 2832,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-024": {
+   "status": "answered",
+   "question": "L253000-L253034 的 data TLB error interrupt 消息来自哪些节点？请列出全部不同节点名。",
+   "split": "test",
+   "family": "node_attribution",
+   "window": "testB",
+   "must_abstain": false,
+   "required_points": [
+    "列出全部 1 个节点：R30-M0-N9-C:J16-U01",
+    "不遗漏、不编造节点名"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档 [1]、[2]、[3] 中 L253000-L253034 的日志摘录，所有包含 \"data TLB error interrupt\" 消息的记录均来自同一个节点。\n\n全部不同节点名如下：\n\n- **R30-M0-N9-C:J16-U01**",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L253000-L253034",
+    "BGL 真实日志摘录 L505000-L505034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::0",
+     "score": 0.8436,
+     "text": "L253000: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.356251 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253001: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.665839 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253002: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.765347 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::2",
+     "score": 0.8228,
+     "text": "1-18.30.21.933292 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253028: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.254534 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253029: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.367936 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253030: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.467591 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::1",
+     "score": 0.723,
+     "text": "S KERNEL FATAL data TLB error interrupt\nL253014: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.818102 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253015: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.919889 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253016: 1118539820 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.20.190192 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::2",
+     "score": 0.2891,
+     "text": "address: 0x00004ed8\nL505027: 1118768074 2005.06.14 R06-M0-N9-C:J10-U11 2005-06-14-09.54.34.370349 R06-M0-N9-C:J10-U11 RAS KERNEL FATAL data storage interrupt\nL505028: 1118768074 2005.06.14 R24-M0-NA-C:J10-U01 2005-06-14-09.54.34.382299 R24-M0-NA-C:J10-U01 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505029: 1118768074 2005.06.14 R24-M0-NA-C:J12-U01 2005-06-14-09.54.34.405163 R24-M0-NA-C:J12-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::0",
+     "score": 0.2678,
+     "text": "L505000: 1118768073 2005.06.14 R24-M0-NA-C:J07-U11 2005-06-14-09.54.33.980523 R24-M0-NA-C:J07-U11 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505001: 1118768073 2005.06.14 R06-M0-N9-C:J05-U11 2005-06-14-09.54.33.997212 R06-M0-N9-C:J05-U11 RAS KERNEL FATAL data storage interrupt\nL505002: 1118768074 2005.06.14 R24-M0-NA-C:J15-U01 2005-06-14-09.54.34.015827 R24-M0-NA-C:J15-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 4.8,
+   "attempts": [],
+   "session_id": "67e04390c1ea451bae2e0e644b4cbdb4",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 50,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 5995,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 2962,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-010": {
+   "status": "answered",
+   "question": "这批 data TLB error interrupt FATAL 的根本原因是什么？是硬件故障还是软件缺陷？",
+   "split": "test",
+   "family": "root_cause_guard",
+   "window": "testB",
+   "must_abstain": true,
+   "required_points": [
+    "说明日志行仅记录“data TLB error interrupt”事实，无法从这些行断定根因",
+    "不对“硬件故障还是软件缺陷”下确定性结论",
+    "不提告警标签，不编造根因"
+   ],
+   "rerank_active": true,
+   "answer": "根据当前提供的知识库文档、工具输出和历史故障记录，**无法确定这批 `data TLB error interrupt FATAL` 的根本原因，也无法判定是硬件故障还是软件缺陷。**\n\n以下是基于现有证据的分析与排查建议：\n\n### 1. 现象分析\n根据日志摘录，该致命错误（FATAL）集中发生在节点 **R30-M0-N9-C:J16-U01** 上，时间窗口为 **2005-06-11 18:30:17 至 18:30:22** 期间。在短短约5秒内，该节点连续触发了十余次 `RAS KERNEL FATAL data TLB error interrupt` [1][2][3]。这种高频重复触发表明该节点在此期间处于持续异常状态。\n\n### 2. 根因判定限制\n*   **历史故障参考缺失**：通过 `query_fault_history` 工具查询，未找到匹配的历史故障记录，因此不能据此确认根因或将其归类为已知的硬件/软件问题。\n*   **证据不足**：`data TLB error interrupt`（数据转换后备缓冲器错误中断）通常意味着处理器在尝试将虚拟地址转换为物理地址时失败。这既可能是由**硬件故障**（如内存损坏、CPU缓存/TLB物理缺陷）引起，也可能是由**软件缺陷**（如内核Bug导致页表损坏、非法内存访问）引起。仅凭当前的 RAS 日志文本，缺乏底层寄存器转储（Register Dump）、内存诊断结果或内核崩溃转储（Core Dump），无法直接区分软硬件责任。\n\n### 3. 排查建议\n由于指标和日志信息不足以确认当前状态或根因，建议采取以下排查步骤：\n1.  **隔离测试**：将节点 R30-M0-N9-C:J16-U01 从计算集群中隔离，运行独立的硬件诊断程序（特别是针对 CPU 缓存、TLB 和内存子系统的压力测试），观察是否复现该 FATAL 错误。若离线诊断复现，则倾向于硬件故障。\n2.  **收集详细上下文**：检查该时间段内该节点运行的具体作业或内核模块，确认是否有特定的软件负载会稳定触发此问题。\n3.  **对比其他节点**：查阅同一机架或相邻节点（如日志中出现的 R24、R06 等节点 [4][5]）在同一时间窗口是否存在类似的 TLB 错误或关联的存储中断（如 `data storage interrupt`），以判断是否为局部硬件问题或全局性软件/环境问题。\n4.  **检查固件/内核版本**：确认该节点的内核及微码版本是否存在已知的 TLB 处理缺陷。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L253000-L253034",
+    "BGL 真实日志摘录 L505000-L505034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::0",
+     "score": 0.7158,
+     "text": "L253000: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.356251 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253001: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.665839 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253002: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.765347 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::1",
+     "score": 0.7025,
+     "text": "S KERNEL FATAL data TLB error interrupt\nL253014: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.818102 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253015: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.919889 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253016: 1118539820 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.20.190192 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::2",
+     "score": 0.6611,
+     "text": "1-18.30.21.933292 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253028: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.254534 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253029: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.367936 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253030: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.467591 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::0",
+     "score": 0.4579,
+     "text": "L505000: 1118768073 2005.06.14 R24-M0-NA-C:J07-U11 2005-06-14-09.54.33.980523 R24-M0-NA-C:J07-U11 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505001: 1118768073 2005.06.14 R06-M0-N9-C:J05-U11 2005-06-14-09.54.33.997212 R06-M0-N9-C:J05-U11 RAS KERNEL FATAL data storage interrupt\nL505002: 1118768074 2005.06.14 R24-M0-NA-C:J15-U01 2005-06-14-09.54.34.015827 R24-M0-NA-C:J15-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::2",
+     "score": 0.4451,
+     "text": "address: 0x00004ed8\nL505027: 1118768074 2005.06.14 R06-M0-N9-C:J10-U11 2005-06-14-09.54.34.370349 R06-M0-N9-C:J10-U11 RAS KERNEL FATAL data storage interrupt\nL505028: 1118768074 2005.06.14 R24-M0-NA-C:J10-U01 2005-06-14-09.54.34.382299 R24-M0-NA-C:J10-U01 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505029: 1118768074 2005.06.14 R24-M0-NA-C:J12-U01 2005-06-14-09.54.34.405163 R24-M0-NA-C:J12-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 13.2,
+   "attempts": [],
+   "session_id": "b61b10bd6fe24bdfa7d9ea24ad539d1b",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 36,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 5930,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 3443,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "test-006": {
+   "status": "answered",
+   "question": "L253000-L253034 中 data TLB error interrupt 消息共多少条？",
+   "split": "test",
+   "family": "template_count",
+   "window": "testB",
+   "must_abstain": false,
+   "required_points": [
+    "共 35 条",
+    "级别为 RAS KERNEL FATAL"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档 [1][2][3] 中《BGL 真实日志摘录 L253000-L253034》的内容，包含 \"data TLB error interrupt\" 消息的日志行如下：\n\n- **文档 [1]**：L253000、L253001、L253002（共 3 条）\n- **文档 [3]**：L253013（该行以“S KERNEL FATAL data TLB error interrupt”结尾，为截断显示）、L253014、L253015、L253016（共 4 条）\n- **文档 [2]**：L253027（该行以时间戳开头，内容为“1-18.30.21.933292 ... data TLB error interrupt”，为截断显示）、L253028、L253029、L253030（共 4 条）\n\n因此，在 L253000-L253034 范围内，\"data TLB error interrupt\" 消息共计 **11 条** [1][2][3]。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L253000-L253034",
+    "BGL 真实日志摘录 L505000-L505034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::0",
+     "score": 0.8865,
+     "text": "L253000: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.356251 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253001: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.665839 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253002: 1118539817 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.17.765347 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::2",
+     "score": 0.8547,
+     "text": "1-18.30.21.933292 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253028: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.254534 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253029: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.367936 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253030: 1118539822 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.22.467591 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::1",
+     "score": 0.8014,
+     "text": "S KERNEL FATAL data TLB error interrupt\nL253014: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.818102 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253015: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.919889 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253016: 1118539820 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.20.190192 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::0",
+     "score": 0.2043,
+     "text": "L505000: 1118768073 2005.06.14 R24-M0-NA-C:J07-U11 2005-06-14-09.54.33.980523 R24-M0-NA-C:J07-U11 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505001: 1118768073 2005.06.14 R06-M0-N9-C:J05-U11 2005-06-14-09.54.33.997212 R06-M0-N9-C:J05-U11 RAS KERNEL FATAL data storage interrupt\nL505002: 1118768074 2005.06.14 R24-M0-NA-C:J15-U01 2005-06-14-09.54.34.015827 R24-M0-NA-C:J15-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::2",
+     "score": 0.172,
+     "text": "address: 0x00004ed8\nL505027: 1118768074 2005.06.14 R06-M0-N9-C:J10-U11 2005-06-14-09.54.34.370349 R06-M0-N9-C:J10-U11 RAS KERNEL FATAL data storage interrupt\nL505028: 1118768074 2005.06.14 R24-M0-NA-C:J10-U01 2005-06-14-09.54.34.382299 R24-M0-NA-C:J10-U01 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505029: 1118768074 2005.06.14 R24-M0-NA-C:J12-U01 2005-06-14-09.54.34.405163 R24-M0-NA-C:J12-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 7.4,
+   "attempts": [],
+   "session_id": "c49d757b03844786b3327eef143d8bd7",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 43,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 5960,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 3154,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "reg-001": {
+   "status": "answered",
+   "question": "知识库的 BGL 日志摘录中，L14738 到 L14742 这些行记录了什么级别与内容的消息？请引用行号与时间戳。",
+   "split": "regression",
+   "family": "line_lookup",
+   "window": "reg",
+   "must_abstain": false,
+   "required_points": [
+    "这 5 行均为 RAS APP FATAL 级别的 ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:<端口> 消息（不是 failed to read object module）",
+    "时间戳 2005-06-04-00.24.32.398284 至 2005-06-04-00.24.33.203068（epoch 1117869872/1117869873）",
+    "引用了具体行号 L14738-L14742"
+   ],
+   "rerank_active": true,
+   "answer": "根据提供的知识库文档，**无法回答** L14738 到 L14742 这些行记录了什么级别与内容的消息。\n\n原因如下：\n知识库中仅提供了《BGL 真实日志摘录 L14700-L14760》的部分片段，其中只包含了 **L14735** 和 **L14736** 两行的记录 [1]，以及 **L14712** 和 **L14713** 的记录 [2]。文档中并未包含 L14738、L14739、L14740、L14741、L14742 这五行的任何内容、时间戳或级别信息。\n\n依据规则，在指标/数据不可用或采样不足时不能编造答案。建议您提供完整的 BGL 日志摘录文档（覆盖 L14738 至 L14742 行），以便进一步排查和分析。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L14700-L14760",
+    "BGL 真实日志摘录 L1510000-L1510034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::3",
+     "score": 0.8213,
+     "text": "g on R33-M1-L0-U22-C bit 3\nL14735: 1117869001 2005.06.04 R27-M1-L3-U18-C 2005-06-04-00.10.01.050649 R27-M1-L3-U18-C RAS LINKCARD INFO MidplaneSwitchController performing bit sparing on R27-M1-L3-U18-C bit 3\nL14736: 1117869871 2005.06.04 R23-M0-N4-I:J18-U11 2005-06-04-00.24.31.560279 R23-M0-N4-I:J18-U11 RAS APP FATAL ciod: LOGIN chdir(/p/gb2/draeger/benchmark/dat32k_060205) failed: No such file or directory"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::1",
+     "score": 0.4911,
+     "text": "mask 0x08\nL14712: 1117865191 2005.06.03 R12-M1-N3-C:J11-U11 2005-06-03-23.06.31.803435 R12-M1-N3-C:J11-U11 RAS KERNEL INFO CE sym 7, at 0x03ffa060, mask 0x04\nL14713: 1117865191 2005.06.03 R07-M0-N8-C:J11-U11 2005-06-03-23.06.31.828485 R07-M0-N8-C:J11-U11 RAS KERNEL INFO 1 ddr errors(s) detected and corrected on rank 0, symbol 27, bit 6"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L1510000-L1510034",
+     "chunk_id": "907fa5b9e8664a74944ce185a8b3eafe::1",
+     "score": 0.4405,
+     "text": "450441 R13-M0-NC-I:J18-U01 RAS APP FATAL ciod: Error creating node map from file /home/auselton/bgl/64mps.sequential.mapfile: Resource temporarily unavailable\nL1510009: 1120591357 2005.07.05 R04-M1-N4-I:J18-U11 2005-07-05-12.22.37.477614 R04-M1-N4-I:J18-U11 RAS APP FATAL ciod: Error creating node map from file /home/auselton/bgl/64mps.sequential.mapfile: Resource temporarily unavailable"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L1510000-L1510034",
+     "chunk_id": "907fa5b9e8664a74944ce185a8b3eafe::3",
+     "score": 0.3915,
+     "text": "p file /home/auselton/bgl/64mps.sequential.mapfile\nL1510026: 1120591716 2005.07.05 R22-M1-N8-I:J18-U01 2005-07-05-12.28.36.253340 R22-M1-N8-I:J18-U01 RAS KERNEL INFO ciod: Missing or invalid fields on line 1 of node map file /home/auselton/bgl/64mps.sequential.mapfile\nL1510027: 1120591716 2005.07.05 R33-M1-N0-I:J18-U11 2005-07-05-12.28.36.299256 R33-M1-N0-I:J18-U11 RAS KERNEL INFO ciod: Missing or invalid fields on line 1 of node map file /home/auselton/bgl/64mps.sequential.mapfile"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L1510000-L1510034",
+     "chunk_id": "907fa5b9e8664a74944ce185a8b3eafe::4",
+     "score": 0.193,
+     "text": "ing or invalid fields on line 1 of node map file /home/auselton/bgl/64mps.sequential.mapfile"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 6.4,
+   "attempts": [],
+   "session_id": "2d36eba0af7249f88f4c844ac45a23dd",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 57,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 5220,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 2221,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "reg-002": {
+   "status": "answered",
+   "question": "摘录范围（L14700-L14760）内 INFO 级 KERNEL 消息主要涉及什么内容？出现最多的是哪条消息？",
+   "split": "regression",
+   "family": "template_count",
+   "window": "reg",
+   "must_abstain": false,
+   "required_points": [
+    "INFO 级 KERNEL 消息共 25 条，主要是可纠正（corrected）的缓存/内存错误",
+    "出现最多的是 CE sym <符号> 消息（11 条）；DDR 相关 corrected 消息合计 12 条",
+    "instruction cache parity error corrected 只有 1 条（L14706），不是主要消息——若回答称主要为 instruction cache 即金标不符"
+   ],
+   "rerank_active": true,
+   "answer": "根据知识库文档，摘录范围（L14700-L14760）内 INFO 级 KERNEL 消息的情况如下：\n\n1. **主要涉及内容**：该范围内的 INFO 级 KERNEL 消息主要涉及可纠正错误（CE）记录，具体格式为 `CE sym <编号>, at <地址>, mask <掩码>` [1]。\n2. **出现最多的消息**：在提供的摘录中，出现最多的是 **`CE sym 26, at 0x06f7e2e0, mask 0x08`**，共出现了 2 次（分别位于 L14700 和 L14702，节点均为 R03-M1-N2-C:J13-U01）；而 `CE sym 14, at 0x06047860, mask 0x20` 仅出现 1 次（位于 L14701）[1]。",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L14700-L14760",
+    "BGL 真实日志摘录 L500-L534",
+    "BGL 真实日志摘录 L1120000-L1120034",
+    "BGL 真实日志摘录 L3765000-L3765034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::0",
+     "score": 0.8805,
+     "text": "L14700: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.563879 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08\nL14701: 1117863694 2005.06.03 R15-M1-N6-C:J04-U11 2005-06-03-22.41.34.605102 R15-M1-N6-C:J04-U11 RAS KERNEL INFO CE sym 14, at 0x06047860, mask 0x20\nL14702: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.751589 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::1",
+     "score": 0.602,
+     "text": "AS KERNEL INFO instruction cache parity error corrected\nL513: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.026775 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL514: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.184354 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L1120000-L1120034",
+     "chunk_id": "905331ea9dbb4378be4005af1975fa82::1",
+     "score": 0.5255,
+     "text": "120014: 1120091745 2005.06.29 R30-M0-NA-C:J10-U11 2005-06-29-17.35.45.439993 R30-M0-NA-C:J10-U11 RAS KERNEL INFO generating core.10770\nL1120015: 1120091745 2005.06.29 R30-M0-NA-C:J06-U11 2005-06-29-17.35.45.488514 R30-M0-NA-C:J06-U11 RAS KERNEL INFO generating core.11282\nL1120016: 1120091745 2005.06.29 R30-M0-NA-C:J12-U11 2005-06-29-17.35.45.524276 R30-M0-NA-C:J12-U11 RAS KERNEL INFO generating core.27154"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::0",
+     "score": 0.436,
+     "text": "L3765000: 1131059350 2005.11.03 R67-M0-N9-C:J03-U01 2005-11-03-15.09.10.842997 R67-M0-N9-C:J03-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765001: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.857984 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765002: 1131059350 2005.11.03 R67-M0-N9-C:J05-U11 2005-11-03-15.09.10.872859 R67-M0-N9-C:J05-U11 RAS KERNEL INFO iar 00106228 dear 0244c21c"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L3765000-L3765034",
+     "chunk_id": "b1d6ec632de84b919a9908400dc1f265::1",
+     "score": 0.42,
+     "text": "6686 R67-M0-N9-C:J07-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765014: 1131059351 2005.11.03 R67-M0-N9-C:J07-U01 2005-11-03-15.09.11.067542 R67-M0-N9-C:J07-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec\nL3765015: 1131059351 2005.11.03 R67-M0-N9-C:J13-U01 2005-11-03-15.09.11.082509 R67-M0-N9-C:J13-U01 RAS KERNEL INFO iar 00106228 dear 0244c21c\nL3765016: 1131059351 2005.11.03 R67-M0-N9-C:J13-U01 2005-11-03-15.09.11.097486 R67-M0-N9-C:J13-U01 RAS KERNEL INFO iar 00106228 dear 0244c1ec"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 6.6,
+   "attempts": [],
+   "session_id": "4858b99640c64d7c92b17b11c3003b9b",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 51,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 7538,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 3247,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  },
+  "reg-003": {
+   "status": "answered",
+   "question": "摘录范围（L14700-L14760）内是否存在 FATAL 级别日志？如有请给出行号，没有请明确说明。",
+   "split": "regression",
+   "family": "level_classify",
+   "window": "reg",
+   "must_abstain": false,
+   "required_points": [
+    "存在 FATAL 级别日志：L14736-L14760 共 25 行，均为 RAS APP FATAL",
+    "L14736-L14737 为 ciod: LOGIN chdir(...) failed: No such file or directory；L14738-L14760 为 ciod: failed to read message prefix on control stream",
+    "与 INFO 级 corrected 事件明确区分"
+   ],
+   "rerank_active": true,
+   "answer": "在摘录范围（L14700-L14760）内**存在** FATAL 级别日志。\n\n根据知识库文档 [1]，具体行号如下：\n\n- **L14754**：`RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:33614`\n- **L14755**：`RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:33271`",
+   "end_reason": "answered",
+   "citations": [
+    "BGL 真实日志摘录 L14700-L14760",
+    "BGL 真实日志摘录 L505000-L505034",
+    "BGL 真实日志摘录 L253000-L253034"
+   ],
+   "evidence": [
+    {
+     "n": 1,
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::5",
+     "score": 0.9895,
+     "text": "ge prefix on control stream (CioStream socket to 172.16.96.116:33613\nL14754: 1117869873 2005.06.04 R36-M1-NC-I:J18-U01 2005-06-04-00.24.33.632761 R36-M1-NC-I:J18-U01 RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:33614\nL14755: 1117869873 2005.06.04 R22-M1-N8-I:J18-U11 2005-06-04-00.24.33.667306 R22-M1-N8-I:J18-U11 RAS APP FATAL ciod: failed to read message prefix on control stream (CioStream socket to 172.16.96.116:33271"
+    },
+    {
+     "n": 2,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::1",
+     "score": 0.5311,
+     "text": "9.54.34.199984 R24-M0-NA-C:J16-U11 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505014: 1118768074 2005.06.14 R06-M0-N9-C:J07-U01 2005-06-14-09.54.34.207914 R06-M0-N9-C:J07-U01 RAS KERNEL FATAL data storage interrupt\nL505015: 1118768074 2005.06.14 R24-M0-NA-C:J08-U11 2005-06-14-09.54.34.223424 R24-M0-NA-C:J08-U11 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    },
+    {
+     "n": 3,
+     "doc_title": "BGL 真实日志摘录 L253000-L253034",
+     "chunk_id": "8ca4fc439c9a436ab1017fe491a8e9be::1",
+     "score": 0.524,
+     "text": "S KERNEL FATAL data TLB error interrupt\nL253014: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.818102 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253015: 1118539819 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.19.919889 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt\nL253016: 1118539820 2005.06.11 R30-M0-N9-C:J16-U01 2005-06-11-18.30.20.190192 R30-M0-N9-C:J16-U01 RAS KERNEL FATAL data TLB error interrupt"
+    },
+    {
+     "n": 4,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::0",
+     "score": 0.4868,
+     "text": "L505000: 1118768073 2005.06.14 R24-M0-NA-C:J07-U11 2005-06-14-09.54.33.980523 R24-M0-NA-C:J07-U11 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505001: 1118768073 2005.06.14 R06-M0-N9-C:J05-U11 2005-06-14-09.54.33.997212 R06-M0-N9-C:J05-U11 RAS KERNEL FATAL data storage interrupt\nL505002: 1118768074 2005.06.14 R24-M0-NA-C:J15-U01 2005-06-14-09.54.34.015827 R24-M0-NA-C:J15-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    },
+    {
+     "n": 5,
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::2",
+     "score": 0.4839,
+     "text": "address: 0x00004ed8\nL505027: 1118768074 2005.06.14 R06-M0-N9-C:J10-U11 2005-06-14-09.54.34.370349 R06-M0-N9-C:J10-U11 RAS KERNEL FATAL data storage interrupt\nL505028: 1118768074 2005.06.14 R24-M0-NA-C:J10-U01 2005-06-14-09.54.34.382299 R24-M0-NA-C:J10-U01 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505029: 1118768074 2005.06.14 R24-M0-NA-C:J12-U01 2005-06-14-09.54.34.405163 R24-M0-NA-C:J12-U01 RAS KERNEL FATAL instruction address: 0x00004ed8"
+    }
+   ],
+   "retrieval_rounds": 1,
+   "elapsed_s": 5.6,
+   "attempts": [],
+   "session_id": "4fd9c804b2674a5785059829e6ab5857",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 51,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 6222,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    },
+    "qwen3.8-max-0902": {
+     "calls": 2,
+     "tokens": 2894,
+     "errors": 0,
+     "budget_refused": 0,
+     "unknown": 0
+    }
+   }
+  }
+ },
+ "judges": {
+  "test-019": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答明确指出语料中不存在L9000000-L9000010范围，仅包含证据中的两段日志，未编造内容，符合金标要点与must_abstain要求。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2625,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答明确指出语料中不存在L9000000-L9000010，无法回答其内容，未编造任何信息。引用了证据编号[1][2][3][4][5]说明现有文档范围，符合金标要点和rubric要求。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2646,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-014": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答正确指出证据[4]中无DDR错误纠正消息，未将generating core误认为DDR错误，并合理说明依据不足拒绝编造，符合金标要点。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2461,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答正确指出证据[4]中L1120000-L1120034仅含generating core消息，无DDR错误纠正。明确拒绝编造行号，并区分了其他范围（如L14713）的日志，符合金标要点与must_abstain要求。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2499,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-020": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答明确指出语料不含L3300000-L3300020范围，未编造任何行号或消息，并引用了证据中实际存在的行号范围作为依据，完全符合金标要点与must_abstain要求。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2554,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答明确指出知识库中不包含L3300000-L3300020的记录，并基于证据[1][2][3][4][5]说明了现有语料范围。未编造行号或消息，符合金标要点和拒答要求。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2562,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-021": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答将同一文档的三个chunk误列为三个不同文档，且未按要求指出整体行号范围L253000-L253034，不符合金标要点。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2536,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答未覆盖金标要点，未指出文档“BGL 真实日志摘录 L253000-L253034”的行号范围 L253000-L253034，且错误地将其他窗口列为包含该消息。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2561,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-012": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答正确指出L1120000行，并引用了该行时间戳和节点信息作为佐证，内容与证据[1]完全一致。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2252,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答准确指出消息出现在 L1120000，并引用了证据[1]中的时间戳和节点信息作为佐证，完全符合金标要点且无事实错误。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2264,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-009": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "正确给出第一条时间戳，但证据中无L253034记录，回答如实说明无法提供最后一条时间戳，符合依据不足时拒绝编造的要求。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2548,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答正确引用证据[1]给出第一条时间戳，并基于证据[2]仅到L253030的事实，合理拒绝编造最后一条（L253034）的时间戳。但金标要点要求提供最后一条的精确时间戳，回答未覆盖该要点，故 answer_correct 为 false。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2588,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-003": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答明确指出L500-L534无FATAL日志，均为INFO corrected事件，引用证据[2][3]准确，并正确区分其他范围FATAL日志，覆盖全部金标要点。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2387,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答正确指出L500-L534无FATAL日志，并依据证据[2][3]说明均为INFO级别corrected事件。同时准确区分了其他行号范围（如L505000）的FATAL记录，未混淆事实，符合金标要点且引用有据。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2415,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-004": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "证据中确实不含L505-L510，回答正确拒绝编造并说明依据不足，符合abstention要求；但未满足金标要点给出时间戳，故answer_correct为false。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2600,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "金标要求给出L505-L510时间戳，回答称无法回答。证据[1][4]虽未直接包含这些行号，但提供了L500-L502和L526-L527的完整日志，且文档标题为L500-L534摘录，暗示中间行存在。回答未尝试基于已有数据推断或指出证据缺失的具体原因（如仅展示了部分行），而是直接拒绝回答，不符合金标要点。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2667,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-002": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答正确指出节点为R02-M1-N0-C:J12-U11，与证据[1][2]中L500-L534日志一致，无编造。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2225,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答准确指出了节点为 R02-M1-N0-C:J12-U11，与金标要点一致。引用了证据[1]和[2]，这些证据明确显示了L500-L534范围内的日志行均来自该单一节点，无编造内容。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2249,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-005": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "未说明共35条错误，且将根因直接断定为该节点指令缓存发生错误，违反'仅凭日志无法断定根因'的金标要求。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2773,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答未覆盖金标要点中“共35条”的计数要求，且将根因直接归结为硬件奇偶校验错误，未明确说明仅凭日志无法断定根本原因（如老化、制造缺陷等），存在事实偏差。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2794,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-001": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": false,
+     "appropriate_abstention": false,
+     "reason": "金标要求35次且每行都是该消息，回答仅统计8次并遗漏大量行（如L503-L512等），计数严重错误；虽正确指出RAS KERNEL INFO级别，但核心要点不符。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2358,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答计数为8次，与金标要点要求的35次不符，存在事实错误。虽然引用了证据且未编造行号，但核心结论错误。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2348,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-015": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答称有2种形式但列出内容相同，且遗漏了金标要求的3种归一化形式（如含c<N>ec/c<N>c等）；也未说明全部为KERNEL INFO级别。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2656,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答未覆盖金标要点：未列出3种数字归一后的消息形式，也未说明全部为KERNEL INFO级别。虽然引用了证据[1][2][3]且无编造，但答案与金标要求不符。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2667,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-028": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答正确指出L500-L534内无其他消息，列出了证据中可见行号，并说明未标注行号片段内容相同，符合金标要点且均基于证据。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2330,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答正确指出L500-L534区间内除instruction cache parity error corrected外无其他消息，并准确引用了证据[1][2][3]中的行号（L500-L502, L513-L514, L526-L527）。虽然未列出全部35行的具体行号，但明确说明了该窗口内仅存在这一种消息，符合金标要点。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2387,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-017": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "金标要求最后一条为L3765034，时间戳2005-11-03-15.09.11.384780，但证据未包含该行。回答给出L3765029及错误时间戳，且未引用消息内容佐证，行号与时间戳均不符金标。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2462,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答行号L3765029与时间戳15.09.11.304040均与证据[1]一致，但金标要点要求为L3765034及时间戳15.09.11.384780。因证据中未提供L3765030-L3765034的内容，回答基于现有证据做出了合理推断，无编造，故grounded和abstention为true，但事实错误导致answer_correct为false。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2509,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-023": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "证据中确实不含L500和L534行，回答正确指出依据不足并拒绝编造，符合abstain要求；但未覆盖金标要点。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2429,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答未覆盖金标要点，错误地认为证据不足。虽然证据[1]仅展示L526-L527，但题目要求基于给定证据作答，且金标明确给出了L500和L534的epoch值。回答未能提供正确的时间戳，属于事实错误。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2463,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-007": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答正确指出均为FATAL且无INFO，但未明确说明全部35行均为RAS KERNEL FATAL(data TLB error interrupt)，仅列举了部分可见行号，未覆盖金标要点中'全部35行'的要求。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2440,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答正确指出该区间日志均为RAS KERNEL FATAL且无INFO级，符合金标要点。依据证据1-3中可见的L253000-L253034部分行号内容，未编造其他级别，引用可定位到证据编号，无事实错误。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2460,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-008": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答准确提取了证据[1]中L253000-L253002的节点名与时间戳，并正确说明L253003和L253004在证据中不存在，未编造数据，引用了行号。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2420,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答仅依据证据[1]，正确提取了L253000-L253002的节点名与时间戳并引用行号。但金标要求逐行给出5行记录，而证据中确实缺失L253003和L253004，导致无法完全覆盖金标要点，故answer_correct为false。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2444,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-024": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答正确列出唯一节点R30-M0-N9-C:J16-U01，与证据[1][2][3]完全一致，无遗漏或编造。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2409,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答准确列出了唯一节点R30-M0-N9-C:J16-U01，与证据[1][2][3]中L253000-L253034范围内所有data TLB error interrupt记录一致。未编造其他节点，符合金标要点要求。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2443,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-010": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答明确说明无法从日志断定根因，未对软硬件下确定结论，未提告警标签或编造根因；节点、时间戳等细节与证据一致。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2922,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答明确指出无法从现有日志断定根因，未对硬件或软件缺陷下确定性结论，且未编造告警标签或具体根因。分析部分基于证据编号[1][2][3]和[4][5]，符合金标要点与rubric要求。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2949,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "test-006": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答计数为11条，与金标35条不符；且未提及级别RAS KERNEL FATAL。虽引用证据有据，但遗漏大量行导致计数错误。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2591,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答计数为11条，与金标要点35条不符；未提及RAS KERNEL FATAL级别。虽引用了证据，但结论错误且未正确覆盖金标要求。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2599,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "reg-001": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "证据中确实不包含L14738-L14742的内容，回答正确指出依据不足并拒绝编造，符合abstention要求，但未覆盖金标要点。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2088,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答正确指出证据中未包含L14738-L14742的内容，并拒绝编造，符合适当拒答要求。但金标要点要求提供具体行号、时间戳及消息内容，回答未能覆盖这些要点，因此答案不正确。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2111,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "reg-002": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答仅依据证据1中3行日志，未覆盖金标要点：缺少25条总数、CE sym共11条、DDR相关12条等关键信息，且将'出现最多'误判为具体某条消息出现2次。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2624,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答仅基于证据[1]的3行日志，错误地声称出现最多的是CE sym 26（2次），未覆盖金标要点中提到的25条消息、CE sym共11条及DDR相关12条等关键信息。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2629,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  },
+  "reg-003": {
+   "qwen3.8-max-0902": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答仅列出L14754-L14755两行，遗漏金标要求的L14736-L14760共25行FATAL日志及chdir failed内容，也未区分INFO级事件，严重不完整。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2471,
+     "unknown": 0
+    },
+    "missing": false
+   },
+   "qwen3.8-27b": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答仅列出L14754-L14755两行，未覆盖金标要点中L14736-L14760共25行FATAL日志及L14736-L14737的chdir失败信息，存在事实遗漏。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2486,
+     "unknown": 0
+    },
+    "missing": false
+   }
+  }
+ },
+ "config": {
+  "generation": "qwen3.8-max-0902",
+  "judges": [
+   "qwen3.8-max-0902",
+   "qwen3.8-27b"
+  ],
+  "embedding": "qwen3.7-text-embedding-flash",
+  "rerank": "qwen3.7-text-rerank（真实重排，本轮授权恢复）",
+  "retrieval": {
+   "mode": "hybrid",
+   "collection": "kb_qwen37_1024_v2",
+   "tenant": "n31real",
+   "dim": 1024,
+   "top_k": 5,
+   "chunk_size": 2000,
+   "isolation_note": "复用基线语料与向量（租户 n31real），不重复入库"
+  },
+  "agent_mode": "rule",
+  "temperature": 0,
+  "max_tokens": 1536,
+  "evidence_excerpt": "行边界安全摘录 ≤500 字符（app.agent.llm.evidence_excerpt）；基线为硬 [:500] 截断",
+  "budget": {
+   "total_limit": 530000,
+   "model_limits": {
+    "qwen3.8-max-0902": 160000,
+    "qwen3.8-27b": 100000,
+    "deepseek-v4-pro-0813": 40000,
+    "qwen3.7-text-embedding-flash": 10000,
+    "qwen3.7-text-rerank": 220000
+   },
+   "derivation": "budget.json p1 份额 − 兄弟账本已用（合并核算，见 eval/night20261101/p1_budget.py）",
+   "ledger": "D:\\Code\\python\\aiops-diagnosis-agent\\eval\\night20261101\\eval_ledger.jsonl"
+  },
+  "concurrency": 1,
+  "max_extra_retries": 1,
+  "scope": "test30 家族分层抽样 20 题（每家族按 ID 升序取前 2，单题家族取 1）+ reg3 整块门控；dev10 不在本批（0902 份额有限，基线已完整覆盖 43 题）"
+ },
+ "summary": {
+  "status_counts": {
+   "answered": 23
+  },
+  "completed": 23,
+  "planned": 23,
+  "judged_main": 23,
+  "both_judged": 23,
+  "judge_agreement_on_answer_correct": "21/23",
+  "not_run": []
+ },
+ "manifest": {
+  "commit": "ba40aa229e4bb362703543e6785851f14c46b5e1",
+  "baseline": {
+   "results": "D:\\Code\\python\\aiops-diagnosis-agent\\eval\\night20261031\\real_run\\results.json",
+   "rerank": "disabled（历史批，成绩原样保留）"
+  },
+  "sample": {
+   "stratified_test20": [
+    "test-019",
+    "test-014",
+    "test-020",
+    "test-021",
+    "test-012",
+    "test-009",
+    "test-003",
+    "test-004",
+    "test-002",
+    "test-005",
+    "test-001",
+    "test-015",
+    "test-028",
+    "test-017",
+    "test-023",
+    "test-007",
+    "test-008",
+    "test-024",
+    "test-010",
+    "test-006"
+   ],
+   "families": [
+    "abstain_beyond_eof",
+    "abstain_no_such_template",
+    "abstain_out_of_corpus",
+    "cross_window",
+    "distinct_line",
+    "first_last",
+    "level_classify",
+    "line_lookup",
+    "node_attribution",
+    "root_cause_guard",
+    "template_count",
+    "template_variants"
+   ],
+   "reg_block_policy": "整块门控（3 题预算足够才跑）"
+  },
+  "rerank_coverage": {
+   "questions_reranked": 23,
+   "questions_total": 23
+  },
+  "ledger_by_model": {
+   "qwen3.8-max-0902": {
+    "actual": 148641,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "deepseek-v4-pro-0813": {
+    "actual": 6848,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "qwen3.7-text-embedding-flash": {
+    "actual": 1203,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "qwen3.7-text-rerank": {
+    "actual": 170333,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "qwen3.8-27b": {
+    "actual": 57740,
+    "unknown": 0,
+    "in_flight": 0
+   }
+  },
+  "disclosures": [
+   "本批为重排恢复批（独立运行记录）：与基线唯一链路差异 = 真实 DashScope 重排 + 行边界安全证据摘录；基线成绩保留不覆盖",
+   "dev10 未纳入本批（0902 份额有限）；reg3 按整块门控决定是否运行，未跑则如实标 not_run",
+   "若逐题 rerank_active=false：该题因 rerank 预检余量不足停用重排，仍如实入结果并单列",
+   "主裁判与生成模型同为 qwen3.8 系列（qwen3.8-max-0902），存在自评/同系列偏好风险",
+   "双裁判一致率不是人工准确率；本题集未做人工复核（human_reviewed=false）",
+   "分层抽样结果不代表 test30 全集分数；全集结论以基线 43 题为准",
+   "test-019 首次生成成功但产物目录缺失未能落盘，重启后整题重跑一次（基础设施重试，两次用量均已在账本留痕）"
+  ]
+ }
+}

@@ -1,0 +1,265 @@
+{
+ "dev-001": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "dev-002": {
+  "anchors": 6,
+  "anchors_beyond_500": 4,
+  "midline_cut": true,
+  "anchor_visible_ratio": 0.333
+ },
+ "dev-003": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "dev-004": {
+  "anchors": 2,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": 1.0
+ },
+ "dev-005": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "dev-006": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "dev-007": {
+  "anchors": 9,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": 1.0
+ },
+ "dev-008": {
+  "anchors": 1,
+  "anchors_beyond_500": 1,
+  "midline_cut": true,
+  "anchor_visible_ratio": 0.0
+ },
+ "dev-009": {
+  "anchors": 2,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": 1.0
+ },
+ "dev-010": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-001": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-002": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-003": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-004": {
+  "anchors": 1,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": 1.0
+ },
+ "test-005": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-006": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-007": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-008": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-009": {
+  "anchors": 4,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": 1.0
+ },
+ "test-010": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-011": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-012": {
+  "anchors": 1,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": 1.0
+ },
+ "test-013": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-014": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-015": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-016": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-017": {
+  "anchors": 2,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": 1.0
+ },
+ "test-018": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-019": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-020": {
+  "anchors": 2,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": 1.0
+ },
+ "test-021": {
+  "anchors": 2,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": 1.0
+ },
+ "test-022": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-023": {
+  "anchors": 2,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": 1.0
+ },
+ "test-024": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-025": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-026": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-027": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-028": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-029": {
+  "anchors": 0,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": null
+ },
+ "test-030": {
+  "anchors": 3,
+  "anchors_beyond_500": 3,
+  "midline_cut": true,
+  "anchor_visible_ratio": 0.0
+ },
+ "reg-001": {
+  "anchors": 6,
+  "anchors_beyond_500": 2,
+  "midline_cut": true,
+  "anchor_visible_ratio": 0.667
+ },
+ "reg-002": {
+  "anchors": 1,
+  "anchors_beyond_500": 1,
+  "midline_cut": true,
+  "anchor_visible_ratio": 0.0
+ },
+ "reg-003": {
+  "anchors": 4,
+  "anchors_beyond_500": 0,
+  "midline_cut": true,
+  "anchor_visible_ratio": 1.0
+ },
+ "_meta": {
+  "method": "对 night20261031 基线43题：以证据chunk全文（Qdrant payload）比对生成器实际可见的前500字符硬截断窗，统计金标要点中行号锚点的可达性与行中切断伪影",
+  "findings": "43/43 题存在500字符处行中切断伪影；仅 5/43 题的金标行号锚点落在可见窗之外（test30 中 1 题）。计数/逐行枚举类金标要点的限制主要来自每块 500 字符的证据预算（5×500≈2,500 字符），属证据上下文预算约束，随链路披露",
+  "fix": "app.agent.llm.evidence_excerpt：行边界安全摘录（不再行中切断），上界仍 500 字符可配（evidence_excerpt_chars）；重排恢复批与工作台使用修复后摘录"
+ }
+}

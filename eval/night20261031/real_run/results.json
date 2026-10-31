@@ -4458,8 +4458,22 @@
   },
   "test-029": {
    "qwen3.8-max-0902": {
-    "verdict": null,
-    "attempts": [
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答举出8个不同真实节点名（≥3），明确说明涉及多个机架/节点，所有节点名及对应行号、消息均可在证据中定位，无编造。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 3062,
+     "unknown": 0
+    },
+    "missing": false,
+    "refill": true,
+    "refill_note": "2026-11-01 run-20261101 授权后补判：答案/证据复用基线落盘记录，未重新生成",
+    "earlier_attempts": [
      {
       "attempt": 1,
       "error_type": "BudgetExceededError",
@@ -4470,13 +4484,7 @@
       "error_type": "BudgetExceededError",
       "message": "模型 qwen3.8-max-0902 额度超限：实报 270828 + 未知 0 + 在途 0 + 本次预估 7607 = 278435 超过授权 277710，请求在到达供应商前被拒绝"
      }
-    ],
-    "usage": {
-     "calls": 2,
-     "tokens": 0,
-     "unknown": 2
-    },
-    "missing": true
+    ]
    },
    "qwen3.8-27b": {
     "verdict": {
@@ -4496,8 +4504,22 @@
   },
   "test-030": {
    "qwen3.8-max-0902": {
-    "verdict": null,
-    "attempts": [
+    "verdict": {
+     "answer_correct": false,
+     "grounded": false,
+     "appropriate_abstention": false,
+     "reason": "回答将L3765007内容错误推测为iar 00106228，与金标(001061dc/0244c25c)不符；且错误声称该消息在窗口内重复出现，而金标指出精确消息唯一。证据中该行被截断，回答未说明依据不足反而编造。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 3485,
+     "unknown": 0
+    },
+    "missing": false,
+    "refill": true,
+    "refill_note": "2026-11-01 run-20261101 授权后补判：答案/证据复用基线落盘记录，未重新生成",
+    "earlier_attempts": [
      {
       "attempt": 1,
       "error_type": "BudgetExceededError",
@@ -4508,13 +4530,7 @@
       "error_type": "BudgetExceededError",
       "message": "模型 qwen3.8-max-0902 额度超限：实报 270828 + 未知 0 + 在途 0 + 本次预估 8126 = 278954 超过授权 277710，请求在到达供应商前被拒绝"
      }
-    ],
-    "usage": {
-     "calls": 2,
-     "tokens": 0,
-     "unknown": 2
-    },
-    "missing": true
+    ]
    },
    "qwen3.8-27b": {
     "verdict": {
@@ -4534,8 +4550,22 @@
   },
   "reg-001": {
    "qwen3.8-max-0902": {
-    "verdict": null,
-    "attempts": [
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答正确指出L14738和L14742因证据截断无法获取完整信息，但未满足金标要求将这5行均描述为RAS APP FATAL级别及指定时间戳范围，未覆盖全部要点。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2757,
+     "unknown": 0
+    },
+    "missing": false,
+    "refill": true,
+    "refill_note": "2026-11-01 run-20261101 授权后补判：答案/证据复用基线落盘记录，未重新生成",
+    "earlier_attempts": [
      {
       "attempt": 1,
       "error_type": "BudgetExceededError",
@@ -4546,13 +4576,7 @@
       "error_type": "BudgetExceededError",
       "message": "模型 qwen3.8-max-0902 额度超限：实报 270828 + 未知 0 + 在途 0 + 本次预估 7659 = 278487 超过授权 277710，请求在到达供应商前被拒绝"
      }
-    ],
-    "usage": {
-     "calls": 2,
-     "tokens": 0,
-     "unknown": 2
-    },
-    "missing": true
+    ]
    },
    "qwen3.8-27b": {
     "verdict": {
@@ -4572,8 +4596,22 @@
   },
   "reg-002": {
    "qwen3.8-max-0902": {
-    "verdict": null,
-    "attempts": [
+    "verdict": {
+     "answer_correct": false,
+     "grounded": false,
+     "appropriate_abstention": false,
+     "reason": "证据1仅含L14700-L14703四条，无法得出25条、11条等统计；回答未覆盖金标要点且将不完整数据当作全貌，属编造。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2909,
+     "unknown": 0
+    },
+    "missing": false,
+    "refill": true,
+    "refill_note": "2026-11-01 run-20261101 授权后补判：答案/证据复用基线落盘记录，未重新生成",
+    "earlier_attempts": [
      {
       "attempt": 1,
       "error_type": "BudgetExceededError",
@@ -4584,13 +4622,7 @@
       "error_type": "BudgetExceededError",
       "message": "模型 qwen3.8-max-0902 额度超限：实报 270828 + 未知 0 + 在途 0 + 本次预估 7362 = 278190 超过授权 277710，请求在到达供应商前被拒绝"
      }
-    ],
-    "usage": {
-     "calls": 2,
-     "tokens": 0,
-     "unknown": 2
-    },
-    "missing": true
+    ]
    },
    "qwen3.8-27b": {
     "verdict": {
@@ -4610,8 +4642,22 @@
   },
   "reg-003": {
    "qwen3.8-max-0902": {
-    "verdict": null,
-    "attempts": [
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答仅列出L14759-L14760两行，遗漏金标要求的L14736-L14760共25行FATAL日志及具体消息内容（chdir failed等），也未提及与INFO级corrected事件的区分。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2805,
+     "unknown": 0
+    },
+    "missing": false,
+    "refill": true,
+    "refill_note": "2026-11-01 run-20261101 授权后补判：答案/证据复用基线落盘记录，未重新生成",
+    "earlier_attempts": [
      {
       "attempt": 1,
       "error_type": "BudgetExceededError",
@@ -4622,13 +4668,7 @@
       "error_type": "BudgetExceededError",
       "message": "模型 qwen3.8-max-0902 额度超限：实报 270828 + 未知 0 + 在途 0 + 本次预估 7027 = 277855 超过授权 277710，请求在到达供应商前被拒绝"
      }
-    ],
-    "usage": {
-     "calls": 2,
-     "tokens": 0,
-     "unknown": 2
-    },
-    "missing": true
+    ]
    },
    "qwen3.8-27b": {
     "verdict": {
@@ -4906,9 +4946,9 @@
   },
   "completed": 43,
   "target": 43,
-  "judged_main": 38,
-  "both_judged": 38,
-  "judge_agreement_on_answer_correct": "35/38"
+  "judged_main": 43,
+  "both_judged": 43,
+  "judge_agreement_on_answer_correct": "40/43"
  },
  "manifest": {
   "commit": "96fb1ebdba9e8332bf656caf68c6cbe257617f56",
@@ -4948,7 +4988,84 @@
    "主裁判与生成模型同为 qwen3.8 系列（qwen3.8-max-0902），存在自评/同系列偏好风险",
    "双裁判一致率不是人工准确率；本题集未做人工复核（human_reviewed=false）",
    "缺判（裁判无有效 verdict）如实计 0 分并单独披露",
-   "指标演示与工单流程不在本 43 题范围内，工作台单独展示，不代表 BGL 生产诊断能力"
-  ]
+   "指标演示与工单流程不在本 43 题范围内，工作台单独展示，不代表 BGL 生产诊断能力",
+   "缺判补齐：2026-11-01 新授权后仅调用裁判补判 5 题（答案与证据复用基线落盘记录，未重新生成），并对 3 题双裁判分歧追加 DeepSeek 跨家族复核（cross_reviews 字段，第三视角，不改双裁判结论）"
+  ],
+  "refill": {
+   "at": "2026-10-31T18:31:01+00:00",
+   "refilled_main_judge": [
+    "test-029",
+    "test-030",
+    "reg-001",
+    "reg-002",
+    "reg-003"
+   ],
+   "cross_reviews": {
+    "test-017": true,
+    "test-026": true,
+    "test-027": true
+   },
+   "ledger": "D:\\Code\\python\\aiops-diagnosis-agent\\eval\\night20261101\\eval_ledger.jsonl",
+   "note": "补判与复核用量记入本轮新账本（budget.json p1 份额），不占用旧 real_run/ledger.jsonl 口径"
+  }
+ },
+ "cross_reviews": {
+  "test-017": {
+   "deepseek-v4-pro-0813": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答正确给出最后一条 iar/dear 消息位于 L3765034，时间戳为 2005-11-03-15.09.11.384780，与证据[2]一致，且引用证据编号，无编造。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2015,
+     "unknown": 0
+    },
+    "missing": false,
+    "role": "cross_family_disagreement_review",
+    "note": "对 0902 与 27b 判分分歧题的跨家族复核；不覆盖双裁判记录，仅作第三视角披露"
+   }
+  },
+  "test-026": {
+   "deepseek-v4-pro-0813": {
+    "verdict": {
+     "answer_correct": false,
+     "grounded": false,
+     "appropriate_abstention": false,
+     "reason": "回答称L1120006未包含，但证据[4]显示L1120005行号标签未完整显示，且L1120006内容可能被截断；回答对L1120005的归属不准确，并声称L1120009被截断，而证据[4]确实截断。未严格依据证据，存在编造/误判。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2375,
+     "unknown": 0
+    },
+    "missing": false,
+    "role": "cross_family_disagreement_review",
+    "note": "对 0902 与 27b 判分分歧题的跨家族复核；不覆盖双裁判记录，仅作第三视角披露"
+   }
+  },
+  "test-027": {
+   "deepseek-v4-pro-0813": {
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答逐行给出L3765000-L3765003的iar/dear KERNEL INFO消息，与证据1一致；L3765004未在证据中，回答明确说明未包含完整记录，未编造。"
+    },
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 2458,
+     "unknown": 0
+    },
+    "missing": false,
+    "role": "cross_family_disagreement_review",
+    "note": "对 0902 与 27b 判分分歧题的跨家族复核；不覆盖双裁判记录，仅作第三视角披露"
+   }
+  }
  }
 }

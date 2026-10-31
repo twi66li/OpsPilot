@@ -52,12 +52,13 @@ def delete_document(db: Session, container, doc: Document) -> None:
 
 
 def rebuild_bm25_from_db(db: Session, container) -> int:
-    """服务启动时用 MySQL 全量文档重建 BM25 索引（按租户）。"""
+    """用与向量库同源同界的分块重建 BM25 索引（按租户）。"""
     from collections import defaultdict
 
+    tenants = sorted({doc.tenant_id for doc in db.query(Document).all()})
     by_tenant: dict[str, list[dict]] = defaultdict(list)
-    for doc in db.query(Document).all():
-        by_tenant[doc.tenant_id].extend(chunk_doc(doc))
+    for tenant_id in tenants:
+        by_tenant[tenant_id].extend(container.vector_store.scroll_tenant(tenant_id))
     for tenant_id, chunks in by_tenant.items():
         container.bm25.replace_tenant(tenant_id, chunks)
     return sum(len(v) for v in by_tenant.values())
@@ -66,20 +67,24 @@ def rebuild_bm25_from_db(db: Session, container) -> int:
 def warm_indexes(db: Session, container) -> int:
     """启动/评测前重建索引：BM25 全量重建；向量库为空时从 MySQL 回填向量。
 
-    Qdrant 持久化部署时已有数据则跳过回填，避免重复 Embedding 开销；
-    进程内向量库（开发/评测模式）每次都需回填，因为它不跨进程存活。
+    BM25 分块一律取自向量库已有 payload（与稠密检索同源同界）。此前从 MySQL 重新
+    分块（默认 500 字符）会与入库时分块（如 n31real 语料的 2000 字符）漂移：
+    两路 chunk 边界不一致，混合检索把同内容不同边界的块当作不同证据融合。
+    向量库为空时仍按 MySQL 默认分块回填（重新 embedding），回填后两路自动同源。
     """
-    docs = db.query(Document).all()
     from collections import defaultdict
 
-    by_tenant: dict[str, list[dict]] = defaultdict(list)
+    docs = db.query(Document).all()
     vector_empty = getattr(container.vector_store, "count", lambda t=None: 0)() == 0
-    for doc in docs:
-        chunks = chunk_doc(doc)
-        by_tenant[doc.tenant_id].extend(chunks)
-        if vector_empty and chunks:
-            vectors = container.embedder.embed([c["text"] for c in chunks])
-            container.vector_store.upsert(doc.tenant_id, chunks, vectors)
+    if vector_empty:
+        for doc in docs:
+            chunks = chunk_doc(doc)
+            if chunks:
+                vectors = container.embedder.embed([c["text"] for c in chunks])
+                container.vector_store.upsert(doc.tenant_id, chunks, vectors)
+    by_tenant: dict[str, list[dict]] = defaultdict(list)
+    for tenant_id in sorted({doc.tenant_id for doc in docs}):
+        by_tenant[tenant_id].extend(container.vector_store.scroll_tenant(tenant_id))
     for tenant_id, chunks in by_tenant.items():
         container.bm25.replace_tenant(tenant_id, chunks)
     return sum(len(v) for v in by_tenant.values())

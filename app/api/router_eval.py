@@ -1,4 +1,8 @@
-"""评测结果接口：读取 night20261031/real_run 的冻结场景与逐题结果（admin 只读）。"""
+"""评测结果接口：admin 只读读盘，支持多运行（历史基线 / 重排恢复批等）。
+
+发现规则：扫描 eval/night*/*/results.json（评测脚本落盘目录），不提供写接口，
+不做路径拼接（run 参数必须命中发现清单，防目录穿越）。
+"""
 import json
 from pathlib import Path
 
@@ -8,22 +12,59 @@ from app.auth.deps import AuthUser, require_roles
 
 router = APIRouter(prefix="/api/eval", tags=["eval-results"])
 
-_EVAL_DIR = Path(__file__).resolve().parents[2] / "eval" / "night20261031" / "real_run"
+_EVAL_ROOT = Path(__file__).resolve().parents[2] / "eval"
+
+
+def _discover_runs() -> dict[str, dict]:
+    runs: dict[str, dict] = {}
+    for results_fp in sorted(_EVAL_ROOT.glob("night*/*/results.json")):
+        run_id = results_fp.parent.relative_to(_EVAL_ROOT).as_posix()
+        try:
+            records = json.loads(results_fp.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            continue
+        cfg = records.get("config", {})
+        rerank_desc = str(cfg.get("rerank", ""))
+        runs[run_id] = {
+            "id": run_id,
+            "namespace": records.get("namespace"),
+            "batch": records.get("batch"),
+            "rerank_active": bool(rerank_desc) and "停用" not in rerank_desc,
+            "rerank_desc": rerank_desc,
+            "completed": (records.get("summary") or {}).get("completed"),
+            "target": (records.get("summary") or {}).get("target") or (records.get("summary") or {}).get("planned"),
+            "judge_agreement": (records.get("summary") or {}).get("judge_agreement_on_answer_correct"),
+        }
+    return runs
+
+
+def _load_run(run_id: str) -> tuple[dict, dict]:
+    runs = _discover_runs()
+    if run_id and run_id not in runs:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, f"评测运行不存在：{run_id}")
+    run_id = run_id or next(iter(runs))
+    fp = _EVAL_ROOT / run_id / "results.json"
+    records = json.loads(fp.read_text(encoding="utf-8"))
+    frozen_fp = fp.parent / "scenarios_frozen.json"
+    frozen = json.loads(frozen_fp.read_text(encoding="utf-8")) if frozen_fp.exists() else {}
+    return records, {"frozen": frozen, "meta": runs[run_id]}
+
+
+@router.get("/runs")
+def eval_runs(user: AuthUser = Depends(require_roles("admin"))):
+    """列出可查看的评测运行（历史基线 / 重排恢复批），供工作台切换。"""
+    return {"runs": list(_discover_runs().values())}
 
 
 @router.get("/results")
-def eval_results(user: AuthUser = Depends(require_roles("admin"))):
-    """返回真实评测批次结果：总体完成数、逐题输入/编号证据/答案/双裁判判分/失败/用量。
+def eval_results(user: AuthUser = Depends(require_roles("admin")), run: str = ""):
+    """返回指定运行的结果：总体完成数、逐题输入/编号证据/答案/双裁判判分/失败/用量。
 
-    数据来源为评测脚本落盘的 results.json 与 scenarios_frozen.json（只读），不提供写接口。
+    数据来源为评测脚本落盘的 results.json 与 scenarios_frozen.json（只读）。缺省返回
+    发现清单中的第一个运行（night20261031/real_run 历史基线）。
     """
-    results_fp = _EVAL_DIR / "results.json"
-    if not results_fp.exists():
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "评测结果尚未生成（real_run/results.json 不存在）")
-    records = json.loads(results_fp.read_text(encoding="utf-8"))
-    frozen_fp = _EVAL_DIR / "scenarios_frozen.json"
-    frozen = json.loads(frozen_fp.read_text(encoding="utf-8")) if frozen_fp.exists() else {}
-    by_id = {s["id"]: s for s in frozen.get("scenarios", [])}
+    records, ctx = _load_run(run)
+    by_id = {s["id"]: s for s in ctx["frozen"].get("scenarios", [])}
     questions = []
     for qid in sorted(records.get("questions", {})):
         rec = records["questions"][qid]
@@ -37,6 +78,7 @@ def eval_results(user: AuthUser = Depends(require_roles("admin"))):
             "status": rec.get("status"),
             "question": rec.get("question"),
             "must_abstain": rec.get("must_abstain", False),
+            "rerank_active": rec.get("rerank_active"),
             "required_points": rec.get("required_points") or s.get("required_points", []),
             "answer": rec.get("answer", ""),
             "citations": rec.get("citations", []),
@@ -48,11 +90,14 @@ def eval_results(user: AuthUser = Depends(require_roles("admin"))):
             "elapsed_s": rec.get("elapsed_s"),
         })
     return {
+        "id": ctx["meta"]["id"],
         "namespace": records.get("namespace"),
         "batch": records.get("batch"),
         "config": records.get("config", {}),
         "summary": records.get("summary", {}),
         "manifest": records.get("manifest", {}),
         "probe": records.get("probe", {}),
+        "cross_reviews": records.get("cross_reviews", {}),
+        "not_run": records.get("not_run", {}),
         "questions": questions,
     }

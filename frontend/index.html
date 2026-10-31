@@ -113,7 +113,9 @@
   </div>
   <!-- 中栏：对话 -->
   <div class="col" style="background:var(--bg)">
-    <div id="chat"><div class="msg assistant pending">登录并选择会话后，描述故障即可开始诊断。示例：order-service 出现 ERR_5003，大量请求超时，请给出排查步骤并说明依据。</div></div>
+    <div id="chat"><div class="msg assistant pending">登录并选择会话后，描述故障即可开始诊断。示例：order-service 出现 ERR_5003，大量请求超时，请给出排查步骤并说明依据。
+
+口径说明：本工作台的 BGL 日志问答基于知识库证据摘录（含真实重排检索）与只读工具，输出为可追溯的诊断建议，不构成生产环境根因结论；"指标"工具为测试演示数据，与真实 BGL 评测无关。</div></div>
     <div class="inputbar">
       <textarea id="question" placeholder="描述故障，例如：order-service 出现 ERR_5003，大量请求超时……（Ctrl+Enter 发送）"></textarea>
       <button onclick="send()">发送</button>
@@ -128,7 +130,8 @@
 <!-- ============ 视图 2：评测结果 ============ -->
 <main id="viewEval">
   <div style="display:flex;flex-direction:column;min-height:0;flex:1">
-    <div class="evbanner" id="evBanner">数据来源说明：逐题语料为公开真实 BGL 日志（来源行号可回溯、告警标签列已剥离且不作为根因）；工作台“指标源”为测试演示数据，与 BGL 评测无关；全部判分为模型双裁判自动评分，未经人工复核，不宣称人工准确率。</div>
+    <div class="evbanner" id="evBanner">数据来源说明：逐题语料为公开真实 BGL 日志（来源行号可回溯、告警标签列已剥离且不作为根因）；工作台“指标源”为测试演示数据，与 BGL 评测无关；全部判分为模型双裁判自动评分，未经人工复核，不宣称人工准确率。历史基线（无重排）与重排恢复批（含真实重排）链路口径不同，对比时注意配置差异。</div>
+    <div class="filters" id="runSelector" style="margin-top:12px"></div>
     <div class="stats" id="evStats"><div class="stat">加载中…</div></div>
     <div class="filters" id="evFilters"></div>
     <div id="qlist"><div class="stat">加载中…</div></div>
@@ -151,7 +154,7 @@ let sessionId = localStorage.getItem("opspilot_sid") || "";
 let citations = [];  // [n] → 文档标题
 let citationsMap = new Map();
 let running = false;
-let evalData = null, evalFilter = "all", evalOpen = new Set();
+let evalData = null, evalFilter = "all", evalOpen = new Set(), evalRun = "";
 
 /* ---------- 视图切换 ---------- */
 function switchView(v) {
@@ -325,7 +328,7 @@ function renderEval() {
   const s = d.summary || {}, mf = d.manifest || {}, cfg = d.config || {};
   const byModel = mf.ledger_by_model || {}, ml = (cfg.budget || {}).model_limits || {};
   $("#evStats").innerHTML = `
-    <div class="stat"><b>${s.completed || 0} / ${s.target || 43}</b><span class="meta">完成题数（未运行不计完成）</span></div>
+    <div class="stat"><b>${s.completed || 0} / ${s.target || s.planned || 43}</b><span class="meta">完成题数（未运行不计完成${s.not_run && s.not_run.length ? `，not_run ${s.not_run.length} 题已披露` : ""}）</span></div>
     <div class="stat"><b>${Object.entries(s.status_counts || {}).map(([k, v]) => `${k}:${v}`).join(" ") || "-"}</b><span class="meta">状态分布</span></div>
     <div class="stat"><b>${s.judge_agreement_on_answer_correct || "-"}</b><span class="meta">双裁判 answer_correct 一致（非人工准确率）</span></div>
     <div class="stat"><b>${s.judged_main || 0}</b><span class="meta">主裁判已判题数</span></div>
@@ -360,6 +363,10 @@ function renderEval() {
             `${jd.answer_correct ? '<span class="pill ok">answer_correct</span>' : '<span class="pill err">answer_correct✗</span>'} ${jd.grounded ? '<span class="pill ok">grounded</span>' : '<span class="pill err">grounded✗</span>'} ${jd.appropriate_abstention ? '<span class="pill ok">abstain✓</span>' : '<span class="pill err">abstain✗</span>'}`}
             <div class="meta">${esc((jd && jd.reason) || j.attempts?.map(a => a.error_type).join("→") || "")}</div></div>`;
         }).join("") || "<div class='judge meta'>未评分</div>"}
+        ${(d.cross_reviews || {})[q.id] ? Object.entries(d.cross_reviews[q.id]).map(([m, j]) => {
+          const jd = j.verdict;
+          return `<div class="judge"><b>跨家族复核 ${esc(m)}</b> ${jd ? (jd.answer_correct ? '<span class="pill ok">answer_correct</span>' : '<span class="pill err">answer_correct✗</span>') : '<span class="pill warn">缺判</span>'}<div class="meta">${esc((jd && jd.reason) || "第三视角复核，不改双裁判结论")}</div></div>`;
+        }).join("") : ""}
         <h4>本题实际用量（供应商 usage 实报）</h4><div>${usageStr(q.usage)}</div>
         ${q.error ? `<h4>失败 / 重试留痕（最多额外重试 1 次）</h4><pre>${esc(JSON.stringify(q.error, null, 1))}</pre>` : ""}
         <div class="meta">耗时 ${q.elapsed_s ?? "?"}s · split=${esc(q.split)} · family=${esc(q.family)} · 窗口=${esc(q.window || "无（拒答/跨窗）")} · must_abstain=${q.must_abstain}</div>
@@ -370,6 +377,7 @@ function renderEval() {
         <span class="fam">${esc(q.family || "")}</span>
         ${statusPill(q.status)}
         ${q.must_abstain ? '<span class="pill warn">须拒答</span>' : ""}
+        ${q.rerank_active === true ? '<span class="pill ok">真实重排</span>' : q.rerank_active === false ? '<span class="pill warn">无重排</span>' : ""}
         <span class="meta">${v ? (v.answer_correct ? '<span class="ok">✓</span>' : '<span class="err">✗</span>') : "未判"}</span>
         <span class="spacer"></span>
         <span class="meta">${Object.values(q.usage || {}).reduce((a, u) => a + (u.tokens || 0), 0)} tok · ${q.elapsed_s ?? "?"}s</span>
@@ -378,10 +386,22 @@ function renderEval() {
 }
 function setFilter(f) { evalFilter = f; renderEval(); }
 function toggleQ(id) { evalOpen.has(id) ? evalOpen.delete(id) : evalOpen.add(id); renderEval(); }
+async function loadRuns() {
+  try {
+    const r = await api("/api/eval/runs");
+    const box = $("#runSelector");
+    box.innerHTML = (r.runs || []).map(run => {
+      const label = `${esc(run.batch || run.id)} · ${run.rerank_active ? "含真实重排" : "无重排"}`;
+      return `<button class="${evalRun === run.id ? "active" : ""}" onclick="switchRun('${esc(run.id)}')">${label}（${run.completed ?? "?"}/${run.target ?? "?"}）</button>`;
+    }).join("");
+  } catch (e) { /* 未登录或无运行时忽略 */ }
+}
+function switchRun(id) { evalRun = id; evalOpen = new Set(); loadRuns(); loadEval(); }
 async function loadEval() {
   try {
-    evalData = await api("/api/eval/results");
+    evalData = await api("/api/eval/results" + (evalRun ? "?run=" + encodeURIComponent(evalRun) : ""));
     renderEval();
+    loadRuns();
   } catch (e) {
     $("#evStats").innerHTML = `<div class="stat err">评测结果加载失败：${esc(e.message)}</div>`;
     $("#qlist").innerHTML = "";

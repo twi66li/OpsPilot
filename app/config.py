@@ -40,6 +40,9 @@ class Settings(BaseSettings):
     bm25_top_k: int = 5
     top_k: int = 5
     rrf_k: int = 60
+    # 送入模型与裁判的证据摘录上界（字符）。截断在行边界处收口，绝不把一行日志从中间切断；
+    # 评测记录与裁判看到的就是生成器实际收到的摘录。历史批次（night20261031）为硬 [:500] 截断。
+    evidence_excerpt_chars: int = 500
     rerank_enabled: bool = False
     rerank_provider: str = "heuristic"  # heuristic | cross_encoder | dashscope（T7：DashScope 原生 text-rerank）
     rerank_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"

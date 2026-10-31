@@ -1,0 +1,67 @@
+INFO:     Started server process [17352]
+INFO:     Waiting for application startup.
+2026-11-01 02:44:36,722 INFO httpx: HTTP Request: GET http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+2026-11-01 02:44:36,736 INFO httpx: HTTP Request: GET http://127.0.0.1:6333 "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\qdrant_client\qdrant_remote.py:287: UserWarning: Qdrant client version 1.20.0 is incompatible with server version 1.12.4. Major versions should match and minor version difference must not exceed 1. Set check_compatibility=False to skip version check.
+  show_warning(
+2026-11-01 02:44:39,307 INFO app.services.cache: Redis 缓存已连接: redis://localhost:6379/0
+2026-11-01 02:44:39,437 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/count "HTTP/1.1 200 OK"
+2026-11-01 02:44:39,540 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 02:44:39,616 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 02:44:39,691 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 02:44:39,780 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 02:44:41,949 INFO app.main: 启动完成：索引已就绪，共 81 个分块
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+INFO:     127.0.0.1:24412 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:57200 - "GET / HTTP/1.1" 304 Not Modified
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:370: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  decoded = self.decode_complete(
+INFO:     127.0.0.1:12552 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57200 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54981 - "GET /health HTTP/1.1" 200 OK
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  return self._jws.encode(
+INFO:     127.0.0.1:57200 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57200 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:12552 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57200 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29056 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:32864 - "POST /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32864 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:32864 - "POST /api/agent/chat/stream HTTP/1.1" 200 OK
+2026-11-01 02:45:20,901 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-11-01 02:45:20,909 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "usage": {"prompt_tokens": 48, "total_tokens": 48}, "elapsed_ms": 2549.684400029946}
+2026-11-01 02:45:21,067 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+2026-11-01 02:45:21,467 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-11-01 02:45:21,467 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 6327, "total_tokens": 6327}, "elapsed_ms": 383.4006999968551}
+2026-11-01 02:45:21,519 INFO app.services.observability: [trace] span=retrieval dur=3163.9ms meta={'mode': 'hybrid', 'tenant_id': 'n31real', 'hits': 5, 'reranked': True, 'latency_ms': 3135.6}
+2026-11-01 02:45:22,444 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 02:45:22,728 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 900.3717000014149, "usage": {"completion_tokens": 14, "prompt_tokens": 1074, "total_tokens": 1088, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 1074}}, "finish_reason": "stop", "elapsed_ms": 1166.756299964618}
+2026-11-01 02:45:22,779 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 0, 'tools': []}
+INFO:     127.0.0.1:27806 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+2026-11-01 02:45:24,297 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:27811 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:27812 - "GET /api/eval/results HTTP/1.1" 200 OK
+2026-11-01 02:45:31,676 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 1465.7214000471868, "usage": {"completion_tokens": 442, "prompt_tokens": 1930, "total_tokens": 2372, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 1930}}, "finish_reason": "stop", "elapsed_ms": 8843.353000003844}
+2026-11-01 02:45:31,722 INFO app.services.observability: [trace] span=generate dur=8926.8ms meta={'answer_chars': 813, 'tokens_in': 2100, 'tokens_out': 329}
+INFO:     127.0.0.1:56361 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52779 - "POST /api/agent/chat/stream HTTP/1.1" 200 OK
+2026-11-01 02:46:17,501 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-11-01 02:46:17,515 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "usage": {"prompt_tokens": 35, "total_tokens": 35}, "elapsed_ms": 565.3437000000849}
+2026-11-01 02:46:17,738 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+2026-11-01 02:46:18,271 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-11-01 02:46:18,285 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 6617, "total_tokens": 6617}, "elapsed_ms": 456.95949997752905}
+2026-11-01 02:46:18,491 INFO app.services.observability: [trace] span=retrieval dur=1549.0ms meta={'mode': 'hybrid', 'tenant_id': 'n31real', 'hits': 5, 'reranked': True, 'latency_ms': 1477.7}
+2026-11-01 02:46:19,219 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 02:46:19,428 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 698.7868000287563, "usage": {"completion_tokens": 14, "prompt_tokens": 954, "total_tokens": 968, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 954}}, "finish_reason": "stop", "elapsed_ms": 903.336199990008}
+2026-11-01 02:46:19,466 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 0, 'tools': []}
+2026-11-01 02:46:20,547 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 02:46:36,201 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 1048.659200023394, "usage": {"completion_tokens": 901, "prompt_tokens": 1789, "total_tokens": 2690, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 1789}}, "finish_reason": "stop", "elapsed_ms": 16701.217300025746}
+2026-11-01 02:46:36,234 INFO app.services.observability: [trace] span=generate dur=16758.1ms meta={'answer_chars': 1573, 'tokens_in': 2310, 'tokens_out': 845}
+2026-11-01 02:46:36,896 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 02:46:39,901 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 632.6904000015929, "usage": {"completion_tokens": 232, "prompt_tokens": 560, "total_tokens": 792, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 560}}, "finish_reason": "stop", "elapsed_ms": 3635.763800004497}
+INFO:     127.0.0.1:14164 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:10493 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:3794 - "POST /api/agent/approvals/edd241d977254dd2aa1e0bda6ae6456b/decide HTTP/1.1" 200 OK
+INFO:     127.0.0.1:9977 - "GET /favicon.ico HTTP/1.1" 404 Not Found

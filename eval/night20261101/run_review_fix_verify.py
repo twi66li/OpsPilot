@@ -18,8 +18,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 HERE = Path(__file__).parent
-RUN = HERE / "verify_run"
-RUN.mkdir(parents=True, exist_ok=True)
 ROOT = HERE.parents[1]
 BASELINE = ROOT / "eval" / "night20261031" / "real_run"
 LEDGER = HERE / "eval_ledger.jsonl"
@@ -51,6 +49,15 @@ GEN_MODEL = "qwen3.8-max-0902"
 JUDGES = ["qwen3.8-max-0902", "qwen3.8-27b"]
 CHUNK_SIZE = 2000
 
+# 用法：run_review_fix_verify.py [输出目录名] [逗号分隔全跑题id] [逗号分隔仅补判题id]
+# 缺省 = 整改验证批（p1-final-01 范围）。p1-final-02 定向批：
+#   全跑 = 受残行影响 6 题 + reg-002/003；仅补判 = reg-001(27b) / test-030(0902+27b)。
+RUN_NAME = sys.argv[1] if len(sys.argv) > 1 else "verify_run"
+SCOPE = (sys.argv[2].split(",") if len(sys.argv) > 2 else
+         ["test-021", "test-009", "test-004", "test-005", "test-001",
+          "test-015", "test-017", "test-023", "test-006", "reg-001", "reg-002", "reg-003", "test-030"])
+JUDGE_ONLY = set(sys.argv[3].split(",")) if len(sys.argv) > 3 else set()
+
 
 def reserve_estimates(question: str) -> dict:
     """按账本同口径（字节上界预留）估算本题生成+裁判的预留需求，门控与账本一致不再半途拒答。"""
@@ -60,11 +67,12 @@ def reserve_estimates(question: str) -> dict:
     gen_reserve = 3400 + range_chars          # 生成调用预留上界（载荷+包装+输出1536）
     judge_reserve = 3700 + range_chars        # 裁判调用预留上界（同证据+判分输出）
     return {"gen_0902": gen_reserve, "judge_0902": judge_reserve, "judge_27b": judge_reserve,
-            "rerank_round": 7000, "embedding": 200}
+            "rerank_round": 9800, "embedding": 200}
 
 
-SCOPE = ["test-021", "test-009", "test-004", "test-005", "test-001",
-         "test-015", "test-017", "test-023", "test-006", "reg-001", "reg-002", "reg-003", "test-030"]
+RUN = HERE / RUN_NAME
+RUN.mkdir(parents=True, exist_ok=True)
+PREV_RUN = HERE / "verify_run"  # 上一批记录（仅补判题的既有答案来源）
 
 sys.path.insert(0, str(ROOT))
 
@@ -77,7 +85,7 @@ def load_results():
     fp = RUN / "results.json"
     if fp.exists():
         return json.loads(fp.read_text(encoding="utf-8"))
-    return {"namespace": "n31real", "batch": "review_fix_verify_12", "questions": {}, "judges": {}, "not_run": {}}
+    return {"namespace": "n31real", "batch": f"review_fix_{RUN_NAME}", "questions": {}, "judges": {}, "not_run": {}}
 
 
 def save_results(records):
@@ -160,9 +168,9 @@ def main():
         "evidence": "app.rag.evidence 组装：显式行范围题完整行摘录置首（range_assembly）+ 分块摘录行边界安全（块首残行剥离）；"
                     "生成提示词含范围完整性防则；裁判与评测记录使用生成器实际收到的 used_evidence",
         "budget": {"total_limit": TOTAL_LIMIT, "model_limits": MODEL_LIMITS,
-                   "derivation": "budget.json p1 + 2026-11-01 用户追加授权（整改验证）− 兄弟账本已用",
+                   "derivation": "budget.json p1 + 2026-11-01 用户两次追加授权（整改验证）− 兄弟账本已用",
                    "ledger": str(LEDGER)},
-        "scope": "重排批双裁判均判错的 12 题（预先固定）；test-004 以 gold_v2 更正题干重跑；"
+        "scope": f"全跑={SCOPE}；仅补判={sorted(JUDGE_ONLY)}（既有答案来自上一批，不重新生成）；"
                  "test-004/test-030 金标按 gold_v2 更正后要点判分",
         "concurrency": 1, "max_extra_retries": 1,
     }
@@ -190,7 +198,28 @@ def main():
         settings = get_settings()
         from app.services.model_api import ChatAPI
 
-        for qid in SCOPE:
+        # 仅补判题：既有答案与证据来自上一批（保留旧记录，不重新生成）
+        prev = json.loads((PREV_RUN / "results.json").read_text(encoding="utf-8")) \
+            if (PREV_RUN / "results.json").exists() else {"questions": {}, "judges": {}}
+        for qid in sorted(JUDGE_ONLY):
+            if qid in records["questions"]:
+                continue
+            src = prev["questions"].get(qid)
+            if src is None:
+                log(f"{qid} judge-only: 上一批无记录，跳过")
+                continue
+            records["questions"][qid] = dict(src)
+            records["judges"].setdefault(qid, dict(prev.get("judges", {}).get(qid, {})))
+            save_results(records)
+            log(f"{qid} judge-only seeded from {PREV_RUN.name}")
+
+        for qid in list(SCOPE) + sorted(JUDGE_ONLY):
+            if qid in JUDGE_ONLY:
+                cmap_note = cmap.get(qid)
+                corrected = cmap_note["new"]["required_points"] if cmap_note else None
+                note = f"金标已按原始日志更正（{corr['version']}）：{cmap_note['reason']}" if cmap_note else None
+                run_judges(records, qid, corrected, note, settings)
+                continue
             s = dict(by_id[qid])
             note = None
             corrected_points = None
@@ -379,7 +408,7 @@ def summarize(records):
                 and records["judges"][q][JUDGES[0]]["verdict"].get("answer_correct")
                 == records["judges"][q][JUDGES[1]]["verdict"].get("answer_correct"))
     records["summary"] = {"status_counts": dict(counts), "completed": len(records["questions"]),
-                          "planned": len(SCOPE), "judged_main": judged, "both_judged": both,
+                          "planned": len(set(SCOPE) | JUDGE_ONLY), "judged_main": judged, "both_judged": both,
                           "judge_agreement_on_answer_correct": f"{agree}/{both}" if both else "0/0",
                           "not_run": sorted(records.get("not_run", {}))}
     records["manifest"] = {

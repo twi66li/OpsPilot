@@ -20,3 +20,15 @@
 {"type": "committed", "id": "0b0afba9868f48debbf5de9e021cc73c", "at": "2026-10-31T20:12:15.450+00:00", "pid": 6812, "model": "qwen3.7-text-embedding-flash", "estimate": 44, "actual": 33, "over_reserve": false}
 {"type": "reserved", "id": "3ce2c318536b40fc9b41e5a9c567a582", "at": "2026-10-31T20:14:12.249+00:00", "pid": 15136, "kind": "embedding", "model": "qwen3.7-text-embedding-flash", "estimate": 44}
 {"type": "committed", "id": "3ce2c318536b40fc9b41e5a9c567a582", "at": "2026-10-31T20:14:13.593+00:00", "pid": 15136, "model": "qwen3.7-text-embedding-flash", "estimate": 44, "actual": 33, "over_reserve": false}
+{"type": "reserved", "id": "fd41e178bbd44e3da1ea918bed340e5c", "at": "2026-11-01T02:41:38.702+00:00", "pid": 15136, "kind": "embedding", "model": "qwen3.7-text-embedding-flash", "estimate": 77}
+{"type": "committed", "id": "fd41e178bbd44e3da1ea918bed340e5c", "at": "2026-11-01T02:41:39.206+00:00", "pid": 15136, "model": "qwen3.7-text-embedding-flash", "estimate": 77, "actual": 40, "over_reserve": false}
+{"type": "reserved", "id": "2d8bf8d2d24840ae848585ebfc522bd1", "at": "2026-11-01T02:43:34.376+00:00", "pid": 2624, "kind": "embedding", "model": "qwen3.7-text-embedding-flash", "estimate": 77}
+{"type": "committed", "id": "2d8bf8d2d24840ae848585ebfc522bd1", "at": "2026-11-01T02:43:35.824+00:00", "pid": 2624, "model": "qwen3.7-text-embedding-flash", "estimate": 77, "actual": 40, "over_reserve": false}
+{"type": "reserved", "id": "9174b3cf04b34ddb85cc90e4569120f0", "at": "2026-11-01T02:43:35.928+00:00", "pid": 2624, "kind": "rerank", "model": "qwen3.7-text-rerank", "estimate": 9706}
+{"type": "committed", "id": "9174b3cf04b34ddb85cc90e4569120f0", "at": "2026-11-01T02:43:36.393+00:00", "pid": 2624, "model": "qwen3.7-text-rerank", "estimate": 9706, "actual": 6640, "over_reserve": false}
+{"type": "reserved", "id": "43b27cf86e624f059762866e08e662ee", "at": "2026-11-01T02:43:36.411+00:00", "pid": 2624, "kind": "chat", "model": "qwen3.8-max-0902", "estimate": 3743}
+{"type": "committed", "id": "43b27cf86e624f059762866e08e662ee", "at": "2026-11-01T02:43:37.423+00:00", "pid": 2624, "model": "qwen3.8-max-0902", "estimate": 3743, "actual": 1086, "over_reserve": false}
+{"type": "reserved", "id": "5b276f17c8c8407d9d81daff73b2022c", "at": "2026-11-01T02:43:37.449+00:00", "pid": 2624, "kind": "chat", "model": "qwen3.8-max-0902", "estimate": 5590}
+{"type": "committed", "id": "5b276f17c8c8407d9d81daff73b2022c", "at": "2026-11-01T02:43:56.972+00:00", "pid": 2624, "model": "qwen3.8-max-0902", "estimate": 5590, "actual": 2937, "over_reserve": false}
+{"type": "reserved", "id": "7f9a82639a2b4b219c1395335d2e9b7a", "at": "2026-11-01T02:43:56.975+00:00", "pid": 2624, "kind": "chat", "model": "qwen3.8-max-0902", "estimate": 3637}
+{"type": "committed", "id": "7f9a82639a2b4b219c1395335d2e9b7a", "at": "2026-11-01T02:44:03.041+00:00", "pid": 2624, "model": "qwen3.8-max-0902", "estimate": 3637, "actual": 906, "over_reserve": false}

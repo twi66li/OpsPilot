@@ -1,0 +1,231 @@
+2026-11-01 10:35:39,150 INFO httpx: HTTP Request: GET http://127.0.0.1:6333 "HTTP/1.1 200 OK"
+2026-11-01 10:35:39,154 INFO httpx: HTTP Request: GET http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\qdrant_client\qdrant_remote.py:287: UserWarning: Qdrant client version 1.20.0 is incompatible with server version 1.12.4. Major versions should match and minor version difference must not exceed 1. Set check_compatibility=False to skip version check.
+  show_warning(
+2026-11-01 10:35:41,441 INFO app.services.cache: Redis 缓存已连接: redis://localhost:6379/0
+2026-11-01 10:35:41,580 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/count "HTTP/1.1 200 OK"
+2026-11-01 10:35:41,676 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:35:41,737 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:35:41,823 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:35:41,874 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:35:42,954 INFO app.main: 启动完成：索引已就绪，共 81 个分块
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  return self._jws.encode(
+2026-11-01 10:35:43,031 INFO httpx2: HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+[10:35:43] reg-001 judge-only seeded from verify_run
+[10:35:43] test-030 judge-only seeded from verify_run
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:370: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  decoded = self.decode_complete(
+2026-11-01 10:35:43,201 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:370: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  decoded = self.decode_complete(
+2026-11-01 10:35:44,879 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-11-01 10:35:44,882 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "usage": {"prompt_tokens": 51, "total_tokens": 51}, "elapsed_ms": 1523.627899994608}
+2026-11-01 10:35:44,969 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+2026-11-01 10:35:45,410 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-11-01 10:35:45,411 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 6524, "total_tokens": 6524}, "elapsed_ms": 433.4345000097528}
+2026-11-01 10:35:45,437 INFO app.services.observability: [trace] span=retrieval dur=2079.5ms meta={'mode': 'hybrid', 'tenant_id': 'n31real', 'hits': 5, 'reranked': True, 'latency_ms': 2068.1}
+2026-11-01 10:35:46,466 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:35:46,692 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 1017.7549000363797, "usage": {"completion_tokens": 14, "prompt_tokens": 1103, "total_tokens": 1117, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 1103}}, "finish_reason": "stop", "elapsed_ms": 1239.825299999211}
+2026-11-01 10:35:46,708 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 0, 'tools': []}
+2026-11-01 10:35:47,607 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:35:50,021 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 871.871999988798, "usage": {"completion_tokens": 145, "prompt_tokens": 5303, "total_tokens": 5448, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 5303}}, "finish_reason": "stop", "elapsed_ms": 3285.2581999613903}
+2026-11-01 10:35:50,036 INFO app.services.observability: [trace] span=generate dur=3316.7ms meta={'answer_chars': 192, 'tokens_in': 1769, 'tokens_out': 97}
+2026-11-01 10:35:50,086 INFO httpx2: HTTP Request: POST http://testserver/api/agent/chat "HTTP/1.1 200 OK"
+[10:35:50] test-009 done status=answered rounds=1 7.0s usage={'qwen3.7-text-embedding-flash': 51, 'qwen3.7-text-rerank': 6524, 'qwen3.8-max-0902': 6565}
+2026-11-01 10:35:51,040 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:35:52,123 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 938.0490999901667, "usage": {"completion_tokens": 59, "prompt_tokens": 5885, "total_tokens": 5944, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 5885}}, "finish_reason": "stop", "elapsed_ms": 2020.6426999648102}
+[10:35:52] judge test-009/qwen3.8-max-0902 -> {'answer_correct': True, 'grounded': True, 'appropriate_abstention': False, 'reason': '回答准确给出L253000和L253034的时间戳，与证据[1]完全一致，覆盖金标要点且无编造。'}
+2026-11-01 10:35:53,809 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:35:54,959 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-27b", "status": "ok", "first_token_ms": 1671.6788999619894, "usage": {"completion_tokens": 81, "prompt_tokens": 5885, "total_tokens": 5966, "completion_tokens_details": {"accepted_prediction_tokens": null, "audio_tokens": null, "reasoning_tokens": null, "rejected_prediction_tokens": null}, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 5885}}, "finish_reason": "stop", "elapsed_ms": 2819.397899962496}
+[10:35:54] judge test-009/qwen3.8-27b -> {'answer_correct': True, 'grounded': True, 'appropriate_abstention': True, 'reason': '回答准确提取了L253000和L253034的第5列时间戳，与金标要点完全一致。引用证据[1]（range_assembly）可定位到具体行号和时间戳，无编造。'}
+2026-11-01 10:35:54,976 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-11-01 10:35:55,329 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-11-01 10:35:55,329 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "usage": {"prompt_tokens": 41, "total_tokens": 41}, "elapsed_ms": 318.8279999885708}
+2026-11-01 10:35:55,400 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+2026-11-01 10:35:55,802 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-11-01 10:35:55,802 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 5790, "total_tokens": 5790}, "elapsed_ms": 397.86590001313016}
+2026-11-01 10:35:55,823 INFO app.services.observability: [trace] span=retrieval dur=813.8ms meta={'mode': 'hybrid', 'tenant_id': 'n31real', 'hits': 5, 'reranked': True, 'latency_ms': 805.2}
+2026-11-01 10:35:56,658 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:35:56,896 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 820.0656000408344, "usage": {"completion_tokens": 14, "prompt_tokens": 870, "total_tokens": 884, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 870}}, "finish_reason": "stop", "elapsed_ms": 1057.567400042899}
+2026-11-01 10:35:56,919 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 0, 'tools': []}
+2026-11-01 10:35:57,957 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:36:12,573 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 1005.2089999662712, "usage": {"completion_tokens": 693, "prompt_tokens": 5159, "total_tokens": 5852, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 5159}}, "finish_reason": "stop", "elapsed_ms": 15620.825099991634}
+2026-11-01 10:36:12,602 INFO app.services.observability: [trace] span=generate dur=15669.5ms meta={'answer_chars': 1241, 'tokens_in': 1913, 'tokens_out': 781}
+2026-11-01 10:36:12,666 INFO httpx2: HTTP Request: POST http://testserver/api/agent/chat "HTTP/1.1 200 OK"
+[10:36:12] test-005 done status=answered rounds=1 17.7s usage={'qwen3.7-text-embedding-flash': 41, 'qwen3.7-text-rerank': 5790, 'qwen3.8-max-0902': 6736}
+2026-11-01 10:36:13,643 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:36:14,677 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 885.6411000015214, "usage": {"completion_tokens": 41, "prompt_tokens": 6309, "total_tokens": 6350, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 6309}}, "finish_reason": "stop", "elapsed_ms": 1918.2451000087894}
+[10:36:14] judge test-005/qwen3.8-max-0902 -> {'answer_correct': False, 'grounded': False, 'appropriate_abstention': False, 'reason': '回答直接断言根因为硬件缺陷，违反金标要求'}
+2026-11-01 10:36:16,446 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:36:18,186 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-27b", "status": "ok", "first_token_ms": 1727.699599985499, "usage": {"completion_tokens": 86, "prompt_tokens": 6309, "total_tokens": 6395, "completion_tokens_details": {"accepted_prediction_tokens": null, "audio_tokens": null, "reasoning_tokens": null, "rejected_prediction_tokens": null}, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 6309}}, "finish_reason": "stop", "elapsed_ms": 3467.0999000081792}
+[10:36:18] judge test-005/qwen3.8-27b -> {'answer_correct': False, 'grounded': True, 'appropriate_abstention': False, 'reason': '回答未满足金标要点：1. 未明确说明“仅凭这些日志行无法断定根因”，反而直接断言是硬件层面的奇偶校验错误；2. 对是否更换硬件给出了倾向性结论（强烈建议列为高风险观察对象），而非不给确定性结论。'}
+2026-11-01 10:36:18,261 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-11-01 10:36:18,683 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-11-01 10:36:18,686 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "usage": {"prompt_tokens": 36, "total_tokens": 36}, "elapsed_ms": 329.6200000331737}
+2026-11-01 10:36:18,975 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+2026-11-01 10:36:19,561 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-11-01 10:36:19,562 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 5765, "total_tokens": 5765}, "elapsed_ms": 572.2900999826379}
+2026-11-01 10:36:19,968 INFO app.services.observability: [trace] span=retrieval dur=1612.7ms meta={'mode': 'hybrid', 'tenant_id': 'n31real', 'hits': 5, 'reranked': True, 'latency_ms': 1555.9}
+2026-11-01 10:36:20,757 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:36:20,991 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 742.0703999814577, "usage": {"completion_tokens": 14, "prompt_tokens": 865, "total_tokens": 879, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 865}}, "finish_reason": "stop", "elapsed_ms": 974.4621000136249}
+2026-11-01 10:36:21,041 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 1, 'tools': ['query_fault_history']}
+2026-11-01 10:36:21,990 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:36:23,587 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 844.3267999682575, "usage": {"completion_tokens": 73, "prompt_tokens": 5168, "total_tokens": 5241, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 5168}}, "finish_reason": "stop", "elapsed_ms": 2439.993600011803}
+2026-11-01 10:36:23,623 INFO app.services.observability: [trace] span=generate dur=2559.7ms meta={'answer_chars': 136, 'tokens_in': 1907, 'tokens_out': 64}
+2026-11-01 10:36:24,046 INFO httpx2: HTTP Request: POST http://testserver/api/agent/chat "HTTP/1.1 200 OK"
+[10:36:24] test-001 done status=answered rounds=1 5.8s usage={'qwen3.7-text-embedding-flash': 36, 'qwen3.7-text-rerank': 5765, 'qwen3.8-max-0902': 6120}
+2026-11-01 10:36:25,478 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:36:26,479 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 1376.4460000093095, "usage": {"completion_tokens": 44, "prompt_tokens": 5617, "total_tokens": 5661, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 5617}}, "finish_reason": "stop", "elapsed_ms": 2376.5782000264153}
+[10:36:26] judge test-001/qwen3.8-max-0902 -> {'answer_correct': False, 'grounded': True, 'appropriate_abstention': False, 'reason': '计数35次正确且有据，但遗漏金标要点：未说明消息为RAS KERNEL INFO级别。'}
+2026-11-01 10:36:28,271 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:36:29,707 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-27b", "status": "ok", "first_token_ms": 1673.0252000270411, "usage": {"completion_tokens": 81, "prompt_tokens": 5617, "total_tokens": 5698, "completion_tokens_details": {"accepted_prediction_tokens": null, "audio_tokens": null, "reasoning_tokens": null, "rejected_prediction_tokens": null}, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 5617}}, "finish_reason": "stop", "elapsed_ms": 3106.7208999884315}
+[10:36:29] judge test-001/qwen3.8-27b -> {'answer_correct': True, 'grounded': True, 'appropriate_abstention': True, 'reason': '回答正确指出L500-L534共35行均为该消息，计数准确。虽然未显式提及RAS KERNEL INFO级别，但引用了包含该信息的证据[1]，且无事实错误，符合金标要点核心要求。'}
+2026-11-01 10:36:29,934 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-11-01 10:36:30,777 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-11-01 10:36:30,780 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "usage": {"prompt_tokens": 50, "total_tokens": 50}, "elapsed_ms": 372.37300002016127}
+2026-11-01 10:36:31,195 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+2026-11-01 10:36:31,747 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-11-01 10:36:31,748 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 6143, "total_tokens": 6143}, "elapsed_ms": 463.5555999702774}
+2026-11-01 10:36:31,805 INFO app.services.observability: [trace] span=retrieval dur=1398.5ms meta={'mode': 'hybrid', 'tenant_id': 'n31real', 'hits': 5, 'reranked': True, 'latency_ms': 1369.5}
+2026-11-01 10:36:33,521 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:36:33,724 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 1665.744400001131, "usage": {"completion_tokens": 14, "prompt_tokens": 1064, "total_tokens": 1078, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 1064}}, "finish_reason": "stop", "elapsed_ms": 1867.5979999825358}
+2026-11-01 10:36:33,795 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 0, 'tools': []}
+2026-11-01 10:36:36,216 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:36:47,183 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 907.3200999991968, "usage": {"completion_tokens": 648, "prompt_tokens": 5854, "total_tokens": 6502, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 5854}}, "finish_reason": "stop", "elapsed_ms": 11873.024600034114}
+2026-11-01 10:36:47,207 INFO app.services.observability: [trace] span=generate dur=13250.8ms meta={'answer_chars': 847, 'tokens_in': 1779, 'tokens_out': 312}
+2026-11-01 10:36:47,280 INFO httpx2: HTTP Request: POST http://testserver/api/agent/chat "HTTP/1.1 200 OK"
+[10:36:47] test-015 done status=answered rounds=1 17.5s usage={'qwen3.7-text-embedding-flash': 50, 'qwen3.7-text-rerank': 6143, 'qwen3.8-max-0902': 7580}
+2026-11-01 10:36:48,154 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:36:49,868 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 834.5465999445878, "usage": {"completion_tokens": 80, "prompt_tokens": 6923, "total_tokens": 7003, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 6923}}, "finish_reason": "stop", "elapsed_ms": 2548.5761999734677}
+[10:36:49] judge test-015/qwen3.8-max-0902 -> {'answer_correct': False, 'grounded': True, 'appropriate_abstention': False, 'reason': "回答将4种不同iar/dear地址组合误当作4种'形式'，但数字归一后所有消息结构相同，仅1种形式iar <N> dear <N>。未列出金标要求的3种形式，且遗漏全部为KERNEL INFO级别的说明。"}
+2026-11-01 10:36:51,803 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:37:00,403 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-27b", "status": "ok", "first_token_ms": 1910.1973000215366, "usage": {"completion_tokens": 89, "prompt_tokens": 6923, "total_tokens": 7012, "completion_tokens_details": {"accepted_prediction_tokens": null, "audio_tokens": null, "reasoning_tokens": null, "rejected_prediction_tokens": null}, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 6923}}, "finish_reason": "stop", "elapsed_ms": 10508.76120000612}
+[10:37:00] judge test-015/qwen3.8-27b -> {'answer_correct': False, 'grounded': True, 'appropriate_abstention': True, 'reason': '回答将数字归一化后仅识别出1种形式（iar <HEX> dear <HEX>），而金标要求列出3种不同形式，未覆盖金标要点。但回答基于证据，无编造，且对无法从证据得知的部分未强行编造。'}
+2026-11-01 10:37:00,520 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-11-01 10:37:01,074 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-11-01 10:37:01,075 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "usage": {"prompt_tokens": 50, "total_tokens": 50}, "elapsed_ms": 299.90310000721365}
+2026-11-01 10:37:01,241 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+2026-11-01 10:37:01,754 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-11-01 10:37:01,754 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 6143, "total_tokens": 6143}, "elapsed_ms": 487.7497999696061}
+2026-11-01 10:37:01,797 INFO app.services.observability: [trace] span=retrieval dur=1046.2ms meta={'mode': 'hybrid', 'tenant_id': 'n31real', 'hits': 5, 'reranked': True, 'latency_ms': 1030.4}
+2026-11-01 10:37:02,680 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:37:02,944 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 814.1393000259995, "usage": {"completion_tokens": 14, "prompt_tokens": 1064, "total_tokens": 1078, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 1064}}, "finish_reason": "stop", "elapsed_ms": 1075.89730003383}
+2026-11-01 10:37:03,012 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 0, 'tools': []}
+2026-11-01 10:37:04,033 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:37:06,374 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 946.896800014656, "usage": {"completion_tokens": 82, "prompt_tokens": 5854, "total_tokens": 5936, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 5854}}, "finish_reason": "stop", "elapsed_ms": 3285.076799977105}
+2026-11-01 10:37:06,749 INFO app.services.observability: [trace] span=generate dur=3695.8ms meta={'answer_chars': 111, 'tokens_in': 1783, 'tokens_out': 48}
+2026-11-01 10:37:06,870 INFO httpx2: HTTP Request: POST http://testserver/api/agent/chat "HTTP/1.1 200 OK"
+[10:37:06] test-017 done status=answered rounds=1 6.4s usage={'qwen3.7-text-embedding-flash': 50, 'qwen3.7-text-rerank': 6143, 'qwen3.8-max-0902': 7014}
+2026-11-01 10:37:07,865 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:37:08,793 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 860.1439000340179, "usage": {"completion_tokens": 39, "prompt_tokens": 6346, "total_tokens": 6385, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 6346}}, "finish_reason": "stop", "elapsed_ms": 1787.246000021696}
+[10:37:08] judge test-017/qwen3.8-max-0902 -> {'answer_correct': False, 'grounded': True, 'appropriate_abstention': False, 'reason': '行号和时间戳正确，但缺少金标要求的'}
+2026-11-01 10:37:10,728 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:37:14,873 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-27b", "status": "ok", "first_token_ms": 1877.0437000202946, "usage": {"completion_tokens": 114, "prompt_tokens": 6346, "total_tokens": 6460, "completion_tokens_details": {"accepted_prediction_tokens": null, "audio_tokens": null, "reasoning_tokens": null, "rejected_prediction_tokens": null}, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 6346}}, "finish_reason": "stop", "elapsed_ms": 6021.623599983286}
+[10:37:14] judge test-017/qwen3.8-27b -> {'answer_correct': True, 'grounded': True, 'appropriate_abstention': True, 'reason': '回答正确指出了最后一条 iar/dear 消息位于 L3765034，时间戳为 2005-11-03-15.09.11.384780。虽然未直接引用完整消息内容作为佐证，但行号和时间戳的准确性已充分满足金标要点要求，且所有信息均基于提供的证据，无编造。'}
+2026-11-01 10:37:14,900 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-11-01 10:37:15,230 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-11-01 10:37:15,230 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "usage": {"prompt_tokens": 43, "total_tokens": 43}, "elapsed_ms": 296.31129995686933}
+2026-11-01 10:37:15,321 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+2026-11-01 10:37:15,789 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-11-01 10:37:15,789 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 5960, "total_tokens": 5960}, "elapsed_ms": 427.4327000021003}
+2026-11-01 10:37:15,814 INFO app.services.observability: [trace] span=retrieval dur=880.9ms meta={'mode': 'hybrid', 'tenant_id': 'n31real', 'hits': 5, 'reranked': True, 'latency_ms': 870.7}
+2026-11-01 10:37:16,640 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:37:16,886 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 812.6862000208348, "usage": {"completion_tokens": 14, "prompt_tokens": 959, "total_tokens": 973, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 959}}, "finish_reason": "stop", "elapsed_ms": 1058.0024999799207}
+2026-11-01 10:37:16,921 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 1, 'tools': ['query_fault_history']}
+2026-11-01 10:37:17,888 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:37:19,729 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 947.8807999985293, "usage": {"completion_tokens": 111, "prompt_tokens": 5337, "total_tokens": 5448, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 5337}}, "finish_reason": "stop", "elapsed_ms": 2788.0578999756835}
+2026-11-01 10:37:19,749 INFO app.services.observability: [trace] span=generate dur=2820.2ms meta={'answer_chars': 196, 'tokens_in': 1767, 'tokens_out': 80}
+2026-11-01 10:37:19,784 INFO httpx2: HTTP Request: POST http://testserver/api/agent/chat "HTTP/1.1 200 OK"
+[10:37:19] test-006 done status=answered rounds=1 4.9s usage={'qwen3.7-text-embedding-flash': 43, 'qwen3.7-text-rerank': 5960, 'qwen3.8-max-0902': 6421}
+2026-11-01 10:37:20,846 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:37:21,708 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 1044.0579999703914, "usage": {"completion_tokens": 47, "prompt_tokens": 5808, "total_tokens": 5855, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 5808}}, "finish_reason": "stop", "elapsed_ms": 1905.0930999801494}
+[10:37:21] judge test-006/qwen3.8-max-0902 -> {'answer_correct': True, 'grounded': True, 'appropriate_abstention': False, 'reason': '回答正确指出共35条，并说明级别为RAS KERNEL FATAL，与证据完全一致，无编造。'}
+2026-11-01 10:37:23,334 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:37:24,898 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-27b", "status": "ok", "first_token_ms": 1607.8804999706335, "usage": {"completion_tokens": 93, "prompt_tokens": 5808, "total_tokens": 5901, "completion_tokens_details": {"accepted_prediction_tokens": null, "audio_tokens": null, "reasoning_tokens": null, "rejected_prediction_tokens": null}, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 5808}}, "finish_reason": "stop", "elapsed_ms": 3171.0023999912664}
+[10:37:24] judge test-006/qwen3.8-27b -> {'answer_correct': True, 'grounded': True, 'appropriate_abstention': True, 'reason': '回答准确指出L253000-L253034范围内共有35条data TLB error interrupt消息，且级别为RAS KERNEL FATAL。该结论完全基于证据[1]中提供的完整日志摘录（targets_found: 35），无编造，符合金标要点。'}
+2026-11-01 10:37:24,917 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-11-01 10:37:25,298 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-11-01 10:37:25,299 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "usage": {"prompt_tokens": 51, "total_tokens": 51}, "elapsed_ms": 352.06130001461133}
+2026-11-01 10:37:25,351 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+2026-11-01 10:37:25,871 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-11-01 10:37:25,871 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 7538, "total_tokens": 7538}, "elapsed_ms": 487.6298999879509}
+2026-11-01 10:37:25,896 INFO app.services.observability: [trace] span=retrieval dur=950.6ms meta={'mode': 'hybrid', 'tenant_id': 'n31real', 'hits': 5, 'reranked': True, 'latency_ms': 941.8}
+2026-11-01 10:37:26,677 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:37:26,931 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 767.7171999821439, "usage": {"completion_tokens": 14, "prompt_tokens": 1125, "total_tokens": 1139, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 1125}}, "finish_reason": "stop", "elapsed_ms": 1020.8636000170372}
+2026-11-01 10:37:26,944 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 0, 'tools': []}
+2026-11-01 10:37:28,208 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:37:35,768 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 1244.2366000032052, "usage": {"completion_tokens": 403, "prompt_tokens": 9120, "total_tokens": 9523, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 9120}}, "finish_reason": "stop", "elapsed_ms": 8803.8292999845}
+2026-11-01 10:37:35,782 INFO app.services.observability: [trace] span=generate dur=8830.4ms meta={'answer_chars': 776, 'tokens_in': 3348, 'tokens_out': 338}
+2026-11-01 10:37:35,823 INFO httpx2: HTTP Request: POST http://testserver/api/agent/chat "HTTP/1.1 200 OK"
+[10:37:35] reg-002 done status=answered rounds=1 10.9s usage={'qwen3.7-text-embedding-flash': 51, 'qwen3.7-text-rerank': 7538, 'qwen3.8-max-0902': 10662}
+2026-11-01 10:37:36,812 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:37:38,323 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 972.0462000113912, "usage": {"completion_tokens": 65, "prompt_tokens": 9984, "total_tokens": 10049, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 9984}}, "finish_reason": "stop", "elapsed_ms": 2482.1082999696955}
+[10:37:38] judge reg-002/qwen3.8-max-0902 -> {'answer_correct': False, 'grounded': False, 'appropriate_abstention': False, 'reason': '回答未提及金标要求的25条总数及CE sym共11条，且将最多消息误判为CE sym 7（3次），与证据不符；instruction cache仅1条正确。'}
+[10:37:38] judge reg-002/qwen3.8-27b attempt 1 failed: BudgetExceededError
+[10:37:38] judge reg-002/qwen3.8-27b attempt 2 failed: BudgetExceededError
+[10:37:38] judge reg-002/qwen3.8-27b -> None
+2026-11-01 10:37:38,366 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+2026-11-01 10:37:38,796 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-11-01 10:37:38,796 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "usage": {"prompt_tokens": 51, "total_tokens": 51}, "elapsed_ms": 404.2875000159256}
+2026-11-01 10:37:38,860 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+2026-11-01 10:37:39,322 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-11-01 10:37:39,322 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 6222, "total_tokens": 6222}, "elapsed_ms": 434.7439999692142}
+2026-11-01 10:37:39,340 INFO app.services.observability: [trace] span=retrieval dur=949.1ms meta={'mode': 'hybrid', 'tenant_id': 'n31real', 'hits': 5, 'reranked': True, 'latency_ms': 942.0}
+2026-11-01 10:37:39,978 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:37:40,153 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 625.7269000052474, "usage": {"completion_tokens": 14, "prompt_tokens": 933, "total_tokens": 947, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 933}}, "finish_reason": "stop", "elapsed_ms": 799.9405000009574}
+2026-11-01 10:37:40,167 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 0, 'tools': []}
+2026-11-01 10:37:41,224 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:38:02,846 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 1037.389000004623, "usage": {"completion_tokens": 1520, "prompt_tokens": 8979, "total_tokens": 10499, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 8979}}, "finish_reason": "stop", "elapsed_ms": 22658.285600016825}
+2026-11-01 10:38:02,861 INFO app.services.observability: [trace] span=generate dur=22685.7ms meta={'answer_chars': 3439, 'tokens_in': 3335, 'tokens_out': 928}
+2026-11-01 10:38:02,899 INFO httpx2: HTTP Request: POST http://testserver/api/agent/chat "HTTP/1.1 200 OK"
+[10:38:02] reg-003 done status=answered rounds=1 24.5s usage={'qwen3.7-text-embedding-flash': 51, 'qwen3.7-text-rerank': 6222, 'qwen3.8-max-0902': 11446}
+[10:38:02] judge reg-003/qwen3.8-max-0902 attempt 1 failed: BudgetExceededError
+[10:38:02] judge reg-003/qwen3.8-max-0902 attempt 2 failed: BudgetExceededError
+[10:38:02] judge reg-003/qwen3.8-max-0902 -> None
+[10:38:02] judge reg-003/qwen3.8-27b attempt 1 failed: BudgetExceededError
+[10:38:02] judge reg-003/qwen3.8-27b attempt 2 failed: BudgetExceededError
+[10:38:02] judge reg-003/qwen3.8-27b -> None
+2026-11-01 10:38:04,065 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:38:05,244 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-27b", "status": "ok", "first_token_ms": 1110.8353999443352, "usage": {"completion_tokens": 72, "prompt_tokens": 3266, "total_tokens": 3338, "completion_tokens_details": {"accepted_prediction_tokens": null, "audio_tokens": null, "reasoning_tokens": null, "rejected_prediction_tokens": null}, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 3266}}, "finish_reason": "stop", "elapsed_ms": 2289.3602999974973}
+[10:38:05] judge reg-001/qwen3.8-27b -> {'answer_correct': True, 'grounded': True, 'appropriate_abstention': True, 'reason': '回答准确引用了证据[1]中L14738-L14742的行号、时间戳及RAS APP FATAL级别，内容描述与金标要点完全一致，无事实错误。'}
+2026-11-01 10:38:06,279 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:38:07,688 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 1012.9586000111885, "usage": {"completion_tokens": 64, "prompt_tokens": 3405, "total_tokens": 3469, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 3405}}, "finish_reason": "stop", "elapsed_ms": 2420.5902999965474}
+[10:38:07] judge test-030/qwen3.8-max-0902 -> {'answer_correct': True, 'grounded': True, 'appropriate_abstention': False, 'reason': '准确给出L3765007内容、时间戳与级别，正确判断该精确消息唯一，并区分了c1ec与c21c两类其他消息，均有证据支撑。'}
+2026-11-01 10:38:08,855 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:38:10,986 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-27b", "status": "ok", "first_token_ms": 1148.6107999808155, "usage": {"completion_tokens": 128, "prompt_tokens": 3405, "total_tokens": 3533, "completion_tokens_details": {"accepted_prediction_tokens": null, "audio_tokens": null, "reasoning_tokens": null, "rejected_prediction_tokens": null}, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 3405}}, "finish_reason": "stop", "elapsed_ms": 3279.25740001956}
+[10:38:10] judge test-030/qwen3.8-27b -> {'answer_correct': True, 'grounded': True, 'appropriate_abstention': True, 'reason': '回答准确识别了L3765007的内容及时间戳，并正确指出该精确消息在窗口内唯一。同时，回答基于证据区分了不同形式的消息（如iar 00106228 dear 0244c1ec等），未将不同模板混同，符合金标要点中关于“精确消息唯一”与“同形式消息”的区分要求。所有引用均可定位到提供的编号证据，无编造。'}
+2026-11-01 10:38:12,346 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:38:14,044 INFO app.services.model_api: model_api_usage kind=chat record={"model": "deepseek-v4-pro-0813", "status": "ok", "first_token_ms": 1333.2211999804713, "usage": {"completion_tokens": 105, "prompt_tokens": 7294, "total_tokens": 7399, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0}}, "finish_reason": "stop", "elapsed_ms": 3030.124299984891}
+[10:38:14] cross reg-002/deepseek-v4-pro-0813 -> {'answer_correct': False, 'grounded': True, 'appropriate_abstention': False, 'reason': '回答称出现最多的是 CE sym 7 共3次，但金标要求 CE sym <符号> 消息共11条，且未给出25条总数；对主要内容的概括虽提及DDR可纠正错误，但未按金标明确统计，且将instruction cache列为内容之一但未强调其仅1条，计数结论与金标不符。'}
+[10:38:14] cross reg-003/deepseek-v4-pro-0813 attempt 1 failed: BudgetExceededError
+[10:38:14] cross reg-003/deepseek-v4-pro-0813 attempt 2 failed: BudgetExceededError
+[10:38:14] cross reg-003/deepseek-v4-pro-0813 -> None
+[10:38:14] ALL DONE: {'status_counts': {'answered': 10}, 'completed': 10, 'planned': 10, 'judged_main': 9, 'both_judged': 8, 'judge_agreement_on_answer_correct': '6/8', 'not_run': []}
+2026-11-01 10:41:00,505 INFO httpx: HTTP Request: GET http://127.0.0.1:6333 "HTTP/1.1 200 OK"
+2026-11-01 10:41:00,508 INFO httpx: HTTP Request: GET http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\qdrant_client\qdrant_remote.py:287: UserWarning: Qdrant client version 1.20.0 is incompatible with server version 1.12.4. Major versions should match and minor version difference must not exceed 1. Set check_compatibility=False to skip version check.
+  show_warning(
+2026-11-01 10:41:02,696 INFO app.services.cache: Redis 缓存已连接: redis://localhost:6379/0
+2026-11-01 10:41:02,770 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/count "HTTP/1.1 200 OK"
+2026-11-01 10:41:02,849 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:41:02,894 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:41:02,945 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:41:02,996 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:41:03,788 INFO app.main: 启动完成：索引已就绪，共 81 个分块
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  return self._jws.encode(
+2026-11-01 10:41:03,850 INFO httpx2: HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+[10:41:03] judge reg-002/qwen3.8-27b attempt 1 failed: BudgetExceededError
+[10:41:03] judge reg-002/qwen3.8-27b attempt 2 failed: BudgetExceededError
+[10:41:03] judge reg-002/qwen3.8-27b -> None
+[10:41:03] judge reg-003/qwen3.8-max-0902 attempt 1 failed: BudgetExceededError
+[10:41:03] judge reg-003/qwen3.8-max-0902 attempt 2 failed: BudgetExceededError
+[10:41:03] judge reg-003/qwen3.8-max-0902 -> None
+[10:41:03] judge reg-003/qwen3.8-27b attempt 1 failed: BudgetExceededError
+[10:41:03] judge reg-003/qwen3.8-27b attempt 2 failed: BudgetExceededError
+[10:41:03] judge reg-003/qwen3.8-27b -> None
+[10:41:03] cross reg-003/deepseek-v4-pro-0813 attempt 1 failed: BudgetExceededError
+[10:41:03] cross reg-003/deepseek-v4-pro-0813 attempt 2 failed: BudgetExceededError
+[10:41:03] cross reg-003/deepseek-v4-pro-0813 -> None
+[10:41:03] ALL DONE: {'status_counts': {'answered': 10}, 'completed': 10, 'planned': 10, 'judged_main': 9, 'both_judged': 8, 'judge_agreement_on_answer_correct': '6/8', 'not_run': []}

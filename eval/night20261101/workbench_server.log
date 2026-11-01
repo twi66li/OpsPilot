@@ -299,3 +299,48 @@ INFO:     127.0.0.1:55439 - "GET /favicon.ico HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:21365 - "GET /health HTTP/1.1" 200 OK
 INFO:     127.0.0.1:50580 - "GET /favicon.ico HTTP/1.1" 404 Not Found
 INFO:     127.0.0.1:48716 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:29035 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5001 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:29035 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43632 - "GET /api/eval/results HTTP/1.1" 200 OK
+INFO:     127.0.0.1:43632 - "GET /api/eval/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4009 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:22513 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4009 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:11477 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:12680 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57674 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:4988 - "GET /api/eval/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:25943 - "GET /api/eval/results?run=night20261101%2Fverify_run HTTP/1.1" 200 OK
+INFO:     127.0.0.1:25943 - "GET /api/eval/runs HTTP/1.1" 200 OK
+INFO:     127.0.0.1:48716 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:52321 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5088 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:40554 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:16211 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54329 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17038 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:33621 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3193 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:17952 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:17003 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:50743 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:3293 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:7822 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39473 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39473 - "GET / HTTP/1.1" 304 Not Modified
+INFO:     127.0.0.1:7822 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39473 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39473 - "POST /auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39473 - "GET /auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:7822 - "GET /api/agent/tools HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39473 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39473 - "POST /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39473 - "GET /api/sessions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:39473 - "POST /api/agent/chat/stream HTTP/1.1" 200 OK
+2026-11-01 10:41:39,152 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-11-01 10:41:39,174 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "usage": {"prompt_tokens": 40, "total_tokens": 40}, "elapsed_ms": 468.1960999732837}
+2026-11-01 10:41:39,359 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+2026-11-01 10:41:39,435 INFO app.services.observability: [trace] span=retrieval dur=736.0ms meta={'mode': 'hybrid', 'tenant_id': 'n31real'}
+INFO:     127.0.0.1:22294 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:5952 - "GET /favicon.ico HTTP/1.1" 404 Not Found

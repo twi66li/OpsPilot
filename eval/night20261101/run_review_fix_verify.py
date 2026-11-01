@@ -295,8 +295,9 @@ def main():
                         }
                         break
                     except Exception as exc:
+                        import traceback as _tb
                         attempts.append({"attempt": attempt, "error_type": type(exc).__name__, "message": str(exc)[:300]})
-                        log(f"{qid} attempt {attempt} failed: {type(exc).__name__}")
+                        log(f"{qid} attempt {attempt} failed: {type(exc).__name__} | {_tb.format_exc()[-600:]}")
                         if attempt == 2:
                             rec = {"status": "failed", "question": s["question"], "split": s["split"],
                                    "family": s["family"], "window": s["window"], "must_abstain": s["must_abstain"],

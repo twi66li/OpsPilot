@@ -1,0 +1,87 @@
+2026-11-02 03:58:19,448 INFO httpx: HTTP Request: GET http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+2026-11-02 03:58:19,482 INFO httpx: HTTP Request: GET http://127.0.0.1:6333 "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\qdrant_client\qdrant_remote.py:287: UserWarning: Qdrant client version 1.20.0 is incompatible with server version 1.12.4. Major versions should match and minor version difference must not exceed 1. Set check_compatibility=False to skip version check.
+  show_warning(
+2026-11-02 03:58:19,686 INFO app.services.cache: Redis 缓存已连接: redis://localhost:6379/0
+2026-11-02 03:58:19,746 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/count "HTTP/1.1 200 OK"
+2026-11-02 03:58:19,775 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-02 03:58:19,786 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-02 03:58:19,799 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-02 03:58:19,811 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-02 03:58:20,707 INFO app.main: 启动完成：索引已就绪，共 81 个分块
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  return self._jws.encode(
+2026-11-02 03:58:20,790 INFO httpx2: HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:370: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  decoded = self.decode_complete(
+2026-11-02 03:58:20,910 INFO httpx2: HTTP Request: POST http://testserver/api/sessions "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:370: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  decoded = self.decode_complete(
+2026-11-02 03:58:22,525 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-11-02 03:58:22,530 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "usage": {"prompt_tokens": 41, "total_tokens": 41}, "elapsed_ms": 1480.604600001243}
+2026-11-02 03:58:22,643 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+2026-11-02 03:58:23,105 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-11-02 03:58:23,106 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 5790, "total_tokens": 5790}, "elapsed_ms": 456.95209999757935}
+2026-11-02 03:58:23,142 INFO app.services.observability: [trace] span=retrieval dur=2094.4ms meta={'mode': 'hybrid', 'tenant_id': 'n31real', 'hits': 5, 'reranked': True, 'latency_ms': 2081.4}
+2026-11-02 03:58:23,826 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-02 03:58:24,220 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 667.7862000033201, "usage": {"completion_tokens": 14, "prompt_tokens": 870, "total_tokens": 884, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 870}}, "finish_reason": "stop", "elapsed_ms": 1054.191200000787}
+2026-11-02 03:58:24,268 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 0, 'tools': []}
+2026-11-02 03:58:24,290 INFO app.services.observability: [trace] span=generate dur=0.6ms meta={}
+2026-11-02 03:58:24,318 INFO httpx2: HTTP Request: POST http://testserver/api/agent/chat "HTTP/1.1 500 Internal Server Error"
+[03:58:24] test-005 attempt 1 failed: NameError
+2026-11-02 03:58:24,570 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/embeddings "HTTP/1.1 200 OK"
+2026-11-02 03:58:24,571 INFO app.rag.embeddings: model_api_usage kind=embedding record={"model": "qwen3.7-text-embedding-flash", "status": "ok", "usage": {"prompt_tokens": 41, "total_tokens": 41}, "elapsed_ms": 166.44689999884577}
+2026-11-02 03:58:24,598 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/query "HTTP/1.1 200 OK"
+2026-11-02 03:58:24,904 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/api/v1/services/rerank/text-rerank/text-rerank "HTTP/1.1 200 OK"
+2026-11-02 03:58:24,905 INFO app.services.model_api: model_api_usage kind=rerank record={"model": "qwen3.7-text-rerank", "status": "ok", "usage": {"prompt_tokens": 5790, "total_tokens": 5790}, "elapsed_ms": 302.79800000062096}
+2026-11-02 03:58:24,936 INFO app.services.observability: [trace] span=retrieval dur=532.3ms meta={'mode': 'hybrid', 'tenant_id': 'n31real', 'hits': 5, 'reranked': True, 'latency_ms': 523.5}
+2026-11-02 03:58:25,671 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-02 03:58:25,950 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 721.9045999991067, "usage": {"completion_tokens": 14, "prompt_tokens": 870, "total_tokens": 884, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 870}}, "finish_reason": "stop", "elapsed_ms": 999.9093999977049}
+2026-11-02 03:58:25,978 INFO app.services.observability: [trace] span=tools dur=0.0ms meta={'count': 0, 'tools': []}
+2026-11-02 03:58:25,988 INFO app.services.observability: [trace] span=generate dur=0.2ms meta={}
+2026-11-02 03:58:26,013 INFO httpx2: HTTP Request: POST http://testserver/api/agent/chat "HTTP/1.1 500 Internal Server Error"
+[03:58:26] test-005 attempt 2 failed: NameError
+[03:58:26] test-005 done status=failed rounds=None 5.2s usage={'qwen3.7-text-embedding-flash': 82, 'qwen3.7-text-rerank': 11580, 'qwen3.8-max-0902': 1768}
+[03:58:26] ALL DONE: {'status_counts': {'failed': 1}, 'completed': 1, 'planned': 1, 'judged_main': 0, 'both_judged': 0, 'judge_agreement_on_answer_correct': '0/0', 'not_run': []}
+2026-11-02 04:04:42,120 INFO httpx: HTTP Request: GET http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+2026-11-02 04:04:42,163 INFO httpx: HTTP Request: GET http://127.0.0.1:6333 "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\qdrant_client\qdrant_remote.py:287: UserWarning: Qdrant client version 1.20.0 is incompatible with server version 1.12.4. Major versions should match and minor version difference must not exceed 1. Set check_compatibility=False to skip version check.
+  show_warning(
+2026-11-02 04:04:42,420 INFO app.services.cache: Redis 缓存已连接: redis://localhost:6379/0
+2026-11-02 04:04:42,484 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/count "HTTP/1.1 200 OK"
+2026-11-02 04:04:42,537 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-02 04:04:42,575 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-02 04:04:42,626 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-02 04:04:42,664 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-02 04:04:43,815 INFO app.main: 启动完成：索引已就绪，共 81 个分块
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  return self._jws.encode(
+2026-11-02 04:04:43,902 INFO httpx2: HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+[04:04:43] test-005 SKIPPED (budget preflight, reserve-based)
+[04:04:43] ALL DONE: {'status_counts': {}, 'completed': 0, 'planned': 1, 'judged_main': 0, 'both_judged': 0, 'judge_agreement_on_answer_correct': '0/0', 'not_run': ['test-005']}
+2026-11-02 04:06:50,391 INFO httpx: HTTP Request: GET http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+2026-11-02 04:06:50,449 INFO httpx: HTTP Request: GET http://127.0.0.1:6333 "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\qdrant_client\qdrant_remote.py:287: UserWarning: Qdrant client version 1.20.0 is incompatible with server version 1.12.4. Major versions should match and minor version difference must not exceed 1. Set check_compatibility=False to skip version check.
+  show_warning(
+2026-11-02 04:06:50,650 INFO app.services.cache: Redis 缓存已连接: redis://localhost:6379/0
+2026-11-02 04:06:50,683 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/count "HTTP/1.1 200 OK"
+2026-11-02 04:06:50,701 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-02 04:06:50,718 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-02 04:06:50,732 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-02 04:06:50,739 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-02 04:06:51,849 INFO app.main: 启动完成：索引已就绪，共 81 个分块
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  return self._jws.encode(
+2026-11-02 04:06:51,954 INFO httpx2: HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+2026-11-02 04:06:55,304 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-02 04:06:56,733 INFO app.services.model_api: model_api_usage kind=chat record={"model": "deepseek-v4-pro-0813", "status": "ok", "first_token_ms": 3272.569000000658, "usage": {"completion_tokens": 69, "prompt_tokens": 5189, "total_tokens": 5258, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0}}, "finish_reason": "stop", "elapsed_ms": 4691.779799999495}
+[04:06:56] judge test-005/deepseek-v4-pro-0813 -> {'answer_correct': True, 'grounded': True, 'appropriate_abstention': True, 'reason': '回答准确统计35条已纠正奇偶校验错误，明确表示仅凭日志无法断定根因，对更换硬件不给确定性结论，且未提告警标签，符合全部金标要点。'}
+Traceback (most recent call last):
+  File "D:\Code\python\aiops-diagnosis-agent\eval\night20261101\run_review_fix_verify.py", line 444, in <module>
+    main()
+  File "D:\Code\python\aiops-diagnosis-agent\eval\night20261101\run_review_fix_verify.py", line 320, in main
+    run_cross_reviews(container, records, settings)
+  File "D:\Code\python\aiops-diagnosis-agent\eval\night20261101\run_review_fix_verify.py", line 335, in run_cross_reviews
+    if j.get(JUDGES[1], {}).get("verdict") and j.get(JUDGES[0], {}).get("verdict"):
+             ~~~~~~^^^
+IndexError: list index out of range

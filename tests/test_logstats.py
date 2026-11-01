@@ -155,3 +155,46 @@ def test_stats_flow_through_full_offline_graph(client, admin_headers):
     tool_events = [e for e in body.get("events", []) if e.get("name") == "compute_log_stats"]
     assert tool_events and tool_events[0]["result"]["basis"]
     assert body.get("range_coverage", {}).get("sufficient") is True
+
+
+def test_missing_range_grade_event_matches_state():
+    from contextlib import contextmanager
+    from types import SimpleNamespace
+    from app.agent.nodes import DiagnosisNodes
+
+    @contextmanager
+    def db_session():
+        yield SimpleNamespace(query=lambda *a: SimpleNamespace(
+            filter=lambda *a: SimpleNamespace(all=lambda: [])))
+
+    nodes = DiagnosisNodes(SimpleNamespace(
+        llm=SimpleNamespace(is_sufficient=lambda *a: True), db_session=db_session))
+    result = nodes.grade({"question": "L100-L101的INFO日志多少条？", "tenant_id": "t", "hits": []})
+    assert result["range_coverage"]["missing"] == [100, 101]
+    assert result["docs_sufficient"] is result["events"][0]["docs_sufficient"] is False
+
+
+def test_review_script_single_judge_completes_summary(tmp_path):
+    """执行实际脚本函数，隔离其启动/模型配置；单判不能访问第二裁判下标。"""
+    import ast
+    from collections import defaultdict
+    from pathlib import Path
+    from types import SimpleNamespace
+
+    script = Path(__file__).resolve().parents[1] / "eval/night20261101/run_review_fix_verify.py"
+    tree = ast.parse(script.read_text(encoding="utf-8"))
+    names = {"run_cross_reviews", "summarize"}
+    functions = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in names]
+    scope = {"SCOPE": ["q"], "JUDGE_ONLY": set(), "JUDGES": ["deepseek-v4-pro-0813"],
+             "LEDGER": tmp_path / "absent.jsonl", "ROOT": tmp_path,
+             "defaultdict": defaultdict, "json": json,
+             "save_results": lambda records: None, "log": lambda *a: None,
+             "subprocess": SimpleNamespace(run=lambda *a, **k: SimpleNamespace(stdout="test"))}
+    exec(compile(ast.Module(body=functions, type_ignores=[]), str(script), "exec"), scope)
+    records = {"questions": {"q": {"status": "answered"}}, "judges": {
+        "q": {"deepseek-v4-pro-0813": {"verdict": {"answer_correct": True}}}}}
+    scope["run_cross_reviews"](None, records, None)
+    scope["summarize"](records)
+    assert records["summary"]["judged_main"] == 1
+    assert records["summary"]["both_judged"] == 0
+    assert records["summary"]["judge_agreement_on_answer_correct"] == "0/0"

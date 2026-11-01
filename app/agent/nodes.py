@@ -144,6 +144,7 @@ class DiagnosisNodes:
                 event["range_coverage"] = {**range_coverage, "decision": "insufficient_until_complete"}
             else:
                 event["range_coverage"] = range_coverage
+        event["docs_sufficient"] = sufficient
         return {"docs_sufficient": sufficient, "iteration": iteration,
                 "range_coverage": range_coverage, "events": [event]}
 

@@ -323,6 +323,9 @@ def main():
 
 
 def run_cross_reviews(container, records, settings):
+    # 明确采用单裁判时不再补第三视角，也不能按双裁判下标读取。
+    if len(JUDGES) < 2:
+        return
     from app.services.model_api import ChatAPI
 
     CROSS = "deepseek-v4-pro-0813"
@@ -408,10 +411,10 @@ def summarize(records):
     for rec in records["questions"].values():
         counts[rec.get("status", "?")] += 1
     judged = sum(1 for q in records["questions"] if records.get("judges", {}).get(q, {}).get(JUDGES[0], {}).get("verdict"))
-    both = sum(1 for q in records["questions"]
+    both = sum(1 for q in records["questions"] if len(JUDGES) >= 2
                if records.get("judges", {}).get(q, {}).get(JUDGES[0], {}).get("verdict") is not None
                and records["judges"][q].get(JUDGES[1], {}).get("verdict") is not None)
-    agree = sum(1 for q in records["questions"]
+    agree = sum(1 for q in records["questions"] if len(JUDGES) >= 2
                 if records.get("judges", {}).get(q, {}).get(JUDGES[0], {}).get("verdict") is not None
                 and records["judges"][q].get(JUDGES[1], {}).get("verdict") is not None
                 and records["judges"][q][JUDGES[0]]["verdict"].get("answer_correct")

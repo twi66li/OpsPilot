@@ -123,6 +123,70 @@ def main():
         head_bad = [i for i in items[1:] if _is_log_head_partial(i["text"])]
         check("reg-001: 分块摘录无块首残行", not head_bad, f"{len(head_bad)} 条残留")
 
+        # ---- 2c. 组装行与语料原文逐字对照（终审：仅出现行号不算完整） ----
+        corpus_lines = {}
+        for f in (BASELINE / "corpus").glob("*.txt"):
+            for line in f.read_text(encoding="utf-8").splitlines():
+                m = re.match(r"\s*(L\d{3,8}):", line)
+                if m:
+                    corpus_lines.setdefault(int(m.group(1)[1:]), line.rstrip())
+
+        def content_check(qid):
+            rec = rr["questions"][qid]
+            ts = parse_line_targets(rec["question"])
+            if not ts:
+                return None
+            with SessionLocal() as db:
+                its, mt = assemble_evidence(hits_of(qid), rec["question"], db, "n31real")
+            asm = next((i for i in its if i.get("assembled")), None)
+            if not asm:
+                return (qid, "no_range_item", mt.get("targets_missing"), [])
+            got = {}
+            for line in asm["text"].splitlines():
+                m = re.match(r"\s*L(\d+):", line)
+                if m:
+                    got[int(m.group(1))] = line.rstrip()
+            mismatch = [(t, got.get(t), (corpus_lines.get(t) or "")[:80]) for t in ts
+                        if t not in got or got[t] != (corpus_lines.get(t) or "").rstrip()]
+            return (qid, mt, mt.get("targets_incomplete"), mismatch)
+
+        # reg-001 / test-001 重点核对（含终审指出的 L513/L525 截断行）
+        for qid in ("reg-001", "test-001"):
+            qid_r, mt, inc, mismatch = content_check(qid)
+            check(f"{qid}: 组装行与语料原文逐字一致（0 残缺 0 不符）",
+                  not mismatch and not inc, f"incomplete={inc} mismatch={[(t, str(g)[:50]) for t, g, _ in mismatch]}")
+
+        # 全部范围题逐字对照（应无任何残缺行）
+        bad_lines = []
+        for qid in rr["questions"]:
+            r = content_check(qid)
+            if r and r[3]:
+                bad_lines.append((r[0], len(r[3])))
+        check("全部范围题：组装行与语料原文逐字一致（无残缺行混入）", not bad_lines, f"不符题: {bad_lines}")
+
+        # ---- 1b. 真实编译图：citations_indexed 跨节点与最终状态保留（终审 P1-CITATIONS） ----
+        from langgraph.graph import StateGraph, END
+
+        from app.agent.state import DiagState
+
+        g = StateGraph(DiagState)
+        g.add_node("generate", nodes.generate)
+        g.set_entry_point("generate")
+        g.add_edge("generate", END)
+        compiled = g.compile()
+        with SessionLocal() as db:
+            final_state = compiled.invoke({
+                "question": "手册A和手册B都说什么？", "hits": dup_hits, "tool_events": [],
+                "fault_records": [], "session_id": "offline-cite-check", "tenant_id": "n31real",
+                "intent": "diagnose",
+            })
+        check("citations: 真实编译图 final 状态保留 citations_indexed（[3]=手册A 第二块）",
+              final_state.get("citations_indexed", [None, None, None])[2] == "手册A"
+              and len(final_state.get("citations_indexed", [])) == 3,
+              f"final={final_state.get('citations_indexed')}")
+        check("citations: final 状态保留 used_evidence 与 range_assembly 字段",
+              bool(final_state.get("used_evidence")) and "range_assembly" in final_state)
+
         q1 = rr["questions"]["test-001"]
         with SessionLocal() as db:
             items1, meta1 = assemble_evidence(hits_of("test-001"), q1["question"], db, "n31real")
@@ -165,7 +229,7 @@ def main():
                     if m not in corpus_text:
                         bad.append((s["id"], m))
         # 旧冻结集保持原样：失配项必须恰好等于已发布的更正记录（corrections.json），不得有遗漏
-        corr = json.loads((HERE / "gold_corrections" / "corrections.json").read_text(encoding="utf-8"))
+        corr = json.loads((ROOT / "eval" / "night20261101" / "gold_corrections" / "corrections.json").read_text(encoding="utf-8"))
         corrected_ids = {c["id"] for c in corr["corrections"]}
         bad_ids = {q for q, _ in bad}
         check(f"gold: {checked} 处时间戳失配恰好等于已更正集合 {sorted(corrected_ids)}",

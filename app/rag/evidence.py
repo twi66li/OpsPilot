@@ -53,13 +53,20 @@ def excerpt_hit(hit_text: str, limit: int) -> str:
     return evidence_excerpt(strip_partial_head(hit_text or ""), limit)
 
 
-def _index_lines(text: str) -> dict[int, str]:
-    out: dict[int, str] = {}
-    for m in LINE_PREFIX.finditer(text or ""):
-        lineno = int(m.group(1)[1:])
-        line_start = m.start(1)
-        line_end = text.find("\n", line_start)
-        out.setdefault(lineno, text[line_start:line_end if line_end != -1 else len(text)].rstrip())
+def _index_lines(text: str) -> dict[int, tuple[str, bool]]:
+    """索引文本中的行号前缀行，返回 {行号: (行文本, 是否完整)}。
+
+    完整性判定：该行之后还有换行符则为完整；分块末尾无换行的行是被旧分块按字符
+    切断的残行（终审 P1-EVIDENCE），不能当作完整证据使用。
+    """
+    out: dict[int, tuple[str, bool]] = {}
+    if not text:
+        return out
+    segments = text.split("\n")
+    for i, seg in enumerate(segments):
+        m = re.match(r"\s*(L\d{3,8}):", seg)
+        if m:
+            out.setdefault(int(m.group(1)[1:]), (seg.rstrip(), i < len(segments) - 1))
     return out
 
 
@@ -68,6 +75,46 @@ def _doc_title_covers(title: str, lineno: int) -> bool:
     if not m:
         return False
     return int(m.group(1)) <= lineno <= int(m.group(2))
+
+
+def _resolve_target_lines(targets: list[int], hits: list[dict], db, tenant_id: str) -> tuple[dict[int, tuple[str, str]], list[int]]:
+    """解析目标行的权威内容：优先租户文档完整行（按标题行范围定位），
+    回退命中块中出现过的完整行；仅残行可用时取残行并计入 incomplete（终审 P1-EVIDENCE：
+    只出现行号不等于内容完整，残行不得压过完整原文）。"""
+    found: dict[int, tuple[str, str]] = {}
+    incomplete: list[int] = []
+    if db is not None and tenant_id:
+        from app.db.models import Document
+
+        for doc in db.query(Document).filter(Document.tenant_id == tenant_id).all():
+            wanted = [t for t in targets if t not in found and _doc_title_covers(doc.title, t)]
+            if not wanted:
+                continue
+            doc_lines = _index_lines(doc.content or "")
+            # 文档内容为权威源：其行均为完整行（语料文件以换行结尾）
+            for lineno, (line, _complete) in doc_lines.items():
+                if lineno in wanted:
+                    found[lineno] = (doc.title, line)
+    # 文档未能覆盖的目标：从命中块取完整行；只有残行时取最长残行并标记
+    hits_occurrences: dict[int, list[tuple[str, str, bool]]] = {}
+    for h in hits or []:
+        title = h.get("doc_title", "")
+        for lineno, (line, complete) in _index_lines(h.get("text", "")).items():
+            hits_occurrences.setdefault(lineno, []).append((title, line, complete))
+    for t in targets:
+        if t in found:
+            continue
+        occs = hits_occurrences.get(t, [])
+        if not occs:
+            continue
+        fulls = [o for o in occs if o[2]]
+        if fulls:
+            found[t] = (fulls[0][0], fulls[0][1])
+        else:
+            best = max(occs, key=lambda o: len(o[1]))
+            found[t] = (best[0], best[1])
+            incomplete.append(t)
+    return found, incomplete
 
 
 def assemble_evidence(hits: list[dict], question: str, db=None, tenant_id: str = "",
@@ -79,28 +126,14 @@ def assemble_evidence(hits: list[dict], question: str, db=None, tenant_id: str =
     range_chars 是防御上限而非目标大小：BGL 35 行窗口 ≈5,300 字符、最大 61 行窗口 ≈9,200
     字符，完整计数类问题（终审 test-001/reg-002/003）必须整窗可见；超限整行截断并如实
     报 targets_dropped_by_budget，不静默。
+    目标行内容以租户文档完整行为权威（终审 P1-EVIDENCE：块尾残行不得当作完整行），
+    无法取得完整行的目标计入 targets_incomplete 并如实透出。
     """
     items: list[dict] = []
     targets = parse_line_targets(question)
     range_meta: dict = {"requested": bool(targets), "targets": len(targets), "assembled": False}
     if targets:
-        found: dict[int, tuple[str, str]] = {}
-        for h in hits or []:
-            title = h.get("doc_title", "")
-            for lineno, line in _index_lines(h.get("text", "")).items():
-                if lineno in targets:
-                    found.setdefault(lineno, (title, line))
-        missing = [t for t in targets if t not in found]
-        if missing and db is not None and tenant_id:
-            from app.db.models import Document
-
-            for doc in db.query(Document).filter(Document.tenant_id == tenant_id).all():
-                still = [t for t in missing if t not in found]
-                if not still or not _doc_title_covers(doc.title, still[0]):
-                    continue
-                for lineno, line in _index_lines(doc.content or "").items():
-                    if lineno in targets and lineno not in found:
-                        found[lineno] = (doc.title, line)
+        found, incomplete = _resolve_target_lines(targets, hits, db, tenant_id)
         if found:
             picked = [t for t in targets if t in found]
             lines, used_titles = [], []
@@ -125,10 +158,12 @@ def assemble_evidence(hits: list[dict], question: str, db=None, tenant_id: str =
                 "assembled": True,
                 "targets_found": len(picked),
                 "targets_missing": len(targets) - len(picked),
+                "targets_incomplete": len(incomplete),
                 "targets_dropped_by_budget": dropped,
             })
             range_meta.update({"assembled": True, "targets_found": len(picked),
                                "targets_missing": len(targets) - len(picked),
+                               "targets_incomplete": len(incomplete),
                                "targets_dropped_by_budget": dropped})
     for h in hits or []:
         items.append({

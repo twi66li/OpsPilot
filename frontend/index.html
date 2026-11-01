@@ -360,6 +360,8 @@ function renderEval() {
       <div class="detail">
         <h4>输入</h4><pre>${esc(q.question)}</pre>
         <h4>金标要点（逐项对应原始日志行）</h4><pre>${esc((q.required_points || []).map((p, i) => `${i + 1}. ${p}`).join("\n"))}</pre>
+        ${q.range_stats ? `<h4>程序统计结果（compute_log_stats，确定性口径）</h4><pre>${esc(JSON.stringify(q.range_stats, null, 1))}</pre>` : ""}
+        ${q.range_coverage && (q.range_coverage.missing || q.range_coverage.incomplete) ? `<h4>范围覆盖缺口（相关≠足以回答）</h4><pre>${esc(JSON.stringify(q.range_coverage))}</pre>` : ""}
         <h4>实际取得的编号证据（top-${(q.evidence || []).length}，正文与检索一致）</h4>
         ${(q.evidence || []).map(e => `<pre class="evline">[${e.n}] 📄 ${esc(e.doc_title)}（score=${e.score ?? "?"}，chunk=${esc(e.chunk_id || "")}）\n${esc(e.text)}${(e.text || "").length >= 500 ? " …" : ""}</pre>`).join("") || "<pre>（无证据返回）</pre>"}
         <h4>最终回答 ${statusPill(q.status)} <span class="meta">end_reason=${esc(q.end_reason || "-")} · 引用：${(q.citations || []).map(esc).join("；") || "无"}</span></h4>

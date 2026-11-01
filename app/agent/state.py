@@ -34,6 +34,10 @@ class DiagState(TypedDict, total=False):
     citations_indexed: list[str]
     used_evidence: list[dict]
     range_assembly: dict
+    # 显式行范围的覆盖情况与确定性统计（P1-ARAG-20261102）：
+    # 覆盖参与 grade 充足性决策；统计由程序计算，模型只做解释。
+    range_coverage: dict
+    range_stats: dict
     ticket_draft: dict | None
     approval: dict | None
     approval_id: str | None

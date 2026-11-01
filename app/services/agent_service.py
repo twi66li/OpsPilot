@@ -62,6 +62,8 @@ def _final_snapshot(container, config: dict) -> dict:
         "citations_indexed": values.get("citations_indexed", []),
         "used_evidence": values.get("used_evidence"),
         "range_assembly": values.get("range_assembly"),
+        "range_coverage": values.get("range_coverage"),
+        "range_stats": values.get("range_stats"),
         "intent": values.get("intent", "diagnose"),
         "ticket_id": values.get("ticket_id"),
         "docs_sufficient": values.get("docs_sufficient"),

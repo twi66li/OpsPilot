@@ -77,24 +77,25 @@ def _doc_title_covers(title: str, lineno: int) -> bool:
     return int(m.group(1)) <= lineno <= int(m.group(2))
 
 
-def _resolve_target_lines(targets: list[int], hits: list[dict], db, tenant_id: str) -> tuple[dict[int, tuple[str, str]], list[int]]:
+def _resolve_target_lines(targets: list[int], hits: list[dict], docs: list[tuple[str, str]] | None = None) -> tuple[dict[int, tuple[str, str]], list[int]]:
     """解析目标行的权威内容：优先租户文档完整行（按标题行范围定位），
     回退命中块中出现过的完整行；仅残行可用时取残行并计入 incomplete（终审 P1-EVIDENCE：
-    只出现行号不等于内容完整，残行不得压过完整原文）。"""
+    只出现行号不等于内容完整，残行不得压过完整原文）。
+
+    docs 为 (标题, 正文) 列表，由调用方提供（生产环境从租户文档读取；
+    离线测试可直接传语料文件，脱库可复用）。
+    """
     found: dict[int, tuple[str, str]] = {}
     incomplete: list[int] = []
-    if db is not None and tenant_id:
-        from app.db.models import Document
-
-        for doc in db.query(Document).filter(Document.tenant_id == tenant_id).all():
-            wanted = [t for t in targets if t not in found and _doc_title_covers(doc.title, t)]
-            if not wanted:
-                continue
-            doc_lines = _index_lines(doc.content or "")
-            # 文档内容为权威源：其行均为完整行（语料文件以换行结尾）
-            for lineno, (line, _complete) in doc_lines.items():
-                if lineno in wanted:
-                    found[lineno] = (doc.title, line)
+    for title, content in docs or []:
+        wanted = [t for t in targets if t not in found and _doc_title_covers(title, t)]
+        if not wanted:
+            continue
+        doc_lines = _index_lines(content or "")
+        # 文档内容为权威源：其行均为完整行（语料文件以换行结尾）
+        for lineno, (line, _complete) in doc_lines.items():
+            if lineno in wanted:
+                found[lineno] = (title, line)
     # 文档未能覆盖的目标：从命中块取完整行；只有残行时取最长残行并标记
     hits_occurrences: dict[int, list[tuple[str, str, bool]]] = {}
     for h in hits or []:
@@ -117,6 +118,13 @@ def _resolve_target_lines(targets: list[int], hits: list[dict], db, tenant_id: s
     return found, incomplete
 
 
+def tenant_docs(db, tenant_id: str) -> list[tuple[str, str]]:
+    """读取租户全部文档 (标题, 正文)。统计与范围组装共用的定向补取来源（免 embedding/rerank）。"""
+    from app.db.models import Document
+
+    return [(d.title, d.content or "") for d in db.query(Document).filter(Document.tenant_id == tenant_id).all()]
+
+
 def assemble_evidence(hits: list[dict], question: str, db=None, tenant_id: str = "",
                       per_hit_chars: int = 500, range_chars: int = 12000) -> tuple[list[dict], dict]:
     """生成器实际使用的编号证据：可选的范围完整摘录置首，其余为行边界安全的分块摘录。
@@ -133,7 +141,8 @@ def assemble_evidence(hits: list[dict], question: str, db=None, tenant_id: str =
     targets = parse_line_targets(question)
     range_meta: dict = {"requested": bool(targets), "targets": len(targets), "assembled": False}
     if targets:
-        found, incomplete = _resolve_target_lines(targets, hits, db, tenant_id)
+        docs = tenant_docs(db, tenant_id) if (db is not None and tenant_id) else []
+        found, incomplete = _resolve_target_lines(targets, hits, docs)
         if found:
             picked = [t for t in targets if t in found]
             lines, used_titles = [], []

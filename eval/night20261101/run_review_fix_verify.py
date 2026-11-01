@@ -46,17 +46,19 @@ os.environ["BUDGET_TOKEN_LIMIT"] = str(TOTAL_LIMIT)
 os.environ["BUDGET_MODEL_LIMITS"] = json.dumps(MODEL_LIMITS)
 
 GEN_MODEL = "qwen3.8-max-0902"
-JUDGES = ["qwen3.8-max-0902", "qwen3.8-27b"]
+JUDGES = (sys.argv[4].split(",") if len(sys.argv) > 4 and sys.argv[4]
+          else ["qwen3.8-max-0902", "qwen3.8-27b"])
 CHUNK_SIZE = 2000
 
-# 用法：run_review_fix_verify.py [输出目录名] [逗号分隔全跑题id] [逗号分隔仅补判题id]
+# 用法：run_review_fix_verify.py [输出目录名] [逗号分隔全跑题id] [逗号分隔仅补判题id] [逗号分隔裁判模型]
 # 缺省 = 整改验证批（p1-final-01 范围）。p1-final-02 定向批：
 #   全跑 = 受残行影响 6 题 + reg-002/003；仅补判 = reg-001(27b) / test-030(0902+27b)。
+# P1-ARAG-20261102 定向批：verify_stats / test-005 / 无补判 / deepseek 单裁判（0902 余量不足以承担主判）。
 RUN_NAME = sys.argv[1] if len(sys.argv) > 1 else "verify_run"
 SCOPE = (sys.argv[2].split(",") if len(sys.argv) > 2 else
          ["test-021", "test-009", "test-004", "test-005", "test-001",
           "test-015", "test-017", "test-023", "test-006", "reg-001", "reg-002", "reg-003", "test-030"])
-JUDGE_ONLY = set(sys.argv[3].split(",")) if len(sys.argv) > 3 else set()
+JUDGE_ONLY = set(sys.argv[3].split(",")) if len(sys.argv) > 3 and sys.argv[3] else set()
 
 
 def reserve_estimates(question: str) -> dict:
@@ -144,6 +146,9 @@ def judge_payload(rec, corrected_points=None, note=None):
             "must_abstain": rec["must_abstain"], "rubric": RUBRIC,
             "answer": rec.get("answer", ""), "evidence": rec.get("evidence", []),
             "generation_succeeded": rec.get("status") == "answered"}
+    if rec.get("range_stats") is not None:
+        # 裁判必须拿到生成器实际收到的统计工具输出（与证据同源，不额外提供金标）
+        body["range_stats"] = rec.get("range_stats")
     if note:
         body["gold_correction_note"] = note
     return json.dumps(body, ensure_ascii=False)
@@ -234,8 +239,9 @@ def main():
                 continue
             rem = merged_remaining()
             est = reserve_estimates(s["question"])
-            if rem.get(GEN_MODEL, 0) < est["gen_0902"] + est["judge_0902"] or \
-               rem.get("qwen3.8-27b", 0) < est["judge_27b"] or \
+            judge_need = {m: (est["judge_0902"] if m == GEN_MODEL else est["judge_27b"]) for m in JUDGES}
+            if rem.get(GEN_MODEL, 0) < est["gen_0902"] + judge_need.get(GEN_MODEL, 0) or \
+               any(rem.get(m, 0) < need for m, need in judge_need.items() if m != GEN_MODEL) or \
                rem.get("qwen3.7-text-embedding-flash", 0) < est["embedding"]:
                 records["not_run"][qid] = {"reason": "budget_preflight_refused",
                                            "needed": est,
@@ -281,6 +287,8 @@ def main():
                             "citations_indexed": body.get("citations_indexed", []),
                             "evidence": used,
                             "range_assembly": body.get("range_assembly"),
+                            "range_stats": body.get("range_stats"),
+                            "range_coverage": body.get("range_coverage"),
                             "retrieval_rounds": len(retrievals),
                             "elapsed_s": round(time.time() - t0, 1), "attempts": attempts,
                             "session_id": sid,

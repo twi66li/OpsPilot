@@ -54,6 +54,25 @@ class DiagnosisNodes:
             payload["ticket_draft"] = self.container.llm.draft_ticket(state["question"], answer)
         return payload
 
+    @staticmethod
+    def _stats_summary(stats: dict) -> str:
+        """统计结果的人类可读摘要（进入 SSE 工具事件与工作台过程证据面板）。"""
+        parts = []
+        for r in stats.get("ranges", []):
+            parts.append(f"范围 L{r['lo']}-L{r['hi']}：请求 {r['requested']} 行，解析 {r['resolved']} 行"
+                         + (f"，缺失 {len(r['missing'])} 行" if r.get("missing") else ""))
+        for c in stats.get("conditions", []):
+            label = f"级别 {c['value']}" if c["kind"] == "level" else f"子串「{c['value']}」"
+            parts.append(f"{label}：{c['count']} 条（行 {c['line_numbers'][:8]}{'…' if len(c['line_numbers']) > 8 else ''}）")
+        if stats.get("incomplete_excluded"):
+            parts.append(f"残行未计入：L{','.join(map(str, stats['incomplete_excluded']))}")
+        if stats.get("unsupported"):
+            parts.append("无法确定性解析：" + "；".join(stats["unsupported"]))
+        tr = stats.get("time_range")
+        if tr:
+            parts.append(f"时间范围（{tr['field']}）：{tr['first']}（L{tr['first_line']}）~ {tr['last']}（L{tr['last_line']}）")
+        return "；".join(parts)
+
     def route_after_native(self, state):
         return "approval" if state.get("end_reason") == "answered" else "end"
 
@@ -104,10 +123,39 @@ class DiagnosisNodes:
         sufficient = self.container.llm.is_sufficient(state["question"], state.get("hits", []))
         iteration = state.get("iteration", 0) + 1
         event = {"type": "grade", "docs_sufficient": sufficient, "iteration": iteration}
-        return {"docs_sufficient": sufficient, "iteration": iteration, "events": [event]}
+        # "相关"与"足以回答"分开（P1-ARAG-20261102）：问题引用显式行范围时，
+        # 目标行覆盖必须实际参与充足性决策——有相关日志但缺目标行段不能判充足。
+        # 缺失/不完整行的定向补取走租户文档读取（确定性来源，免 embedding/rerank）；
+        # 文档亦无此行时无法靠再次检索补齐，带缺口进入生成并由回答如实说明。
+        range_coverage = None
+        from app.rag.evidence import _resolve_target_lines, parse_line_targets, tenant_docs
+
+        targets = parse_line_targets(state["question"])
+        if targets:
+            with self.container.db_session() as db:
+                docs = tenant_docs(db, state["tenant_id"])
+            found, incomplete = _resolve_target_lines(targets, state.get("hits", []), docs)
+            missing = [t for t in targets if t not in found]
+            range_coverage = {"targets": len(targets), "resolved": len(found),
+                              "missing": missing, "incomplete": incomplete,
+                              "sufficient": not missing and not incomplete}
+            if missing or incomplete:
+                sufficient = False
+                event["range_coverage"] = {**range_coverage, "decision": "insufficient_until_complete"}
+            else:
+                event["range_coverage"] = range_coverage
+        return {"docs_sufficient": sufficient, "iteration": iteration,
+                "range_coverage": range_coverage, "events": [event]}
 
     def route_after_grade(self, state):
-        if state.get("docs_sufficient") or state.get("iteration", 0) >= 2:
+        if state.get("iteration", 0) >= 2:
+            return "tools"
+        cov = state.get("range_coverage")
+        if cov and (cov.get("missing") or cov.get("incomplete")):
+            # 缺目标行段：定向补取已按文档读取完成且为确定性来源，再次整套检索
+            # 不会改变文档内容——带缺口进入生成，由回答如实说明，不做无目的补查
+            return "tools"
+        if state.get("docs_sufficient"):
             return "tools"
         return "rewrite"
 
@@ -138,11 +186,27 @@ class DiagnosisNodes:
             evidence_items, range_meta = assemble_evidence(
                 state.get("hits", []), state["question"], db, state["tenant_id"],
                 per_hit_chars=getattr(self.container.settings, "evidence_excerpt_chars", 500),
-                range_chars=getattr(self.container.settings, "evidence_range_chars", 8000))
+                range_chars=getattr(self.container.settings, "evidence_range_chars", 12000))
+            # 确定性统计（P1-ARAG-20261102）：显式行范围 + 可解析条件由程序计算，
+            # 模型只依据结果解释；无法解析的口径如实列入 unsupported 供澄清。
+            range_stats = None
+            if range_meta.get("requested"):
+                from app.rag.logstats import compute_range_stats
+
+                range_stats = compute_range_stats(
+                    state["question"], state.get("hits", []), db=db, tenant_id=state["tenant_id"])
         with self.tracer.span("generate") as span:
+            if range_stats is not None:
+                stat_summary = self._stats_summary(range_stats)
+                state.setdefault("tool_events", []).append({
+                    "name": "compute_log_stats", "status": "ok",
+                    "args": {"ranges": range_stats.get("ranges"), "conditions": [
+                        {"kind": c["kind"], "value": c["value"]} for c in range_stats.get("conditions", [])]},
+                    "result": range_stats, "summary": stat_summary,
+                })
             answer = self.container.llm.generate_answer(
                 state["question"], state.get("hits", []), state.get("tool_events", []), state.get("fault_records", []), history,
-                evidence_items=evidence_items,
+                evidence_items=evidence_items, range_stats=range_stats,
             )
             metric_evidence = [event["summary"] for event in state.get("tool_events", []) if event["name"] == "query_service_metrics"]
             if metric_evidence:
@@ -157,9 +221,18 @@ class DiagnosisNodes:
         for title in citations_indexed:
             if title and title not in citations:
                 citations.append(title)
+        stats_event = {"type": "tool", "name": "compute_log_stats", "status": "ok",
+                       "args": {"ranges": (range_stats or {}).get("ranges"),
+                                "conditions": [{"kind": c["kind"], "value": c["value"]}
+                                               for c in (range_stats or {}).get("conditions", [])]},
+                       "result": range_stats,
+                       "summary": self._stats_summary(range_stats) if range_stats else ""} \
+            if range_stats is not None else None
         payload = {"answer": answer, "citations": citations, "citations_indexed": citations_indexed,
                    "used_evidence": evidence_items, "range_assembly": range_meta,
-                   "events": [{"type": "answer", "answer": answer, "citations": citations,
+                   "range_stats": range_stats, "range_coverage": state.get("range_coverage"),
+                   "events": ([stats_event] if stats_event else []) +
+                             [{"type": "answer", "answer": answer, "citations": citations,
                                "citations_indexed": citations_indexed, "used_evidence": evidence_items}]}
         if state.get("intent") == "create_ticket":
             payload["ticket_draft"] = self.container.llm.draft_ticket(state["question"], answer)

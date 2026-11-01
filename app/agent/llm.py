@@ -38,7 +38,7 @@ class BaseLLM:
     def rewrite_query(self, question: str) -> str:
         raise NotImplementedError
 
-    def generate_answer(self, question: str, hits: list[dict], tool_events: list[dict], fault_records: list[dict], history: list[dict], evidence_items: list[dict] | None = None) -> str:
+    def generate_answer(self, question: str, hits: list[dict], tool_events: list[dict], fault_records: list[dict], history: list[dict], evidence_items: list[dict] | None = None, range_stats: dict | None = None) -> str:
         raise NotImplementedError
 
     def draft_ticket(self, question: str, answer: str) -> dict:
@@ -63,7 +63,7 @@ class MockLLM(BaseLLM):
     def rewrite_query(self, question: str) -> str:
         return f"{question} 排查步骤 根因分析 处理方案 SOP"
 
-    def generate_answer(self, question, hits, tool_events, fault_records, history, evidence_items=None) -> str:
+    def generate_answer(self, question, hits, tool_events, fault_records, history, evidence_items=None, range_stats=None) -> str:
         q_tokens = set(tokenize(question))
         relevant = [
             h for h in hits[:5] if len(q_tokens & set(tokenize(h.get("text", "")))) >= 2
@@ -99,6 +99,26 @@ class MockLLM(BaseLLM):
             "severity": severity,
             "service": service,
         }
+
+
+def diagnosis_system_prompt() -> str:
+    """诊断回答的系统提示词。统计口径、根因三分法（已知事实/可能解释/待取证据）在此约束。"""
+    return (
+        "你是 AIOps 故障诊断助手。仅依据给定的知识库文档、工具输出和历史故障回答，"
+        "答案中使用 [n] 标注引用的文档编号；不要编造。"
+        "服务名只能来自用户问题、工具输出或知识库证据，不得新造或猜测服务名。"
+        "用中文回答。"
+        "指标必须注明来源和时间窗；模拟数据须明确说明。指标不可用或采样不足不等于服务正常，"
+        "此时只能给出排查建议，不能确认当前状态或根因。历史故障仅为参考。"
+        "工具的本次阈值判定优先于手册中其他场景的阈值；不得把已触发阈值的指标写成正常。"
+        "用户询问某行号范围或统计计数时：若证据未能完整覆盖该范围，必须明确说明证据只覆盖到"
+        "哪些行、哪些行缺失，不得把局部计数当作全范围计数，也不得对缺失行编造数值。"
+        "随附的程序统计结果由确定性代码按给定口径计算：解释时必须采用其数值与来源行号，"
+        "不得自行重新计数或改动统计数值；统计正确不等于根因已证实——涉及根因时必须区分"
+        "已知事实、可能解释与仍需取得的证据，不得仅凭日志统计或消息形态确认硬件等根因，"
+        "也不得基于统计给出唯一的确定性结论。若统计结果存在缺失行、残行或 unsupported 诉求，"
+        "必须如实向用户说明并请其澄清口径，不得对缺失范围给出精确总数。"
+    )
 
 
 def extract_service_hint(question: str) -> str | None:
@@ -185,7 +205,7 @@ class OpenAIChatLLM(BaseLLM):
             logger.warning("LLM 查询改写失败，回退规则: %s", exc)
             return self._fallback.rewrite_query(question)
 
-    def generate_answer(self, question, hits, tool_events, fault_records, history, evidence_items=None) -> str:
+    def generate_answer(self, question, hits, tool_events, fault_records, history, evidence_items=None, range_stats=None) -> str:
         from app.config import get_settings
 
         limit = getattr(get_settings(), "evidence_excerpt_chars", 500)
@@ -196,18 +216,12 @@ class OpenAIChatLLM(BaseLLM):
             context = "\n".join(f"[{i}] 《{h.get('doc_title', '')}》 {evidence_excerpt(h.get('text', ''), limit)}" for i, h in enumerate(hits, 1))
         tools_info = "\n".join(f"- {e.get('name')}: {e.get('summary', '')}" for e in tool_events) or "（无）"
         faults = "\n".join(f"- {f['title']}: {f['resolution']}" for f in fault_records) or "（无）"
-        system = (
-            "你是 AIOps 故障诊断助手。仅依据给定的知识库文档、工具输出和历史故障回答，"
-            "答案中使用 [n] 标注引用的文档编号；不要编造。"
-            "服务名只能来自用户问题、工具输出或知识库证据，不得新造或猜测服务名。"
-            "用中文回答。"
-            "指标必须注明来源和时间窗；模拟数据须明确说明。指标不可用或采样不足不等于服务正常，"
-            "此时只能给出排查建议，不能确认当前状态或根因。历史故障仅为参考。"
-            "工具的本次阈值判定优先于手册中其他场景的阈值；不得把已触发阈值的指标写成正常。"
-            "用户询问某行号范围或统计计数时：若证据未能完整覆盖该范围，必须明确说明证据只覆盖到"
-            "哪些行、哪些行缺失，不得把局部计数当作全范围计数，也不得对缺失行编造数值。"
-        )
-        user = f"用户问题：{question}\n\n知识库文档：\n{context}\n\n工具输出：\n{tools_info}\n\n历史相似故障：\n{faults}"
+        stats_section = ""
+        if range_stats:
+            stats_section = ("\n\n程序统计结果（compute_log_stats，口径见 basis 字段；解释时必须采用以下数值，"
+                             "不得自行重新计数或修改）：\n" + json.dumps(range_stats, ensure_ascii=False))
+        system = diagnosis_system_prompt()
+        user = f"用户问题：{question}\n\n知识库文档：\n{context}\n\n工具输出：\n{tools_info}\n\n历史相似故障：\n{faults}{stats_section}"
         try:
             return self._chat(system, user)
         except (BudgetExceededError, BudgetLedgerError):

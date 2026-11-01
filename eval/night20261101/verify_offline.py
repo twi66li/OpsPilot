@@ -40,9 +40,87 @@ def check(name, ok, detail=""):
     print(f"[{'PASS' if ok else 'FAIL'}] {name} {detail}")
 
 
+def check_bgl_stats_offline(frozen, by_id):
+    """BGL 证据复用（免服务）：统计模块对 4 道已见题的确定性输出与语料独立复算一致。
+
+    文档源直接用语料文件（租户文档与语料逐行一致，昨日终审已验），不需要 MySQL/Qdrant。
+    """
+    import re
+    from app.rag.logstats import compute_range_stats
+
+    corpus = {}
+    for f in (BASELINE / "corpus").glob("*.txt"):
+        corpus[f.stem] = f.read_text(encoding="utf-8")
+    # 语料文件名为下划线分隔（bgl_testA_L500_L534）；生产文档标题为连字符（... L500-L534），
+    # 此处按生产标题格式构造，保证 _doc_title_covers 的范围定位与线上一致
+    docs = []
+    for stem, text in corpus.items():
+        m = re.search(r"L(\d+)[-_]L(\d+)", stem)
+        if m:
+            docs.append((f"BGL 真实日志摘录 L{m.group(1)}-L{m.group(2)}", text))
+
+    def corpus_count(lo, hi, pred):
+        nums = []
+        for stem, text in corpus.items():
+            if not re.search(rf"L{lo}[-_]L{hi}", stem):
+                continue
+            for line in text.splitlines():
+                m = re.match(r"\s*L(\d+):", line)
+                if m and lo <= int(m.group(1)) <= hi and pred(line):
+                    nums.append(int(m.group(1)))
+        return nums
+
+    rr = json.loads((ROOT / "eval" / "night20261101" / "verify_run2" / "results.json").read_text(encoding="utf-8"))
+    _ = rr  # 已见题来源记录（本题集检查只依赖问题文本与语料）
+
+    # test-001：子串计数（金标口径即行内精确子串）
+    s = compute_range_stats(by_id["test-001"]["question"], [], docs=docs)
+    exp = corpus_count(500, 534, lambda l: "instruction cache parity error corrected" in l)
+    got = next(c for c in s["conditions"] if "parity" in c["value"])
+    check("BGL test-001：统计计数=语料独立复算（35）", got["count"] == len(exp) == 35 and got["line_numbers"] == exp,
+          f"stats={got['count']} corpus={len(exp)}")
+    check("BGL test-001：时间范围首末行正确",
+          s["time_range"]["first_line"] == 500 and s["time_range"]["last_line"] == 534)
+
+    # test-006：子串计数
+    s = compute_range_stats(by_id["test-006"]["question"], [], docs=docs)
+    exp = corpus_count(253000, 253034, lambda l: "data TLB error interrupt" in l)
+    got = next(c for c in s["conditions"] if "data TLB" in c["value"])
+    check("BGL test-006：统计计数=语料独立复算（35）", got["count"] == len(exp) == 35,
+          f"stats={got['count']} corpus={len(exp)}")
+
+    # reg-002：级别计数可算；"出现最多"列入 unsupported 不猜口径
+    s = compute_range_stats(by_id["reg-002"]["question"], [], docs=docs)
+    info = next((c for c in s["conditions"] if c["kind"] == "level" and c["value"] == "INFO"), None)
+    exp = corpus_count(14700, 14760, lambda l: len(l.split()) > 8 and l.split()[8] == "INFO")
+    check("BGL reg-002：INFO 级计数=语料独立复算", info is not None and info["count"] == len(exp),
+          f"stats={info['count'] if info else None} corpus={len(exp)}")
+    check("BGL reg-002：“出现最多”列入 unsupported（不猜口径）",
+          bool(s["unsupported"]) and "归一化" in s["unsupported"][0], s["unsupported"][:1])
+
+    # reg-003：FATAL 行号清单
+    s = compute_range_stats(by_id["reg-003"]["question"], [], docs=docs)
+    fatal = next(c for c in s["conditions"] if c["kind"] == "level" and c["value"] == "FATAL")
+    exp = corpus_count(14700, 14760, lambda l: len(l.split()) > 8 and l.split()[8] == "FATAL")
+    check("BGL reg-003：FATAL 行号清单=语料独立复算（25）",
+          fatal["count"] == len(exp) == 25 and fatal["line_numbers"] == exp,
+          f"stats={fatal['count']} corpus={len(exp)}")
+
+    # test-005：统计仅描述性——结果中不含任何根因/因果字段；计数与语料一致
+    s = compute_range_stats(by_id["test-005"]["question"], [], docs=docs)
+    exp = corpus_count(500, 534, lambda l: "instruction cache parity" in l)
+    got = next(c for c in s["conditions"] if "parity" in c["value"])
+    check("BGL test-005：统计仅描述（无根因字段）且计数=独立复算",
+          got["count"] == len(exp) and not any(k in json.dumps(s) for k in ("root_cause", "根因")),
+          f"stats={got['count']} corpus={len(exp)}")
+
+
 def main():
     frozen = json.loads((BASELINE / "scenarios_frozen.json").read_text(encoding="utf-8"))
     by_id = {s["id"]: s for s in frozen["scenarios"]}
+    # ---- 1c. BGL 证据复用（免服务）：确定性统计 vs 语料独立复算 ----
+    check_bgl_stats_offline(frozen, by_id)
+    rr = json.loads((RERANK / "results.json").read_text(encoding="utf-8"))
     rr = json.loads((RERANK / "results.json").read_text(encoding="utf-8"))
 
     # ---- 2a. 分块器：BGL 语料整行保留、跨块不重复；散文回退字符窗 ----

@@ -1381,69 +1381,51 @@
     "missing": false
    },
    "qwen3.8-27b": {
-    "verdict": null,
-    "attempts": [
-     {
-      "attempt": 1,
-      "error_type": "BudgetExceededError",
-      "message": "模型 qwen3.8-27b 额度超限：实报 152141 + 未知 0 + 在途 0 + 本次预估 19086 = 171227 超过授权 160000，请求在到达供应商前被拒绝"
-     },
-     {
-      "attempt": 2,
-      "error_type": "BudgetExceededError",
-      "message": "模型 qwen3.8-27b 额度超限：实报 152141 + 未知 0 + 在途 0 + 本次预估 19086 = 171227 超过授权 160000，请求在到达供应商前被拒绝"
-     }
-    ],
-    "usage": {
-     "calls": 2,
-     "tokens": 0,
-     "unknown": 2
+    "verdict": {
+     "answer_correct": false,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答未覆盖金标要点：未指出共25条、CE sym 11条及DDR合计12条，且错误地将“出现最多”归结为单条具体消息（3次），与金标不符。"
     },
-    "missing": true
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 10059,
+     "unknown": 0
+    },
+    "missing": false
    }
   },
   "reg-003": {
    "qwen3.8-max-0902": {
-    "verdict": null,
-    "attempts": [
-     {
-      "attempt": 1,
-      "error_type": "BudgetExceededError",
-      "message": "模型 qwen3.8-max-0902 额度超限：实报 387324 + 未知 0 + 在途 0 + 本次预估 21483 = 408807 超过授权 402090，请求在到达供应商前被拒绝"
-     },
-     {
-      "attempt": 2,
-      "error_type": "BudgetExceededError",
-      "message": "模型 qwen3.8-max-0902 额度超限：实报 387324 + 未知 0 + 在途 0 + 本次预估 21483 = 408807 超过授权 402090，请求在到达供应商前被拒绝"
-     }
-    ],
-    "usage": {
-     "calls": 2,
-     "tokens": 0,
-     "unknown": 2
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": false,
+     "reason": "回答准确指出L14736-L14760共25行FATAL日志，正确区分两类错误内容，均与证据一致。虽未显式对比INFO级corrected事件，但已完整覆盖核心要点。"
     },
-    "missing": true
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 11035,
+     "unknown": 0
+    },
+    "missing": false
    },
    "qwen3.8-27b": {
-    "verdict": null,
-    "attempts": [
-     {
-      "attempt": 1,
-      "error_type": "BudgetExceededError",
-      "message": "模型 qwen3.8-27b 额度超限：实报 152141 + 未知 0 + 在途 0 + 本次预估 21483 = 173624 超过授权 160000，请求在到达供应商前被拒绝"
-     },
-     {
-      "attempt": 2,
-      "error_type": "BudgetExceededError",
-      "message": "模型 qwen3.8-27b 额度超限：实报 152141 + 未知 0 + 在途 0 + 本次预估 21483 = 173624 超过授权 160000，请求在到达供应商前被拒绝"
-     }
-    ],
-    "usage": {
-     "calls": 2,
-     "tokens": 0,
-     "unknown": 2
+    "verdict": {
+     "answer_correct": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答准确指出L14736-L14760存在25行FATAL日志，并正确区分了LOGIN chdir失败与failed to read message prefix两类错误。所有行号、计数及内容均严格依据证据[1]和[2]，无编造，且明确说明了FATAL与INFO级事件的区分。"
     },
-    "missing": true
+    "attempts": [],
+    "usage": {
+     "calls": 1,
+     "tokens": 11062,
+     "unknown": 0
+    },
+    "missing": false
    }
   }
  },
@@ -1470,13 +1452,13 @@
   "max_tokens": 1536,
   "evidence": "app.rag.evidence 组装：显式行范围题完整行摘录置首（range_assembly）+ 分块摘录行边界安全（块首残行剥离）；生成提示词含范围完整性防则；裁判与评测记录使用生成器实际收到的 used_evidence",
   "budget": {
-   "total_limit": 968997,
+   "total_limit": 997348,
    "model_limits": {
-    "qwen3.8-max-0902": 402090,
-    "qwen3.8-27b": 160000,
+    "qwen3.8-max-0902": 411161,
+    "qwen3.8-27b": 186000,
     "deepseek-v4-pro-0813": 40000,
-    "qwen3.7-text-embedding-flash": 9851,
-    "qwen3.7-text-rerank": 357056
+    "qwen3.7-text-embedding-flash": 9771,
+    "qwen3.7-text-rerank": 350416
    },
    "derivation": "budget.json p1 + 2026-11-01 用户两次追加授权（整改验证）− 兄弟账本已用",
    "ledger": "D:\\Code\\python\\aiops-diagnosis-agent\\eval\\night20261101\\eval_ledger.jsonl"
@@ -1537,13 +1519,13 @@
   },
   "completed": 10,
   "planned": 10,
-  "judged_main": 9,
-  "both_judged": 8,
-  "judge_agreement_on_answer_correct": "6/8",
+  "judged_main": 10,
+  "both_judged": 10,
+  "judge_agreement_on_answer_correct": "8/10",
   "not_run": []
  },
  "manifest": {
-  "commit": "4b689860276ef3ed1e07f9badbbf0e253a876aff",
+  "commit": "3bfcc9816fd55c9af95dee6e0c6fe83ebcaf2001",
   "authorization": "2026-11-01 用户会话内全额授权整改验证额度（0902 +130K / 27b +15K / rerank +65K）；批尾因预留上界测算不足出现 reg-002/003 生成失败、test-030 跳过、两题 27b 判分被拒，追加授权征询未获应答，按治理规则未自行超限，相关项如实保留失败/缺判状态",
   "scope": {
    "both_wrong_rerun": [
@@ -1563,7 +1545,7 @@
   },
   "ledger_by_model": {
    "qwen3.8-max-0902": {
-    "actual": 387324,
+    "actual": 398359,
     "unknown": 0,
     "in_flight": 0
    },
@@ -1583,7 +1565,7 @@
     "in_flight": 0
    },
    "qwen3.8-27b": {
-    "actual": 152141,
+    "actual": 173262,
     "unknown": 0,
     "in_flight": 0
    }

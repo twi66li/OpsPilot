@@ -229,3 +229,48 @@ D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:149:
 [10:41:03] cross reg-003/deepseek-v4-pro-0813 attempt 2 failed: BudgetExceededError
 [10:41:03] cross reg-003/deepseek-v4-pro-0813 -> None
 [10:41:03] ALL DONE: {'status_counts': {'answered': 10}, 'completed': 10, 'planned': 10, 'judged_main': 9, 'both_judged': 8, 'judge_agreement_on_answer_correct': '6/8', 'not_run': []}
+2026-11-01 10:48:14,637 INFO httpx: HTTP Request: GET http://127.0.0.1:6333 "HTTP/1.1 200 OK"
+2026-11-01 10:48:14,643 INFO httpx: HTTP Request: GET http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\qdrant_client\qdrant_remote.py:287: UserWarning: Qdrant client version 1.20.0 is incompatible with server version 1.12.4. Major versions should match and minor version difference must not exceed 1. Set check_compatibility=False to skip version check.
+  show_warning(
+2026-11-01 10:48:17,126 INFO app.services.cache: Redis 缓存已连接: redis://localhost:6379/0
+2026-11-01 10:48:17,343 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/count "HTTP/1.1 200 OK"
+2026-11-01 10:48:17,451 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:48:17,519 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:48:17,621 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:48:17,751 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:48:19,343 INFO app.main: 启动完成：索引已就绪，共 81 个分块
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  return self._jws.encode(
+2026-11-01 10:48:19,442 INFO httpx2: HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+2026-11-01 10:48:24,646 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:48:26,057 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-27b", "status": "ok", "first_token_ms": 5197.766099998262, "usage": {"completion_tokens": 75, "prompt_tokens": 9984, "total_tokens": 10059, "completion_tokens_details": {"accepted_prediction_tokens": null, "audio_tokens": null, "reasoning_tokens": null, "rejected_prediction_tokens": null}, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 9984}}, "finish_reason": "stop", "elapsed_ms": 6584.337900043465}
+[10:48:26] judge reg-002/qwen3.8-27b -> {'answer_correct': False, 'grounded': True, 'appropriate_abstention': True, 'reason': '回答未覆盖金标要点：未指出共25条、CE sym 11条及DDR合计12条，且错误地将“出现最多”归结为单条具体消息（3次），与金标不符。'}
+[10:48:26] judge reg-003/qwen3.8-max-0902 attempt 1 failed: BudgetExceededError
+[10:48:26] judge reg-003/qwen3.8-max-0902 attempt 2 failed: BudgetExceededError
+[10:48:26] judge reg-003/qwen3.8-max-0902 -> None
+2026-11-01 10:48:29,437 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:48:31,367 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-27b", "status": "ok", "first_token_ms": 2964.453399996273, "usage": {"completion_tokens": 100, "prompt_tokens": 10962, "total_tokens": 11062, "completion_tokens_details": {"accepted_prediction_tokens": null, "audio_tokens": null, "reasoning_tokens": null, "rejected_prediction_tokens": null}, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 10962}}, "finish_reason": "stop", "elapsed_ms": 4891.459800011944}
+[10:48:31] judge reg-003/qwen3.8-27b -> {'answer_correct': True, 'grounded': True, 'appropriate_abstention': True, 'reason': '回答准确指出L14736-L14760存在25行FATAL日志，并正确区分了LOGIN chdir失败与failed to read message prefix两类错误。所有行号、计数及内容均严格依据证据[1]和[2]，无编造，且明确说明了FATAL与INFO级事件的区分。'}
+[10:48:31] cross reg-003/deepseek-v4-pro-0813 attempt 1 failed: BudgetExceededError
+[10:48:31] cross reg-003/deepseek-v4-pro-0813 attempt 2 failed: BudgetExceededError
+[10:48:31] cross reg-003/deepseek-v4-pro-0813 -> None
+[10:48:32] ALL DONE: {'status_counts': {'answered': 10}, 'completed': 10, 'planned': 10, 'judged_main': 9, 'both_judged': 9, 'judge_agreement_on_answer_correct': '7/9', 'not_run': []}
+2026-11-01 10:50:09,584 INFO httpx: HTTP Request: GET http://127.0.0.1:6333 "HTTP/1.1 200 OK"
+2026-11-01 10:50:09,586 INFO httpx: HTTP Request: GET http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/exists "HTTP/1.1 200 OK"
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\qdrant_client\qdrant_remote.py:287: UserWarning: Qdrant client version 1.20.0 is incompatible with server version 1.12.4. Major versions should match and minor version difference must not exceed 1. Set check_compatibility=False to skip version check.
+  show_warning(
+2026-11-01 10:50:11,794 INFO app.services.cache: Redis 缓存已连接: redis://localhost:6379/0
+2026-11-01 10:50:11,904 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/count "HTTP/1.1 200 OK"
+2026-11-01 10:50:11,989 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:50:12,053 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:50:12,110 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:50:12,180 INFO httpx: HTTP Request: POST http://127.0.0.1:6333/collections/kb_qwen37_1024_v2/points/scroll "HTTP/1.1 200 OK"
+2026-11-01 10:50:13,765 INFO app.main: 启动完成：索引已就绪，共 81 个分块
+D:\Code\python\aiops-diagnosis-agent\.venv\Lib\site-packages\jwt\api_jwt.py:149: InsecureKeyLengthWarning: The HMAC key is 20 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.
+  return self._jws.encode(
+2026-11-01 10:50:13,896 INFO httpx2: HTTP Request: POST http://testserver/auth/login "HTTP/1.1 200 OK"
+2026-11-01 10:50:16,618 INFO httpx: HTTP Request: POST https://ws-6ks4i7u4zb6q8s4m.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-01 10:50:18,063 INFO app.services.model_api: model_api_usage kind=chat record={"model": "qwen3.8-max-0902", "status": "ok", "first_token_ms": 2682.8467000159435, "usage": {"completion_tokens": 73, "prompt_tokens": 10962, "total_tokens": 11035, "completion_tokens_details": null, "prompt_tokens_details": {"audio_tokens": null, "cache_write_tokens": null, "cached_tokens": 0, "text_tokens": 10962}}, "finish_reason": "stop", "elapsed_ms": 4120.007099991199}
+[10:50:18] judge reg-003/qwen3.8-max-0902 -> {'answer_correct': True, 'grounded': True, 'appropriate_abstention': False, 'reason': '回答准确指出L14736-L14760共25行FATAL日志，正确区分两类错误内容，均与证据一致。虽未显式对比INFO级corrected事件，但已完整覆盖核心要点。'}
+[10:50:18] ALL DONE: {'status_counts': {'answered': 10}, 'completed': 10, 'planned': 10, 'judged_main': 10, 'both_judged': 10, 'judge_agreement_on_answer_correct': '8/10', 'not_run': []}

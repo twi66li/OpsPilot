@@ -1,6 +1,8 @@
 """SSE 流式接口测试。"""
 import json
 
+import pytest
+
 from tests.conftest import new_session
 
 
@@ -38,7 +40,17 @@ def test_stream_emits_node_and_final_events(client, admin_headers):
     assert final["answer"]
 
 
-def test_stream_approval_flow(client, admin_headers):
+@pytest.mark.parametrize("hide_interrupt_event", [False, True])
+def test_stream_approval_flow(client, admin_headers, monkeypatch, hide_interrupt_event):
+    if hide_interrupt_event:
+        from app.services import agent_service
+
+        original = agent_service._iter_graph_events
+        monkeypatch.setattr(
+            agent_service,
+            "_iter_graph_events",
+            lambda chunks: (event for event in original(chunks) if event["type"] != "approval_required"),
+        )
     session_id = new_session(client, admin_headers)
     with client.stream(
         "POST",
@@ -50,4 +62,4 @@ def test_stream_approval_flow(client, admin_headers):
     events = _parse_sse(text)
     final = next(e for e in events if e["type"] == "final")
     assert final["status"] == "approval_required"
-    assert any(e["type"] == "approval_required" for e in events)
+    assert len([e for e in events if e["type"] == "approval_required"]) == 1

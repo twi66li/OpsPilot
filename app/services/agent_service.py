@@ -171,8 +171,11 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
         }
         yield _sse({"type": "start", "session_id": session_id, "question": question})
         stream = container.graph.stream(input_state, config, stream_mode="updates")
+        approval_emitted = False
         try:
             for event in _iter_graph_events(stream):
+                if event.get("type") == "approval_required":
+                    approval_emitted = True
                 yield _sse(event)  # 到达即推送，避免先耗尽整图再补发
         except BudgetExceededError as exc:
             # 预算门控拒绝（请求未到达供应商）：流内给出明确错误事件，不让前端只见断流
@@ -182,7 +185,8 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
             return
         with container.db_session() as db:
             events: list[dict] = []
-            _ensure_approval_event(container, db, config, tenant_id, session_id, events)
+            if not approval_emitted:
+                _ensure_approval_event(container, db, config, tenant_id, session_id, events)
             for event in events:
                 yield _sse(event)
         result = _final_snapshot(container, config)

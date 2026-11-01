@@ -413,18 +413,17 @@ def summarize(records):
                           "not_run": sorted(records.get("not_run", {}))}
     records["manifest"] = {
         "commit": subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, cwd=ROOT).stdout.strip(),
-        "authorization": "2026-11-01 用户会话内全额授权整改验证额度（0902 +130K / 27b +15K / rerank +65K）；"
-                         "批尾因预留上界测算不足出现 reg-002/003 生成失败、test-030 跳过、两题 27b 判分被拒，"
-                         "追加授权征询未获应答，按治理规则未自行超限，相关项如实保留失败/缺判状态",
-        "scope": {"both_wrong_rerun": SCOPE, "gold_corrected": ["test-004", "test-030"]},
+        "authorization": "本轮用户明确追加授权见 p1_budget.REVIEW_FIX_GRANTS；所有调用合并计入本轮账本，未授权额度不得动用",
+        "scope": {"regenerated": SCOPE, "judge_only": sorted(JUDGE_ONLY),
+                  "gold_corrected": sorted(q for q, rec in records["questions"].items() if rec.get("gold_corrected"))},
         "ledger_by_model": dict(ledger_by_model),
         "cross_reviews": {q: bool(v.get("deepseek-v4-pro-0813", {}).get("verdict"))
                           for q, v in records.get("cross_reviews", {}).items()},
         "disclosures": [
             "本批为终审整改验证：证据组装（范围完整摘录/块首残行剥离/行边界收口）+ 范围完整性提示词防则后的重跑",
-            "test-004 以 gold_v2 更正题干重跑；test-004/test-030 判分按更正后金标要点；旧成绩原样保留不覆盖",
-            "27b 判分缺失（test-006/reg-001）因 27b 份额预留不足：以 DeepSeek 跨家族复核作第三视角补充，不冒充第二裁判",
-            "reg-002/003 生成因 0902 份额预留不足失败，保持 failed 如实披露（首次尝试的重排消耗已入账）",
+            "金标更正仅适用于 scope.gold_corrected 列出的本批题目；旧成绩原样保留不覆盖",
+            "scope.judge_only 复用上一批答案与同一编号证据，仅补缺判，不重新生成",
+            "失败与缺判以本批逐题记录和 summary 为准；DeepSeek 仅为第三视角，不冒充双裁判",
             "双裁判为模型自动评分，未做人工复核（human_reviewed=false）",
         ],
     }

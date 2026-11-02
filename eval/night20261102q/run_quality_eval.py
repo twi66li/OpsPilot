@@ -331,6 +331,8 @@ def summarize(records, judges):
 
 def main():
     mode = sys.argv[1] if len(sys.argv) > 1 else "dev"
+    import shutil as _shutil
+    _shutil.copy(HERE / "scenarios_frozen.json", RUN / "scenarios_frozen.json")  # 接口从 results.json 同目录读冻结文件
     fd = frozen()
     records_fp = RUN / "results.json"
     records = json.loads(records_fp.read_text(encoding="utf-8")) if records_fp.exists() else {

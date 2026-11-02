@@ -357,7 +357,8 @@ function renderEval() {
   });
   $("#qlist").innerHTML = qs.map(q => {
     const open = evalOpen.has(q.id);
-    const main = (q.judges || {})[(d.config || {}).judges?.[0] || ""] || {};
+    const jm = q.judges || {};
+    const main = jm[(d.config || {}).judges?.[0] || ""] || Object.values(jm).find(j => j.verdict) || Object.values(jm)[0] || {};
     const v = main.verdict;
     const detail = !open ? "" : `
       <div class="detail">

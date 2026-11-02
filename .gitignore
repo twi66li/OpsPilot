@@ -14,3 +14,4 @@ eval/reports/**/embeddings.json
 
 eval/reports/**/*.writing
 *.jsonl.lock
+*.lock

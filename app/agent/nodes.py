@@ -2,8 +2,10 @@
 
 流程：route_intent → retrieve → grade ─(不足)→ rewrite → retrieve（最多 1 轮补充检索）
                               └─(充足)→ call_tools → generate → approval_gate ─(建单)→ create_ticket → END
+纯统计路径：route_intent ─(显式行范围+纯统计诉求)→ pure_range_answer（文档权威读取+程序模板，零检索/零模型）→ END
 """
 import logging
+import re
 
 from app.agent.llm import detect_intent
 from app.agent.tools import make_tool_executor, run_diagnostic_tools
@@ -11,6 +13,33 @@ from app.services.observability import estimate_tokens, get_tracer
 from app.services.ticket_service import get_or_create_approval
 
 logger = logging.getLogger(__name__)
+
+# 证据路径策略（模块级：评测脚本可在不发请求的情况下预判策略与预算需求）。
+# 强解释诉求 → 混合检索；仅"是什么/哪些"类字段询问且存在可程序推导条件 → 纯统计路径。
+_STRONG_SEMANTIC_CUE = re.compile(
+    r"根因|为什么|为何|怎么|如何|排查|处理|建议|影响|原因|涉及|硬件|故障|能否确认|"
+    r"说明什么|反映了什么|意味着|解读|概述|诊断")
+_WEAK_SEMANTIC_CUE = re.compile(r"是什么|哪些|什么")
+
+
+def evidence_strategy(question: str, intent: str = "diagnose") -> str:
+    """显式行范围+纯统计诉求 → range_stats_direct（零 embedding/rerank/LLM）；
+    显式行范围+语义解释 → range_hybrid（统计已程序化，检索补充语义）；
+    其余 → hybrid。"""
+    from app.rag.evidence import parse_line_targets
+    from app.rag.logstats import parse_conditions
+
+    targets = parse_line_targets(question)
+    if not targets or intent != "diagnose":
+        return "hybrid"
+    _conditions, _unsupported, wants = parse_conditions(question)
+    if _STRONG_SEMANTIC_CUE.search(question):
+        return "range_hybrid"
+    weak = _WEAK_SEMANTIC_CUE.search(question)
+    program_answerable = wants.get("count") or wants.get("time") or wants.get("mode")
+    if weak and not program_answerable:
+        return "range_hybrid"  # 只有解释性追问、无可程序推导条件
+    return "range_stats_direct"
 
 
 class DiagnosisNodes:
@@ -22,6 +51,8 @@ class DiagnosisNodes:
         mode = self.container.settings.agent_mode
         if mode not in ("rule", "native"):
             raise ValueError("agent_mode 必须是rule或native")
+        if mode == "rule" and state.get("strategy") == "range_stats_direct":
+            return "pure"
         return mode
 
     def native_tools(self, state):
@@ -82,6 +113,7 @@ class DiagnosisNodes:
         # 重置上一轮残留状态，保证同会话多次提问互不污染
         return {
             "intent": intent,
+            "strategy": self._evidence_strategy(state["question"], intent),
             "rewritten_query": "",
             "docs_sufficient": False,
             "iteration": 0,
@@ -93,6 +125,113 @@ class DiagnosisNodes:
             "metrics": {},
             "end_reason": "answered",
         }
+
+    # 证据路径策略（P1-QUALITY-20261102 必做A）：显式行范围 + 纯统计诉求先走
+    # 租户文档权威读取 + 程序统计（零 embedding/rerank/LLM）；含语义解释诉求才混合检索。
+    _SEMANTIC_CUE = re.compile(r"根因|为什么|为何|怎么|如何|排查|处理|建议|影响|原因|内容|涉及|什么|哪些")
+
+    def _evidence_strategy(self, question: str, intent: str) -> str:
+        return evidence_strategy(question, intent)
+
+    # ---- 纯统计路径（P1-QUALITY-20261102 必做A）：零 embedding/rerank/LLM ----
+    def pure_range_answer(self, state):
+        question = state["question"]
+        with self.container.db_session() as db:
+            from app.rag.evidence import assemble_evidence
+            from app.rag.logstats import compute_range_stats
+
+            evidence_items, range_meta = assemble_evidence(
+                [], question, db, state["tenant_id"],
+                per_hit_chars=getattr(self.container.settings, "evidence_excerpt_chars", 500),
+                range_chars=getattr(self.container.settings, "evidence_range_chars", 12000))
+            range_stats = compute_range_stats(question, [], db=db, tenant_id=state["tenant_id"])
+        missing = (range_stats or {}).get("missing_lines") or []
+        incomplete = (range_stats or {}).get("incomplete_excluded") or []
+        range_coverage = {
+            "targets": (range_meta or {}).get("targets", 0),
+            "resolved": (range_meta or {}).get("targets_found", 0),
+            "missing": missing, "incomplete": incomplete,
+            "sufficient": not missing and not incomplete,
+        }
+        answer = self._render_stats_template(range_stats, evidence_items)
+        stats_event = {"type": "tool", "name": "compute_log_stats", "status": "ok",
+                       "args": {"ranges": (range_stats or {}).get("ranges"),
+                                "conditions": [{"kind": c["kind"], "value": c["value"]}
+                                               for c in (range_stats or {}).get("conditions", [])]},
+                       "result": range_stats, "summary": self._stats_summary(range_stats) if range_stats else ""}
+        citations_indexed = [it.get("doc_title", "") for it in evidence_items]
+        citations = []
+        for title in citations_indexed:
+            if title and title not in citations:
+                citations.append(title)
+        return {
+            "answer": answer, "citations": citations, "citations_indexed": citations_indexed,
+            "used_evidence": evidence_items, "range_assembly": range_meta,
+            "range_stats": range_stats, "range_coverage": range_coverage,
+            "strategy": "range_stats_direct", "end_reason": "answered",
+            "events": [stats_event,
+                       {"type": "answer", "answer": answer, "citations": citations,
+                        "citations_indexed": citations_indexed, "used_evidence": evidence_items}],
+        }
+
+    @staticmethod
+    def _render_stats_template(stats: dict, evidence_items: list[dict]) -> str:
+        """确定性模板回答：只陈述程序统计结果、口径与缺口，不做语义解释、不编造缺失部分。"""
+        lines = ["以下结果由程序按固定口径对知识库文档原文直接统计得出（数值非模型生成）。"]
+        for r in stats.get("ranges", []):
+            if r.get("missing"):
+                miss = "、L".join(str(n) for n in r["missing"][:50])
+                lines.append(
+                    f"⚠ 目标行范围 L{r['lo']}-L{r['hi']} 共请求 {r['requested']} 行，知识库中仅能解析其中 "
+                    f"{r['resolved']} 行（缺失 {len(r['missing'])} 行：L{miss}）。"
+                    "以下统计只覆盖已解析行，不能当作该范围的完整总数；缺失行的内容需要补充数据源后才能确认。")
+            else:
+                lines.append(f"范围 L{r['lo']}-L{r['hi']} 共 {r['resolved']} 行全部解析成功（无缺失行）。")
+        if stats.get("incomplete_excluded"):
+            lines.append("残行未计入统计：L" + ",".join(str(n) for n in stats["incomplete_excluded"]) + "。")
+        for c in stats.get("conditions", []):
+            nums = "、L".join(str(n) for n in c["line_numbers"])
+            if c["kind"] == "level":
+                lines.append(f"级别 {c['value']}：{c['count']} 条（行号 L{nums}）。")
+            elif c["kind"] == "substring":
+                lines.append(f"子串「{c['value']}」：{c['count']} 条（行号 L{nums}）。")
+            elif c["kind"] == "prefix":
+                lines.append(f"前缀「{c['value']}」：{c['count']} 条（行号 L{nums}）。" + (c.get('note','') or ''))
+                sc = c.get('suggested_contains')
+                if sc:
+                    lines.append('疑似口径差异提示（包含口径，非前缀口径）：' + '；'.join(f"「{t['message'][:120]}」×{t['count']}" for t in sc['items']))
+            elif c["kind"] == "literal_top":
+                tops = c.get("top_items") or []
+                tie = "（并列）" if len(tops) > 1 else ""
+                head = "；".join(f"「{t['message']}」×{t['count']}" for t in tops)
+                lines.append(f"按消息正文逐字分组，出现最多的消息共 {c.get('top_count')} 条{tie}：{head}。")
+        tr = stats.get("time_range")
+        if tr:
+            lines.append(f"时间范围（{tr['field']}）：{tr['first']}（L{tr['first_line']}）至 {tr['last']}（L{tr['last_line']}）。")
+        nd = stats.get("nodes")
+        if nd:
+            parts = "；".join(f"{n['node']} ×{n['count']}" for n in nd[:6])
+            more = "…" if len(nd) > 6 else ""
+            lines.append(f"节点/位置字段分布：{parts}{more}。")
+        lg = stats.get("literal_groups")
+        if lg:
+            lines.append(f"不同消息原文共 {lg['distinct_messages']} 种（逐字口径，未做归一化），全部分组与来源行号如下：")
+            for g in lg["groups"]:
+                nums = "、L".join(str(n) for n in g["line_numbers"])
+                lines.append(f"  「{g['message']}」×{g['count']}（行号 L{nums}）")
+            if lg.get("listing_truncated"):
+                lines.append("  （分组超过 50 种，仅列出前 50）")
+        if stats.get("unsupported"):
+            lines.append("以下统计诉求无法由程序确定性解析，请澄清口径后再问：" + "；".join(stats["unsupported"]) + "。")
+        lines.append(stats.get("basis", ""))
+        titles = []
+        for it in evidence_items:
+            t = it.get("doc_title", "")
+            if t and t not in titles:
+                titles.append(t)
+        if titles:
+            lines.append("来源：知识库文档《" + "》《".join(titles) + "》（编号证据 [1] 为上述行范围的原文摘录）。")
+        return "\n".join(lines)
 
     # ---- 检索 ----
     def retrieve(self, state):
@@ -112,7 +251,13 @@ class DiagnosisNodes:
             "reranked": result.reranked,
             "hits": hits[:5],
             "round": state.get("iteration", 0) + 1,
+            "strategy": state.get("strategy", "hybrid"),
         }
+        if state.get("strategy") == "range_hybrid":
+            # 混合诉求组合的策略说明（P1-QUALITY-20261102 必做A）：统计已由程序在
+            # 权威文档上完成；检索仅为语义解释补充上下文
+            event["why_retrieval"] = ("显式行范围的统计已由程序在租户文档权威原文上完成（不消耗检索）；"
+                                      "本查询还包含语义解释诉求，混合检索用于补充相关上下文")
         return {
             "hits": hits,
             "events": [event],

@@ -4,7 +4,7 @@ import logging
 import threading
 from datetime import datetime, timezone
 
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from langgraph.types import Command
 from sqlalchemy import update
 from sqlalchemy.orm import Session
@@ -64,6 +64,7 @@ def _final_snapshot(container, config: dict) -> dict:
         "range_assembly": values.get("range_assembly"),
         "range_coverage": values.get("range_coverage"),
         "range_stats": values.get("range_stats"),
+        "strategy": values.get("strategy", "hybrid"),
         "intent": values.get("intent", "diagnose"),
         "ticket_id": values.get("ticket_id"),
         "docs_sufficient": values.get("docs_sufficient"),

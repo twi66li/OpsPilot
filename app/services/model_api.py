@@ -20,6 +20,9 @@ logger = logging.getLogger(__name__)
 _CHAT_OUTPUT_CAP = 1536
 _RERANK_OUTPUT_CAP = 64
 _RERANK_WRAP_BYTES = 128  # rerank 请求协议包装余量
+# enable_thinking 参数仅对接受该参数的模型发送（探针实测）：
+# qwen3.8-2.4t-a95b 强制思考（param restricted to True），发送 False 会 400，必须省略。
+_THINKING_DISABLE_UNSUPPORTED = {"qwen3.8-2.4t-a95b"}
 
 # chat 模板包装余量（已验证协议事实的保守放大约束，非实测常数硬编码）：
 # Qwen 模板每条消息渲染 <|im_start|>role\n…<|im_end|>\n 等 ASCII 标记（单个标记 ≤11 字节），
@@ -83,14 +86,14 @@ class ChatAPI:
     def _settle(guard, reservation, record: dict):
         settle_for_channel(record, guard, reservation)
 
-    def chat(self, system: str, user: str, *, json_mode: bool = False) -> str:
+    def chat(self, system: str, user: str, *, json_mode: bool = False, output_cap: int = _CHAT_OUTPUT_CAP) -> str:
         messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
-        guard, reservation = self._reserve("chat", messages, None, output_cap=_CHAT_OUTPUT_CAP)
+        guard, reservation = self._reserve("chat", messages, None, output_cap=output_cap)
         emit("model_input", {"kind": "chat", "model": self.model, "system": system, "user": user})
         started = time.perf_counter()
         record = {"model": self.model, "status": "error", "first_token_ms": None, "usage": {}}
         params = {}
-        if self.is_dashscope:
+        if self.is_dashscope and self.model not in _THINKING_DISABLE_UNSUPPORTED:
             params["extra_body"] = {"enable_thinking": False}
         if json_mode:
             params["response_format"] = {"type": "json_object"}
@@ -101,7 +104,7 @@ class ChatAPI:
                 model=self.model,
                 messages=messages,
                 temperature=0,
-                max_tokens=1536,
+                max_tokens=output_cap,
                 stream=True,
                 stream_options={"include_usage": True},
                 **params,
@@ -140,7 +143,8 @@ class ChatAPI:
             response = self.client.chat.completions.create(
                 model=self.model, messages=messages, tools=tools,
                 tool_choice="auto" if allow_tools else "none", temperature=0, max_tokens=1536,
-                **({"extra_body": {"enable_thinking": False}} if self.is_dashscope else {}),
+                **({"extra_body": {"enable_thinking": False}} if self.is_dashscope
+                   and self.model not in _THINKING_DISABLE_UNSUPPORTED else {}),
             )
             record["usage"] = response.usage.model_dump() if response.usage else {}
             message = response.choices[0].message

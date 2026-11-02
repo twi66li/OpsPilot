@@ -17,9 +17,20 @@ from app.rag.evidence import _resolve_target_lines, parse_line_targets, tenant_d
 _LEVEL_WORDS = ("FATAL", "ERROR", "WARNING", "SEVERE", "CRITICAL", "INFO", "NOTICE", "TRACE")
 _COUNT_CUE = re.compile(r"多少条|多少次|共多少|几条|总数|计数|出现了?几次")
 _TIME_CUE = re.compile(r"时间戳|时间范围|最早|最晚|第一条|最后一条|起始|结束")
-_MODE_CUE = re.compile(r"出现最多|最常见|最多的消息|分布")
+_MODE_CUE = re.compile(r"出现最多|最常见|最多的消息|哪种消息最多|哪种最多|分布|频次|分组|哪几种|几种不同|有哪几种")
+# 要求归一化/模板口径但未给出规则的信号：字面分组不能替用户发明归一化规则
+_TEMPLATE_CUE = re.compile(r"归一化|归一后|模板|形式|模式分类|去重规则")
 _ASCII_SEQ = re.compile(r"[A-Za-z][A-Za-z0-9_./-]*(?:\s+[A-Za-z][A-Za-z0-9_./-]*)+")
 _TIMESTAMP = re.compile(r"\d{4}-\d{2}-\d{2}-\d{2}\.\d{2}\.\d{2}\.\d{6}")
+
+# 剥离字段定义（分组口径）：消息原文 = 去掉行号前缀 "L<no>:" 后，按空白切分的前 8 个字段
+# （epoch、日期、节点、精确时间戳、节点2、RAS、KIND、LEVEL）之后的全部剩余文本，
+# 以单个空格重新连接。分组键为该消息原文的逐字精确匹配（含大小写、空格与标点），
+# 不做任何归一化/去数字/模板折叠——不同原文一律视为不同消息，绝不合并语义。
+STRIPPED_FIELD_COUNT = 8
+LITERAL_GROUP_BASIS = ("分组口径：按消息正文逐字精确分组。剥离字段为行号前缀与前 8 个空格分隔字段"
+                       "（epoch、日期、节点、精确时间戳、节点2、RAS、KIND、LEVEL），"
+                       "分组键为剩余文本以单空格重连后的原文；不做归一化，不同原文不合并。")
 
 BASIS = ("统计口径：仅计入完整行；行内容以租户知识库文档原文为权威（按行号 L<no> 对齐），"
          "同一行号只计一次；块尾残行不计入计数并单独列出；"
@@ -42,7 +53,8 @@ def parse_conditions(question: str) -> tuple[list[dict], list[str], dict]:
     unsupported: list[str] = []
     wants = {"count": bool(_COUNT_CUE.search(question)),
              "time": bool(_TIME_CUE.search(question)),
-             "mode": bool(_MODE_CUE.search(question))}
+             "mode": bool(_MODE_CUE.search(question)),
+             "template": bool(_TEMPLATE_CUE.search(question))}
     # 级别条件：问题中出现的级别词（词边界，避免把普通英文单词当级别）
     for w in _LEVEL_WORDS:
         if re.search(rf"(?<![A-Za-z]){w}(?![A-Za-z])", question):
@@ -60,8 +72,39 @@ def parse_conditions(question: str) -> tuple[list[dict], list[str], dict]:
     if wants["count"] and not conditions:
         unsupported.append("计数对象未能确定性解析：请说明要统计的具体消息内容或日志级别")
     if wants["mode"]:
-        unsupported.append("“出现最多”类统计需要先约定消息归一化口径（如何处理变化字段），当前不支持，请澄清")
+        if wants["template"]:
+            # 归一化/模板口径未指定规则：字面分组不能替用户发明归一化规则
+            unsupported.append("问题要求归一化/模板形式的分布，但未指定归一化规则；"
+                               "可先按消息正文逐字精确分组查看（literal_groups），"
+                               "归一化口径需用户澄清后才能作为确定性结果")
+        else:
+            # 无归一化要求：按消息正文逐字精确分组给出频次与最多项（并列全部列出）
+            conditions.append({"kind": "literal_top", "value": "按消息正文逐字精确分组"})
+    # 前缀条件：问题明示"以 X 开头/前缀" → 消息正文 startswith 精确匹配（确定性口径）；
+    # 计数为 0 时模板会提示核对前缀写法（如冒号/标点差异）并列出实际消息原文，不猜口径。
+    for m in re.finditer(r"(?:以|以「|按)?[「」]?\s*([A-Za-z][\w :/\\.-]{2,60}?)\s*[」]?\s*(?:开头|为前缀|作为前缀)", question):
+        value = m.group(1).strip()
+        if value and not any(c["kind"] == "prefix" and c["value"] == value for c in conditions):
+            conditions.append({"kind": "prefix", "value": value})
     return conditions, unsupported, wants
+
+
+def group_messages_literal(lines: list[tuple[int, str]]) -> list[dict]:
+    """按消息正文逐字精确分组：返回 [{message, count, line_numbers}]，按次数降序、原文次序稳定。
+
+    剥离字段见 LITERAL_GROUP_BASIS；不同原文一律不合并。仅接收完整行。
+    """
+    groups: dict[str, list[int]] = {}
+    for lineno, line in lines:
+        parsed = _split_bgl_line(line)
+        if not parsed:
+            continue
+        _no, fields, _rest = parsed
+        message = " ".join(fields[STRIPPED_FIELD_COUNT:]) if len(fields) > STRIPPED_FIELD_COUNT else ""
+        groups.setdefault(message, []).append(lineno)
+    items = [{"message": msg, "count": len(nums), "line_numbers": nums} for msg, nums in groups.items()]
+    items.sort(key=lambda x: (-x["count"], x["message"]))
+    return items
 
 
 def compute_range_stats(question: str, hits: list[dict], db=None, tenant_id: str = "",
@@ -94,13 +137,44 @@ def compute_range_stats(question: str, hits: list[dict], db=None, tenant_id: str
         matched: list[int] = []
         for lineno, line in lines:
             parsed = _split_bgl_line(line)
+            message = " ".join(parsed[1][STRIPPED_FIELD_COUNT:]) if parsed and len(parsed[1]) > STRIPPED_FIELD_COUNT else ""
             if spec["kind"] == "level":
                 if parsed and len(parsed[1]) > 7 and parsed[1][7] == spec["value"]:
+                    matched.append(lineno)
+            elif spec["kind"] == "prefix":
+                if message.startswith(spec["value"]):
                     matched.append(lineno)
             else:  # substring：行内精确匹配（含行号前缀后的全部内容）
                 if spec["value"] in line:
                     matched.append(lineno)
-        conditions.append({**spec, "count": len(matched), "line_numbers": matched})
+        entry = {**spec, "count": len(matched), "line_numbers": matched}
+        if spec["kind"] == "prefix" and len(matched) == 0 and lines:
+            # 前缀精确匹配为 0 时的确定性提示：列出范围内实际出现的不同消息原文，
+            # 供用户核对前缀写法差异（如冒号、括号）；不做模糊匹配、不猜口径。
+            contains = group_messages_literal(lines)
+            hits = [g for g in contains if spec["value"] in g["message"]]
+            distinct_note = ("范围内实际出现的不同消息原文共 " + str(len(contains)) + " 种：" +
+                             "；".join(f"「{g['message'][:160]}」×{g['count']}" for g in contains[:5]))
+            entry["note"] = ("以「" + spec["value"] + "」为前缀的逐字精确匹配为 0 条；"
+                             "请核对前缀写法（如冒号、括号等标点差异）或澄清口径。" + distinct_note)
+            if hits:
+                entry["suggested_contains"] = {
+                    "note": "以下为【包含】该前缀文本的消息（包含口径，非前缀口径），仅用于核对写法差异",
+                    "items": [{"message": g["message"], "count": g["count"]} for g in hits[:5]]}
+        conditions.append(entry)
+
+    # 按消息正文逐字精确分组（仅当问题请求频次/最多项且未要求未指定的归一化口径）
+    literal_groups = None
+    top_cond = next((c for c in conditions if c["kind"] == "literal_top"), None)
+    if top_cond is not None:
+        groups = group_messages_literal(lines)
+        top_count = groups[0]["count"] if groups else 0
+        tops = [g for g in groups if g["count"] == top_count] if groups else []
+        top_cond["top_count"] = top_count
+        top_cond["top_items"] = [{"message": g["message"], "count": g["count"]} for g in tops]
+        top_cond["line_numbers"] = [n for g in tops for n in g["line_numbers"]]
+        literal_groups = {"basis": LITERAL_GROUP_BASIS, "distinct_messages": len(groups),
+                          "groups": groups[:20], "listing_truncated": len(groups) > 20}
 
     time_range = None
     if wants["time"] or True:
@@ -116,6 +190,17 @@ def compute_range_stats(question: str, hits: list[dict], db=None, tenant_id: str
             time_range = {"field": "第5列精确时间戳", "first_line": first[0], "first": first[1],
                           "last_line": last[0], "last": last[1]}
 
+    # 节点/位置字段摘要（无条件给出）：字段2为节点/位置原文，逐字计数
+    nodes_summary = None
+    node_counter: dict[str, list[int]] = {}
+    for lineno, line in lines:
+        parsed = _split_bgl_line(line)
+        if parsed and len(parsed[1]) > 2:
+            node_counter.setdefault(parsed[1][2], []).append(lineno)
+    if node_counter:
+        nodes_summary = [{"node": n, "count": len(nums), "line_numbers": nums}
+                         for n, nums in sorted(node_counter.items(), key=lambda x: (-len(x[1]), x[0]))]
+
     return {
         "ranges": [{"lo": min(targets), "hi": max(targets), "requested": len(targets),
                     "resolved": len(resolved), "missing": missing}],
@@ -124,6 +209,8 @@ def compute_range_stats(question: str, hits: list[dict], db=None, tenant_id: str
         "incomplete_excluded": incomplete_now,
         "missing_lines": missing,
         "time_range": time_range,
+        "nodes": nodes_summary,
+        "literal_groups": literal_groups,
         "unsupported": unsupported,
         "basis": BASIS,
     }

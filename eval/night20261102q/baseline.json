@@ -1,0 +1,166 @@
+{
+ "frozen_at": "2026-11-03T00:00:00+08:00",
+ "git_head": "01e2ef92def3cf89220b93334cc90c1ce7405e40",
+ "round": "run-20261102-quality",
+ "policy": "新轮账本（本目录 ledger.jsonl）只计启动后新调用；旧账本以此快照为审计起点，不再从新余额重复扣减旧实报；旧 unknown/open 保守保留，P1 历史 embedding 未知预留 26364 单列。工作台与评测共用本新轮权威账本。",
+ "old_ledgers": {
+  "eval/night20261031/bgl_run/ledger.jsonl": {
+   "sha256": "62bce6a8098f0adfb27b59334b5c82a33e485fc0580d085171cdf175e9351d5c",
+   "rows": 48,
+   "last_event_id": "fa2d5f17cc73496aa76c33a646ea175a",
+   "used": {
+    "qwen3.7-text-embedding-flash": {
+     "actual": 8993,
+     "unknown": 26364,
+     "in_flight": 0
+    },
+    "qwen3.7-text-rerank": {
+     "actual": 4155,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.8-max": {
+     "actual": 14139,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.8-27b": {
+     "actual": 5828,
+     "unknown": 0,
+     "in_flight": 0
+    }
+   }
+  },
+  "eval/night20261031/real_run/ledger.jsonl": {
+   "sha256": "a1d4bc5b6b20841cbbdd7bff5e492e27c352e6f57fcac27dd4a5e1773c836fa3",
+   "rows": 518,
+   "last_event_id": "d15325e2f1d84ae1ab2b6bae421c28a6",
+   "used": {
+    "qwen3.7-text-embedding-flash": {
+     "actual": 37594,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.7-text-rerank": {
+     "actual": 97584,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.8-max-0902": {
+     "actual": 270828,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.8-27b": {
+     "actual": 121210,
+     "unknown": 0,
+     "in_flight": 0
+    }
+   }
+  },
+  "eval/night20261031/smoke_run/ledger.jsonl": {
+   "sha256": "073a83a0c5accc03424e5088fe8a32175735a2d9453e658d0c6ce800eeb08777",
+   "rows": 112,
+   "last_event_id": "beac5198e5794e3a9557505e228d5913",
+   "used": {
+    "qwen3.7-text-embedding-flash": {
+     "actual": 8015,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.7-text-rerank": {
+     "actual": 3145,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.8-max": {
+     "actual": 10651,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.8-27b": {
+     "actual": 4176,
+     "unknown": 0,
+     "in_flight": 0
+    }
+   }
+  },
+  "eval/night20261031/workbench_run/ledger.jsonl": {
+   "sha256": "3c629dbd737a0335e67c97b087f1fd3298475d50f8767f0a792830f3941ab182",
+   "rows": 8,
+   "last_event_id": "e7b2c6c8e4b44728a2199b48050f4dcc",
+   "used": {
+    "qwen3.7-text-embedding-flash": {
+     "actual": 38,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.7-text-rerank": {
+     "actual": 465,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.8-max-0902": {
+     "actual": 2242,
+     "unknown": 0,
+     "in_flight": 0
+    }
+   }
+  },
+  "eval/night20261101/workbench/ledger.jsonl": {
+   "sha256": "fb8849badac95c6a66b1b04040e8a436f304db5409a5d3d39b01b190347547a5",
+   "rows": 34,
+   "last_event_id": "7f9a82639a2b4b219c1395335d2e9b7a",
+   "used": {
+    "qwen3.7-text-embedding-flash": {
+     "actual": 229,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.7-text-rerank": {
+     "actual": 19584,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.8-max-0902": {
+     "actual": 12839,
+     "unknown": 0,
+     "in_flight": 0
+    }
+   }
+  },
+  "eval/night20261101/eval_ledger.jsonl": {
+   "sha256": "9b40f14cbdb89b7ba5683f5a50c0ef60aee5d70a9e57a118f7c2ae3ad0b1f5b0",
+   "rows": 622,
+   "last_event_id": "c1ed5b6a5a144f0ebf8718e9021f2a17",
+   "used": {
+    "qwen3.8-max-0902": {
+     "actual": 407668,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "deepseek-v4-pro-0813": {
+     "actual": 29045,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.7-text-embedding-flash": {
+     "actual": 2555,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.7-text-rerank": {
+     "actual": 332584,
+     "unknown": 0,
+     "in_flight": 0
+    },
+    "qwen3.8-27b": {
+     "actual": 173262,
+     "unknown": 0,
+     "in_flight": 0
+    }
+   }
+  }
+ },
+ "historical_embedding_unknown_reserve": 26364
+}

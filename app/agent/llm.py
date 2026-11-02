@@ -113,11 +113,15 @@ def diagnosis_system_prompt() -> str:
         "工具的本次阈值判定优先于手册中其他场景的阈值；不得把已触发阈值的指标写成正常。"
         "用户询问某行号范围或统计计数时：若证据未能完整覆盖该范围，必须明确说明证据只覆盖到"
         "哪些行、哪些行缺失，不得把局部计数当作全范围计数，也不得对缺失行编造数值。"
-        "随附的程序统计结果由确定性代码按给定口径计算：解释时必须采用其数值与来源行号，"
-        "不得自行重新计数或改动统计数值；统计正确不等于根因已证实——涉及根因时必须区分"
-        "已知事实、可能解释与仍需取得的证据，不得仅凭日志统计或消息形态确认硬件等根因，"
-        "也不得基于统计给出唯一的确定性结论。若统计结果存在缺失行、残行或 unsupported 诉求，"
-        "必须如实向用户说明并请其澄清口径，不得对缺失范围给出精确总数。"
+            "随附的程序统计结果由确定性代码按给定口径计算：解释时必须采用其数值与来源行号，"
+            "不得自行重新计数或改动统计数值；统计正确不等于根因已证实——涉及根因时必须区分"
+            "已知事实、可能解释与仍需取得的证据，不得仅凭日志统计或消息形态确认硬件等根因，"
+            "也不得基于统计给出唯一的确定性结论。若统计结果存在缺失行、残行或 unsupported 诉求，"
+            "必须如实向用户说明并请其澄清口径，不得对缺失范围给出精确总数。"
+            "日志记录只说明该日志事件在记录时刻发生过：日志中没有不可纠正错误或中断，"
+            "不等于系统当时或现在正常运行、未发生服务中断；不得断言系统当前或历史运行状态、"
+            "监控覆盖、维修效果或硬件诊断结果，也不得把'未在日志中看到'说成'没有发生'——"
+            "这类信息只能列入仍需取得的证据（如监控数据、硬件诊断输出）。"
     )
 
 
@@ -156,8 +160,8 @@ class OpenAIChatLLM(BaseLLM):
         self.strict = strict
         self._fallback = MockLLM()
 
-    def _chat(self, system: str, user: str) -> str:
-        return self._api.chat(system, user)
+    def _chat(self, system: str, user: str, *, output_cap: int = 4096) -> str:
+        return self._api.chat(system, user, output_cap=output_cap)
 
     @staticmethod
     def _parse_json(text: str):
@@ -223,7 +227,8 @@ class OpenAIChatLLM(BaseLLM):
         system = diagnosis_system_prompt()
         user = f"用户问题：{question}\n\n知识库文档：\n{context}\n\n工具输出：\n{tools_info}\n\n历史相似故障：\n{faults}{stats_section}"
         try:
-            return self._chat(system, user)
+            # 诊断回答可能超出 1,536（多节点描述题实测触发截断）；预留按同一上限计算
+            return self._chat(system, user, output_cap=4096)
         except (BudgetExceededError, BudgetLedgerError):
             raise
         except Exception as exc:

@@ -79,6 +79,7 @@ def eval_results(user: AuthUser = Depends(require_roles("admin")), run: str = ""
             "question": rec.get("question"),
             "must_abstain": rec.get("must_abstain", False),
             "rerank_active": rec.get("rerank_active"),
+            "strategy": rec.get("strategy"),
             "range_stats": rec.get("range_stats"),
             "range_coverage": rec.get("range_coverage"),
             "required_points": rec.get("required_points") or s.get("required_points", []),

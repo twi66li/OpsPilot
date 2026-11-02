@@ -12,6 +12,10 @@ class DiagState(TypedDict, total=False):
     history: list[dict]
     run_id: str
     end_reason: str
+    # 证据路径策略（P1-QUALITY-20261102 必做A）：
+    # range_stats_direct = 租户文档权威读取+程序统计（零 embedding/rerank/LLM）；
+    # range_hybrid = 统计已程序化 + 混合检索补充语义上下文；hybrid = 常规混合检索。
+    strategy: str
 
     # 流程中间态
     intent: str  # diagnose | create_ticket

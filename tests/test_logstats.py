@@ -100,11 +100,18 @@ def test_sample_b_missing_targets_reported_not_counted_as_full():
 
 
 def test_mode_condition_is_unsupported_not_guessed():
+    # 无归一化要求的"出现最多"：按消息正文逐字精确分组是确定性口径（P1-QUALITY-20261102 扩展）
     conditions, unsupported, wants = parse_conditions(Q_MODE)
-    assert wants["mode"] and unsupported
+    assert wants["mode"] and not unsupported
+    assert any(c["kind"] == "literal_top" for c in conditions)
     stats = compute_range_stats(Q_MODE, [], docs=DOC)
-    assert stats["unsupported"]
-    assert all(c["kind"] != "mode" for c in stats["conditions"])
+    assert not stats["unsupported"]
+    top = next(c for c in stats["conditions"] if c["kind"] == "literal_top")
+    assert top["top_count"] == 6
+    # 要求归一化/模板口径但未指定规则：仍然 unsupported，不猜口径
+    stats_t = compute_range_stats("L100-L110 中消息按模板归一化后哪种最多？", [], docs=DOC)
+    assert stats_t["unsupported"] and "归一化" in stats_t["unsupported"][0]
+    assert not any(c["kind"] == "literal_top" for c in stats_t["conditions"])
 
 
 def test_no_count_object_parses_to_unsupported():
@@ -198,3 +205,79 @@ def test_review_script_single_judge_completes_summary(tmp_path):
     assert records["summary"]["judged_main"] == 1
     assert records["summary"]["both_judged"] == 0
     assert records["summary"]["judge_agreement_on_answer_correct"] == "0/0"
+
+
+# ---- P1-QUALITY-20261102 必做A/B ----
+
+def test_pure_range_path_zero_embedding_and_rerank(client, admin_headers):
+    """纯范围统计路径：真实编译图整链路 embedding/rerank 调用为 0，答案为确定性模板。"""
+    from app.container import get_container
+
+    doc = {"title": DOC_TITLE, "content": DOC_LINES, "source": "test"}
+    assert client.post("/api/kb/documents", json=doc, headers=admin_headers).status_code == 200
+    container = get_container()
+    # 更强断言：纯路径任何检索/重排尝试都直接失败（embedding 只在检索内发生）
+    def _no_retrieve(*a, **k):
+        raise AssertionError("纯统计路径不得触发混合检索（embedding/rerank 由此发生）")
+    orig_retrieve = container.retriever.retrieve
+    container.retriever.retrieve = _no_retrieve
+    try:
+        sid = client.post("/api/sessions", json={"title": "pure-path"}, headers=admin_headers).json()["id"]
+        r = client.post("/api/agent/chat", json={"session_id": sid, "message": Q_COUNT}, headers=admin_headers)
+        assert r.status_code == 200, r.text
+    finally:
+        container.retriever.retrieve = orig_retrieve
+    body = r.json()
+    assert body.get("strategy") == "range_stats_direct"
+    # 确定性模板：数值直接来自程序统计
+    assert "4 条" in body["answer"] and "共 11 行全部解析成功" in body["answer"]
+    assert "数值非模型生成" in body["answer"]
+
+
+def test_literal_message_grouping_with_ties():
+    from app.rag.logstats import compute_range_stats
+
+    # 样本中 L103/L107 同文（并列最多）
+    stats = compute_range_stats("L100-L110 中出现最多的是哪条消息？", [], docs=DOC)
+    top = next(c for c in stats["conditions"] if c["kind"] == "literal_top")
+    # 手算：parity ×6 为最多，data TLB ×4 次之
+    assert top["top_count"] == 6 and top["top_items"] == [
+        {"message": "instruction cache parity error corrected", "count": 6}]
+    lg = stats["literal_groups"]
+    assert lg["distinct_messages"] == 3 and lg["groups"][1] == {
+        "message": "data TLB error interrupt", "count": 4, "line_numbers": [103, 106, 107, 109]}
+    # 剥离字段口径说明随结果透出
+    assert "逐字精确分组" in lg["basis"] and "不做归一化" in lg["basis"]
+
+
+def test_template_grouping_without_rule_is_unsupported():
+    from app.rag.logstats import compute_range_stats
+
+    stats = compute_range_stats("L100-L110 中 iar/dear 消息有哪几种不同形式（数字归一后）？", [], docs=DOC)
+    assert stats["unsupported"] and "归一化" in stats["unsupported"][0]
+    # 未指定归一化规则时，不得把字面分组冒充为归一化结果
+    assert not any(c["kind"] == "literal_top" for c in stats["conditions"])
+
+
+def test_range_hybrid_explains_why_retrieval(client, admin_headers):
+    """混合诉求：统计已程序化，检索事件必须解释为何仍发生检索。"""
+    doc = {"title": DOC_TITLE, "content": DOC_LINES, "source": "test"}
+    assert client.post("/api/kb/documents", json=doc, headers=admin_headers).status_code == 200
+    sid = client.post("/api/sessions", json={"title": "mixed-path"}, headers=admin_headers).json()["id"]
+    r = client.post("/api/agent/chat",
+                    json={"session_id": sid,
+                          "message": "L100-L110 中 data TLB error interrupt 出现多少次？这些错误说明什么根因？"},
+                    headers=admin_headers)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body.get("strategy") == "range_hybrid"
+    ret = [e for e in body.get("events", []) if e.get("type") == "retrieval"]
+    assert ret and "语义解释" in ret[-1].get("why_retrieval", "")
+    assert body.get("range_stats", {}).get("total_lines") == 11
+
+
+def test_system_prompt_runs_status_boundary():
+    prompt = diagnosis_system_prompt()
+    assert "不等于系统当时或现在正常运行" in prompt
+    assert "不得断言系统当前或历史运行状态" in prompt
+    assert "不得把'未在日志中看到'说成'没有发生'" in prompt

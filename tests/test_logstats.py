@@ -281,3 +281,32 @@ def test_system_prompt_runs_status_boundary():
     assert "不等于系统当时或现在正常运行" in prompt
     assert "不得断言系统当前或历史运行状态" in prompt
     assert "不得把'未在日志中看到'说成'没有发生'" in prompt
+
+
+# ---- P1-Q-LITERAL / P1-Q-GOLD（run-20261102-quality 终审整改）----
+
+def test_literal_grouping_preserves_internal_spaces():
+    """逐字口径：正文内部连续空格不折叠——'A  B' 与 'A B' 是两个不同分组。"""
+    from app.rag.logstats import group_messages_literal
+
+    lines = [
+        (300, "L300: 1117838677 2005.06.03 N1 2005-06-03-15.44.37.999605 N1 RAS KERNEL INFO A  B"),
+        (301, "L301: 1117838678 2005.06.03 N1 2005-06-03-15.44.38.154501 N1 RAS KERNEL INFO A B"),
+        (302, "L302: 1117838679 2005.06.03 N1 2005-06-03-15.44.39.045415 N1 RAS KERNEL INFO A B"),
+    ]
+    groups = group_messages_literal(lines)
+    assert len(groups) == 2  # "A  B"（双空格）与 "A B" 是两个不同分组，绝不合并
+    by_msg = {g["message"]: g for g in groups}
+    assert "A  B" in by_msg and by_msg["A  B"]["line_numbers"] == [300]
+    assert by_msg["A B"]["count"] == 2 and by_msg["A B"]["line_numbers"] == [301, 302]
+
+
+def test_group_line_numbers_are_absolute_source_lines():
+    """组内行号必须是绝对来源行号（与题面 L<no> 一致），不是 1..N 相对下标。"""
+    from app.rag.logstats import group_messages_literal
+
+    start = 3395430
+    lines = [(start + i, f"L{start + i}: 1127243158 2005.09.20 NULL 2005-09-20-12.05.58.88{i:04d} NULL RAS MMCS ERROR idoproxydb hit ASSERT condition")
+             for i in range(4)]
+    groups = group_messages_literal(lines)
+    assert groups[0]["line_numbers"] == [3395430, 3395431, 3395432, 3395433]

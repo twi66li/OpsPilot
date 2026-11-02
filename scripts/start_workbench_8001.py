@@ -22,6 +22,13 @@ from quality_budget import apply_env  # noqa: E402
 
 apply_env()  # 本轮权威账本 + P1 总额/分模型上限（评测与工作台共用，严禁双领）
 
+# 文本候选切换链（P1-Q-SWITCH）：首选模型分模型预留不足时按 generation_order 依次切换，
+# 总额不足/认证/参数错误不切换；切换逐笔记入账本 calls 审计
+import json as _json  # noqa: E402
+
+_order = _json.loads(Path("D:/agent-hub/run-20261102-quality/budget.json").read_text(encoding="utf-8"))["generation_order"]
+os.environ["CHAT_MODEL_CANDIDATES"] = _json.dumps([m for m in _order if m != os.environ.get("CHAT_MODEL")])
+
 os.environ["DATABASE_URL"] = "mysql+pymysql://aiops:aiops123@127.0.0.1:13306/aiops?charset=utf8mb4"
 os.environ["QDRANT_MODE"] = "remote"
 os.environ["QDRANT_URL"] = "http://127.0.0.1:6333"

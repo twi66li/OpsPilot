@@ -64,7 +64,9 @@ def eval_results(user: AuthUser = Depends(require_roles("admin")), run: str = ""
     发现清单中的第一个运行（night20261031/real_run 历史基线）。
     """
     records, ctx = _load_run(run)
-    by_id = {s["id"]: s for s in ctx["frozen"].get("scenarios", [])}
+    # 冻结文件兼容：历史批为 scenarios[]，quality 轮为 questions[]（含 gold_program/gold_notes）
+    frozen_qs = ctx["frozen"].get("scenarios") or ctx["frozen"].get("questions") or []
+    by_id = {s["id"]: s for s in frozen_qs}
     questions = []
     for qid in sorted(records.get("questions", {})):
         rec = records["questions"][qid]
@@ -82,12 +84,19 @@ def eval_results(user: AuthUser = Depends(require_roles("admin")), run: str = ""
             "strategy": rec.get("strategy"),
             "range_stats": rec.get("range_stats"),
             "range_coverage": rec.get("range_coverage"),
+            "model_config": rec.get("model_config"),
             "required_points": rec.get("required_points") or s.get("required_points", []),
+            "gold_program": rec.get("gold_program") or s.get("gold_program"),
+            "gold_notes": rec.get("gold_notes") or s.get("gold_notes"),
             "answer": rec.get("answer", ""),
             "citations": rec.get("citations", []),
             "evidence": rec.get("evidence", []),
+            # 判分 schema 兼容（P1-Q-REPORT）：quality 轮裁判为 factual 口径，映射到旧页面
+            # 读取的 answer_correct；原始 verdict 原样保留，缺判如实透出
             "judges": {m: {"verdict": v.get("verdict"), "missing": v.get("missing", True),
-                           "usage": v.get("usage", {})} for m, v in judges.items()},
+                           "answer_correct": (v.get("verdict") or {}).get("answer_correct",
+                                            (v.get("verdict") or {}).get("factual")),
+                           "usage": v.get("usage", {}), "note": v.get("note")} for m, v in judges.items()},
             "usage": rec.get("usage", {}),
             "error": rec.get("error") or (rec.get("attempts") or None),
             "elapsed_s": rec.get("elapsed_s"),
@@ -96,9 +105,14 @@ def eval_results(user: AuthUser = Depends(require_roles("admin")), run: str = ""
         "id": ctx["meta"]["id"],
         "namespace": records.get("namespace"),
         "batch": records.get("batch"),
+        "gold_version": records.get("gold_version"),
+        "judging_invalidated": records.get("summary", {}).get("judging_invalidated"),
         "config": records.get("config", {}),
         "summary": records.get("summary", {}),
         "manifest": records.get("manifest", {}),
+        "model_switches": records.get("model_switches", []),
+        "ablation_blocked": records.get("ablation_blocked"),
+        "regression_blocked": records.get("regression_blocked"),
         "probe": records.get("probe", {}),
         "cross_reviews": records.get("cross_reviews", {}),
         "not_run": records.get("not_run", {}),

@@ -1,0 +1,10 @@
+{"type": "reserved", "id": "687274a826cd46da8e9e4c3994ebcf90", "at": "2026-11-02T18:30:22.282+00:00", "pid": 30612, "kind": "chat", "model": "backup-fake", "estimate": 2001}
+{"type": "committed", "id": "687274a826cd46da8e9e4c3994ebcf90", "at": "2026-11-02T18:30:22.283+00:00", "pid": 30612, "model": "backup-fake", "estimate": 2001, "actual": 30, "over_reserve": false}
+{"type": "reserved", "id": "3b4350b9ff6347e5ab93baffb8ec70d1", "at": "2026-11-02T18:30:22.317+00:00", "pid": 30612, "kind": "chat", "model": "auth-fake", "estimate": 2001}
+{"type": "committed_unknown", "id": "3b4350b9ff6347e5ab93baffb8ec70d1", "at": "2026-11-02T18:30:22.319+00:00", "pid": 30612, "model": "auth-fake", "estimate": 2001}
+{"type": "reserved", "id": "b31bab007f6b446ab49723d4f87304c5", "at": "2026-11-02T18:30:22.352+00:00", "pid": 30612, "kind": "chat", "model": "backup-fake", "estimate": 2001}
+{"type": "committed_unknown", "id": "b31bab007f6b446ab49723d4f87304c5", "at": "2026-11-02T18:30:22.353+00:00", "pid": 30612, "model": "backup-fake", "estimate": 2001}
+{"type": "reserved", "id": "ec27cb7eea3344ffa84b003348eef33f", "at": "2026-11-02T18:30:22.396+00:00", "pid": 30612, "kind": "chat", "model": "backup-fake", "estimate": 2001}
+{"type": "committed_unknown", "id": "ec27cb7eea3344ffa84b003348eef33f", "at": "2026-11-02T18:30:22.397+00:00", "pid": 30612, "model": "backup-fake", "estimate": 2001}
+{"type": "reserved", "id": "72bded8816634a1fb719a187d9e43108", "at": "2026-11-02T18:30:22.398+00:00", "pid": 30612, "kind": "chat", "model": "backup-fake", "estimate": 2001}
+{"type": "committed", "id": "72bded8816634a1fb719a187d9e43108", "at": "2026-11-02T18:30:22.399+00:00", "pid": 30612, "model": "backup-fake", "estimate": 2001, "actual": 25, "over_reserve": false}

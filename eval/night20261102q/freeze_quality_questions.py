@@ -34,16 +34,24 @@ def wlines(stripped, start, n=W):
 
 
 def level_counts(lines):
+    """级别计数：入参必须为【不带 L 前缀】的原始行（终审 P1-Q-GOLD：带前缀解析会错位一列）。"""
     return dict(Counter(l.split()[7] for l in lines if len(l.split()) > 8))
 
 
-def msg_groups(lines):
-    c = Counter(" ".join(l.split()[8:]) for l in lines if len(l.split()) > 8)
-    return [{"message": m, "count": n, "line_numbers": [i + 1 for i, l in enumerate(lines)
-              if len(l.split()) > 8 and " ".join(l.split()[8:]) == m]} for m, n in c.most_common()]
+def msg_groups(lines, start):
+    """消息逐字分组（独立实现，不复用 logstats）：split(None, 8) 的第 9 段保留正文原始
+    空格与标点（不 rejoin、不折叠）；行号 = 窗口起始原始行号 + 窗口内下标（绝对来源行号）。"""
+    by_msg: dict = {}
+    for i, l in enumerate(lines):
+        parts = l.split(None, 8)
+        if len(parts) > 8:
+            by_msg.setdefault(parts[8], []).append(start + i)
+    return [{"message": m, "count": len(nums), "line_numbers": nums}
+            for m, nums in sorted(by_msg.items(), key=lambda x: (-len(x[1]), x[0]))]
 
 
 def time_bounds(lines):
+    """时间范围：入参为【不带 L 前缀】的原始行，第 4 列（index 3）为精确时间戳。"""
     import re
     ts = [(int(l.split()[0]), l.split()[3]) for l in lines if len(l.split()) > 8 and re.fullmatch(r"\d{4}-\d{2}-\d{2}-\d{2}\.\d{2}\.\d{2}\.\d{6}", l.split()[3])]
     lo = min(ts, key=lambda x: x[1]) if ts else None
@@ -97,25 +105,27 @@ def main():
     def split_of(qid):
         return "dev" if qid.startswith("dev") else "heldout"
 
-    def build(qid, sc):
-        start, lines, full = sc["window_start"], sc["lines"], line_no(sc["window_start"], sc["lines"])
-        nums = "L" + "、L".join(str(n) for n in full)
+    def build(qid, sc, raw_lines):
+        start = sc["window_start"]
+        full = line_no(start, raw_lines)
         rng = f"L{start}-L{start + W - 1}"
-        levels = level_counts(lines)
-        groups = msg_groups(lines)
-        tb = time_bounds(lines)
+        # 金标独立解析：必须用【不带 L 前缀】的原始行（终审 P1-Q-GOLD：带前缀解析错位一列），
+        # 组内行号为绝对来源行号
+        levels = level_counts(raw_lines)
+        groups = msg_groups(raw_lines, start)
+        tb = time_bounds(raw_lines)
         g = {"level_counts": levels, "time_bounds": tb,
              "top_messages": groups[:3], "distinct_messages": len(groups),
-             "total_lines": len(lines), "line_numbers": full}
+             "total_lines": len(raw_lines), "line_numbers": full}
         fam = {
-            "dev-q1": ("stats_semantic", f"{rng} 内反复出现同一条 idoproxydb ASSERT 错误共 {levels} 条级别记录，这种情况说明什么？需要什么证据才能定位根因？"),
+            "dev-q1": ("stats_semantic", f"{rng} 内反复出现同一条 idoproxydb ASSERT 错误共 {levels.get('ERROR', 0)} 条 ERROR 级别记录，这种情况说明什么？需要什么证据才能定位根因？"),
             "dev-q2": ("stats_semantic", f"{rng} 内每行都是一条不同的 generating core 消息，这组日志说明系统发生了什么？如何确认是否异常？"),
             "dev-q3": ("descriptive", f"{rng} 内出现大量 FATAL 级别日志，涉及什么错误类型？能否据此确认根因？请说明哪些结论有据、哪些需要进一步取证。"),
             "dev-q4": ("descriptive", f"{rng} 内 INFO 与 FATAL 消息来自多个不同节点，请概述该时间窗内各节点发生了什么，并指出哪些判断有日志依据、哪些不能确认。"),
             "heldout-q1": ("literal_grouping", f"{rng} 内出现最多的是哪条消息？请按消息正文逐字分组给出频次与来源行号；如有并列请全部列出。"),
             "heldout-q2": ("pure_stats", f"{rng} 内 generating core 消息共多少条？首末两条的精确时间戳（第 5 列）分别是什么？"),
             "heldout-q3": ("level_counts", f"{rng} 内 WARNING、ERROR、SEVERE 级别各有多少条？这些日志的节点/位置字段是什么？"),
-            "heldout-q4": ("literal_grouping", f"{rng} 内 FATAL 消息共有多少条？其中 ciod LOGIN chdir 开头的消息出现几次？"),
+            "heldout-q4": ("literal_grouping", f"{rng} 内 FATAL 消息共有多少条？其中 ciod: LOGIN chdir 开头（前缀含冒号，逐字精确匹配）的消息出现几次？"),
             "heldout-q5": ("level_counts_desc", f"{rng} 内 WARNING、SEVERE、ERROR 级别各多少条？这组日志主要反映了什么问题？哪些结论有日志依据？"),
             "heldout-q6": ("missing_lines", f"L{start}-L{start + 49} 内 Node card is not fully functional 消息共多少条？请说明统计覆盖范围。"),
             "heldout-q7": ("grouping_rootcause", f"{rng} 内 data storage interrupt 与 instruction address 两类消息各出现多少次？这些错误能否确认是硬件故障？"),
@@ -149,7 +159,17 @@ def main():
                     "heldout-q8": {"有据": ["计数与时间范围"], "不可证实": []},
                 }[qid]}
 
-    scenarios = [build(qid, sc) for qid, sc in [(qid, next(s for s in scenarios if s["id"] == qid)) for qid in windows]]
+    raw_by_qid = {d["file"].split("_")[1]: d["raw_lines"] for d in corpus_docs}
+    scenarios = [build(qid, sc, raw_by_qid[qid])
+                 for qid, sc in [(qid, next(s for s in scenarios if s["id"] == qid)) for qid in windows]]
+
+    # 金标自检（终审 P1-Q-GOLD 指认的错位案例，逐项断言）
+    by_q = {s["id"]: s for s in scenarios}
+    assert by_q["dev-q1"]["gold_program"]["level_counts"] == {"ERROR": 35}, by_q["dev-q1"]["gold_program"]["level_counts"]
+    assert by_q["heldout-q4"]["gold_program"]["level_counts"] == {"FATAL": 35}, by_q["heldout-q4"]["gold_program"]["level_counts"]
+    assert by_q["dev-q3"]["gold_program"]["level_counts"].get("FATAL") == 29
+    assert by_q["heldout-q4"]["gold_program"]["top_messages"][0]["line_numbers"] == list(range(3080825, 3080860)), \
+        "组内行号必须为绝对来源行号"
 
     # 语料落盘 + manifest（题干/金标不入库）
     cdir = HERE / "corpus"
@@ -161,7 +181,19 @@ def main():
         manifest.append({"title": d["title"], "file": d["file"], "start": d["start"], "end": d["end"],
                          "bytes": fp.stat().st_size})
 
-    out = {"namespace": "n31q", "batch": "quality_12",
+    # gold 版本：v1（带前缀解析，错位）→ v2（去前缀、绝对行号）；v1 已被 run#1/#2 使用，作废并留痕
+    gold_corrections = {
+        "version": "gold_v2_20261103",
+        "old_version": "gold_v1_20261102（随 commit 9b5b9cf 的 scenarios_frozen.json；被 run#1/#2 判分使用，已作废）",
+        "reason": "终审 P1-Q-GOLD：v1 把带 L<no>: 前缀的行按无前缀列号解析，12/12 题 level_counts 错位"
+                  "（如 dev-q1 MMCS:35 应为 ERROR:35、heldout-q4 APP:35 应为 FATAL:35）、time_bounds 全 null、"
+                  "分组键混入级别字段、组内行号为 1..35 相对下标",
+        "also": "heldout-q4 题干 'ciod LOGIN chdir 开头' 与原文 'ciod: LOGIN chdir(' 存在冒号差异，v2 题干明确为 'ciod: LOGIN chdir 开头（前缀含冒号，逐字精确匹配）' 以消除口径歧义",
+        "impact": "run#1/#2 的判分基于 v1 错位金标，全部不可作为准确率；旧答案与旧判分保留于 quality_run/，"
+                  "不改写；复判需 API 额度（当前项目总额余 728，blocked）",
+    }
+    out = {"namespace": "n31q", "batch": "quality_12", "gold_version": "gold_v2_20261103",
+           "gold_corrections": gold_corrections,
            "corpus_docs": [{"title": d["title"], "file": d["file"]} for d in corpus_docs],
            "corpus_manifest": manifest,
            "questions": [{k: v for k, v in s.items() if k != "lines"} for s in scenarios],

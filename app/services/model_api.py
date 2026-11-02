@@ -5,6 +5,7 @@
 """
 import json
 import logging
+import os
 import time
 from urllib.parse import urlsplit
 
@@ -23,6 +24,37 @@ _RERANK_WRAP_BYTES = 128  # rerank 请求协议包装余量
 # enable_thinking 参数仅对接受该参数的模型发送（探针实测）：
 # qwen3.8-2.4t-a95b 强制思考（param restricted to True），发送 False 会 400，必须省略。
 _THINKING_DISABLE_UNSUPPORTED = {"qwen3.8-2.4t-a95b"}
+# 可计费推理 tokens 预留（探针实测 2.4t-a95b 强制思考且 usage 返回 reasoning_tokens）
+_THINKING_CAP = {"qwen3.8-2.4t-a95b": 4096}
+# 文本候选切换链（P1-Q-SWITCH）：由启动器按 budget.json generation_order 注入（JSON 列表，
+# 不含首选模型）。仅本模型项目预留不足时按序切换；总额不足/认证/参数错误不切换。
+_TEXT_CANDIDATES_ENV = "CHAT_MODEL_CANDIDATES"
+
+
+def _text_candidates() -> list[str]:
+    raw = os.environ.get(_TEXT_CANDIDATES_ENV, "")
+    try:
+        parsed = json.loads(raw) if raw else []
+        return [str(m) for m in parsed]
+    except ValueError:
+        return []
+
+
+def _is_per_model_budget_refusal(exc: Exception) -> bool:
+    """区分拒绝类型：仅"本模型分模型预留不足"可切换候选；总额不足/halt 不可借换模型突破。"""
+    msg = str(exc)
+    return msg.startswith("模型") and "额度超限" in msg and "超过总授权" not in msg
+
+
+def _is_total_budget_refusal(exc: Exception) -> bool:
+    msg = str(exc)
+    return "超过总授权" in msg or msg.startswith("预算已停止")
+
+
+def _is_provider_transient(exc: Exception) -> bool:
+    """供应商暂时性错误（429/5xx）：同模型最多额外重试一次（记账后）。"""
+    status = getattr(exc, "status_code", None)
+    return status in (429, 500, 502, 503, 504)
 
 # chat 模板包装余量（已验证协议事实的保守放大约束，非实测常数硬编码）：
 # Qwen 模板每条消息渲染 <|im_start|>role\n…<|im_end|>\n 等 ASCII 标记（单个标记 ≤11 字节），
@@ -78,22 +110,60 @@ class ChatAPI:
         self.is_dashscope = "aliyuncs.com" in (base_url or "")
         self.calls: list[dict] = []
 
-    def _reserve(self, kind: str, messages: list[dict], tools: list[dict] | None, *, output_cap: int, thinking_cap: int = 0):
-        estimate = estimate_chat_bound(messages, tools, output_cap=output_cap, thinking_cap=thinking_cap)
-        return reserve_for_channel(self.calls, self._budget, kind, self.model, estimate)
+    def _thinking_cap(self, model: str) -> int:
+        # 可计费推理预留按模型配置（探针实测 2.4t-a95b 强制思考且 usage 返回 reasoning_tokens）
+        return _THINKING_CAP.get(model, 0)
+
+    def _reserve(self, kind: str, model: str, messages: list[dict], tools: list[dict] | None, *, output_cap: int, thinking_cap: int = 0):
+        estimate = estimate_chat_bound(messages, tools, output_cap=output_cap,
+                                       thinking_cap=thinking_cap + self._thinking_cap(model))
+        return reserve_for_channel(self.calls, self._budget, kind, model, estimate)
 
     @staticmethod
     def _settle(guard, reservation, record: dict):
         settle_for_channel(record, guard, reservation)
 
     def chat(self, system: str, user: str, *, json_mode: bool = False, output_cap: int = _CHAT_OUTPUT_CAP) -> str:
+        """文本生成，带最小候选切换（P1-Q-SWITCH）：
+        - 首选模型"分模型预留不足"时按候选链切换（每次切换记入 calls 审计）；
+        - 总额不足/halt、认证/参数错误不切换（不能借换模型突破总额）；
+        - 供应商 429/5xx 同模型最多额外重试一次（每次尝试独立预留并记账）。"""
+        models = [self.model] + [m for m in _text_candidates() if m != self.model]
+        i = 0
+        while True:
+            model = models[i]
+            try:
+                return self._chat_once(model, system, user, json_mode=json_mode, output_cap=output_cap)
+            except BudgetExceededError as exc:
+                if _is_per_model_budget_refusal(exc) and i + 1 < len(models):
+                    self.calls.append({"model": model, "kind": "chat", "status": "model_switch",
+                                       "to": models[i + 1], "reason": str(exc)[:220]})
+                    logger.warning("模型 %s 分模型预留不足，按候选链切换至 %s", model, models[i + 1])
+                    i += 1
+                    continue
+                raise
+            except Exception as exc:
+                if _is_provider_transient(exc):
+                    self.calls.append({"model": model, "kind": "chat", "status": "transient_retry",
+                                       "error": str(exc)[:220]})
+                    logger.warning("模型 %s 供应商暂时性错误（%s），同模型额外重试一次", model, type(exc).__name__)
+                    try:
+                        return self._chat_once(model, system, user, json_mode=json_mode, output_cap=output_cap)
+                    except Exception as exc2:
+                        self.calls.append({"model": model, "kind": "chat", "status": "transient_retry_failed",
+                                           "error": str(exc2)[:220]})
+                        raise
+                raise
+
+    def _chat_once(self, model: str, system: str, user: str, *, json_mode: bool = False,
+                   output_cap: int = _CHAT_OUTPUT_CAP) -> str:
         messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
-        guard, reservation = self._reserve("chat", messages, None, output_cap=output_cap)
-        emit("model_input", {"kind": "chat", "model": self.model, "system": system, "user": user})
+        guard, reservation = self._reserve("chat", model, messages, None, output_cap=output_cap)
+        emit("model_input", {"kind": "chat", "model": model, "system": system, "user": user})
         started = time.perf_counter()
-        record = {"model": self.model, "status": "error", "first_token_ms": None, "usage": {}}
+        record = {"model": model, "status": "error", "first_token_ms": None, "usage": {}}
         params = {}
-        if self.is_dashscope and self.model not in _THINKING_DISABLE_UNSUPPORTED:
+        if self.is_dashscope and model not in _THINKING_DISABLE_UNSUPPORTED:
             params["extra_body"] = {"enable_thinking": False}
         if json_mode:
             params["response_format"] = {"type": "json_object"}
@@ -101,7 +171,7 @@ class ChatAPI:
         finish = None
         try:
             with self.client.chat.completions.create(
-                model=self.model,
+                model=model,
                 messages=messages,
                 temperature=0,
                 max_tokens=output_cap,
@@ -136,7 +206,7 @@ class ChatAPI:
             self._settle(guard, reservation, record)
 
     def tool_turn(self, messages: list[dict], tools: list[dict], *, allow_tools: bool = True) -> dict:
-        guard, reservation = self._reserve("tool_chat", messages, tools, output_cap=_CHAT_OUTPUT_CAP)
+        guard, reservation = self._reserve("tool_chat", self.model, messages, tools, output_cap=_CHAT_OUTPUT_CAP)
         started = time.perf_counter()
         record = {"model": self.model, "status": "error", "usage": {}}
         try:

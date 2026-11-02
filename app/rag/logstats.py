@@ -28,9 +28,10 @@ _TIMESTAMP = re.compile(r"\d{4}-\d{2}-\d{2}-\d{2}\.\d{2}\.\d{2}\.\d{6}")
 # 以单个空格重新连接。分组键为该消息原文的逐字精确匹配（含大小写、空格与标点），
 # 不做任何归一化/去数字/模板折叠——不同原文一律视为不同消息，绝不合并语义。
 STRIPPED_FIELD_COUNT = 8
-LITERAL_GROUP_BASIS = ("分组口径：按消息正文逐字精确分组。剥离字段为行号前缀与前 8 个空格分隔字段"
+LITERAL_GROUP_BASIS = ("分组口径：按消息正文逐字精确分组。剥离字段为行号前缀与前 8 个空白分隔字段"
                        "（epoch、日期、节点、精确时间戳、节点2、RAS、KIND、LEVEL），"
-                       "分组键为剩余文本以单空格重连后的原文；不做归一化，不同原文不合并。")
+                       "分组键为第 9 个字段起的原文剩余部分——保留正文内部原始空格与标点，"
+                       "不 rejoin、不折叠、不做归一化；不同原文（含空格差异）一律视为不同消息。")
 
 BASIS = ("统计口径：仅计入完整行；行内容以租户知识库文档原文为权威（按行号 L<no> 对齐），"
          "同一行号只计一次；块尾残行不计入计数并单独列出；"
@@ -45,6 +46,30 @@ def _split_bgl_line(line: str) -> tuple[str, list[str], str] | None:
         return None
     fields = m.group(2).split()
     return m.group(1), fields, m.group(2)
+
+
+def _message_literal(line: str) -> str | None:
+    """取消息正文逐字原文：剥离行号前缀与前 8 个空白分隔字段，保留其后全部字符
+    （含正文字段间的原始空格——不 rejoin、不折叠，终审 P1-Q-LITERAL）。
+    字段间分隔空白在本函数内跳过；返回值以前 9 个字段的第 9 字段（消息）首字符起，
+    至行尾（含行内尾随空格，不含行终止符）。非该格式返回 None。"""
+    m = re.match(r"^\s*L\d{3,8}:", line)
+    if not m:
+        return None
+    rest = line[m.end():]
+    pos, count = 0, 0
+    while count < STRIPPED_FIELD_COUNT:
+        while pos < len(rest) and rest[pos] in " \t":
+            pos += 1
+        if pos >= len(rest):
+            return ""
+        start = pos
+        while pos < len(rest) and rest[pos] not in " \t":
+            pos += 1
+        count += 1
+        if count == STRIPPED_FIELD_COUNT:
+            return rest[pos:].lstrip(" \t")
+    return ""
 
 
 def parse_conditions(question: str) -> tuple[list[dict], list[str], dict]:
@@ -92,15 +117,14 @@ def parse_conditions(question: str) -> tuple[list[dict], list[str], dict]:
 def group_messages_literal(lines: list[tuple[int, str]]) -> list[dict]:
     """按消息正文逐字精确分组：返回 [{message, count, line_numbers}]，按次数降序、原文次序稳定。
 
-    剥离字段见 LITERAL_GROUP_BASIS；不同原文一律不合并。仅接收完整行。
+    分组键为 _message_literal 的逐字原文（保留正文内部原始空格，不 rejoin、不折叠，
+    终审 P1-Q-LITERAL："A  B" 与 "A B" 是两个不同分组）；不同原文一律不合并。仅接收完整行。
     """
     groups: dict[str, list[int]] = {}
     for lineno, line in lines:
-        parsed = _split_bgl_line(line)
-        if not parsed:
+        message = _message_literal(line)
+        if message is None:
             continue
-        _no, fields, _rest = parsed
-        message = " ".join(fields[STRIPPED_FIELD_COUNT:]) if len(fields) > STRIPPED_FIELD_COUNT else ""
         groups.setdefault(message, []).append(lineno)
     items = [{"message": msg, "count": len(nums), "line_numbers": nums} for msg, nums in groups.items()]
     items.sort(key=lambda x: (-x["count"], x["message"]))
@@ -137,7 +161,7 @@ def compute_range_stats(question: str, hits: list[dict], db=None, tenant_id: str
         matched: list[int] = []
         for lineno, line in lines:
             parsed = _split_bgl_line(line)
-            message = " ".join(parsed[1][STRIPPED_FIELD_COUNT:]) if parsed and len(parsed[1]) > STRIPPED_FIELD_COUNT else ""
+            message = _message_literal(line) or ""
             if spec["kind"] == "level":
                 if parsed and len(parsed[1]) > 7 and parsed[1][7] == spec["value"]:
                     matched.append(lineno)

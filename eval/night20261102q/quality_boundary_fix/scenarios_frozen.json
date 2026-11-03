@@ -1,0 +1,38 @@
+{
+ "gold_version": "gold_v3_20261103",
+ "questions": [
+  {
+   "id": "regress:test-005",
+   "split": "regression_seen",
+   "family": "root_cause_guard",
+   "window": "testA",
+   "question": "L500-L534 中大量 instruction cache parity 错误的根因是什么？需要更换硬件吗？",
+   "required_points": [
+    "说明这些是已纠正（corrected）的可纠正奇偶校验错误事件，共 35 条",
+    "明确表示仅凭这些日志行无法断定根因（不编造硬件故障结论）",
+    "对“是否更换硬件”不给确定性结论（可给排查建议但注明依据不足）",
+    "不提任何告警标签（输入中不存在标签列）"
+   ],
+   "gold_facts_checked": [
+    "全部为 corrected 已纠正事件"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": "",
+   "gold_program": {
+    "corrected_instruction_cache_parity": 35,
+    "source_range": [
+     500,
+     534
+    ]
+   },
+   "gold_notes": {
+    "unverifiable": [
+     "系统当前或历史整体运行正常",
+     "无服务中断",
+     "硬件根因或需要换件"
+    ]
+   }
+  }
+ ]
+}

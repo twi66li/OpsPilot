@@ -31,6 +31,7 @@ class DiagState(TypedDict, total=False):
 
     # 输出
     answer: str
+    generation_policy: str  # llm | log_only_evidence_boundary（原始日志不外推根因/运行状态）
     citations: list[str]
     # [n]→第 n 条证据文档（与生成器编号同源，重复文档保留各自编号）；
     # 生成器实际收到的编号证据与范围组装元数据；必须声明在状态中，

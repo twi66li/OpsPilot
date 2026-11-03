@@ -1,0 +1,1742 @@
+{
+ "gold_version": "gold_v3_20261103",
+ "questions": [
+  {
+   "id": "heldout-q1",
+   "split": "heldout",
+   "family": "literal_grouping",
+   "question": "L4655990-L4656024 内出现最多的是哪条消息？请按消息正文逐字分组给出频次与来源行号；如有并列请全部列出。",
+   "window": "L4655990-L4656024",
+   "window_start": 4655990,
+   "window_end": 4656024,
+   "gold_program": {
+    "level_counts": {
+     "FATAL": 35
+    },
+    "time_bounds": {
+     "first_epoch": 1134158826,
+     "first": "2005-12-09-12.07.06.040236",
+     "last_epoch": 1134158859,
+     "last": "2005-12-09-12.07.39.995677"
+    },
+    "top_messages": [
+     {
+      "message": "ciod: Error loading /p/gb1/stella/SPPM/1361/sppm_DD: invalid or missing program image, Permission denied",
+      "count": 16,
+      "line_numbers": [
+       4656007,
+       4656008,
+       4656009,
+       4656010,
+       4656011,
+       4656012,
+       4656013,
+       4656014,
+       4656015,
+       4656016,
+       4656017,
+       4656018,
+       4656019,
+       4656020,
+       4656021,
+       4656022
+      ]
+     },
+     {
+      "message": "ciod: Error loading /p/gb1/stella/SPASM/1347/spasm_DD: invalid or missing program image, Permission denied",
+      "count": 13,
+      "line_numbers": [
+       4655990,
+       4655992,
+       4655994,
+       4655996,
+       4655998,
+       4655999,
+       4656000,
+       4656001,
+       4656002,
+       4656003,
+       4656004,
+       4656005,
+       4656006
+      ]
+     },
+     {
+      "message": "ciod: Error loading /p/gb1/stella/SPPM/1360/sppm_DD: invalid or missing program image, Permission denied",
+      "count": 4,
+      "line_numbers": [
+       4655991,
+       4655993,
+       4655995,
+       4655997
+      ]
+     }
+    ],
+    "distinct_messages": 4,
+    "total_lines": 35,
+    "line_numbers": [
+     4655990,
+     4655991,
+     4655992,
+     4655993,
+     4655994,
+     4655995,
+     4655996,
+     4655997,
+     4655998,
+     4655999,
+     4656000,
+     4656001,
+     4656002,
+     4656003,
+     4656004,
+     4656005,
+     4656006,
+     4656007,
+     4656008,
+     4656009,
+     4656010,
+     4656011,
+     4656012,
+     4656013,
+     4656014,
+     4656015,
+     4656016,
+     4656017,
+     4656018,
+     4656019,
+     4656020,
+     4656021,
+     4656022,
+     4656023,
+     4656024
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "逐字分组与并列项"
+    ],
+    "不可证实": []
+   }
+  },
+  {
+   "id": "heldout-q2",
+   "split": "heldout",
+   "family": "pure_stats",
+   "question": "L1800000-L1800034 内 generating core 消息共多少条？首末两条的精确时间戳（第 5 列）分别是什么？",
+   "window": "L1800000-L1800034",
+   "window_start": 1800000,
+   "window_end": 1800034,
+   "gold_program": {
+    "level_counts": {
+     "INFO": 35
+    },
+    "time_bounds": {
+     "first_epoch": 1120940261,
+     "first": "2005-07-09-13.17.41.689107",
+     "last_epoch": 1120940262,
+     "last": "2005-07-09-13.17.42.938369"
+    },
+    "top_messages": [
+     {
+      "message": "generating core.41532",
+      "count": 1,
+      "line_numbers": [
+       1800023
+      ]
+     },
+     {
+      "message": "generating core.41533",
+      "count": 1,
+      "line_numbers": [
+       1800033
+      ]
+     },
+     {
+      "message": "generating core.41534",
+      "count": 1,
+      "line_numbers": [
+       1800025
+      ]
+     }
+    ],
+    "distinct_messages": 35,
+    "total_lines": 35,
+    "line_numbers": [
+     1800000,
+     1800001,
+     1800002,
+     1800003,
+     1800004,
+     1800005,
+     1800006,
+     1800007,
+     1800008,
+     1800009,
+     1800010,
+     1800011,
+     1800012,
+     1800013,
+     1800014,
+     1800015,
+     1800016,
+     1800017,
+     1800018,
+     1800019,
+     1800020,
+     1800021,
+     1800022,
+     1800023,
+     1800024,
+     1800025,
+     1800026,
+     1800027,
+     1800028,
+     1800029,
+     1800030,
+     1800031,
+     1800032,
+     1800033,
+     1800034
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "计数与时间范围"
+    ],
+    "不可证实": []
+   }
+  },
+  {
+   "id": "heldout-q3",
+   "split": "heldout",
+   "family": "level_counts",
+   "question": "L2934565-L2934599 内 WARNING、ERROR、SEVERE 级别各有多少条？这些日志的节点/位置字段是什么？",
+   "window": "L2934565-L2934599",
+   "window_start": 2934565,
+   "window_end": 2934599,
+   "gold_program": {
+    "level_counts": {
+     "ERROR": 12,
+     "WARNING": 12,
+     "SEVERE": 11
+    },
+    "time_bounds": {
+     "first_epoch": 1123093139,
+     "first": "2005-08-03-11.18.59.603774",
+     "last_epoch": 1123093142,
+     "last": "2005-08-03-11.19.02.695708"
+    },
+    "top_messages": [
+     {
+      "message": "Node card is not fully functional",
+      "count": 12,
+      "line_numbers": [
+       2934566,
+       2934567,
+       2934572,
+       2934573,
+       2934578,
+       2934579,
+       2934584,
+       2934587,
+       2934588,
+       2934593,
+       2934596,
+       2934599
+      ]
+     },
+     {
+      "message": "Node card status: no ALERTs are active. Clock Mode is Low. Clock Select is Midplane. Phy JTAG Reset is asserted. ASIC JTAG Reset is asserted. Temperature Mask is not active. No temperature error. Temperature Limit Error Latch is clear. PGOOD IS NOT ASSERTED. PGOOD ERROR LATCH IS ACTIVE. MPGOOD IS NOT OK. MPGOOD ERROR LATCH IS ACTIVE. The 2.5 volt rail is OK. The 1.5 volt rail is OK.",
+      "count": 12,
+      "line_numbers": [
+       2934565,
+       2934570,
+       2934571,
+       2934576,
+       2934577,
+       2934582,
+       2934583,
+       2934586,
+       2934590,
+       2934592,
+       2934595,
+       2934598
+      ]
+     },
+     {
+      "message": "Can not get assembly information for node card",
+      "count": 11,
+      "line_numbers": [
+       2934568,
+       2934569,
+       2934574,
+       2934575,
+       2934580,
+       2934581,
+       2934585,
+       2934589,
+       2934591,
+       2934594,
+       2934597
+      ]
+     }
+    ],
+    "distinct_messages": 3,
+    "total_lines": 35,
+    "line_numbers": [
+     2934565,
+     2934566,
+     2934567,
+     2934568,
+     2934569,
+     2934570,
+     2934571,
+     2934572,
+     2934573,
+     2934574,
+     2934575,
+     2934576,
+     2934577,
+     2934578,
+     2934579,
+     2934580,
+     2934581,
+     2934582,
+     2934583,
+     2934584,
+     2934585,
+     2934586,
+     2934587,
+     2934588,
+     2934589,
+     2934590,
+     2934591,
+     2934592,
+     2934593,
+     2934594,
+     2934595,
+     2934596,
+     2934597,
+     2934598,
+     2934599
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "三级级别计数",
+     "位置字段原文（UNKNOWN_LOCATION 如实转述）"
+    ],
+    "不可证实": [
+     "真实物理位置"
+    ]
+   }
+  },
+  {
+   "id": "heldout-q4",
+   "split": "heldout",
+   "family": "literal_grouping",
+   "question": "L3080825-L3080859 内 FATAL 消息共有多少条？其中 ciod: LOGIN chdir 开头（前缀含冒号，逐字精确匹配）的消息出现几次？",
+   "window": "L3080825-L3080859",
+   "window_start": 3080825,
+   "window_end": 3080859,
+   "gold_program": {
+    "level_counts": {
+     "FATAL": 35
+    },
+    "time_bounds": {
+     "first_epoch": 1124721459,
+     "first": "2005-08-22-07.37.39.596468",
+     "last_epoch": 1124721464,
+     "last": "2005-08-22-07.37.44.328698"
+    },
+    "top_messages": [
+     {
+      "message": "ciod: LOGIN chdir(/home/germann2/SPaSM_static) failed: No such file or directory",
+      "count": 35,
+      "line_numbers": [
+       3080825,
+       3080826,
+       3080827,
+       3080828,
+       3080829,
+       3080830,
+       3080831,
+       3080832,
+       3080833,
+       3080834,
+       3080835,
+       3080836,
+       3080837,
+       3080838,
+       3080839,
+       3080840,
+       3080841,
+       3080842,
+       3080843,
+       3080844,
+       3080845,
+       3080846,
+       3080847,
+       3080848,
+       3080849,
+       3080850,
+       3080851,
+       3080852,
+       3080853,
+       3080854,
+       3080855,
+       3080856,
+       3080857,
+       3080858,
+       3080859
+      ]
+     }
+    ],
+    "distinct_messages": 1,
+    "total_lines": 35,
+    "line_numbers": [
+     3080825,
+     3080826,
+     3080827,
+     3080828,
+     3080829,
+     3080830,
+     3080831,
+     3080832,
+     3080833,
+     3080834,
+     3080835,
+     3080836,
+     3080837,
+     3080838,
+     3080839,
+     3080840,
+     3080841,
+     3080842,
+     3080843,
+     3080844,
+     3080845,
+     3080846,
+     3080847,
+     3080848,
+     3080849,
+     3080850,
+     3080851,
+     3080852,
+     3080853,
+     3080854,
+     3080855,
+     3080856,
+     3080857,
+     3080858,
+     3080859
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "FATAL 计数与同文消息计数"
+    ],
+    "不可证实": [
+     "chdir 失败的应用侧原因"
+    ]
+   }
+  },
+  {
+   "id": "heldout-q5",
+   "split": "heldout",
+   "family": "level_counts_desc",
+   "question": "L4206185-L4206219 内 WARNING、SEVERE、ERROR 级别各多少条？这组日志主要反映了什么问题？哪些结论有日志依据？",
+   "window": "L4206185-L4206219",
+   "window_start": 4206185,
+   "window_end": 4206219,
+   "gold_program": {
+    "level_counts": {
+     "WARNING": 15,
+     "SEVERE": 10,
+     "ERROR": 10
+    },
+    "time_bounds": {
+     "first_epoch": 1132076395,
+     "first": "2005-11-15-09.39.55.777432",
+     "last_epoch": 1132076428,
+     "last": "2005-11-15-09.40.28.953383"
+    },
+    "top_messages": [
+     {
+      "message": "Can not get assembly information for node card",
+      "count": 10,
+      "line_numbers": [
+       4206187,
+       4206190,
+       4206194,
+       4206197,
+       4206202,
+       4206203,
+       4206208,
+       4206211,
+       4206215,
+       4206218
+      ]
+     },
+     {
+      "message": "Node card is not fully functional",
+      "count": 10,
+      "line_numbers": [
+       4206186,
+       4206188,
+       4206193,
+       4206195,
+       4206200,
+       4206201,
+       4206207,
+       4206209,
+       4206214,
+       4206216
+      ]
+     },
+     {
+      "message": "Node card status: no ALERTs are active. Clock Mode is Low. Clock Select is Midplane. Phy JTAG Reset is asserted. ASIC JTAG Reset is asserted. Temperature Mask is not active. No temperature error. Temperature Limit Error Latch is clear. PGOOD IS NOT ASSERTED. PGOOD ERROR LATCH IS ACTIVE. MPGOOD IS NOT OK. MPGOOD ERROR LATCH IS ACTIVE. The 2.5 volt rail is OK. The 1.5 volt rail is OK.",
+      "count": 10,
+      "line_numbers": [
+       4206189,
+       4206191,
+       4206196,
+       4206198,
+       4206204,
+       4206205,
+       4206210,
+       4206212,
+       4206217,
+       4206219
+      ]
+     }
+    ],
+    "distinct_messages": 8,
+    "total_lines": 35,
+    "line_numbers": [
+     4206185,
+     4206186,
+     4206187,
+     4206188,
+     4206189,
+     4206190,
+     4206191,
+     4206192,
+     4206193,
+     4206194,
+     4206195,
+     4206196,
+     4206197,
+     4206198,
+     4206199,
+     4206200,
+     4206201,
+     4206202,
+     4206203,
+     4206204,
+     4206205,
+     4206206,
+     4206207,
+     4206208,
+     4206209,
+     4206210,
+     4206211,
+     4206212,
+     4206213,
+     4206214,
+     4206215,
+     4206216,
+     4206217,
+     4206218,
+     4206219
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "三级级别计数与消息内容"
+    ],
+    "不可证实": [
+     "节点卡问题的根因"
+    ]
+   }
+  },
+  {
+   "id": "heldout-q6",
+   "split": "heldout",
+   "family": "missing_lines",
+   "question": "L3014300-L3014349 内 Node card is not fully functional 消息共多少条？请说明统计覆盖范围。",
+   "window": "L3014300-L3014334",
+   "window_start": 3014300,
+   "window_end": 3014334,
+   "gold_program": {
+    "level_counts": {
+     "WARNING": 14,
+     "INFO": 1,
+     "SEVERE": 10,
+     "ERROR": 10
+    },
+    "time_bounds": {
+     "first_epoch": 1123865488,
+     "first": "2005-08-12-09.51.28.420255",
+     "last_epoch": 1123866054,
+     "last": "2005-08-12-10.00.54.293298"
+    },
+    "top_messages": [
+     {
+      "message": "Node card is not fully functional",
+      "count": 11,
+      "line_numbers": [
+       3014304,
+       3014307,
+       3014310,
+       3014313,
+       3014316,
+       3014319,
+       3014322,
+       3014325,
+       3014328,
+       3014331,
+       3014334
+      ]
+     },
+     {
+      "message": "Can not get assembly information for node card",
+      "count": 10,
+      "line_numbers": [
+       3014305,
+       3014308,
+       3014311,
+       3014314,
+       3014317,
+       3014320,
+       3014323,
+       3014326,
+       3014329,
+       3014332
+      ]
+     },
+     {
+      "message": "Node card status: no ALERTs are active. Clock Mode is Low. Clock Select is Midplane. Phy JTAG Reset is asserted. ASIC JTAG Reset is asserted. Temperature Mask is not active. No temperature error. Temperature Limit Error Latch is clear. PGOOD IS NOT ASSERTED. PGOOD ERROR LATCH IS ACTIVE. MPGOOD IS NOT OK. MPGOOD ERROR LATCH IS ACTIVE. The 2.5 volt rail is OK. The 1.5 volt rail is OK.",
+      "count": 10,
+      "line_numbers": [
+       3014306,
+       3014309,
+       3014312,
+       3014315,
+       3014318,
+       3014321,
+       3014324,
+       3014327,
+       3014330,
+       3014333
+      ]
+     }
+    ],
+    "distinct_messages": 7,
+    "total_lines": 35,
+    "line_numbers": [
+     3014300,
+     3014301,
+     3014302,
+     3014303,
+     3014304,
+     3014305,
+     3014306,
+     3014307,
+     3014308,
+     3014309,
+     3014310,
+     3014311,
+     3014312,
+     3014313,
+     3014314,
+     3014315,
+     3014316,
+     3014317,
+     3014318,
+     3014319,
+     3014320,
+     3014321,
+     3014322,
+     3014323,
+     3014324,
+     3014325,
+     3014326,
+     3014327,
+     3014328,
+     3014329,
+     3014330,
+     3014331,
+     3014332,
+     3014333,
+     3014334
+    ],
+    "asked_range": {
+     "lo": 3014300,
+     "hi": 3014349,
+     "missing": [
+      3014335,
+      3014336,
+      3014337,
+      3014338,
+      3014339,
+      3014340,
+      3014341,
+      3014342,
+      3014343,
+      3014344,
+      3014345,
+      3014346,
+      3014347,
+      3014348,
+      3014349
+     ]
+    },
+    "covered_count": 11,
+    "note": "文档只覆盖 L3014300-L3014334；缺失 L3014335-L3014349 共 15 行不得计入总数"
+   },
+   "gold_notes": {
+    "有据": [
+     "已覆盖 35 行的统计与缺失清单"
+    ],
+    "不可证实": [
+     "缺失 15 行的内容"
+    ]
+   }
+  },
+  {
+   "id": "heldout-q7",
+   "split": "heldout",
+   "family": "grouping_rootcause",
+   "question": "L530000-L530034 内 data storage interrupt 与 instruction address 两类消息各出现多少次？这些错误能否确认是硬件故障？",
+   "window": "L530000-L530034",
+   "window_start": 530000,
+   "window_end": 530034,
+   "gold_program": {
+    "level_counts": {
+     "FATAL": 35
+    },
+    "time_bounds": {
+     "first_epoch": 1118769431,
+     "first": "2005-06-14-10.17.11.505895",
+     "last_epoch": 1118769432,
+     "last": "2005-06-14-10.17.12.139289"
+    },
+    "top_messages": [
+     {
+      "message": "data storage interrupt",
+      "count": 18,
+      "line_numbers": [
+       530000,
+       530002,
+       530004,
+       530006,
+       530008,
+       530010,
+       530012,
+       530014,
+       530016,
+       530018,
+       530020,
+       530022,
+       530024,
+       530026,
+       530028,
+       530030,
+       530032,
+       530034
+      ]
+     },
+     {
+      "message": "instruction address: 0x00004ed8",
+      "count": 17,
+      "line_numbers": [
+       530001,
+       530003,
+       530005,
+       530007,
+       530009,
+       530011,
+       530013,
+       530015,
+       530017,
+       530019,
+       530021,
+       530023,
+       530025,
+       530027,
+       530029,
+       530031,
+       530033
+      ]
+     }
+    ],
+    "distinct_messages": 2,
+    "total_lines": 35,
+    "line_numbers": [
+     530000,
+     530001,
+     530002,
+     530003,
+     530004,
+     530005,
+     530006,
+     530007,
+     530008,
+     530009,
+     530010,
+     530011,
+     530012,
+     530013,
+     530014,
+     530015,
+     530016,
+     530017,
+     530018,
+     530019,
+     530020,
+     530021,
+     530022,
+     530023,
+     530024,
+     530025,
+     530026,
+     530027,
+     530028,
+     530029,
+     530030,
+     530031,
+     530032,
+     530033,
+     530034
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "两类消息计数与行号"
+    ],
+    "不可证实": [
+     "硬件故障结论（需硬件诊断证据）"
+    ]
+   }
+  },
+  {
+   "id": "heldout-q8",
+   "split": "heldout",
+   "family": "pure_stats",
+   "question": "L2500000-L2500034 内共有多少条日志？时间范围是什么（第 5 列）？",
+   "window": "L2500000-L2500034",
+   "window_start": 2500000,
+   "window_end": 2500034,
+   "gold_program": {
+    "level_counts": {
+     "INFO": 35
+    },
+    "time_bounds": {
+     "first_epoch": 1122133145,
+     "first": "2005-07-23-08.39.05.705460",
+     "last_epoch": 1122133146,
+     "last": "2005-07-23-08.39.06.645066"
+    },
+    "top_messages": [
+     {
+      "message": "generating core.10308",
+      "count": 1,
+      "line_numbers": [
+       2500025
+      ]
+     },
+     {
+      "message": "generating core.10309",
+      "count": 1,
+      "line_numbers": [
+       2500027
+      ]
+     },
+     {
+      "message": "generating core.10310",
+      "count": 1,
+      "line_numbers": [
+       2500028
+      ]
+     }
+    ],
+    "distinct_messages": 35,
+    "total_lines": 35,
+    "line_numbers": [
+     2500000,
+     2500001,
+     2500002,
+     2500003,
+     2500004,
+     2500005,
+     2500006,
+     2500007,
+     2500008,
+     2500009,
+     2500010,
+     2500011,
+     2500012,
+     2500013,
+     2500014,
+     2500015,
+     2500016,
+     2500017,
+     2500018,
+     2500019,
+     2500020,
+     2500021,
+     2500022,
+     2500023,
+     2500024,
+     2500025,
+     2500026,
+     2500027,
+     2500028,
+     2500029,
+     2500030,
+     2500031,
+     2500032,
+     2500033,
+     2500034
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "计数与时间范围"
+    ],
+    "不可证实": []
+   }
+  },
+  {
+   "id": "ablation:dev-q1:off",
+   "split": "dev_ablation",
+   "family": "stats_semantic",
+   "question": "L3395430-L3395464 内反复出现同一条 idoproxydb ASSERT 错误共 35 条 ERROR 级别记录，这种情况说明什么？需要什么证据才能定位根因？",
+   "window": "L3395430-L3395464",
+   "window_start": 3395430,
+   "window_end": 3395464,
+   "gold_program": {
+    "level_counts": {
+     "ERROR": 35
+    },
+    "time_bounds": {
+     "first_epoch": 1127243158,
+     "first": "2005-09-20-12.05.58.883582",
+     "last_epoch": 1127243159,
+     "last": "2005-09-20-12.05.59.029310"
+    },
+    "top_messages": [
+     {
+      "message": "idoproxydb hit ASSERT condition: ASSERT expression=0 Source file=idotransportmgr.cpp Source line=1043 Function=int IdoTransportMgr::SendPacket(IdoUdpMgr*, BglCtlPavTrace*)",
+      "count": 35,
+      "line_numbers": [
+       3395430,
+       3395431,
+       3395432,
+       3395433,
+       3395434,
+       3395435,
+       3395436,
+       3395437,
+       3395438,
+       3395439,
+       3395440,
+       3395441,
+       3395442,
+       3395443,
+       3395444,
+       3395445,
+       3395446,
+       3395447,
+       3395448,
+       3395449,
+       3395450,
+       3395451,
+       3395452,
+       3395453,
+       3395454,
+       3395455,
+       3395456,
+       3395457,
+       3395458,
+       3395459,
+       3395460,
+       3395461,
+       3395462,
+       3395463,
+       3395464
+      ]
+     }
+    ],
+    "distinct_messages": 1,
+    "total_lines": 35,
+    "line_numbers": [
+     3395430,
+     3395431,
+     3395432,
+     3395433,
+     3395434,
+     3395435,
+     3395436,
+     3395437,
+     3395438,
+     3395439,
+     3395440,
+     3395441,
+     3395442,
+     3395443,
+     3395444,
+     3395445,
+     3395446,
+     3395447,
+     3395448,
+     3395449,
+     3395450,
+     3395451,
+     3395452,
+     3395453,
+     3395454,
+     3395455,
+     3395456,
+     3395457,
+     3395458,
+     3395459,
+     3395460,
+     3395461,
+     3395462,
+     3395463,
+     3395464
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "35 行同文 ASSERT 错误、来源行号",
+     "同一来源组件（消息正文）"
+    ],
+    "不可证实": [
+     "根因（需应用日志/配置变更记录/告警系统）"
+    ]
+   }
+  },
+  {
+   "id": "ablation:dev-q1:on",
+   "split": "dev_ablation",
+   "family": "stats_semantic",
+   "question": "L3395430-L3395464 内反复出现同一条 idoproxydb ASSERT 错误共 35 条 ERROR 级别记录，这种情况说明什么？需要什么证据才能定位根因？",
+   "window": "L3395430-L3395464",
+   "window_start": 3395430,
+   "window_end": 3395464,
+   "gold_program": {
+    "level_counts": {
+     "ERROR": 35
+    },
+    "time_bounds": {
+     "first_epoch": 1127243158,
+     "first": "2005-09-20-12.05.58.883582",
+     "last_epoch": 1127243159,
+     "last": "2005-09-20-12.05.59.029310"
+    },
+    "top_messages": [
+     {
+      "message": "idoproxydb hit ASSERT condition: ASSERT expression=0 Source file=idotransportmgr.cpp Source line=1043 Function=int IdoTransportMgr::SendPacket(IdoUdpMgr*, BglCtlPavTrace*)",
+      "count": 35,
+      "line_numbers": [
+       3395430,
+       3395431,
+       3395432,
+       3395433,
+       3395434,
+       3395435,
+       3395436,
+       3395437,
+       3395438,
+       3395439,
+       3395440,
+       3395441,
+       3395442,
+       3395443,
+       3395444,
+       3395445,
+       3395446,
+       3395447,
+       3395448,
+       3395449,
+       3395450,
+       3395451,
+       3395452,
+       3395453,
+       3395454,
+       3395455,
+       3395456,
+       3395457,
+       3395458,
+       3395459,
+       3395460,
+       3395461,
+       3395462,
+       3395463,
+       3395464
+      ]
+     }
+    ],
+    "distinct_messages": 1,
+    "total_lines": 35,
+    "line_numbers": [
+     3395430,
+     3395431,
+     3395432,
+     3395433,
+     3395434,
+     3395435,
+     3395436,
+     3395437,
+     3395438,
+     3395439,
+     3395440,
+     3395441,
+     3395442,
+     3395443,
+     3395444,
+     3395445,
+     3395446,
+     3395447,
+     3395448,
+     3395449,
+     3395450,
+     3395451,
+     3395452,
+     3395453,
+     3395454,
+     3395455,
+     3395456,
+     3395457,
+     3395458,
+     3395459,
+     3395460,
+     3395461,
+     3395462,
+     3395463,
+     3395464
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "35 行同文 ASSERT 错误、来源行号",
+     "同一来源组件（消息正文）"
+    ],
+    "不可证实": [
+     "根因（需应用日志/配置变更记录/告警系统）"
+    ]
+   }
+  },
+  {
+   "id": "ablation:dev-q2:off",
+   "split": "dev_ablation",
+   "family": "stats_semantic",
+   "question": "L2900000-L2900034 内每行都是一条不同的 generating core 消息，这组日志说明系统发生了什么？如何确认是否异常？",
+   "window": "L2900000-L2900034",
+   "window_start": 2900000,
+   "window_end": 2900034,
+   "gold_program": {
+    "level_counts": {
+     "INFO": 35
+    },
+    "time_bounds": {
+     "first_epoch": 1122581241,
+     "first": "2005-07-28-13.07.21.428325",
+     "last_epoch": 1122581242,
+     "last": "2005-07-28-13.07.22.377839"
+    },
+    "top_messages": [
+     {
+      "message": "generating core.12424",
+      "count": 1,
+      "line_numbers": [
+       2900032
+      ]
+     },
+     {
+      "message": "generating core.12425",
+      "count": 1,
+      "line_numbers": [
+       2900034
+      ]
+     },
+     {
+      "message": "generating core.12440",
+      "count": 1,
+      "line_numbers": [
+       2900025
+      ]
+     }
+    ],
+    "distinct_messages": 35,
+    "total_lines": 35,
+    "line_numbers": [
+     2900000,
+     2900001,
+     2900002,
+     2900003,
+     2900004,
+     2900005,
+     2900006,
+     2900007,
+     2900008,
+     2900009,
+     2900010,
+     2900011,
+     2900012,
+     2900013,
+     2900014,
+     2900015,
+     2900016,
+     2900017,
+     2900018,
+     2900019,
+     2900020,
+     2900021,
+     2900022,
+     2900023,
+     2900024,
+     2900025,
+     2900026,
+     2900027,
+     2900028,
+     2900029,
+     2900030,
+     2900031,
+     2900032,
+     2900033,
+     2900034
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "35 条互不相同的 generating core 消息",
+     "每条含不同 core 文件编号"
+    ],
+    "不可证实": [
+     "是否异常（需基线频率对比）",
+     "进程崩溃原因（需应用侧证据）"
+    ]
+   }
+  },
+  {
+   "id": "ablation:dev-q2:on",
+   "split": "dev_ablation",
+   "family": "stats_semantic",
+   "question": "L2900000-L2900034 内每行都是一条不同的 generating core 消息，这组日志说明系统发生了什么？如何确认是否异常？",
+   "window": "L2900000-L2900034",
+   "window_start": 2900000,
+   "window_end": 2900034,
+   "gold_program": {
+    "level_counts": {
+     "INFO": 35
+    },
+    "time_bounds": {
+     "first_epoch": 1122581241,
+     "first": "2005-07-28-13.07.21.428325",
+     "last_epoch": 1122581242,
+     "last": "2005-07-28-13.07.22.377839"
+    },
+    "top_messages": [
+     {
+      "message": "generating core.12424",
+      "count": 1,
+      "line_numbers": [
+       2900032
+      ]
+     },
+     {
+      "message": "generating core.12425",
+      "count": 1,
+      "line_numbers": [
+       2900034
+      ]
+     },
+     {
+      "message": "generating core.12440",
+      "count": 1,
+      "line_numbers": [
+       2900025
+      ]
+     }
+    ],
+    "distinct_messages": 35,
+    "total_lines": 35,
+    "line_numbers": [
+     2900000,
+     2900001,
+     2900002,
+     2900003,
+     2900004,
+     2900005,
+     2900006,
+     2900007,
+     2900008,
+     2900009,
+     2900010,
+     2900011,
+     2900012,
+     2900013,
+     2900014,
+     2900015,
+     2900016,
+     2900017,
+     2900018,
+     2900019,
+     2900020,
+     2900021,
+     2900022,
+     2900023,
+     2900024,
+     2900025,
+     2900026,
+     2900027,
+     2900028,
+     2900029,
+     2900030,
+     2900031,
+     2900032,
+     2900033,
+     2900034
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "35 条互不相同的 generating core 消息",
+     "每条含不同 core 文件编号"
+    ],
+    "不可证实": [
+     "是否异常（需基线频率对比）",
+     "进程崩溃原因（需应用侧证据）"
+    ]
+   }
+  },
+  {
+   "id": "ablation:dev-q3:off",
+   "split": "dev_ablation",
+   "family": "descriptive",
+   "question": "L3469745-L3469779 内出现大量 FATAL 级别日志，涉及什么错误类型？能否据此确认根因？请说明哪些结论有据、哪些需要进一步取证。",
+   "window": "L3469745-L3469779",
+   "window_start": 3469745,
+   "window_end": 3469779,
+   "gold_program": {
+    "level_counts": {
+     "FATAL": 29,
+     "INFO": 6
+    },
+    "time_bounds": {
+     "first_epoch": 1127260498,
+     "first": "2005-09-20-16.54.58.693818",
+     "last_epoch": 1127260528,
+     "last": "2005-09-20-16.55.28.695712"
+    },
+    "top_messages": [
+     {
+      "message": "2 tree receiver 2 in re-synch state event(s) (dcr 0x019a) detected",
+      "count": 2,
+      "line_numbers": [
+       3469771,
+       3469774
+      ]
+     },
+     {
+      "message": "1 ddr errors(s) detected and corrected on rank 0, symbol 35, bit 6",
+      "count": 1,
+      "line_numbers": [
+       3469768
+      ]
+     },
+     {
+      "message": "1 tree receiver 1 in re-synch state event(s) (dcr 0x0185) detected",
+      "count": 1,
+      "line_numbers": [
+       3469770
+      ]
+     }
+    ],
+    "distinct_messages": 34,
+    "total_lines": 35,
+    "line_numbers": [
+     3469745,
+     3469746,
+     3469747,
+     3469748,
+     3469749,
+     3469750,
+     3469751,
+     3469752,
+     3469753,
+     3469754,
+     3469755,
+     3469756,
+     3469757,
+     3469758,
+     3469759,
+     3469760,
+     3469761,
+     3469762,
+     3469763,
+     3469764,
+     3469765,
+     3469766,
+     3469767,
+     3469768,
+     3469769,
+     3469770,
+     3469771,
+     3469772,
+     3469773,
+     3469774,
+     3469775,
+     3469776,
+     3469777,
+     3469778,
+     3469779
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "FATAL 29 条及消息类型清单",
+     "错误集中于少数节点（由节点字段统计）"
+    ],
+    "不可证实": [
+     "根因（需硬件诊断/后续日志）"
+    ]
+   }
+  },
+  {
+   "id": "ablation:dev-q3:on",
+   "split": "dev_ablation",
+   "family": "descriptive",
+   "question": "L3469745-L3469779 内出现大量 FATAL 级别日志，涉及什么错误类型？能否据此确认根因？请说明哪些结论有据、哪些需要进一步取证。",
+   "window": "L3469745-L3469779",
+   "window_start": 3469745,
+   "window_end": 3469779,
+   "gold_program": {
+    "level_counts": {
+     "FATAL": 29,
+     "INFO": 6
+    },
+    "time_bounds": {
+     "first_epoch": 1127260498,
+     "first": "2005-09-20-16.54.58.693818",
+     "last_epoch": 1127260528,
+     "last": "2005-09-20-16.55.28.695712"
+    },
+    "top_messages": [
+     {
+      "message": "2 tree receiver 2 in re-synch state event(s) (dcr 0x019a) detected",
+      "count": 2,
+      "line_numbers": [
+       3469771,
+       3469774
+      ]
+     },
+     {
+      "message": "1 ddr errors(s) detected and corrected on rank 0, symbol 35, bit 6",
+      "count": 1,
+      "line_numbers": [
+       3469768
+      ]
+     },
+     {
+      "message": "1 tree receiver 1 in re-synch state event(s) (dcr 0x0185) detected",
+      "count": 1,
+      "line_numbers": [
+       3469770
+      ]
+     }
+    ],
+    "distinct_messages": 34,
+    "total_lines": 35,
+    "line_numbers": [
+     3469745,
+     3469746,
+     3469747,
+     3469748,
+     3469749,
+     3469750,
+     3469751,
+     3469752,
+     3469753,
+     3469754,
+     3469755,
+     3469756,
+     3469757,
+     3469758,
+     3469759,
+     3469760,
+     3469761,
+     3469762,
+     3469763,
+     3469764,
+     3469765,
+     3469766,
+     3469767,
+     3469768,
+     3469769,
+     3469770,
+     3469771,
+     3469772,
+     3469773,
+     3469774,
+     3469775,
+     3469776,
+     3469777,
+     3469778,
+     3469779
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "FATAL 29 条及消息类型清单",
+     "错误集中于少数节点（由节点字段统计）"
+    ],
+    "不可证实": [
+     "根因（需硬件诊断/后续日志）"
+    ]
+   }
+  },
+  {
+   "id": "ablation:dev-q4:off",
+   "split": "dev_ablation",
+   "family": "descriptive",
+   "question": "L382930-L382964 内 INFO 与 FATAL 消息来自多个不同节点，请概述该时间窗内各节点发生了什么，并指出哪些判断有日志依据、哪些不能确认。",
+   "window": "L382930-L382964",
+   "window_start": 382930,
+   "window_end": 382964,
+   "gold_program": {
+    "level_counts": {
+     "FATAL": 7,
+     "INFO": 28
+    },
+    "time_bounds": {
+     "first_epoch": 1118707830,
+     "first": "2005-06-13-17.10.30.104733",
+     "last_epoch": 1118709381,
+     "last": "2005-06-13-17.36.21.002902"
+    },
+    "top_messages": [
+     {
+      "message": "CE sym 7, at 0x03ffa060, mask 0x04",
+      "count": 5,
+      "line_numbers": [
+       382944,
+       382951,
+       382957,
+       382960,
+       382961
+      ]
+     },
+     {
+      "message": "ciod: LOGIN chdir(/home/fier/BGL/Issues/ikuo/Bug2/cp2k.hack/tests/QS) failed: No such file or directory",
+      "count": 5,
+      "line_numbers": [
+       382930,
+       382931,
+       382932,
+       382933,
+       382934
+      ]
+     },
+     {
+      "message": "total of 1 ddr error(s) detected and corrected",
+      "count": 4,
+      "line_numbers": [
+       382950,
+       382954,
+       382955,
+       382956
+      ]
+     }
+    ],
+    "distinct_messages": 20,
+    "total_lines": 35,
+    "line_numbers": [
+     382930,
+     382931,
+     382932,
+     382933,
+     382934,
+     382935,
+     382936,
+     382937,
+     382938,
+     382939,
+     382940,
+     382941,
+     382942,
+     382943,
+     382944,
+     382945,
+     382946,
+     382947,
+     382948,
+     382949,
+     382950,
+     382951,
+     382952,
+     382953,
+     382954,
+     382955,
+     382956,
+     382957,
+     382958,
+     382959,
+     382960,
+     382961,
+     382962,
+     382963,
+     382964
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "INFO/FATAL 的节点分布与消息类型"
+    ],
+    "不可证实": [
+     "节点间因果关系"
+    ]
+   }
+  },
+  {
+   "id": "ablation:dev-q4:on",
+   "split": "dev_ablation",
+   "family": "descriptive",
+   "question": "L382930-L382964 内 INFO 与 FATAL 消息来自多个不同节点，请概述该时间窗内各节点发生了什么，并指出哪些判断有日志依据、哪些不能确认。",
+   "window": "L382930-L382964",
+   "window_start": 382930,
+   "window_end": 382964,
+   "gold_program": {
+    "level_counts": {
+     "FATAL": 7,
+     "INFO": 28
+    },
+    "time_bounds": {
+     "first_epoch": 1118707830,
+     "first": "2005-06-13-17.10.30.104733",
+     "last_epoch": 1118709381,
+     "last": "2005-06-13-17.36.21.002902"
+    },
+    "top_messages": [
+     {
+      "message": "CE sym 7, at 0x03ffa060, mask 0x04",
+      "count": 5,
+      "line_numbers": [
+       382944,
+       382951,
+       382957,
+       382960,
+       382961
+      ]
+     },
+     {
+      "message": "ciod: LOGIN chdir(/home/fier/BGL/Issues/ikuo/Bug2/cp2k.hack/tests/QS) failed: No such file or directory",
+      "count": 5,
+      "line_numbers": [
+       382930,
+       382931,
+       382932,
+       382933,
+       382934
+      ]
+     },
+     {
+      "message": "total of 1 ddr error(s) detected and corrected",
+      "count": 4,
+      "line_numbers": [
+       382950,
+       382954,
+       382955,
+       382956
+      ]
+     }
+    ],
+    "distinct_messages": 20,
+    "total_lines": 35,
+    "line_numbers": [
+     382930,
+     382931,
+     382932,
+     382933,
+     382934,
+     382935,
+     382936,
+     382937,
+     382938,
+     382939,
+     382940,
+     382941,
+     382942,
+     382943,
+     382944,
+     382945,
+     382946,
+     382947,
+     382948,
+     382949,
+     382950,
+     382951,
+     382952,
+     382953,
+     382954,
+     382955,
+     382956,
+     382957,
+     382958,
+     382959,
+     382960,
+     382961,
+     382962,
+     382963,
+     382964
+    ]
+   },
+   "gold_notes": {
+    "有据": [
+     "INFO/FATAL 的节点分布与消息类型"
+    ],
+    "不可证实": [
+     "节点间因果关系"
+    ]
+   }
+  },
+  {
+   "id": "regress:test-005",
+   "split": "regression_seen",
+   "family": "root_cause_guard",
+   "window": "testA",
+   "question": "L500-L534 中大量 instruction cache parity 错误的根因是什么？需要更换硬件吗？",
+   "required_points": [
+    "说明这些是已纠正（corrected）的可纠正奇偶校验错误事件，共 35 条",
+    "明确表示仅凭这些日志行无法断定根因（不编造硬件故障结论）",
+    "对“是否更换硬件”不给确定性结论（可给排查建议但注明依据不足）",
+    "不提任何告警标签（输入中不存在标签列）"
+   ],
+   "gold_facts_checked": [
+    "全部为 corrected 已纠正事件"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": "",
+   "gold_program": {
+    "corrected_instruction_cache_parity": 35,
+    "source_range": [
+     500,
+     534
+    ]
+   },
+   "gold_notes": {
+    "unverifiable": [
+     "系统当前或历史整体运行正常",
+     "无服务中断",
+     "硬件根因或需要换件"
+    ]
+   }
+  }
+ ]
+}

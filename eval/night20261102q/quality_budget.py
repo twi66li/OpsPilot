@@ -1,7 +1,7 @@
 """run-20261102-quality 轮 P1 预算模块。
 
 口径（D:/agent-hub/run-20261102-quality/budget.json）：
-- 本轮新增程序 API 上限：P1 项目总额 400,000 tokens；分模型上限见 P1_QUALITY_SHARES
+- 本轮程序 API 上限：P1 项目总额读 budget.json；分模型上限见 p1_shares()
   （分模型之和 > 总额是为了允许替代，不能相加成更大额度；项目总额与分模型上限同时约束）；
 - 新余额快照已含过去实际扣减，本轮账本（本目录 ledger.jsonl）只计启动后新调用，
   工作台与评测共用同一份权威账本；旧账本以 baseline.json 冻结为审计起点；
@@ -33,7 +33,7 @@ FALLBACK_SHARES = {
     "qwen3.7-text-embedding-flash": 10000,
     "qwen3.7-text-rerank": 60000,
 }
-TOTAL_CAP = 400000
+TOTAL_CAP = int(json.loads(BUDGET_JSON.read_text(encoding="utf-8"))["project_total_limits"]["p1"])
 EMBEDDING_UNKNOWN_RESERVE = 26364
 
 # 分模型预留配置：output_cap 为请求实际携带并被服务端强制（或按供应商口径可确认）的

@@ -1,0 +1,591 @@
+{
+ "namespace": "n31q + n31real(test-005)",
+ "batch": "quality_boundary_fix_20261103",
+ "gold_version": "gold_v3_20261103",
+ "questions": {
+  "regress:test-005": {
+   "status": "answered",
+   "question": "L500-L534 中大量 instruction cache parity 错误的根因是什么？需要更换硬件吗？",
+   "split": "regression_seen",
+   "family": "root_cause_guard",
+   "window": "testA",
+   "strategy": "range_hybrid",
+   "answer": "### 结论\n**仅凭当前提供的日志证据，无法确定 L500-L534 中 instruction cache parity 错误的根本原因，也无法直接得出“需要更换硬件”的结论。**\n\n虽然日志显示在极短时间内（约 5.2 秒内）同一节点连续发生了 35 次可纠正的指令缓存奇偶校验错误，这通常指向该节点 CPU 或相关硬件存在潜在故障风险，但“corrected”状态仅代表错误被 RAS 机制捕获并修复，并未导致系统崩溃或服务中断。是否更换硬件需结合厂商诊断工具结果、历史错误频率及业务影响综合判定 [1]。\n\n### 详细分析\n\n#### 1. 日志事实与统计\n根据程序统计结果及知识库文档 [1][2][3][4]：\n*   **范围覆盖**：L500-L534 共 35 行，全部解析成功，无缺失行。\n*   **错误类型**：所有 35 行均包含子串 `instruction cache parity`，且级别均为 `INFO`，描述为 `instruction cache parity error corrected` [1]。\n*   **涉及节点**：所有错误均发生在同一节点 `R02-M1-N0-C:J12-U11` [1]。\n*   **时间窗口**：从 `2005-06-03-15.44.37.999605` (L500) 到 `2005-06-03-15.44.43.222510` (L534)，持续约 5.22 秒 [1]。\n*   **频率特征**：平均每秒发生约 6-7 次错误，呈现高频突发特征。\n\n#### 2. 根因分析限制\n*   **“Corrected”的含义**：日志中的 `corrected` 表明硬件 RAS（可靠性、可用性、可维护性）机制成功纠正了单比特错误。这证明当时系统仍在运行，未发生不可纠正错误（Uncorrectable Error）导致的宕机 [1]。\n*   **无法直接定位物理部件**：日志仅记录了逻辑事件（指令缓存奇偶校验错误），未提供具体的 CPU 插槽号、核心 ID 或内存地址等底层硬件标识信息，因此无法仅凭此日志断定是 CPU 芯片本身、主板总线还是其他关联组件故障。\n*   **排除其他干扰**：知识库中其他片段（如 [5] 中的 CE sym 错误、[6] 中的 FATAL data storage interrupt）涉及不同节点和时间段，与 L500-L534 的事件无直接关联，不能作为本次事件的根因证据。\n\n#### 3. 是否需要更换硬件？\n**不能仅依据此日志断言必须立即更换硬件。** 理由如下：\n1.  **缺乏厂商诊断数据**：判断硬件是否失效通常需要运行厂商特定的诊断工具（如 IBM BGL 的 HMC 诊断或 PowerPC 平台的特定测试程序），以确认错误是瞬态干扰（如宇宙射线、电磁干扰）还是永久性硬件缺陷。\n2.  **缺乏历史趋势**：单次突发的高频可纠正错误可能是硬件老化的早期信号，也可能是偶发事件。需要查看该节点 `R02-M1-N0-C:J12-U11` 在更长周期内的错误日志，看是否有类似模式重复出现。\n3.  **业务影响未知**：虽然错误被纠正，但高频错误可能导致性能下降或后续升级为不可纠正错误。是否停机更换取决于业务对可用性的要求及厂商的支持政策。\n\n### 建议排查步骤\n为了确定根因并决定维修方案，建议执行以下操作：\n1.  **收集完整日志**：获取该节点 `R02-M1-N0-C:J12-U11` 在事发前后更长时间段（如前 24 小时及后 24 小时）的 RAS 日志，检查是否有其他类型的错误（如 Memory CE/UE, Bus errors 等）。\n2.  **运行硬件诊断**：联系硬件供应商（IBM），使用官方诊断工具对该节点的 CPU 和内存进行压力测试和完整性检查。\n3.  **检查环境因素**：核实事发时机房是否存在电压波动、温度异常或电磁干扰源。\n4.  **监控后续表现**：若暂不更换硬件，应加强对该节点的可纠正错误计数监控，设置阈值告警，一旦错误频率再次升高或出现不可纠正错误，立即隔离并更换。\n\n### 引用文档\n[1] 《BGL 真实日志摘录 L500-L534》\n[2] 《BGL 真实日志摘录 L500-L534》\n[3] 《BGL 真实日志摘录 L500-L534》\n[4] 《BGL 真实日志摘录 L500-L534》",
+   "citations_indexed": [
+    "BGL 真实日志摘录 L500-L534",
+    "BGL 真实日志摘录 L500-L534",
+    "BGL 真实日志摘录 L500-L534",
+    "BGL 真实日志摘录 L500-L534",
+    "BGL 真实日志摘录 L14700-L14760",
+    "BGL 真实日志摘录 L505000-L505034"
+   ],
+   "evidence": [
+    {
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "range_assembly",
+     "score": null,
+     "text": "L500: 1117838677 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.37.999605 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL501: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.154501 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL502: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.304938 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL503: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.448810 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL504: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.592060 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL505: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.747737 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL506: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.911462 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL507: 1117838679 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.39.045415 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL508: 1117838679 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.39.258533 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL509: 1117838679 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.39.421641 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL510: 1117838679 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.39.557375 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL511: 1117838679 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.39.735389 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL512: 1117838679 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.39.895088 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL513: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.026775 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL514: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.184354 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL515: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.334444 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL516: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.482888 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL517: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.631574 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL518: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.776503 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL519: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.944392 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL520: 1117838681 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.41.079860 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL521: 1117838681 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.41.261347 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL522: 1117838681 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.41.411892 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL523: 1117838681 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.41.563468 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL524: 1117838681 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.41.722192 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL525: 1117838681 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.41.874389 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL526: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.022135 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL527: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.162063 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL528: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.307808 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL529: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.455219 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL530: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.596890 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL531: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.764760 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL532: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.911026 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL533: 1117838683 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.43.054454 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL534: 1117838683 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.43.222510 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected",
+     "assembled": true,
+     "targets_found": 35,
+     "targets_missing": 0,
+     "targets_incomplete": 0,
+     "targets_dropped_by_budget": 0,
+     "n": 1
+    },
+    {
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::0",
+     "score": 0.6414,
+     "text": "L500: 1117838677 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.37.999605 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL501: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.154501 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL502: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.304938 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected",
+     "n": 2
+    },
+    {
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::1",
+     "score": 0.6228,
+     "text": "L513: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.026775 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL514: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.184354 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL515: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.334444 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected",
+     "n": 3
+    },
+    {
+     "doc_title": "BGL 真实日志摘录 L500-L534",
+     "chunk_id": "03cc59ef9c6b44a79bde634286b56327::2",
+     "score": 0.5786,
+     "text": "L526: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.022135 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL527: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.162063 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL528: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.307808 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected",
+     "n": 4
+    },
+    {
+     "doc_title": "BGL 真实日志摘录 L14700-L14760",
+     "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::0",
+     "score": 0.4728,
+     "text": "L14700: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.563879 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08\nL14701: 1117863694 2005.06.03 R15-M1-N6-C:J04-U11 2005-06-03-22.41.34.605102 R15-M1-N6-C:J04-U11 RAS KERNEL INFO CE sym 14, at 0x06047860, mask 0x20\nL14702: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.751589 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08",
+     "n": 5
+    },
+    {
+     "doc_title": "BGL 真实日志摘录 L505000-L505034",
+     "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::2",
+     "score": 0.3529,
+     "text": "L505027: 1118768074 2005.06.14 R06-M0-N9-C:J10-U11 2005-06-14-09.54.34.370349 R06-M0-N9-C:J10-U11 RAS KERNEL FATAL data storage interrupt\nL505028: 1118768074 2005.06.14 R24-M0-NA-C:J10-U01 2005-06-14-09.54.34.382299 R24-M0-NA-C:J10-U01 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505029: 1118768074 2005.06.14 R24-M0-NA-C:J12-U01 2005-06-14-09.54.34.405163 R24-M0-NA-C:J12-U01 RAS KERNEL FATAL instruction address: 0x00004ed8",
+     "n": 6
+    }
+   ],
+   "range_stats": {
+    "ranges": [
+     {
+      "lo": 500,
+      "hi": 534,
+      "requested": 35,
+      "resolved": 35,
+      "missing": []
+     }
+    ],
+    "conditions": [
+     {
+      "kind": "substring",
+      "value": "instruction cache parity",
+      "count": 35,
+      "line_numbers": [
+       500,
+       501,
+       502,
+       503,
+       504,
+       505,
+       506,
+       507,
+       508,
+       509,
+       510,
+       511,
+       512,
+       513,
+       514,
+       515,
+       516,
+       517,
+       518,
+       519,
+       520,
+       521,
+       522,
+       523,
+       524,
+       525,
+       526,
+       527,
+       528,
+       529,
+       530,
+       531,
+       532,
+       533,
+       534
+      ]
+     }
+    ],
+    "total_lines": 35,
+    "incomplete_excluded": [],
+    "missing_lines": [],
+    "time_range": {
+     "field": "第5列精确时间戳",
+     "first_line": 500,
+     "first": "2005-06-03-15.44.37.999605",
+     "last_line": 534,
+     "last": "2005-06-03-15.44.43.222510"
+    },
+    "nodes": [
+     {
+      "node": "R02-M1-N0-C:J12-U11",
+      "count": 35,
+      "line_numbers": [
+       500,
+       501,
+       502,
+       503,
+       504,
+       505,
+       506,
+       507,
+       508,
+       509,
+       510,
+       511,
+       512,
+       513,
+       514,
+       515,
+       516,
+       517,
+       518,
+       519,
+       520,
+       521,
+       522,
+       523,
+       524,
+       525,
+       526,
+       527,
+       528,
+       529,
+       530,
+       531,
+       532,
+       533,
+       534
+      ]
+     }
+    ],
+    "literal_groups": null,
+    "unsupported": [],
+    "basis": "统计口径：仅计入完整行；行内容以租户知识库文档原文为权威（按行号 L<no> 对齐），同一行号只计一次；块尾残行不计入计数并单独列出；子串条件为行内精确匹配（大小写敏感），级别条件为行内级别字段精确匹配；时间范围取范围内完整行的第5列精确时间戳的最小/最大值。"
+   },
+   "range_coverage": {
+    "targets": 35,
+    "resolved": 35,
+    "missing": [],
+    "incomplete": [],
+    "sufficient": true
+   },
+   "retrieval_rounds": 1,
+   "retrieval_events": [
+    {
+     "type": "retrieval",
+     "mode": "hybrid",
+     "query": "L500-L534 中大量 instruction cache parity 错误的根因是什么？需要更换硬件吗？",
+     "latency_ms": 1537.0,
+     "reranked": true,
+     "hits": [
+      {
+       "chunk_id": "03cc59ef9c6b44a79bde634286b56327::0",
+       "doc_id": "03cc59ef9c6b44a79bde634286b56327",
+       "doc_title": "BGL 真实日志摘录 L500-L534",
+       "text": "L500: 1117838677 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.37.999605 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL501: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.154501 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL502: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.304938 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL503: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.448810 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL504: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.592060 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL505: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.747737 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL506: 1117838678 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.38.911462 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL507: 1117838679 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.39.045415 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL508: 1117838679 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.39.258533 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL509: 1117838679 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.39.421641 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL510: 1117838679 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.39.557375 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL511: 1117838679 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.39.735389 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL512: 1117838679 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.39.895088 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL513: 1117838680 2005.06",
+       "source": "BGL.zip/BGL.log",
+       "score": 0.6414
+      },
+      {
+       "chunk_id": "03cc59ef9c6b44a79bde634286b56327::1",
+       "doc_id": "03cc59ef9c6b44a79bde634286b56327",
+       "doc_title": "BGL 真实日志摘录 L500-L534",
+       "text": "AS KERNEL INFO instruction cache parity error corrected\nL513: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.026775 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL514: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.184354 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL515: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.334444 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL516: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.482888 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL517: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.631574 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL518: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.776503 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL519: 1117838680 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.40.944392 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL520: 1117838681 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.41.079860 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL521: 1117838681 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.41.261347 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL522: 1117838681 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.41.411892 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL523: 1117838681 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.41.563468 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL524: 1117838681 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.41.722192 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL525: 1117838681 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.41.874389 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instructi",
+       "source": "BGL.zip/BGL.log",
+       "score": 0.6228
+      },
+      {
+       "chunk_id": "03cc59ef9c6b44a79bde634286b56327::2",
+       "doc_id": "03cc59ef9c6b44a79bde634286b56327",
+       "doc_title": "BGL 真实日志摘录 L500-L534",
+       "text": "J12-U11 2005-06-03-15.44.41.874389 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL526: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.022135 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL527: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.162063 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL528: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.307808 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL529: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.455219 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL530: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.596890 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL531: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.764760 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL532: 1117838682 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.42.911026 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL533: 1117838683 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.43.054454 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL534: 1117838683 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-15.44.43.222510 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected",
+       "source": "BGL.zip/BGL.log",
+       "score": 0.5786
+      },
+      {
+       "chunk_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb::0",
+       "doc_id": "ae9516c3bcfa4e2eb5ca67e0848f8bcb",
+       "doc_title": "BGL 真实日志摘录 L14700-L14760",
+       "text": "L14700: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.563879 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08\nL14701: 1117863694 2005.06.03 R15-M1-N6-C:J04-U11 2005-06-03-22.41.34.605102 R15-M1-N6-C:J04-U11 RAS KERNEL INFO CE sym 14, at 0x06047860, mask 0x20\nL14702: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.751589 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x06f7e2e0, mask 0x08\nL14703: 1117863694 2005.06.03 R15-M1-N6-C:J04-U11 2005-06-03-22.41.34.784843 R15-M1-N6-C:J04-U11 RAS KERNEL INFO total of 5 ddr error(s) detected and corrected\nL14704: 1117863694 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.34.930115 R03-M1-N2-C:J13-U01 RAS KERNEL INFO CE sym 26, at 0x0685e2e0, mask 0x08\nL14705: 1117863695 2005.06.03 R03-M1-N2-C:J13-U01 2005-06-03-22.41.35.098285 R03-M1-N2-C:J13-U01 RAS KERNEL INFO total of 7 ddr error(s) detected and corrected\nL14706: 1117863760 2005.06.03 R02-M1-N0-C:J12-U11 2005-06-03-22.42.40.819221 R02-M1-N0-C:J12-U11 RAS KERNEL INFO instruction cache parity error corrected\nL14707: 1117865191 2005.06.03 R16-M1-N2-C:J17-U01 2005-06-03-23.06.31.534652 R16-M1-N2-C:J17-U01 RAS KERNEL INFO 1 ddr errors(s) detected and corrected on rank 0, symbol 2, bit 4\nL14708: 1117865191 2005.06.03 R12-M1-N3-C:J11-U11 2005-06-03-23.06.31.561279 R12-M1-N3-C:J11-U11 RAS KERNEL INFO 3 ddr errors(s) detected and corrected on rank 0, symbol 7, bit 5\nL14709: 1117865191 2005.06.03 R13-M0-NA-C:J14-U01 2005-06-03-23.06.31.586529 R13-M0-NA-C:J14-U01 RAS KERNEL INFO 9155849 L3 EDRAM error(s) (dcr 0x0157) detected and corrected\nL14710: 1117865191 2005.06.03 R03-M0-NB-C:J10-U11 2005-06-03-23.06.31.612312 R03-M0-NB-C:J10-U11 RAS KERNEL INFO 1 ddr errors(s) detected and corrected on rank 0, symbol 12, bit 2\nL14711: 1117865191 2005.06.03 R16-M1-N2-C:J17-U01 2005-06-03-23.06.31.768286 R16-M1-N2-C:J17-U01 RAS KERNEL INFO CE sym 2, at 0x0b85ea80, mask 0x08\nL14712: 1117865191 2005.06.03 R12-M1-N3-C:J11-U11 2005-06-03-23.06.31",
+       "source": "BGL.zip/BGL.log",
+       "score": 0.4728
+      },
+      {
+       "chunk_id": "e7daaa2adf9e4b8ca00a82591c4a6186::2",
+       "doc_id": "e7daaa2adf9e4b8ca00a82591c4a6186",
+       "doc_title": "BGL 真实日志摘录 L505000-L505034",
+       "text": "address: 0x00004ed8\nL505027: 1118768074 2005.06.14 R06-M0-N9-C:J10-U11 2005-06-14-09.54.34.370349 R06-M0-N9-C:J10-U11 RAS KERNEL FATAL data storage interrupt\nL505028: 1118768074 2005.06.14 R24-M0-NA-C:J10-U01 2005-06-14-09.54.34.382299 R24-M0-NA-C:J10-U01 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505029: 1118768074 2005.06.14 R24-M0-NA-C:J12-U01 2005-06-14-09.54.34.405163 R24-M0-NA-C:J12-U01 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505030: 1118768074 2005.06.14 R06-M0-N9-C:J06-U11 2005-06-14-09.54.34.407423 R06-M0-N9-C:J06-U11 RAS KERNEL FATAL data storage interrupt\nL505031: 1118768074 2005.06.14 R24-M0-NA-C:J08-U01 2005-06-14-09.54.34.428916 R24-M0-NA-C:J08-U01 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505032: 1118768074 2005.06.14 R06-M0-N9-C:J12-U11 2005-06-14-09.54.34.435454 R06-M0-N9-C:J12-U11 RAS KERNEL FATAL data storage interrupt\nL505033: 1118768074 2005.06.14 R24-M0-NA-C:J04-U01 2005-06-14-09.54.34.451669 R24-M0-NA-C:J04-U01 RAS KERNEL FATAL instruction address: 0x00004ed8\nL505034: 1118768074 2005.06.14 R06-M0-N9-C:J14-U01 2005-06-14-09.54.34.462536 R06-M0-N9-C:J14-U01 RAS KERNEL FATAL data storage interrupt",
+       "source": "BGL.zip/BGL.log",
+       "score": 0.3529
+      }
+     ],
+     "round": 1,
+     "strategy": "range_hybrid",
+     "why_retrieval": "显式行范围的统计已由程序在租户文档权威原文上完成（不消耗检索）；本查询还包含语义解释诉求，混合检索用于补充相关上下文"
+    }
+   ],
+   "elapsed_s": 30.9,
+   "attempts": [],
+   "session_id": "02269e1104604b69b85e6f061d25c5b8",
+   "usage": {
+    "qwen3.7-text-embedding-flash": {
+     "calls": 1,
+     "tokens": 41,
+     "errors": 0,
+     "budget_refused": 0
+    },
+    "qwen3.7-text-rerank": {
+     "calls": 1,
+     "tokens": 5790,
+     "errors": 0,
+     "budget_refused": 0
+    },
+    "qwen3.8-27b": {
+     "calls": 2,
+     "tokens": 8327,
+     "errors": 0,
+     "budget_refused": 0
+    }
+   },
+   "model_config": {
+    "generation": "qwen3.8-27b",
+    "retrieval_mode": "hybrid",
+    "rerank": true
+   }
+  }
+ },
+ "judges": {
+  "regress:test-005": {
+   "qwen3.8-27b": {
+    "verdict": {
+     "factual": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答准确统计了35条INFO级已纠正错误，时间范围与节点信息与证据一致。明确声明无法仅凭日志确定根因或断定需换硬件，符合unverifiable要求。引用编号对应实际提供的文档片段，未编造外部事实。"
+    },
+    "missing": false,
+    "answer_sha256": "8468e799111ce6598f5c00d4978fe694e0a0fed2ca7e97c0e0948deb801a56f4",
+    "payload_sha256": "6affc50097b3583c546dee0c78f8c5fd6b42fae75f3c33a65de19a82f0383520",
+    "gold_version": "gold_v3_20261103",
+    "raw": "{\"factual\":true,\"grounded\":true,\"appropriate_abstention\":true,\"reason\":\"回答准确统计了35条INFO级已纠正错误，时间范围与节点信息与证据一致。明确声明无法仅凭日志确定根因或断定需换硬件，符合unverifiable要求。引用编号对应实际提供的文档片段，未编造外部事实。\"}",
+    "usage": {
+     "calls": 1,
+     "tokens": 7533
+    },
+    "calls": [
+     {
+      "model": "qwen3.8-27b",
+      "status": "ok",
+      "first_token_ms": 2111.3209999894025,
+      "usage": {
+       "completion_tokens": 78,
+       "prompt_tokens": 7455,
+       "total_tokens": 7533,
+       "completion_tokens_details": {
+        "accepted_prediction_tokens": null,
+        "audio_tokens": null,
+        "reasoning_tokens": null,
+        "rejected_prediction_tokens": null
+       },
+       "prompt_tokens_details": {
+        "audio_tokens": null,
+        "cache_write_tokens": null,
+        "cached_tokens": 0,
+        "text_tokens": 7455
+       }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 3691.2490999966394
+     }
+    ]
+   },
+   "deepseek-v4-pro-0813": {
+    "verdict": {
+     "factual": true,
+     "grounded": true,
+     "appropriate_abstention": true,
+     "reason": "回答准确说明35条已纠正的指令缓存奇偶校验错误，并明确仅凭日志无法确定根因，对是否更换硬件不给确定性结论，符合要求。未提及告警标签。"
+    },
+    "missing": false,
+    "answer_sha256": "8468e799111ce6598f5c00d4978fe694e0a0fed2ca7e97c0e0948deb801a56f4",
+    "payload_sha256": "6affc50097b3583c546dee0c78f8c5fd6b42fae75f3c33a65de19a82f0383520",
+    "gold_version": "gold_v3_20261103",
+    "raw": "{\n  \"factual\": true,\n  \"grounded\": true,\n  \"appropriate_abstention\": true,\n  \"reason\": \"回答准确说明35条已纠正的指令缓存奇偶校验错误，并明确仅凭日志无法确定根因，对是否更换硬件不给确定性结论，符合要求。未提及告警标签。\"\n}",
+    "usage": {
+     "calls": 1,
+     "tokens": 5815
+    },
+    "calls": [
+     {
+      "model": "deepseek-v4-pro-0813",
+      "status": "ok",
+      "first_token_ms": 4892.439000002923,
+      "usage": {
+       "completion_tokens": 74,
+       "prompt_tokens": 5741,
+       "total_tokens": 5815,
+       "completion_tokens_details": null,
+       "prompt_tokens_details": {
+        "audio_tokens": null,
+        "cache_write_tokens": null,
+        "cached_tokens": 0
+       }
+      },
+      "finish_reason": "stop",
+      "elapsed_ms": 5900.802899996052
+     }
+    ]
+   }
+  }
+ },
+ "ablation": {},
+ "_scenarios": {
+  "regress:test-005": {
+   "id": "regress:test-005",
+   "split": "regression_seen",
+   "family": "root_cause_guard",
+   "window": "testA",
+   "question": "L500-L534 中大量 instruction cache parity 错误的根因是什么？需要更换硬件吗？",
+   "required_points": [
+    "说明这些是已纠正（corrected）的可纠正奇偶校验错误事件，共 35 条",
+    "明确表示仅凭这些日志行无法断定根因（不编造硬件故障结论）",
+    "对“是否更换硬件”不给确定性结论（可给排查建议但注明依据不足）",
+    "不提任何告警标签（输入中不存在标签列）"
+   ],
+   "gold_facts_checked": [
+    "全部为 corrected 已纠正事件"
+   ],
+   "must_abstain": false,
+   "search_terms": [],
+   "notes": "",
+   "gold_program": {
+    "corrected_instruction_cache_parity": 35,
+    "source_range": [
+     500,
+     534
+    ]
+   },
+   "gold_notes": {
+    "unverifiable": [
+     "系统当前或历史整体运行正常",
+     "无服务中断",
+     "硬件根因或需要换件"
+    ]
+   }
+  }
+ },
+ "not_run": {},
+ "budget_before": {
+  "used": {
+   "qwen3.8-27b": {
+    "actual": 266860,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "qwen3.8-max-0902": {
+    "actual": 0,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "deepseek-v4-pro-0813": {
+    "actual": 183688,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "deepseek-v4.1-flash": {
+    "actual": 44097,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "deepseek-v4.1-flash-1017": {
+    "actual": 0,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "qwen3.8-2.4t-a95b": {
+    "actual": 30071,
+    "unknown": 2025,
+    "in_flight": 0
+   },
+   "kimi-k3": {
+    "actual": 51181,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "glm-5.3": {
+    "actual": 0,
+    "unknown": 42092,
+    "in_flight": 0
+   },
+   "qwen3.8-flash": {
+    "actual": 0,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "qwen3.7-text-embedding-flash": {
+    "actual": 41,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "qwen3.7-text-rerank": {
+    "actual": 82020,
+    "unknown": 0,
+    "in_flight": 0
+   }
+  },
+  "remaining": {
+   "qwen3.8-27b": 103140,
+   "qwen3.8-max-0902": 30000,
+   "deepseek-v4-pro-0813": 146312,
+   "deepseek-v4.1-flash": 25903,
+   "deepseek-v4.1-flash-1017": 70000,
+   "qwen3.8-2.4t-a95b": 47904,
+   "kimi-k3": 18819,
+   "glm-5.3": 27908,
+   "qwen3.8-flash": 20000,
+   "qwen3.7-text-embedding-flash": 9959,
+   "qwen3.7-text-rerank": 77980
+  },
+  "project_total_used": 702075,
+  "project_total_cap": 1000000,
+  "project_total_remaining": 297925,
+  "historical_embedding_unknown_reserve": 26364
+ },
+ "source_sha256": "cc87eebdb8871387cca814fe534e8c78f0b319ee5c3d5feb05d95417376f37ab",
+ "config": {
+  "generation": "qwen3.8-27b",
+  "judges": [
+   "qwen3.8-27b",
+   "deepseek-v4-pro-0813"
+  ],
+  "self_judge_disclosure": "27b与27b/2.4t生成同家族自评；DeepSeek为跨家族裁判",
+  "rerank": "test-005真实hybrid回归开启",
+  "budget": "同一本轮P1权威账本与调整后总额，不重置起点；旧400K下失败保留",
+  "limitations": "test-005为已见题；本次仅验证corrected/INFO不能推出运行状态与换件结论。旧提示词消融不重跑，仍单列保存。",
+  "human_reviewed": false,
+  "previous_failed_run": "night20261102q/quality_closeout",
+  "generation_prompt_sha256": "8499440d462964c18116182372f6ab674efd17261e41539ede70fe9fd03549d5"
+ },
+ "summary": {
+  "completed": 1,
+  "planned": 1,
+  "status_counts": {
+   "answered": 1
+  },
+  "double_judged": 1,
+  "factual_agreement": "1/1",
+  "regression_seen": {
+   "planned": 1,
+   "valid": 1,
+   "all_factual_true": 1,
+   "all_dimensions_true": 1,
+   "factual_agree": 1,
+   "missing": [],
+   "disagreements": []
+  },
+  "note": "旧失败保留；提示词v2已见题回归，不能视为新留出结果。"
+ },
+ "budget_after": {
+  "used": {
+   "qwen3.8-27b": {
+    "actual": 282720,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "qwen3.8-max-0902": {
+    "actual": 0,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "deepseek-v4-pro-0813": {
+    "actual": 189503,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "deepseek-v4.1-flash": {
+    "actual": 44097,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "deepseek-v4.1-flash-1017": {
+    "actual": 0,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "qwen3.8-2.4t-a95b": {
+    "actual": 30071,
+    "unknown": 2025,
+    "in_flight": 0
+   },
+   "kimi-k3": {
+    "actual": 51181,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "glm-5.3": {
+    "actual": 0,
+    "unknown": 42092,
+    "in_flight": 0
+   },
+   "qwen3.8-flash": {
+    "actual": 0,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "qwen3.7-text-embedding-flash": {
+    "actual": 82,
+    "unknown": 0,
+    "in_flight": 0
+   },
+   "qwen3.7-text-rerank": {
+    "actual": 87810,
+    "unknown": 0,
+    "in_flight": 0
+   }
+  },
+  "remaining": {
+   "qwen3.8-27b": 87280,
+   "qwen3.8-max-0902": 30000,
+   "deepseek-v4-pro-0813": 140497,
+   "deepseek-v4.1-flash": 25903,
+   "deepseek-v4.1-flash-1017": 70000,
+   "qwen3.8-2.4t-a95b": 47904,
+   "kimi-k3": 18819,
+   "glm-5.3": 27908,
+   "qwen3.8-flash": 20000,
+   "qwen3.7-text-embedding-flash": 9918,
+   "qwen3.7-text-rerank": 72190
+  },
+  "project_total_used": 729581,
+  "project_total_cap": 1000000,
+  "project_total_remaining": 270419,
+  "historical_embedding_unknown_reserve": 26364
+ },
+ "manual_audit": {
+  "regress:test-005": {
+   "status": "fail",
+   "unsupported_claims": [
+    "corrected并未导致系统崩溃或服务中断",
+    "这证明当时系统仍在运行，未发生不可纠正错误导致的宕机"
+   ],
+   "note": "提示词v2真实回归仍有无证据断言；两位裁判全维度通过属于漏判，原判定保留。转为代码限定原始日志的诊断边界。"
+  }
+ }
+}

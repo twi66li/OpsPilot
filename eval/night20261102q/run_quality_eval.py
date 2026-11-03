@@ -6,7 +6,7 @@
   ablation   4 道开发题 × 重排开/关（同模型同提示词同预算；候选集一致性校验；单裁判 deepseek-v4.1-flash）
   regress005 已见题 test-005 回归（受本轮提示词改变影响；n31real 租户 hybrid+重排；双裁判）
 
-预算：eval/night20261102q/quality_budget.py（P1 总 400K + 分模型上限，账本 ledger.jsonl 与
+预算：eval/night20261102q/quality_budget.py（P1 总额与分模型上限读 budget.json，账本 ledger.jsonl 与
 工作台共用）。新租户 n31q 语料只建 BM25 索引（embedding 份额不足以建向量臂，如实标注；
 纯统计路径不检索、零消耗）。每题运行前按完整链路预留，不足则跳题并如实标记 not_run。
 """
@@ -27,7 +27,7 @@ RUN.mkdir(parents=True, exist_ok=True)
 
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT))
-from quality_budget import apply_env, p1_shares, usage_now  # noqa: E402
+from quality_budget import TOTAL_CAP, apply_env, p1_shares, usage_now  # noqa: E402
 
 apply_env()
 os.environ["DATABASE_URL"] = "mysql+pymysql://aiops:aiops123@127.0.0.1:13306/aiops?charset=utf8mb4"
@@ -196,13 +196,15 @@ def run_question(container, headers, client, sc, with_rerank=True):
             "question": sc["question"], "split": sc["split"], "family": sc["family"],
             "window": sc["window"], "strategy": body.get("strategy"),
             "answer": body.get("answer", ""),
+            "generation_policy": body.get("generation_policy"),
             "citations_indexed": body.get("citations_indexed", []),
             "evidence": used or [],
             "range_stats": body.get("range_stats"), "range_coverage": body.get("range_coverage"),
             "retrieval_rounds": len(retrievals), "retrieval_events": retrievals,
             "elapsed_s": round(time.time() - t0, 1), "attempts": attempts, "session_id": sid,
             "usage": usage_delta(container, marks),
-            "model_config": {"generation": GEN_MODEL, "retrieval_mode": os.environ.get("RETRIEVAL_MODE"),
+            "model_config": {"generation": "程序证据边界模板" if body.get("generation_policy") == "log_only_evidence_boundary" else GEN_MODEL,
+                             "retrieval_mode": os.environ.get("RETRIEVAL_MODE"),
                              "rerank": bool(container.retriever.reranker)},
         }
         return rec
@@ -342,7 +344,7 @@ def main():
         "generation": GEN_MODEL, "generation_order": "qwen3.8-27b 优先（budget.json generation_order）",
         "retrieval_mode_n31q": "bm25（新租户无向量臂：embedding 份额 10K 不足以对新语料建索引，如实标注）",
         "pure_path": "显式行范围+纯统计诉求 → 租户文档权威读取+程序模板（零 embedding/rerank/LLM）",
-        "budget": {"project_total_cap": 400000, "ledger": "eval/night20261102q/ledger.jsonl（工作台与评测共用）"},
+        "budget": {"project_total_cap": TOTAL_CAP, "ledger": "eval/night20261102q/ledger.jsonl（工作台与评测共用）"},
         "human_reviewed": False,
         "note": "已见题回归与留出集分列，不合并分母",
     }

@@ -350,10 +350,30 @@ class DiagnosisNodes:
                         {"kind": c["kind"], "value": c["value"]} for c in range_stats.get("conditions", [])]},
                     "result": range_stats, "summary": stat_summary,
                 })
-            answer = self.container.llm.generate_answer(
-                state["question"], state.get("hits", []), state.get("tool_events", []), state.get("fault_records", []), history,
-                evidence_items=evidence_items, range_stats=range_stats,
-            )
+            # 只有原始日志时，模型无法补出维修或整体运行状态的证据；该类决策用确定性边界回答。
+            log_only = bool(evidence_items) and all(
+                it.get("text", "").strip() and all(
+                    re.match(r"^L\d+:\s+\d+\s+\d{4}\.\d{2}\.\d{2}\s", line)
+                    for line in it["text"].splitlines() if line.strip()) for it in evidence_items)
+            decision_question = re.search(r"根因|硬件|换件|宕机|中断|崩溃|运行状态", state["question"])
+            extra_evidence = state.get("fault_records") or any(
+                e.get("name") != "compute_log_stats" for e in state.get("tool_events", []))
+            generation_policy = "llm"
+            if range_stats and log_only and decision_question and not extra_evidence:
+                generation_policy = "log_only_evidence_boundary"
+                answer = self._render_stats_template(range_stats, evidence_items)
+                first = evidence_items[0]["text"].splitlines()[0]
+                answer += (f"\n\n原始事件示例（仅一行，不代表全部事件类型）：{first} [1]"
+                           "\n\n仅凭这些日志无法确认根因、系统当前或历史整体运行状态，也无法决定是否更换硬件。"
+                           "即使原文标注corrected（已纠正）或INFO，也只表示该事件的记录状态或级别，"
+                           "不能据此判断有无崩溃、服务中断、其他未纠正错误或业务影响。"
+                           "\n请补充同节点同时间窗的完整日志、监控、厂商诊断和变更记录；"
+                           "取得这些证据及适用的厂商规范后再决定是否隔离、停机或换件。")
+            else:
+                answer = self.container.llm.generate_answer(
+                    state["question"], state.get("hits", []), state.get("tool_events", []), state.get("fault_records", []), history,
+                    evidence_items=evidence_items, range_stats=range_stats,
+                )
             metric_evidence = [event["summary"] for event in state.get("tool_events", []) if event["name"] == "query_service_metrics"]
             if metric_evidence:
                 answer += "\n\n指标证据：\n" + "\n".join(metric_evidence)
@@ -375,6 +395,7 @@ class DiagnosisNodes:
                        "summary": self._stats_summary(range_stats) if range_stats else ""} \
             if range_stats is not None else None
         payload = {"answer": answer, "citations": citations, "citations_indexed": citations_indexed,
+                   "generation_policy": generation_policy,
                    "used_evidence": evidence_items, "range_assembly": range_meta,
                    "range_stats": range_stats, "range_coverage": state.get("range_coverage"),
                    "events": ([stats_event] if stats_event else []) +

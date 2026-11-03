@@ -2,7 +2,7 @@
 
 用法：.venv/Scripts/python.exe scripts/start_workbench_8001.py
 预算：run-20261102-quality 轮权威账本（eval/night20261102q/ledger.jsonl，与评测共用同一份；
-P1 项目总额 400K + run-20261102-quality/budget.json 分模型上限同时约束）。
+P1 项目总额与分模型上限均读取 run-20261102-quality/budget.json，同时约束）。
 旧账本已按 eval/night20261102q/baseline.json 冻结为审计起点，不得与新份额同时领取。
 生成模型：qwen3.8-27b（budget.json generation_order 首选）。
 """

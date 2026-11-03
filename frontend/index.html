@@ -338,14 +338,21 @@ function renderEval() {
   $("#evStats").innerHTML = `
     <div class="stat"><b>${s.completed || 0} / ${s.target || s.planned || 43}</b><span class="meta">完成题数（未运行不计完成${s.not_run && s.not_run.length ? `，not_run ${s.not_run.length} 题已披露` : ""}）</span></div>
     <div class="stat"><b>${Object.entries(s.status_counts || {}).map(([k, v]) => `${k}:${v}`).join(" ") || "-"}</b><span class="meta">状态分布</span></div>
-    <div class="stat"><b>${s.double_judged ?? s.both_judged ?? 0}</b><span class="meta">有效双判题数</span></div>
+    <div class="stat"><b>${s.reused_heldout ? "见分组" : (s.double_judged ?? s.both_judged ?? 0)}</b><span class="meta">有效双判题数</span></div>
     <div class="stat"><b>${esc(s.factual_agreement || s.judge_agreement_on_answer_correct || "-")}</b><span class="meta">双裁判 factual 一致（非人工准确率${s.judging_invalidated ? "；本轮判分已作废：金标 v1 错位，见说明" : ""}）</span></div>
     ${(d.model_switches || []).length ? `<div class="stat"><b>${d.model_switches.length}</b><span class="meta">生成模型切换（余额不足按 generation_order）</span></div>` : ""}
     ${d.ablation_blocked ? `<div class="stat"><b style="color:var(--warn)">blocked</b><span class="meta">重排消融：${esc((d.ablation_blocked.reason || "").slice(0, 60))}…</span></div>` : ""}
-    <div class="stat"><b>${s.judged_main || 0}</b><span class="meta">主裁判已判题数</span></div>
+    <div class="stat"><b>${s.reused_heldout ? "见分组" : (s.judged_main || 0)}</b><span class="meta">主裁判已判题数</span></div>
     <div class="stat"><b>${Object.entries(byModel).map(([m, v]) => `${m.split("-").slice(-1)[0]} ${v.actual}${v.unknown ? "+" + v.unknown + "?" : ""}`).join("<br>") || "-"}</b>
       <span class="meta">账本实报 tokens（?为缺 usage 未知预留）<br>${Object.entries(ml).map(([m, v]) => `${esc(m)} ≤ ${v}`).join("<br>")}</span></div>
-    <div class="stat"><b>${esc(cfg.generation || "-")}</b><span class="meta">回答模型<br>裁判：${(cfg.judges || []).map(esc).join(" + ") || "-"}<br>Embedding：${esc(cfg.embedding || "")} / Rerank：${esc(cfg.rerank || "")}</span></div>`;
+    <div class="stat"><b>${esc(cfg.generation || "-")}</b><span class="meta">回答模型<br>裁判：${(cfg.judges || []).map(esc).join(" + ") || "-"}<br>Embedding：${esc(cfg.embedding || "")} / Rerank：${esc(cfg.rerank || "")}</span></div>
+    ${s.reused_heldout ? [
+      ["原留出答案复判", s.reused_heldout], ["题干更正的已见回归", s.corrected_question_seen],
+      ["test-005 已见回归", s.regression_seen], ["开发消融：重排关（单判）", s.ablation?.off],
+      ["开发消融：重排开（单判）", s.ablation?.on]
+    ].map(([label, v]) => `<div class="stat"><b>${esc(label)}：${v?.all_factual_true ?? 0}/${v?.valid ?? 0}</b><span class="meta">裁判均判事实正确 / 有效已判；全部维度均通过 ${v?.all_dimensions_true ?? 0}/${v?.valid ?? 0}；计划 ${v?.planned ?? 0}；缺判 ${(v?.missing || []).length}${v?.factual_agree != null ? `；事实判定一致 ${v.factual_agree}/${v.valid}` : ""}</span></div>`).join("") + `<div class="stat"><span class="meta">${esc(cfg.self_judge_disclosure || "")}<br>${esc(cfg.limitations || "")}<br>${esc(s.note || "")}</span></div>` : ""}
+    ${!s.reused_heldout && s.regression_seen ? `<div class="stat"><b>已见题回归：全部维度均通过 ${s.regression_seen.all_dimensions_true}/${s.regression_seen.valid}</b><span class="meta">${esc(cfg.self_judge_disclosure || "")}<br>${esc(cfg.limitations || "")}<br>${esc(s.note || "")}</span></div>` : ""}
+    ${Object.entries(d.manual_audit || {}).filter(([, a]) => a.status === "fail").map(([id, a]) => `<div class="stat err"><b>${esc(id)} 人工回查不通过</b><span class="meta">${esc((a.unsupported_claims || []).join("；"))}<br>${esc(a.note || "")}</span></div>`).join("")}`;
   const fams = ["all", "dev", "test", "regression", "failed", "abstain"];
   $("#evFilters").innerHTML = fams.map(f =>
     `<button class="${evalFilter === f ? "active" : ""}" onclick="setFilter('${f}')">${f === "all" ? "全部" : f === "failed" ? "仅失败" : f === "abstain" ? "拒答题" : f}</button>`).join("");
@@ -365,14 +372,14 @@ function renderEval() {
         <h4>输入</h4><pre>${esc(q.question)}</pre>
         <h4>金标要点（逐项对应原始日志行）</h4><pre>${esc((q.required_points || []).map((p, i) => `${i + 1}. ${p}`).join("\n"))}</pre>
         ${q.gold_program ? `<h4>程序推导真值（gold_program，${esc(d.gold_version || "gold_v1")}）</h4><pre>${esc(JSON.stringify(q.gold_program, null, 1))}</pre>` : ""}
-        ${q.gold_notes ? `<h4>金标口径（有据 / 不可证实）</h4><pre>有据：${esc((q.gold_notes["有据"] || []).join("；"))}\n不可证实：${esc((q.gold_notes["不可证实"] || []).join("；"))}</pre>` : ""}
+        ${q.gold_notes ? `<h4>金标口径（有据 / 不可证实）</h4><pre>有据：${esc((q.gold_notes["有据"] || []).join("；"))}\n不可证实：${esc((q.gold_notes["不可证实"] || q.gold_notes.unverifiable || []).join("；"))}</pre>` : ""}
         ${q.range_stats ? `<h4>程序统计结果（compute_log_stats，确定性口径）</h4><pre>${esc(JSON.stringify(q.range_stats, null, 1))}</pre>` : ""}
         ${q.range_coverage && (q.range_coverage.missing || q.range_coverage.incomplete) ? `<h4>范围覆盖缺口（相关≠足以回答）</h4><pre>${esc(JSON.stringify(q.range_coverage))}</pre>` : ""}
         <h4>实际取得的编号证据（top-${(q.evidence || []).length}，正文与检索一致）</h4>
         ${(q.evidence || []).map(e => `<pre class="evline">[${e.n}] 📄 ${esc(e.doc_title)}（score=${e.score ?? "?"}，chunk=${esc(e.chunk_id || "")}）\n${esc(e.text)}${(e.text || "").length >= 500 ? " …" : ""}</pre>`).join("") || "<pre>（无证据返回）</pre>"}
         <h4>最终回答 ${statusPill(q.status)} <span class="meta">end_reason=${esc(q.end_reason || "-")} · 引用：${(q.citations || []).map(esc).join("；") || "无"}</span></h4>
         <pre>${q.answer ? renderAnswerEval(q.answer, q.evidence) : "（无回答）"}</pre>
-        <h4>双裁判判分（同答案、同 rubric、同编号证据）</h4>
+        <h4>裁判判分（同答案、同 rubric、同编号证据）</h4>
         ${Object.entries(q.judges || {}).map(([m, j]) => {
           const jd = j.verdict;
           const okField = jd?.answer_correct ?? jd?.factual;
@@ -394,6 +401,7 @@ function renderEval() {
         <span class="qid">${esc(q.id)}</span>
         <span class="fam">${esc(q.family || "")}</span>
         ${statusPill(q.status)}
+        ${d.manual_audit?.[q.id]?.status === "fail" ? '<span class="pill err">人工回查不通过（原判分保留）</span>' : ""}
         ${q.must_abstain ? '<span class="pill warn">须拒答</span>' : ""}
         ${q.rerank_active === true ? '<span class="pill ok">真实重排</span>' : q.rerank_active === false ? '<span class="pill warn">无重排</span>' : ""}
         <span class="meta">${v ? ((v.answer_correct ?? v.factual) ? '<span class="ok">✓</span>' : '<span class="err">✗</span>') : "未判"}</span>

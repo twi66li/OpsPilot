@@ -1,0 +1,19 @@
+{
+  "old_heldout_answers_and_evidence_preserved": 7,
+  "judge_payloads_match_all_saved_answers_gold_and_numbered_evidence": true,
+  "frozen_ablation_pairs": 4,
+  "guard_real_graph_policy_and_one_grade_call_verified": true,
+  "actual_report_rendered": 4,
+  "legacy_judgement_failures_visible": true,
+  "ledger": {
+    "events": 282,
+    "previous_prefix_events": 176,
+    "actual": 704688,
+    "unknown": 44117,
+    "in_flight": 0,
+    "new_actual": 349533,
+    "duplicates": false,
+    "sha256": "6e6d74cf9c5bb8cba856a09d765d939b23b99e169b57a069c55fe2af212ad3ee"
+  },
+  "scope": "Codex self-verification; no additional API calls; no full suite or full re-evaluation"
+}

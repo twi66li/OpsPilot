@@ -58,6 +58,7 @@ def _final_snapshot(container, config: dict) -> dict:
     return {
         "status": "approval_required" if snapshot.next else "answered" if values.get("end_reason", "answered") == "answered" else "failed",
         "answer": values.get("answer", ""),
+        "generation_policy": values.get("generation_policy"),
         "citations": values.get("citations", []),
         "citations_indexed": values.get("citations_indexed", []),
         "used_evidence": values.get("used_evidence"),

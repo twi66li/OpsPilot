@@ -1,0 +1,123 @@
+{
+  "source": "D:\\agent-hub\\run-20261102-quality\\budget.json",
+  "sha256": "f7e0d8198e6168154a00e5a88a855f1f18247dae71015be55797f30a85de306e",
+  "budget": {
+    "run_id": "run-20261102-quality",
+    "created_at": "2026-11-02T23:42:07+08:00",
+    "status": "prepared_for_user_to_forward_prompts",
+    "execution_started": false,
+    "authorization_basis": "当前用户明确允许项目使用所列免费模型额度并在用完后切换；以下为Codex本任务执行分配，上限不是消费目标，不要求用完。",
+    "activation": "用户将对应提示词交给原ZCode会话后启动对应项目任务；写入文件本身不发API，不启动服务。",
+    "snapshot": "D:\\agent-hub\\run-20261102-quality\\quota_snapshot.json",
+    "new_program_api_total_limit": 1450000,
+    "project_total_limits": {
+      "p1": 1000000,
+      "p2": 400000,
+      "codex_review": 50000
+    },
+    "model_limits": {
+      "p1": {
+        "qwen3.8-27b": 370000,
+        "qwen3.8-max-0902": 30000,
+        "deepseek-v4-pro-0813": 330000,
+        "deepseek-v4.1-flash": 70000,
+        "deepseek-v4.1-flash-1017": 70000,
+        "qwen3.8-2.4t-a95b": 80000,
+        "kimi-k3": 70000,
+        "glm-5.3": 70000,
+        "qwen3.8-flash": 20000,
+        "qwen3.7-text-embedding-flash": 10000,
+        "qwen3.7-text-rerank": 160000
+      },
+      "p2": {
+        "qwen3.8-27b": 120000,
+        "qwen3.8-max-0902": 30000,
+        "deepseek-v4-pro-0813": 80000,
+        "deepseek-v4.1-flash": 70000,
+        "deepseek-v4.1-flash-1017": 70000,
+        "qwen3.8-2.4t-a95b": 80000,
+        "kimi-k3": 70000,
+        "glm-5.3": 70000,
+        "qwen3.8-flash": 20000,
+        "qwen3.7-text-embedding-flash": 10000,
+        "qwen3.7-text-rerank": 60000
+      },
+      "codex_review": {
+        "qwen3.8-27b": 10000,
+        "qwen3.8-max-0902": 10000,
+        "deepseek-v4-pro-0813": 20000,
+        "qwen3.7-text-rerank": 10000
+      }
+    },
+    "both_project_and_model_caps_apply": true,
+    "model_caps_are_alternatives_not_additive_project_budget": true,
+    "generation_order": [
+      "qwen3.8-27b",
+      "qwen3.8-2.4t-a95b",
+      "deepseek-v4.1-flash",
+      "deepseek-v4.1-flash-1017",
+      "kimi-k3",
+      "glm-5.3"
+    ],
+    "comparison_model": "qwen3.8-max-0902",
+    "cross_family_judge_order": [
+      "deepseek-v4-pro-0813",
+      "qwen3.8-27b",
+      "qwen3.8-max-0902"
+    ],
+    "lightweight_optional_model": "qwen3.8-flash",
+    "other_models_program_api_budget": 0,
+    "historical_unknown_reserve": {
+      "p1_embedding": 26364,
+      "policy": "继续单列，不释放为零，不当成本轮新增实报重复扣除"
+    },
+    "ledger_policy": [
+      "每项目首次开工固定一次起点：记录所有旧账本hash/末事件ID与累计actual/unknown/open，写入新run的baseline.json。不可在重启时重新定义起点。",
+      "新快照之后所有新程序调用，包括原服务进程、评测、工具、重试与探针，必须登记到本项目同一份新轮权威账本；启动前处理旧进程配置，不能让旧进程绕过新轮计数。",
+      "优先复用现有BudgetLedger文件锁和预留结算，同项目工作台/评测共用权威账本，避免兄弟账本启动快照被误称跨进程实时总门控。不同时使用新轮全额和旧剩余额度。",
+      "预留+实报+未知同时受本轮项目总额与分模型上限约束；记录输入/输出/推理usage（如返回），失败未知不按0。ZCode客户端和供应商实时余额未知则明示。",
+      "P1/P2模型份额不互借。审查份额由Codex用，worker不得领取。到项目总上限停止本轮新调用，不能靠换模型突破总上限。",
+      "仅因余额不足、已识别免费额度耗尽/到期、明确模型不可用时推进文本候选队列；不因答案低分或不合意切模型重答。任意401/403、参数错误不能统称额度耗尽。",
+      "模型/参数/证据变化分别记版本；控制变量比较块冻结同一模型，块内不可静默切换。候选全失败或项目预算不足时如实停止，不循环。"
+    ],
+    "sources": [
+      "https://help.aliyun.com/en/model-studio/new-free-quota",
+      "https://help.aliyun.com/en/model-studio/error-code",
+      "https://docs.langchain.com/oss/python/langgraph/persistence"
+    ],
+    "adjustments": [
+      {
+        "at": "2026-11-03T09:39:11.813471+08:00",
+        "actor": "Codex implementer",
+        "basis": "依用户既有允许在免费额度内使用并切换项目模型的授权，由Codex进行本任务内再分配；不是声称用户逐项口头批准这些数字。",
+        "previous_budget_sha256": "b12f8d9d9409192df4bfb19c8730d8e56156fd7c8443d6442d630bf828e04759",
+        "previous_budget_file": "D:\\agent-hub\\run-20261102-quality\\budget.before-codex-closeout-20261103.json",
+        "previous": {
+          "program_total": 850000,
+          "project_total": 400000,
+          "model_limits": {
+            "qwen3.8-27b": 120000,
+            "qwen3.8-max-0902": 30000,
+            "deepseek-v4-pro-0813": 80000,
+            "deepseek-v4.1-flash": 70000,
+            "deepseek-v4.1-flash-1017": 70000,
+            "qwen3.8-2.4t-a95b": 80000,
+            "kimi-k3": 70000,
+            "glm-5.3": 70000,
+            "qwen3.8-flash": 20000,
+            "qwen3.7-text-embedding-flash": 10000,
+            "qwen3.7-text-rerank": 60000
+          }
+        },
+        "additional_p1_project_cap": 600000,
+        "unchanged": [
+          "p2",
+          "codex_review",
+          "baseline",
+          "all historical actual/unknown/open events"
+        ],
+        "policy": "原400K耗尽及失败不改写；预算起点不重置；不释放未知预留；模型上限是替代关系。"
+      }
+    ]
+  }
+}

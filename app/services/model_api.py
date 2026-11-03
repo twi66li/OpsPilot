@@ -56,6 +56,17 @@ def _is_provider_transient(exc: Exception) -> bool:
     status = getattr(exc, "status_code", None)
     return status in (429, 500, 502, 503, 504)
 
+
+def _is_provider_quota_exhausted(exc: Exception) -> bool:
+    body = getattr(exc, "body", None)
+    code = None
+    if isinstance(body, dict):
+        code = body.get("code")
+        if not code and isinstance(body.get("error"), dict):
+            code = body["error"].get("code")
+    return code == "AllocationQuota.FreeTierOnly" or (
+        getattr(exc, "status_code", None) == 403 and "AllocationQuota.FreeTierOnly" in str(exc))
+
 # chat 模板包装余量（已验证协议事实的保守放大约束，非实测常数硬编码）：
 # Qwen 模板每条消息渲染 <|im_start|>role\n…<|im_end|>\n 等 ASCII 标记（单个标记 ≤11 字节），
 # 每元素（消息/工具轮次/工具定义）放 128 字节，基础段（生成提示等）另放 128 字节；
@@ -143,6 +154,11 @@ class ChatAPI:
                     continue
                 raise
             except Exception as exc:
+                if _is_provider_quota_exhausted(exc) and i + 1 < len(models):
+                    self.calls.append({"model": model, "kind": "chat", "status": "model_switch",
+                                       "to": models[i + 1], "reason": "AllocationQuota.FreeTierOnly"})
+                    i += 1
+                    continue
                 if _is_provider_transient(exc):
                     self.calls.append({"model": model, "kind": "chat", "status": "transient_retry",
                                        "error": str(exc)[:220]})

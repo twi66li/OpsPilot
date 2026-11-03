@@ -375,7 +375,7 @@ function renderEval() {
         <h4>双裁判判分（同答案、同 rubric、同编号证据）</h4>
         ${Object.entries(q.judges || {}).map(([m, j]) => {
           const jd = j.verdict;
-          const okField = jd.answer_correct ?? jd.factual;
+          const okField = jd?.answer_correct ?? jd?.factual;
           const slotNote = j.note ? ` <span class="meta">[${esc(j.note)}]</span>` : "";
           return `<div class="judge"><b>${esc(m)}</b>${slotNote} ${j.missing || !jd ? '<span class="pill warn">缺判（计 0，未宣称准确率）</span>' :
             `${okField ? '<span class="pill ok">' + esc((d.summary || {}).judge_slots ? "factual" : "answer_correct") + '</span>' : '<span class="pill err">' + esc((d.summary || {}).judge_slots ? "factual" : "answer_correct") + '✗</span>'} ${jd.grounded ? '<span class="pill ok">grounded</span>' : '<span class="pill err">grounded✗</span>'} ${jd.appropriate_abstention ? '<span class="pill ok">abstain✓</span>' : '<span class="pill err">abstain✗</span>'}`}

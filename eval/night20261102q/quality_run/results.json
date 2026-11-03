@@ -5092,7 +5092,7 @@
    "offline": "tests/test_logstats.py::test_pure_range_path_zero_embedding_and_rerank（检索器被 monkeypatch 为必失败，纯路径整链路通过）",
    "real": "heldout-q1/q2/q4/q6/q8 纯路径逐题 usage 中 embedding/rerank/chat tokens 均为 0 或无该模型记录"
   },
-  "judging_invalidated": "run#1/#2 双裁判判分基于 gold_v1（级别/时间/分组错位）与旧题干，全部不可作为准确率；按 v2 复判需 API 额度（项目总额余 728），blocked",
+  "judging_invalidated": "原run#1/#2判分基于错误gold_v1，全部不可作为准确率；gold_v3已更正q6，尚未完成新金标复判。",
   "question_text_updated": "heldout-q4 题干按 v2 更正（ciod: LOGIN chdir 开头 含冒号）"
  },
  "iterations": [
@@ -5171,5 +5171,12 @@
   "heldout-q4": "双判缺额：项目总额触顶（glm-5.3 裁判超时产生 44,117 unknown 计入总额），fail closed",
   "heldout-q5": "slot2 缺额：kimi 份额不足（18,819 < 27,560）、glm-5.3 超时产生 unknown；slot1 deepseek-v4.1-flash 判全真"
  },
- "gold_version": "gold_v1_20261102（作废）→ gold_v2_20261103 已冻结于 scenarios_frozen.json"
+ "gold_version": "gold_v3_20261103（新金标）；原run#1/#2判分基于gold_v1，仍作废",
+ "closeout_metadata_corrections": [
+  {
+   "previous_gold_version": "gold_v1_20261102（作废）→ gold_v2_20261103 已冻结于 scenarios_frozen.json",
+   "previous_judging_invalidated": "run#1/#2 双裁判判分基于 gold_v1（级别/时间/分组错位）与旧题干，全部不可作为准确率；按 v2 复判需 API 额度（项目总额余 728），blocked",
+   "reason": "更正q6剩余金标计数，原答案与原判分保留，未重新生成。"
+  }
+ ]
 }

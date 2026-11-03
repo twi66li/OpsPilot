@@ -136,7 +136,7 @@ def main():
             asked = 50
             covered = W
             g["asked_range"] = {"lo": start, "hi": start + asked - 1, "missing": list(range(start + W, start + asked))}
-            g["covered_count"] = sum(1 for l in lines if "Node card is not fully functional" in l)
+            g["covered_count"] = sum(1 for l in raw_lines if "Node card is not fully functional" in l)
             g["note"] = f"文档只覆盖 {rng}；缺失 L{start + W}-L{start + asked - 1} 共 {asked - W} 行不得计入总数"
         return {"id": qid, "split": split_of(qid), "family": fam[0], "question": fam[1],
                 "window": rng, "window_start": start, "window_end": start + W - 1,
@@ -168,6 +168,7 @@ def main():
     assert by_q["dev-q1"]["gold_program"]["level_counts"] == {"ERROR": 35}, by_q["dev-q1"]["gold_program"]["level_counts"]
     assert by_q["heldout-q4"]["gold_program"]["level_counts"] == {"FATAL": 35}, by_q["heldout-q4"]["gold_program"]["level_counts"]
     assert by_q["dev-q3"]["gold_program"]["level_counts"].get("FATAL") == 29
+    assert by_q["heldout-q6"]["gold_program"]["covered_count"] == 11
     assert by_q["heldout-q4"]["gold_program"]["top_messages"][0]["line_numbers"] == list(range(3080825, 3080860)), \
         "组内行号必须为绝对来源行号"
 
@@ -192,8 +193,12 @@ def main():
         "impact": "run#1/#2 的判分基于 v1 错位金标，全部不可作为准确率；旧答案与旧判分保留于 quality_run/，"
                   "不改写；复判需 API 额度（当前项目总额余 728，blocked）",
     }
-    out = {"namespace": "n31q", "batch": "quality_12", "gold_version": "gold_v2_20261103",
+    correction_v3 = {"previous_version": "gold_v2_20261103", "question": "heldout-q6",
+                     "field": "gold_program.covered_count", "previous": 0, "corrected": 11,
+                     "reason": "缺行分支误读外层窗口lines，改为本题raw_lines；原35行中精确消息命中11行。"}
+    out = {"namespace": "n31q", "batch": "quality_12", "gold_version": "gold_v3_20261103",
            "gold_corrections": gold_corrections,
+           "gold_corrections_v3": correction_v3,
            "corpus_docs": [{"title": d["title"], "file": d["file"]} for d in corpus_docs],
            "corpus_manifest": manifest,
            "questions": [{k: v for k, v in s.items() if k != "lines"} for s in scenarios],

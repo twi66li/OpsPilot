@@ -1,7 +1,7 @@
 {
  "namespace": "n31q",
  "batch": "quality_12",
- "gold_version": "gold_v2_20261103",
+ "gold_version": "gold_v3_20261103",
  "gold_corrections": {
   "version": "gold_v2_20261103",
   "old_version": "gold_v1_20261102（随 commit 9b5b9cf 的 scenarios_frozen.json；被 run#1/#2 判分使用，已作废）",
@@ -1236,7 +1236,7 @@
       3014349
      ]
     },
-    "covered_count": 0,
+    "covered_count": 11,
     "note": "文档只覆盖 L3014300-L3014334；缺失 L3014335-L3014349 共 15 行不得计入总数"
    },
    "gold_notes": {
@@ -1458,5 +1458,13 @@
   "gold_derivation": "可程序推导真值由本脚本独立解析断言（未复用 logstats 实现）；开放题金标列出有据/不可证实事项",
   "window_disjoint": "与旧 dev/test/reg 全部窗口 ±200 行互斥；开发/留出窗口互斥",
   "corpus_policy": "仅新窗口原始日志入库（新租户 n31q）；题干/金标/解释不入库"
+ },
+ "gold_corrections_v3": {
+  "previous_version": "gold_v2_20261103",
+  "question": "heldout-q6",
+  "field": "gold_program.covered_count",
+  "previous": 0,
+  "corrected": 11,
+  "reason": "缺行分支误读外层窗口lines，改为本题raw_lines；原35行中精确消息命中11行。"
  }
 }

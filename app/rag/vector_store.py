@@ -30,6 +30,7 @@ class RetrievedChunk:
             "text": self.text,
             "source": self.source,
             "score": round(self.score, 4),
+            **self.extra,
         }
 
 
@@ -54,12 +55,16 @@ class InMemoryVectorStore:
             point_id = chunk["chunk_id"]
             self._points[point_id] = {"vector": vec, "payload": {**chunk, "tenant_id": tenant_id}}
 
-    def search(self, tenant_id: str, query_vector: list[float], top_k: int = 5) -> list[RetrievedChunk]:
+    def search(self, tenant_id: str, query_vector: list[float], top_k: int = 5,
+               active_versions: dict | None = None) -> list[RetrievedChunk]:
         scored = []
         for point in self._points.values():
             payload = point["payload"]
             if payload.get("tenant_id") != tenant_id:
                 continue  # 租户隔离
+            if active_versions is not None and (payload["doc_id"] not in active_versions
+                    or payload.get("version_id") != active_versions[payload["doc_id"]]):
+                continue
             scored.append((cosine(query_vector, point["vector"]), payload))
         scored.sort(key=lambda x: x[0], reverse=True)
         return [
@@ -71,6 +76,7 @@ class InMemoryVectorStore:
                 source=p.get("source", ""),
                 score=score,
                 tenant_id=p["tenant_id"],
+                extra=_location(p),
             )
             for score, p in scored[:top_k]
         ]
@@ -134,14 +140,31 @@ class QdrantVectorStore:
         ]
         self.client.upsert(self.collection, points=points)
 
-    def search(self, tenant_id: str, query_vector: list[float], top_k: int = 5) -> list[RetrievedChunk]:
-        from qdrant_client.models import FieldCondition, Filter, MatchValue
+    def search(self, tenant_id: str, query_vector: list[float], top_k: int = 5,
+               active_versions: dict | None = None) -> list[RetrievedChunk]:
+        from qdrant_client.models import FieldCondition, Filter, MatchAny, MatchValue
+
+        conditions = [FieldCondition(key="tenant_id", match=MatchValue(value=tenant_id))]
+        if active_versions is not None:
+            if not active_versions:
+                return []
+            alternatives = []
+            legacy = [doc_id for doc_id, version in active_versions.items() if version is None]
+            versions = [version for version in active_versions.values() if version is not None]
+            if legacy:
+                from qdrant_client.models import IsEmptyCondition, PayloadField
+
+                alternatives.append(Filter(must=[FieldCondition(key="doc_id", match=MatchAny(any=legacy)),
+                                                IsEmptyCondition(is_empty=PayloadField(key="version_id"))]))
+            if versions:
+                alternatives.append(FieldCondition(key="version_id", match=MatchAny(any=versions)))
+            conditions.append(Filter(should=alternatives))
 
         result = self.client.query_points(
             self.collection,
             query=query_vector,
             limit=top_k,
-            query_filter=Filter(must=[FieldCondition(key="tenant_id", match=MatchValue(value=tenant_id))]),
+            query_filter=Filter(must=conditions),
         )
         return [
             RetrievedChunk(
@@ -152,6 +175,7 @@ class QdrantVectorStore:
                 source=str(p.payload.get("source", "")),
                 score=p.score or 0.0,
                 tenant_id=tenant_id,
+                extra=_location(p.payload),
             )
             for p in result.points
         ]
@@ -190,6 +214,11 @@ class QdrantVectorStore:
             chunks.extend(dict(p.payload) for p in points)
             if offset is None:
                 return chunks
+
+
+def _location(payload):
+    return {key: payload[key] for key in ("version_id", "version", "parent_id", "page_start", "page_end",
+                                         "heading_path", "content_type", "source_name", "parser") if key in payload}
 
 
 def get_vector_store(settings):

@@ -11,6 +11,7 @@ class Settings(BaseSettings):
 
     # ---- 存储 ----
     database_url: str = "sqlite:///./data/app.db"
+    kb_storage_path: str = "./data/knowledge"
 
     # ---- 认证 ----
     jwt_secret: str = "dev-secret-change-me"

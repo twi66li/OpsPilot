@@ -144,7 +144,7 @@ def make_tool_executor(container, tenant_id, user_id=None):
     def retrieve(args):
         with container.db_session() as db:
             result = container.retriever.retrieve(db, tenant_id, args["query"], mode=container.settings.retrieval_mode, top_k=args["top_k"])
-        hits = [{**hit.to_dict(), "text": hit.text[:500]} for hit in result.hits]
+        hits = [{**hit.to_dict(), "text": hit.text[:2400 if hit.extra.get("parent_id") else 500]} for hit in result.hits]
         return {"status": "ok" if hits else "no_data", "hits": hits, "summary": f"检索到{len(hits)}个手册片段，片段不代表当前实时状态"}
 
     def number_hits(result):

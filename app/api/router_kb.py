@@ -1,15 +1,152 @@
 """知识库接口：文档入库 / 查询 / 检索（支持 dense/bm25/hybrid 三种模式对比）。"""
-from fastapi import APIRouter, Depends, HTTPException, status
+import hashlib
+import uuid
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.api.schemas import DocumentIn, SearchIn
 from app.auth.deps import AuthUser, get_current_user, require_roles
 from app.container import get_container
 from app.db.base import get_db
-from app.db.models import Document
+from app.db.models import Document, DocumentChunk, DocumentParent, DocumentVersion
 from app.services import kb_service
+from app.services.ingestion_service import enqueue
 
 router = APIRouter(prefix="/api/kb", tags=["knowledge-base"])
+
+
+def _version_dict(version, doc):
+    return {"id": version.id, "version_id": version.id, "doc_id": version.doc_id, "number": version.number,
+            "filename": version.filename, "content_hash": version.content_hash, "parser": version.parser,
+            "status": version.status, "progress": version.progress, "error": version.error,
+            "warnings": version.warnings, "index_config": version.index_config,
+            "active": doc.active_version_id == version.id, "created_at": version.created_at.isoformat()}
+
+
+def _get_version(db, version_id, user):
+    version = db.query(DocumentVersion).filter_by(id=version_id, tenant_id=user.tenant_id).first()
+    if version is None:
+        raise HTTPException(404, "知识版本不存在")
+    return version, db.get(Document, version.doc_id)
+
+
+@router.post("/documents/upload", status_code=202)
+def upload_document(file: UploadFile = File(...), title: str = Form(""), doc_id: str = Form(""),
+                    parsed_file: UploadFile | None = File(None),
+                    user: AuthUser = Depends(require_roles("admin", "engineer")), db: Session = Depends(get_db)):
+    filename = Path((file.filename or "").replace("\\", "/")).name
+    if len(filename) > 200 or Path(filename).suffix.lower() not in (".pdf", ".md", ".txt"):
+        raise HTTPException(400, "请上传PDF、Markdown或TXT文件，文件名不超过200字符")
+    data = file.file.read(10 * 1024 * 1024 + 1)
+    parsed_data = parsed_file.file.read(10 * 1024 * 1024 + 1) if parsed_file else b""
+    if not data or len(data) > 10 * 1024 * 1024 or len(parsed_data) > 10 * 1024 * 1024:
+        raise HTTPException(400, "原文件和解析文件各不超过10MB，原文件不能为空")
+    if parsed_file and (Path(filename).suffix.lower() != ".pdf" or not parsed_data):
+        raise HTTPException(400, "MinerU解析结果必须与原PDF一同上传")
+    title = title.strip() or Path(filename).stem
+    if len(title) > 200:
+        raise HTTPException(400, "标题不超过200字符")
+    digest = hashlib.sha256(data).hexdigest()
+    input_hash = hashlib.sha256(data + b"\0" + parsed_data).hexdigest()
+    existing = db.query(DocumentVersion).filter_by(tenant_id=user.tenant_id, content_hash=digest).all()
+    for version in existing:
+        if (not doc_id or version.doc_id == doc_id) and version.index_config.get("input_hash") == input_hash:
+            return {**_version_dict(version, db.get(Document, version.doc_id)), "duplicate": True}
+    if doc_id:
+        doc = db.query(Document).filter_by(id=doc_id, tenant_id=user.tenant_id).with_for_update().first()
+        if not doc:
+            raise HTTPException(404, "文档不存在")
+        running = db.query(DocumentVersion).filter(DocumentVersion.doc_id == doc_id,
+                                                  DocumentVersion.status.notin_(["ready", "failed"])).first()
+        if running:
+            raise HTTPException(409, "该文档已有入库任务，请等待完成后再上传版本")
+    else:
+        doc = Document(tenant_id=user.tenant_id, title=title, content="", source=filename, created_by=user.user_id)
+        db.add(doc)
+        db.flush()
+    number = (db.query(func.max(DocumentVersion.number)).filter_by(doc_id=doc.id).scalar() or 0) + 1
+    version_id = uuid.uuid4().hex
+    folder = Path(get_container().settings.kb_storage_path).resolve() / user.tenant_id / version_id
+    folder.mkdir(parents=True, exist_ok=True)
+    original = folder / ("original" + Path(filename).suffix.lower())
+    original.write_bytes(data)
+    parsed_path = ""
+    if parsed_file:
+        parsed = folder / "content_list.json"
+        parsed.write_bytes(parsed_data)
+        parsed_path = str(parsed)
+    version = DocumentVersion(id=version_id, tenant_id=user.tenant_id, doc_id=doc.id, number=number,
+                              filename=filename, content_hash=digest, original_path=str(original),
+                              parsed_path=parsed_path, index_config={"input_hash": input_hash})
+    db.add(version)
+    db.commit()
+    response = _version_dict(version, doc)
+    enqueue(version.id, get_container())
+    return response
+
+
+@router.get("/versions/{version_id}")
+def get_version(version_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    version, doc = _get_version(db, version_id, user)
+    chunks = db.query(DocumentChunk).filter_by(version_id=version.id, tenant_id=user.tenant_id).all()
+    return {**_version_dict(version, doc), "pages": version.pages, "chunks": [c.payload for c in chunks]}
+
+
+@router.get("/versions/{version_id}/file")
+def get_original(version_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    version, _ = _get_version(db, version_id, user)
+    if not Path(version.original_path).is_file():
+        raise HTTPException(404, "原文件不存在，请检查持久卷")
+    return FileResponse(version.original_path, filename=version.filename, media_type="application/octet-stream")
+
+
+@router.get("/versions/{version_id}/status")
+def version_status(version_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    version, doc = _get_version(db, version_id, user)
+    return _version_dict(version, doc)
+
+
+@router.post("/versions/{version_id}/retry", status_code=202)
+def retry_version(version_id: str, user: AuthUser = Depends(require_roles("admin", "engineer")),
+                  db: Session = Depends(get_db)):
+    version, doc = _get_version(db, version_id, user)
+    updated = db.query(DocumentVersion).filter_by(id=version.id, status="failed").update(
+        {"status": "uploaded", "progress": 0, "error": ""}, synchronize_session=False)
+    if not updated:
+        raise HTTPException(409, "只有失败任务可以重试")
+    db.commit()
+    db.refresh(version)
+    response = _version_dict(version, doc)
+    enqueue(version.id, get_container())
+    return response
+
+
+@router.post("/versions/{version_id}/activate")
+def activate_version(version_id: str, user: AuthUser = Depends(require_roles("admin", "engineer")),
+                     db: Session = Depends(get_db)):
+    version, doc = _get_version(db, version_id, user)
+    if version.status != "ready":
+        raise HTTPException(409, "只有完成索引的版本可以生效")
+    doc.active_version_id = version.id
+    doc.content = "\n\n".join(p["text"] for p in version.pages)
+    doc.chunk_count = version.index_config["chunk_count"]
+    db.commit()
+    return _version_dict(version, doc)
+
+
+@router.get("/chunks/{chunk_id}")
+def get_chunk(chunk_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    chunk = db.query(DocumentChunk).filter_by(id=chunk_id, tenant_id=user.tenant_id).first()
+    if chunk is None:
+        raise HTTPException(404, "片段不存在")
+    parent = db.query(DocumentParent).filter_by(id=chunk.parent_id, tenant_id=user.tenant_id).one()
+    version, doc = _get_version(db, chunk.version_id, user)
+    return {**chunk.payload, "parent_text": parent.text, "active": version.id == doc.active_version_id,
+            "file_url": f"/api/kb/versions/{version.id}/file"}
 
 
 @router.post("/documents")
@@ -29,6 +166,7 @@ def list_documents(user: AuthUser = Depends(get_current_user), db: Session = Dep
             "title": d.title,
             "source": d.source,
             "chunk_count": d.chunk_count,
+            "active_version_id": d.active_version_id,
             "created_at": d.created_at.isoformat(),
         }
         for d in docs
@@ -43,13 +181,25 @@ def get_document(doc_id: str, user: AuthUser = Depends(get_current_user), db: Se
     return {"id": doc.id, "title": doc.title, "source": doc.source, "content": doc.content, "chunk_count": doc.chunk_count}
 
 
+@router.get("/documents/{doc_id}/versions")
+def list_versions(doc_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    doc = db.query(Document).filter_by(id=doc_id, tenant_id=user.tenant_id).first()
+    if doc is None:
+        raise HTTPException(404, "文档不存在")
+    versions = db.query(DocumentVersion).filter_by(doc_id=doc_id).order_by(DocumentVersion.number.desc()).all()
+    return [_version_dict(v, doc) for v in versions]
+
+
 @router.delete("/documents/{doc_id}")
 def delete_document(doc_id: str, user: AuthUser = Depends(require_roles("admin", "engineer")), db: Session = Depends(get_db)):
     container = get_container()
     doc = db.query(Document).filter(Document.id == doc_id, Document.tenant_id == user.tenant_id).first()
     if not doc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "文档不存在")
-    kb_service.delete_document(db, container, doc)
+    try:
+        kb_service.delete_document(db, container, doc)
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
     return {"deleted": doc_id}
 
 

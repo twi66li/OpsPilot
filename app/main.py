@@ -25,8 +25,14 @@ async def lifespan(_: FastAPI):
     try:
         init_db()
         bootstrap()
+        from app.services.ingestion_service import start_worker
+
+        start_worker()
         yield
     finally:
+        from app.services.ingestion_service import stop_worker
+
+        stop_worker()
         reset_container()
 
 

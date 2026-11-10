@@ -3,7 +3,7 @@ import logging
 
 from sqlalchemy.orm import Session
 
-from app.db.models import Document
+from app.db.models import Document, DocumentChunk, DocumentParent, DocumentVersion
 from app.rag.chunking import split_into_chunks
 
 logger = logging.getLogger(__name__)
@@ -45,8 +45,15 @@ def ingest_document(db: Session, container, doc: Document, chunk_size: int = 500
 
 
 def delete_document(db: Session, container, doc: Document) -> None:
+    running = db.query(DocumentVersion).filter(DocumentVersion.doc_id == doc.id,
+                                              DocumentVersion.status.notin_(["ready", "failed"])).first()
+    if running:
+        raise ValueError("文档正在入库，请等待任务结束后删除")
     container.vector_store.delete_doc(doc.tenant_id, doc.id)
     container.bm25.remove_doc(doc.tenant_id, doc.id)
+    db.query(DocumentChunk).filter_by(doc_id=doc.id).delete()
+    db.query(DocumentParent).filter_by(doc_id=doc.id).delete()
+    db.query(DocumentVersion).filter_by(doc_id=doc.id).delete()
     db.delete(doc)
     db.commit()
 
@@ -78,7 +85,9 @@ def warm_indexes(db: Session, container) -> int:
     vector_empty = getattr(container.vector_store, "count", lambda t=None: 0)() == 0
     if vector_empty:
         for doc in docs:
-            chunks = chunk_doc(doc)
+            versions = db.query(DocumentVersion.id).filter_by(doc_id=doc.id, status="ready").all()
+            chunks = ([c.payload for c in db.query(DocumentChunk).filter(
+                DocumentChunk.version_id.in_([v.id for v in versions])).all()] if versions else chunk_doc(doc))
             if chunks:
                 vectors = container.embedder.embed([c["text"] for c in chunks])
                 container.vector_store.upsert(doc.tenant_id, chunks, vectors)

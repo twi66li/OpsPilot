@@ -47,6 +47,9 @@ def init_db() -> None:
     from app.db import models  # noqa: F401  确保模型注册
 
     Base.metadata.create_all(bind=engine)
+    if "active_version_id" not in {column["name"] for column in inspect(engine).get_columns("documents")}:
+        with engine.begin() as conn:
+            conn.execute(text("ALTER TABLE documents ADD COLUMN active_version_id VARCHAR(64) NULL"))
     # 旧工单保留为 NULL；只有新审批才能可靠关联编号，不猜测历史关联。
     if "approval_id" not in {column["name"] for column in inspect(engine).get_columns("tickets")}:
         with engine.begin() as conn:

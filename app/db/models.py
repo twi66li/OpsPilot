@@ -74,8 +74,55 @@ class Document(Base):
     source: Mapped[str] = mapped_column(String(256), default="")
     content: Mapped[str] = mapped_column(Text)
     chunk_count: Mapped[int] = mapped_column(Integer, default=0)
+    active_version_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_by: Mapped[str] = mapped_column(String(64), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
+class DocumentVersion(Base):
+    """原文件与持久化入库任务；ready 与当前生效版本分开记录。"""
+
+    __tablename__ = "document_versions"
+    __table_args__ = (Index("uq_document_version_number", "doc_id", "number", unique=True),)
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    doc_id: Mapped[str] = mapped_column(String(64), ForeignKey("documents.id"), index=True)
+    number: Mapped[int] = mapped_column(Integer)
+    filename: Mapped[str] = mapped_column(String(256))
+    content_hash: Mapped[str] = mapped_column(String(64))
+    original_path: Mapped[str] = mapped_column(String(512))
+    parsed_path: Mapped[str] = mapped_column(String(512), default="")
+    parser: Mapped[str] = mapped_column(String(64), default="")
+    status: Mapped[str] = mapped_column(String(32), default="uploaded")
+    progress: Mapped[int] = mapped_column(Integer, default=0)
+    error: Mapped[str] = mapped_column(Text, default="")
+    pages: Mapped[list] = mapped_column(JSON, default=list)
+    warnings: Mapped[list] = mapped_column(JSON, default=list)
+    index_config: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
+class DocumentParent(Base):
+    __tablename__ = "document_parents"
+
+    id: Mapped[str] = mapped_column(String(96), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    doc_id: Mapped[str] = mapped_column(String(64), index=True)
+    version_id: Mapped[str] = mapped_column(String(64), index=True)
+    text: Mapped[str] = mapped_column(Text)
+    location: Mapped[dict] = mapped_column(JSON, default=dict)
+
+
+class DocumentChunk(Base):
+    __tablename__ = "document_chunks"
+
+    id: Mapped[str] = mapped_column(String(128), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    doc_id: Mapped[str] = mapped_column(String(64), index=True)
+    version_id: Mapped[str] = mapped_column(String(64), index=True)
+    parent_id: Mapped[str] = mapped_column(String(96), index=True)
+    payload: Mapped[dict] = mapped_column(JSON)
 
 
 class FaultRecord(Base):

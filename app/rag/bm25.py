@@ -4,7 +4,7 @@ import threading
 from rank_bm25 import BM25Okapi
 
 from app.rag.embeddings import tokenize
-from app.rag.vector_store import RetrievedChunk
+from app.rag.vector_store import RetrievedChunk, _location
 
 
 class BM25Retriever:
@@ -46,7 +46,8 @@ class BM25Retriever:
             self._rebuild(tenant_id)
             return len(removed)
 
-    def search(self, tenant_id: str, query: str, top_k: int = 5) -> list[RetrievedChunk]:
+    def search(self, tenant_id: str, query: str, top_k: int = 5,
+               active_versions: dict | None = None) -> list[RetrievedChunk]:
         with self._lock:
             index = self._index.get(tenant_id)
             chunks = self._chunks.get(tenant_id, {})
@@ -62,6 +63,8 @@ class BM25Retriever:
             (scores[i], chunk_list[i])
             for i in range(min(len(chunk_list), len(tokens)))
             if q_tokens & set(tokens[i])
+            and (active_versions is None or (chunk_list[i]["doc_id"] in active_versions
+                 and chunk_list[i].get("version_id") == active_versions[chunk_list[i]["doc_id"]]))
         ]
         candidates.sort(key=lambda x: x[0], reverse=True)
         return [
@@ -73,6 +76,7 @@ class BM25Retriever:
                 source=c.get("source", ""),
                 score=float(score),
                 tenant_id=tenant_id,
+                extra=_location(c),
             )
             for score, c in candidates[:top_k]
         ]

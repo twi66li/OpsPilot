@@ -5,7 +5,7 @@
 import time
 from dataclasses import dataclass, field
 
-from app.db.models import RetrievalLog
+from app.db.models import Document, DocumentParent, RetrievalLog
 from app.rag.embeddings import tokenize
 
 
@@ -36,12 +36,16 @@ class HybridRetriever:
         top_k = top_k or self.top_k
         start = time.perf_counter()
         result = RetrievalResult(mode=mode)
+        active_versions = ({d.id: d.active_version_id for d in db.query(Document).filter_by(tenant_id=tenant_id).all()}
+                           if db is not None else None)
 
         if mode in ("dense", "hybrid"):
             query_vector = self.embedder.embed([query])[0]
-            result.dense_raw = self.vector_store.search(tenant_id, query_vector, top_k=max(top_k, self.dense_top_k))
+            result.dense_raw = self.vector_store.search(tenant_id, query_vector, top_k=max(top_k, self.dense_top_k),
+                                                        active_versions=active_versions)
         if mode in ("bm25", "hybrid"):
-            result.bm25_raw = self.bm25.search(tenant_id, query, top_k=max(top_k, self.bm25_top_k))
+            result.bm25_raw = self.bm25.search(tenant_id, query, top_k=max(top_k, self.bm25_top_k),
+                                              active_versions=active_versions)
 
         if mode == "dense":
             result.hits = result.dense_raw[:top_k]
@@ -55,6 +59,18 @@ class HybridRetriever:
         if self.reranker is not None and result.hits:
             result.hits = self.reranker.rerank(query, list(result.hits), top_k=top_k)
             result.reranked = True
+
+        if db is not None:
+            for hit in result.hits:
+                parent_id = hit.extra.get("parent_id")
+                if not parent_id:
+                    continue
+                parent = db.query(DocumentParent).filter_by(id=parent_id, tenant_id=tenant_id).first()
+                if parent:
+                    hit.extra["matched_text"] = hit.text
+                    # 大代码/表格父块只提供命中附近的有界窗口，原文仍可按引用回查。
+                    start = max(0, parent.text.find(hit.text.split("\n", 1)[-1]) - 500)
+                    hit.text = parent.text[start:start + 2400]
 
         result.latency_ms = (time.perf_counter() - start) * 1000
 

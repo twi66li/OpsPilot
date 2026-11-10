@@ -9,3 +9,5 @@ venv
 .ruff_cache
 data
 eval/reports
+frontend/node_modules
+frontend/dist

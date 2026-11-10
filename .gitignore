@@ -15,3 +15,5 @@ eval/reports/**/embeddings.json
 eval/reports/**/*.writing
 *.jsonl.lock
 *.lock
+node_modules/
+frontend/dist/

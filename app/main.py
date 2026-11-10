@@ -5,6 +5,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.api import router_admin, router_agent, router_eval, router_kb, router_session, router_ticket
@@ -94,6 +95,10 @@ def health():
 
 
 # 诊断工作台单页（同源挂载）。必须最后注册：通配 mount 会吞掉其后定义的所有路由。
-_FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+_FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 if _FRONTEND_DIR.is_dir():
     app.mount("/", StaticFiles(directory=_FRONTEND_DIR, html=True), name="frontend")
+else:
+    @app.get("/", response_class=HTMLResponse, status_code=503, include_in_schema=False)
+    def frontend_not_built():
+        return '<html lang="zh-CN"><h1>OpsPilot</h1><p>请在frontend目录执行 npm ci 和 npm run build，随后重启API。</p></html>'

@@ -62,6 +62,16 @@ def decide(approval_id: str, body: DecisionIn, user: AuthUser = Depends(require_
     return agent_service.decide_approval(container, db, user, approval_id, body.approved, body.comment)
 
 
+@router.get("/approvals")
+def list_approvals(user: AuthUser = Depends(require_roles("admin", "engineer")), db: Session = Depends(get_db)):
+    from app.db.models import ApprovalRequest
+
+    pending = db.query(ApprovalRequest).filter_by(tenant_id=user.tenant_id, status="pending").order_by(
+        ApprovalRequest.created_at.desc()).limit(100).all()
+    return [{"approval_id": item.id, "session_id": item.session_id, "ticket_draft": item.ticket_draft,
+             "requested_by": item.requested_by, "created_at": item.created_at.isoformat()} for item in pending]
+
+
 @router.get("/tools")
 def tools(user: AuthUser = Depends(get_current_user)):
     settings = get_container().settings

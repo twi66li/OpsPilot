@@ -2,7 +2,7 @@
 
 面向运维调查的个人工程项目：按需查询日志、指标、运维手册与历史故障，展示证据与不确定性，通过人工审批创建工单。
 
-技术栈：Python / FastAPI / LangGraph / PostgreSQL 16 / Qdrant / BM25 + RRF + Rerank / Redis / MCP / Docker Compose。
+技术栈：Python / FastAPI / LangGraph / PostgreSQL 16 / Qdrant / BM25 + RRF + Rerank / Redis / MCP / React + TypeScript + Ant Design / Docker Compose。
 
 ## 已实现
 
@@ -14,7 +14,7 @@
 - 结构化父子块、页码及来源回查、有效知识版本切换；失败和历史版本在召回前过滤。
 - SSE 节点事件、调查 trace、模型用量与轻量评测接口。
 
-当前前端仍为联调页面，React 工作台、完整异步数据访问、逐 token 输出与受控演练修复正在后续开发。普通 PDF 文本提取不包含 OCR，也不保证恢复复杂表格布局。
+React 工作台已接通登录、完整会话历史、调查过程、文件知识库、引用回查、审批工单与已有评测记录。完整异步数据访问、逐 token 输出与受控演练修复继续开发。普通 PDF 文本提取不包含 OCR，也不保证恢复复杂表格布局。
 
 ## 本机运行
 
@@ -24,10 +24,15 @@ python -m venv .venv
 Copy-Item .env.example .env
 # 默认 SQLite、内存向量库和 mock 模型，可先离线调试；真实模式在 .env 中配置。
 .venv/Scripts/python -m scripts.seed
+cd frontend
+npm ci
+npm run build
+cd ..
 .venv/Scripts/python -m uvicorn app.main:app --reload
 ```
 
 访问工作台 `http://127.0.0.1:8000`，接口文档 `http://127.0.0.1:8000/docs`。
+前端需要 Node 24；Docker 使用独立构建阶段，运行容器只托管静态产物。开发前端可在 `frontend` 执行 `npm run dev`，代理API至本机8000端口。
 默认管理员是 `admin / admin123`，云端部署前需修改管理员密码和 JWT 密钥。
 
 ## PostgreSQL + Qdrant 本地联调

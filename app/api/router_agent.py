@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/agent", tags=["agent"])
 
 def _check_session_and_ratelimit(user: AuthUser, db: Session, session_id: str, question: str):
     container = get_container()
-    session = chat_service.get_session(db, user.tenant_id, session_id)
+    session = chat_service.get_session(db, user.tenant_id, session_id, user.user_id)
     if not session:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "会话不存在")
     if not check_rate_limit(container.cache, f"{user.tenant_id}:{user.user_id}", container.settings.rate_limit_per_minute):
@@ -47,6 +47,8 @@ def chat_stream(body: ChatIn, user: AuthUser = Depends(get_current_user), db: Se
 def pending_approval(session_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     from app.services import ticket_service
 
+    if not chat_service.get_session(db, user.tenant_id, session_id, user.user_id):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "会话不存在")
     approval = ticket_service.get_pending_approval(db, user.tenant_id, session_id)
     if not approval:
         return {"pending": False}
@@ -62,6 +64,13 @@ def decide(approval_id: str, body: DecisionIn, user: AuthUser = Depends(require_
 
 @router.get("/tools")
 def tools(user: AuthUser = Depends(get_current_user)):
+    settings = get_container().settings
+    if settings.retrieval_subagent_enabled:
+        from app.agent.tool_loop import DESCRIPTIONS
+
+        return [tool for tool in TOOL_REGISTRY if tool["name"] != "search_runbook"] + [
+            {"name": "delegate_retrieval", "description": DESCRIPTIONS["delegate_retrieval"]}
+        ]
     return TOOL_REGISTRY
 
 
@@ -69,7 +78,7 @@ def tools(user: AuthUser = Depends(get_current_user)):
 def get_run(run_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     from app.services.run_service import get_run as read_run
 
-    run = read_run(db, user.tenant_id, run_id)
+    run = read_run(db, user.tenant_id, run_id, user.user_id)
     if run is None:
         raise HTTPException(status_code=404, detail="运行记录不存在")
     return {"run_id": run.id, "session_id": run.session_id, "mode": run.mode, "status": run.status, "data": run.data}

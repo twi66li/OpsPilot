@@ -9,12 +9,26 @@ from openai import APIStatusError
 from app.services.model_api import ChatAPI
 
 
+def test_chat_model_order_skips_expired_models_and_prefers_earlier_expiry(monkeypatch):
+    from types import SimpleNamespace
+
+    from app.services.model_api import _available_chat_models
+
+    monkeypatch.setenv("CHAT_MODEL_CANDIDATES", json.dumps(["later", "earlier", "expired"]))
+    monkeypatch.setattr("app.config.get_settings", lambda: SimpleNamespace(
+        chat_model_candidates=[], chat_model_expirations={"later": "2099-02-01", "earlier": "2099-01-01", "expired": "1900-01-01"}
+    ))
+    assert _available_chat_models("expired") == ["earlier", "later"]
+    assert _available_chat_models("expired", {"earlier"}) == ["later"]
+
+
 @pytest.mark.parametrize("code,status,switch", [
     ("AllocationQuota.FreeTierOnly", 403, True),
     ("AccessDenied", 403, False),
     ("Unauthorized", 401, False),
 ])
-def test_provider_quota_switch_keeps_other_errors(monkeypatch, code, status, switch):
+@pytest.mark.parametrize("native", [False, True])
+def test_provider_quota_switch_keeps_other_errors(monkeypatch, code, status, switch, native):
     monkeypatch.setenv("CHAT_MODEL_CANDIDATES", json.dumps(["backup"]))
     api = ChatAPI.__new__(ChatAPI)
     api.model, api.calls = "primary", []
@@ -28,13 +42,15 @@ def test_provider_quota_switch_keeps_other_errors(monkeypatch, code, status, swi
         return "recorded backup"
 
     api._chat_once = recorded
+    api._tool_turn_once = recorded
+    call = (lambda: api.tool_turn([], [])) if native else (lambda: api.chat("system", "question"))
     if switch:
-        assert api.chat("system", "question") == "recorded backup"
+        assert call() == "recorded backup"
         assert attempted == ["primary", "backup"]
-        assert api.calls[0]["reason"] == code
+        assert api.calls[0]["to"] == "backup"
     else:
         with pytest.raises(APIStatusError):
-            api.chat("system", "question")
+            call()
         assert attempted == ["primary"]
 
 

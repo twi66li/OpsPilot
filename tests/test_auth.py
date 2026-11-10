@@ -78,3 +78,22 @@ def test_duplicate_username_rejected(client):
     register(client, "dup_user", "pass123456")
     resp = client.post("/auth/register", json={"username": "dup_user", "password": "pass123456"})
     assert resp.status_code == 400
+
+
+def test_same_tenant_users_cannot_access_another_users_session_or_trace(
+    client, admin_headers, viewer_headers, engineer_headers
+):
+    from tests.conftest import new_session
+
+    sid = new_session(client, admin_headers, "个人调查")
+    answer = client.post("/api/agent/chat", json={"session_id": sid, "message": "连接池如何排查"}, headers=admin_headers)
+    assert answer.status_code == 200
+    run_id = answer.json()["run_id"]
+    for headers in (viewer_headers, engineer_headers):
+        assert sid not in {s["id"] for s in client.get("/api/sessions", headers=headers).json()}
+        for path in (f"/api/sessions/{sid}", f"/api/agent/runs/{run_id}", f"/api/agent/sessions/{sid}/pending-approval"):
+            assert client.get(path, headers=headers).status_code == 404
+        for path in ("/api/agent/chat", "/api/agent/chat/stream"):
+            assert client.post(path, json={"session_id": sid, "message": "继续调查"}, headers=headers).status_code == 404
+    assert client.get(f"/api/sessions/{sid}", headers=admin_headers).status_code == 200
+    assert client.get(f"/api/agent/runs/{run_id}", headers=admin_headers).status_code == 200

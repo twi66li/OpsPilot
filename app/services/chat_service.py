@@ -11,15 +11,15 @@ def create_session(db: Session, tenant_id: str, user_id: str, title: str = "新�
     return session
 
 
-def get_session(db: Session, tenant_id: str, session_id: str) -> ChatSession | None:
-    """按租户过滤获取会话（跨租户不可见）。"""
-    return db.query(ChatSession).filter(ChatSession.id == session_id, ChatSession.tenant_id == tenant_id).first()
+def get_session(db: Session, tenant_id: str, session_id: str, user_id: str) -> ChatSession | None:
+    """个人会话同时校验租户与所有者；团队工单另按角色授权。"""
+    return db.query(ChatSession).filter(
+        ChatSession.id == session_id, ChatSession.tenant_id == tenant_id, ChatSession.user_id == user_id
+    ).first()
 
 
-def list_sessions(db: Session, tenant_id: str, user_id: str | None = None) -> list[ChatSession]:
-    query = db.query(ChatSession).filter(ChatSession.tenant_id == tenant_id)
-    if user_id:
-        query = query.filter(ChatSession.user_id == user_id)
+def list_sessions(db: Session, tenant_id: str, user_id: str) -> list[ChatSession]:
+    query = db.query(ChatSession).filter(ChatSession.tenant_id == tenant_id, ChatSession.user_id == user_id)
     return query.order_by(ChatSession.created_at.desc()).limit(100).all()
 
 

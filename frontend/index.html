@@ -87,7 +87,7 @@
   <h1>🛠 OpsPilot 诊断工作台</h1>
   <span class="badge" id="who">未登录</span>
   <span class="badge warn">指标源 = 测试演示数据</span>
-  <span class="badge" id="evalBadge">BGL 评测：n31real（未人工复核）</span>
+  <span class="badge" id="evalBadge">评测工作台</span>
   <nav>
     <button id="tabChat" class="active" onclick="switchView('chat')">诊断对话</button>
     <button id="tabEval" class="ghost" onclick="switchView('eval')">评测结果</button>
@@ -115,7 +115,7 @@
   <div class="col" style="background:var(--bg)">
     <div id="chat"><div class="msg assistant pending">登录并选择会话后，描述故障即可开始诊断。示例：order-service 出现 ERR_5003，大量请求超时，请给出排查步骤并说明依据。
 
-口径说明：本工作台的 BGL 日志问答基于知识库证据摘录（含真实重排检索）与只读工具，输出为可追溯的诊断建议，不构成生产环境根因结论；"指标"工具为测试演示数据，与真实 BGL 评测无关。</div></div>
+指标与请求日志来自测试环境，故障可由测试注入。请结合过程证据核查诊断，测试结果不能直接视为生产环境根因结论。</div></div>
     <div class="inputbar">
       <textarea id="question" placeholder="描述故障，例如：order-service 出现 ERR_5003，大量请求超时……（Ctrl+Enter 发送）"></textarea>
       <button onclick="send()">发送</button>
@@ -147,7 +147,7 @@ const api = (path, opts={}) => {
     return r.status === 204 ? null : r.json();
   });
 };
-const esc = s => (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 const toast = m => { const t = $("#toast"); t.textContent = m; t.style.display = "block"; setTimeout(() => t.style.display = "none", 2600); };
 let token = localStorage.getItem("opspilot_token") || "";
 let sessionId = localStorage.getItem("opspilot_sid") || "";
@@ -322,7 +322,7 @@ function statusPill(st) {
 function usageStr(u) {
   if (!u || !Object.keys(u).length) return '<span class="meta">无调用记录</span>';
   return Object.entries(u).map(([m, s]) =>
-    `<span class="pill">${esc(m)}: ${s.tokens || 0} tok / ${s.calls} 次${s.errors ? ` / <span class="err">错误 ${s.errors}</span>` : ""}${s.budget_refused ? ` / 预算拒绝 ${s.budget_refused}` : ""}</span>`).join(" ");
+    `<span class="pill">${esc(m)}: ${s.tokens || 0} tok / ${s.calls} 次${s.missing_usage ? ` / ${s.missing_usage} 次用量未知` : ""}${s.errors ? ` / <span class="err">错误 ${s.errors}</span>` : ""}${s.budget_refused ? ` / 预算拒绝 ${s.budget_refused}` : ""}</span>`).join(" ");
 }
 function renderAnswerEval(text, evidenceArr) {
   return esc(text).replace(/\[(\d{1,2})\]/g, (m, n) => {
@@ -334,9 +334,12 @@ function renderEval() {
   const d = evalData;
   if (!d) return;
   const s = d.summary || {}, mf = d.manifest || {}, cfg = d.config || {};
+  $("#evalBadge").textContent = d.batch || "评测工作台";
+  $("#evBanner").textContent = cfg.evaluation_scope || "查看所选批次的证据、回答和评测记录；具体结论以该批次评测口径为准。";
   const byModel = mf.ledger_by_model || {}, ml = (cfg.budget || {}).model_limits || {};
   $("#evStats").innerHTML = `
-    <div class="stat"><b>${s.completed || 0} / ${s.target || s.planned || 43}</b><span class="meta">完成题数（未运行不计完成${s.not_run && s.not_run.length ? `，not_run ${s.not_run.length} 题已披露` : ""}）</span></div>
+    <div class="stat"><b>${s.completed || 0} / ${s.target || s.planned || 0}</b><span class="meta">完成题数（未运行不计完成${s.not_run && s.not_run.length ? `，not_run ${s.not_run.length} 题已披露` : ""}）</span></div>
+    ${s.program_passed != null ? `<div class="stat"><b>${s.program_passed} / ${s.target}</b><span class="meta">程序契约通过（非根因准确率）</span></div>` : ""}
     <div class="stat"><b>${Object.entries(s.status_counts || {}).map(([k, v]) => `${k}:${v}`).join(" ") || "-"}</b><span class="meta">状态分布</span></div>
     <div class="stat"><b>${s.reused_heldout ? "见分组" : (s.double_judged ?? s.both_judged ?? 0)}</b><span class="meta">有效双判题数</span></div>
     <div class="stat"><b>${esc(s.factual_agreement || s.judge_agreement_on_answer_correct || "-")}</b><span class="meta">双裁判 factual 一致（非人工准确率${s.judging_invalidated ? "；本轮判分已作废：金标 v1 错位，见说明" : ""}）</span></div>
@@ -358,7 +361,7 @@ function renderEval() {
     `<button class="${evalFilter === f ? "active" : ""}" onclick="setFilter('${f}')">${f === "all" ? "全部" : f === "failed" ? "仅失败" : f === "abstain" ? "拒答题" : f}</button>`).join("");
   const qs = (d.questions || []).filter(q => {
     if (evalFilter === "all") return true;
-    if (evalFilter === "failed") return String(q.status) !== "answered" && String(q.status) !== "approval_required";
+    if (evalFilter === "failed") return (q.program_checks && Object.values(q.program_checks).some(v => !v)) || (String(q.status) !== "answered" && String(q.status) !== "approval_required");
     if (evalFilter === "abstain") return !!q.must_abstain;
     return q.split === evalFilter;
   });
@@ -370,6 +373,9 @@ function renderEval() {
     const detail = !open ? "" : `
       <div class="detail">
         <h4>输入</h4><pre>${esc(q.question)}</pre>
+        ${q.program_checks ? `<h4>程序契约检查</h4><pre>${esc(JSON.stringify(q.program_checks, null, 2))}</pre>` : ""}
+        ${q.tool_evidence?.length ? `<h4>工具返回证据（指标、日志、手册）</h4><pre>${esc(JSON.stringify(q.tool_evidence, null, 2))}</pre>` : ""}
+        ${Object.keys(q.agent_usage || {}).length ? `<h4>主Agent与检索子Agent用量</h4><pre>${esc(JSON.stringify(q.agent_usage, null, 2))}</pre>` : ""}
         <h4>金标要点（逐项对应原始日志行）</h4><pre>${esc((q.required_points || []).map((p, i) => `${i + 1}. ${p}`).join("\n"))}</pre>
         ${q.gold_program ? `<h4>程序推导真值（gold_program，${esc(d.gold_version || "gold_v1")}）</h4><pre>${esc(JSON.stringify(q.gold_program, null, 1))}</pre>` : ""}
         ${q.gold_notes ? `<h4>金标口径（有据 / 不可证实）</h4><pre>有据：${esc((q.gold_notes["有据"] || []).join("；"))}\n不可证实：${esc((q.gold_notes["不可证实"] || q.gold_notes.unverifiable || []).join("；"))}</pre>` : ""}

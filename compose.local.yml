@@ -1,0 +1,70 @@
+# 本地完整联调：docker compose -f compose.local.yml --profile app --profile observability up -d --build
+# 仅依赖容器：docker compose -f compose.local.yml up -d；API 可通过本机 .venv 启动。
+name: opspilot-local
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: opspilot
+      POSTGRES_USER: opspilot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?请在.env配置POSTGRES_PASSWORD}
+    command: postgres -c shared_buffers=64MB -c max_connections=30
+    ports: ["127.0.0.1:15432:5432"]
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
+    mem_limit: 256m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opspilot -d opspilot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 32mb --maxmemory-policy allkeys-lru
+    ports: ["127.0.0.1:16379:6379"]
+    mem_limit: 64m
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    environment:
+      QDRANT__STORAGE__ON_DISK_PAYLOAD: "true"
+    ports: ["127.0.0.1:16333:6333"]
+    volumes: ["qdrant_data:/qdrant/storage"]
+    mem_limit: 384m
+  api:
+    profiles: ["app"]
+    build:
+      context: .
+      args:
+        PIP_INDEX_URL: https://pypi.tuna.tsinghua.edu.cn/simple
+    image: opspilot-local-api
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://opspilot:${POSTGRES_PASSWORD}@postgres:5432/opspilot
+      REDIS_URL: redis://redis:6379/0
+      QDRANT_URL: http://qdrant:6333
+      PROMETHEUS_URL: http://prometheus:9090
+      LOGS_URL: http://metrics-demo:8081
+      BUDGET_LEDGER_PATH: /app/data/model-budget-20261110.jsonl
+    ports: ["127.0.0.1:8000:8000"]
+    volumes: ["./data:/app/data", "./eval:/app/eval:ro"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_started}
+      qdrant: {condition: service_started}
+    mem_limit: 384m
+  metrics-demo:
+    profiles: ["observability"]
+    image: opspilot-local-api
+    command: uvicorn scripts.metrics_demo:app --host 0.0.0.0 --port 8081
+    ports: ["127.0.0.1:18081:8081"]
+    mem_limit: 128m
+  prometheus:
+    profiles: ["observability"]
+    image: prom/prometheus:v3.13.5
+    command: --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.retention.time=6h --storage.tsdb.retention.size=100MB
+    volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml:ro", "prometheus_data:/prometheus"]
+    ports: ["127.0.0.1:19090:9090"]
+    mem_limit: 128m
+volumes:
+  postgres_data:
+  qdrant_data:
+  prometheus_data:

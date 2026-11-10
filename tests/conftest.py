@@ -10,6 +10,14 @@ os.environ["MODEL_STRICT"] = "false"
 os.environ["QDRANT_MODE"] = "memory"
 os.environ["RERANK_ENABLED"] = "false"
 os.environ["REDIS_URL"] = "redis://127.0.0.1:1/0"  # 不可达 → 缓存退化为进程内
+os.environ["AGENT_MODE"] = "rule"
+os.environ["METRICS_PROVIDER"] = "mock"
+os.environ["CHECKPOINT_PATH"] = ""
+os.environ["BUDGET_LEDGER_PATH"] = ""
+os.environ["CHAT_MODEL_CANDIDATES"] = "[]"
+os.environ["CHAT_MODEL_EXPIRATIONS"] = "{}"
+os.environ["MCP_ENABLED"] = "false"
+os.environ["RETRIEVAL_SUBAGENT_ENABLED"] = "false"
 
 import pytest
 from fastapi.testclient import TestClient

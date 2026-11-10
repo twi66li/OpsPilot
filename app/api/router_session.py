@@ -19,13 +19,13 @@ def create_session(body: SessionIn, user: AuthUser = Depends(get_current_user), 
 
 @router.get("")
 def list_sessions(user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
-    sessions = chat_service.list_sessions(db, user.tenant_id)
+    sessions = chat_service.list_sessions(db, user.tenant_id, user.user_id)
     return [{"id": s.id, "title": s.title, "created_at": s.created_at.isoformat()} for s in sessions]
 
 
 @router.get("/{session_id}")
 def get_session(session_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
-    session = chat_service.get_session(db, user.tenant_id, session_id)
+    session = chat_service.get_session(db, user.tenant_id, session_id, user.user_id)
     if not session:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "会话不存在")
     messages = db.query(Message).filter(Message.session_id == session_id).order_by(Message.id.asc()).all()

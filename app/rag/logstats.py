@@ -63,7 +63,6 @@ def _message_literal(line: str) -> str | None:
             pos += 1
         if pos >= len(rest):
             return ""
-        start = pos
         while pos < len(rest) and rest[pos] not in " \t":
             pos += 1
         count += 1

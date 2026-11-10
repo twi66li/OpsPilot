@@ -1,0 +1,29 @@
+{
+  "scope": "本轮MCP与检索子Agent启用后的空闲内存快照；不代表MCP子进程峰值或并发容量",
+  "containers": [
+    {
+      "name": "opspilot-local-api-1",
+      "memory": "265.7MiB / 384MiB"
+    },
+    {
+      "name": "opspilot-local-postgres-1",
+      "memory": "67.27MiB / 256MiB"
+    },
+    {
+      "name": "opspilot-local-qdrant-1",
+      "memory": "83.28MiB / 384MiB"
+    },
+    {
+      "name": "opspilot-local-redis-1",
+      "memory": "9.062MiB / 64MiB"
+    },
+    {
+      "name": "opspilot-local-metrics-demo-1",
+      "memory": "38.55MiB / 128MiB"
+    },
+    {
+      "name": "opspilot-local-prometheus-1",
+      "memory": "54.34MiB / 128MiB"
+    }
+  ]
+}

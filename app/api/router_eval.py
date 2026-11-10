@@ -100,6 +100,11 @@ def eval_results(user: AuthUser = Depends(require_roles("admin")), run: str = ""
             "usage": rec.get("usage", {}),
             "error": rec.get("error") or (rec.get("attempts") or None),
             "elapsed_s": rec.get("elapsed_s"),
+            "program_checks": rec.get("program_checks"),
+            "actual_models": rec.get("actual_models", []),
+            "end_reason": rec.get("end_reason"),
+            "tool_evidence": rec.get("tool_evidence", []),
+            "agent_usage": rec.get("agent_usage", {}),
         })
     return {
         "id": ctx["meta"]["id"],

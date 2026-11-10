@@ -135,28 +135,55 @@ def metrics_summary(result):
     return evidence
 
 
-def make_tool_executor(container, tenant_id):
+def make_tool_executor(container, tenant_id, user_id=None):
     """tenant_id 来自服务端认证上下文，模型参数无法覆盖它。"""
     citation_ids = {}
+    evaluation_time = round(time.time(), 3)
+    delegated = False
+
+    def retrieve(args):
+        with container.db_session() as db:
+            result = container.retriever.retrieve(db, tenant_id, args["query"], mode=container.settings.retrieval_mode, top_k=args["top_k"])
+        hits = [{**hit.to_dict(), "text": hit.text[:500]} for hit in result.hits]
+        return {"status": "ok" if hits else "no_data", "hits": hits, "summary": f"检索到{len(hits)}个手册片段，片段不代表当前实时状态"}
+
+    def number_hits(result):
+        return {**result, "hits": [{**hit, "citation_id": citation_ids.setdefault(hit["chunk_id"], len(citation_ids) + 1)}
+                                   for hit in result.get("hits", [])]}
 
     def execute(name, args):
+        nonlocal delegated
         if name == "search_runbook":
-            with container.db_session() as db:
-                result = container.retriever.retrieve(db, tenant_id, args["query"], mode=container.settings.retrieval_mode, top_k=args["top_k"])
-            hits = []
-            for hit in result.hits:
-                data = hit.to_dict()
-                citation = citation_ids.setdefault(data["chunk_id"], len(citation_ids) + 1)
-                hits.append({**data, "text": data["text"][:500], "citation_id": citation})
-            return {"status": "ok" if hits else "no_data", "hits": hits, "summary": f"检索到{len(hits)}个手册片段，片段不代表当前实时状态"}
+            return number_hits(retrieve(args))
+        if name == "delegate_retrieval":
+            if not getattr(container.settings, "retrieval_subagent_enabled", False) or delegated:
+                return {"status": "delegation_limit", "summary": "检索子Agent未启用或本次调查已完成委派。", "hits": []}
+            delegated = True
+            from app.agent.retrieval_agent import run_retrieval_agent
+            from app.services.model_api import ChatAPI
+
+            settings = container.settings
+            api = ChatAPI(settings.openai_api_key, settings.openai_base_url, settings.chat_model)
+            return number_hits(run_retrieval_agent(args["query"], api, retrieve, top_k=args["top_k"], timeout=settings.tool_timeout_seconds))
+        if name in ("query_logs", "query_service_metrics") and getattr(container.settings, "mcp_enabled", False):
+            from app.services.mcp_client import call_observability_tool
+
+            result = call_observability_tool(container.settings, user_id, tenant_id, name, args, evaluation_time)
+            if name == "query_service_metrics" and "source" in result:
+                result["summary"] = metrics_summary(result)
+            return result
         if name == "query_service_metrics":
-            result = query_service_metrics(**args)
+            result = query_service_metrics(**args, evaluation_time=evaluation_time, tenant_id=tenant_id)
             return {**result, "summary": metrics_summary(result)}
+        if name == "query_logs":
+            from app.services.log_service import query_logs
+
+            return query_logs(tenant_id, **args, evaluation_time=evaluation_time)
         if name == "query_fault_history":
             with container.db_session() as db:
                 rows = query_fault_history(db, tenant_id, **args)
             return {"status": "ok" if rows else "no_data", "records": rows, "summary": f"历史精确匹配{len(rows)}条，仅供参考，不能确认本次根因"}
-        raise ValueError("只允许三个只读工具")
+        raise ValueError("不在只读工具允许列表")
 
     return execute
 
@@ -186,7 +213,7 @@ def run_diagnostic_tools(db: Session, tenant_id: str, question: str) -> tuple[li
     ):
         for service in entities["services"][:2]:
             start = time.perf_counter()
-            result = query_service_metrics(service, window_minutes)
+            result = query_service_metrics(service, window_minutes, tenant_id=tenant_id)
             metrics_all[service] = result
             evidence = metrics_summary(result)
             tool_events.append(
@@ -223,6 +250,7 @@ def run_diagnostic_tools(db: Session, tenant_id: str, question: str) -> tuple[li
 
 
 TOOL_REGISTRY = [
+    {"name": "query_logs", "description": "查询同一调查时间窗口内的测试请求日志，可按错误码补查"},
     {"name": "search_runbook", "description": "只读检索本租户的运维手册和SOP，返回依据片段"},
     {"name": "query_service_metrics", "description": "只读查询指定测试服务最近 window_minutes 分钟（5–240，以当前时间为终点）的 QPS / P99 延迟 / 错误率，返回来源、时间窗和证据状态"},
     {"name": "query_fault_history", "description": "按服务名 / 错误码检索历史故障记录（根因与解决方案）"},

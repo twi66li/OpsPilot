@@ -63,11 +63,11 @@ def _mock_metrics(service: str, window_minutes: int) -> dict:
     }
 
 
-def query_service_metrics(service: str, window_minutes: int = 60) -> dict:
+def query_service_metrics(service: str, window_minutes: int = 60, *, evaluation_time: float | None = None, tenant_id: str = "default") -> dict:
     settings = get_settings()
     service = service.strip().lower()
     window_minutes = min(max(window_minutes, 5), 240)
-    end = round(time.time(), 3)
+    end = round(time.time() if evaluation_time is None else evaluation_time, 3)
     result = {
         "service": service,
         "window_minutes": window_minutes,
@@ -84,6 +84,8 @@ def query_service_metrics(service: str, window_minutes: int = 60) -> dict:
     }
     if not re.fullmatch(r"[a-z][a-z0-9-]{0,63}", service):
         return {**result, "status": "invalid_service", "message": "服务标识无效，指标证据不足"}
+    if tenant_id != "default":
+        return {**result, "status": "no_data", "message": "当前测试指标源未接入本租户，不能据此判定服务正常"}
     if settings.metrics_provider == "mock" and service not in KNOWN_SERVICES:
         return {
             **result,

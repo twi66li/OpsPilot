@@ -1,0 +1,18 @@
+{
+  "session_id": "c2fec0087ad44ba4be46f2f733f2506e",
+  "approval_id": "bb74b3227ce846e790aa04078b28cecc",
+  "run_id": "9b9070c72f994a7093975a012ee07993",
+  "checkpoint_rows": 5,
+  "backend": "postgresql",
+  "before_status": "approval_required",
+  "status": "passed",
+  "api_container_recreated": true,
+  "approval_restored": true,
+  "concurrent_decisions": 4,
+  "unique_ticket_count": 1,
+  "ticket_id": "030451c31de341b6acb18a15e0326771",
+  "viewer_blocked": true,
+  "other_tenant_blocked": true,
+  "opposite_decision_blocked": true,
+  "scope": "单API进程、真实PostgreSQL检查点、API容器重建后的审批恢复；非多实例分布式事务验证"
+}

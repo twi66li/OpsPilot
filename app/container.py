@@ -58,7 +58,16 @@ def get_container() -> Container:
         nodes = DiagnosisNodes(None)
         connection = None
         checkpointer = None
-        if settings.checkpoint_path:
+        if settings.database_url.startswith("postgresql"):
+            import psycopg
+            from langgraph.checkpoint.postgres import PostgresSaver
+            from psycopg.rows import dict_row
+
+            connection = psycopg.connect(settings.database_url.replace("postgresql+psycopg://", "postgresql://"),
+                                         autocommit=True, row_factory=dict_row)
+            checkpointer = PostgresSaver(connection)
+            checkpointer.setup()
+        elif settings.checkpoint_path:
             import sqlite3
             from pathlib import Path
 

@@ -37,7 +37,7 @@ def test_strict_generation_does_not_fall_back(monkeypatch):
     llm = OpenAIChatLLM.__new__(OpenAIChatLLM)
     llm.strict = True
 
-    def fail(*args):
+    def fail(*args, **kwargs):
         raise RuntimeError("真实服务失败")
 
     monkeypatch.setattr(llm, "_chat", fail)

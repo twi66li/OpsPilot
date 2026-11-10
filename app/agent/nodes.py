@@ -60,16 +60,20 @@ class DiagnosisNodes:
 
         if not hasattr(self.container.llm, "_api"):
             raise ValueError("原生工具模式需要真实OpenAI兼容模型，不回退Mock")
+        delegated = self.container.settings.retrieval_subagent_enabled
+        tool_names = ("delegate_retrieval" if delegated else "search_runbook", "query_service_metrics", "query_logs", "query_fault_history")
         result = run_tool_loop(
-            state["question"], self.container.llm._api, make_tool_executor(self.container, state["tenant_id"]),
+            state["question"], self.container.llm._api, make_tool_executor(self.container, state["tenant_id"], state["user_id"]),
             history=state.get("history", []), timeout=self.container.settings.tool_timeout_seconds,
+            max_tool_calls=self.container.settings.max_tool_calls,
+            tool_names=tool_names, tool_timeouts={"delegate_retrieval": self.container.settings.retrieval_subagent_timeout_seconds},
         )
         answer, citations, hits = result["answer"], [], []
         citations_indexed = []
         events = []
         for event in result["tool_events"]:
             output = event["result"]
-            if event["name"] == "search_runbook":
+            if event["name"] in ("search_runbook", "delegate_retrieval"):
                 hits.extend(output.get("hits", []))
                 for hit in output.get("hits", []):
                     citations_indexed.append(hit["doc_title"])

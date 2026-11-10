@@ -82,4 +82,4 @@ def list_faults(
 @router.get("/api/metrics/{service}")
 def get_metrics(service: str, window: int = Query(default=60, ge=5, le=240), user: AuthUser = Depends(get_current_user)):
     """实时指标查询（模拟 Prometheus）。"""
-    return query_service_metrics(service, window_minutes=window)
+    return query_service_metrics(service, window_minutes=window, tenant_id=user.tenant_id)

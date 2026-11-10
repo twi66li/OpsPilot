@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_base_url: str = "https://api.openai.com/v1"
     chat_model: str = "qwen3.8-max"
+    chat_model_candidates: list[str] = []
+    chat_model_expirations: dict[str, str] = {}
     embedding_model: str = "text-embedding-3-small"
 
     # ---- 检索 ----
@@ -62,6 +64,11 @@ class Settings(BaseSettings):
     checkpoint_path: str = ""  # 离线测试为空；单进程 Compose 使用持久卷中的 SQLite 文件
     agent_mode: str = "rule"  # rule | native；离线测试保留规则链
     tool_timeout_seconds: float = 8.0
+    max_tool_calls: int = 5
+    logs_url: str = "http://localhost:18081"
+    mcp_enabled: bool = False
+    retrieval_subagent_enabled: bool = False
+    retrieval_subagent_timeout_seconds: float = 120.0
 
     # ---- Langfuse ----
     langfuse_public_key: str = ""

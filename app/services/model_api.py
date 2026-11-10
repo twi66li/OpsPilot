@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import time
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urlsplit
 
 import httpx
@@ -32,12 +33,30 @@ _TEXT_CANDIDATES_ENV = "CHAT_MODEL_CANDIDATES"
 
 
 def _text_candidates() -> list[str]:
-    raw = os.environ.get(_TEXT_CANDIDATES_ENV, "")
+    from app.config import get_settings
+
+    settings = get_settings()
+    raw = os.environ.get(_TEXT_CANDIDATES_ENV)
     try:
-        parsed = json.loads(raw) if raw else []
-        return [str(m) for m in parsed]
+        parsed = json.loads(raw) if raw else settings.chat_model_candidates
+        today = datetime.now(timezone(timedelta(hours=8))).date().isoformat()
+        expirations = settings.chat_model_expirations
+        return sorted(dict.fromkeys(str(m) for m in parsed if expirations.get(str(m), "9999-12-31") >= today),
+                      key=lambda m: expirations.get(m, "9999-12-31"))
     except ValueError:
         return []
+
+
+def _available_chat_models(primary, excluded=()):
+    from app.config import get_settings
+
+    expirations = get_settings().chat_model_expirations
+    today = datetime.now(timezone(timedelta(hours=8))).date().isoformat()
+    models = [m for m in dict.fromkeys([primary, *_text_candidates()])
+              if m not in excluded and expirations.get(m, "9999-12-31") >= today]
+    if not models:
+        raise BudgetExceededError("没有未到期且额度可用的聊天模型")
+    return sorted(models, key=lambda m: expirations.get(m, "9999-12-31"))
 
 
 def _is_per_model_budget_refusal(exc: Exception) -> bool:
@@ -120,6 +139,7 @@ class ChatAPI:
         self.model = model
         self.is_dashscope = "aliyuncs.com" in (base_url or "")
         self.calls: list[dict] = []
+        self._quota_exhausted = set()
 
     def _thinking_cap(self, model: str) -> int:
         # 可计费推理预留按模型配置（探针实测 2.4t-a95b 强制思考且 usage 返回 reasoning_tokens）
@@ -139,7 +159,7 @@ class ChatAPI:
         - 首选模型"分模型预留不足"时按候选链切换（每次切换记入 calls 审计）；
         - 总额不足/halt、认证/参数错误不切换（不能借换模型突破总额）；
         - 供应商 429/5xx 同模型最多额外重试一次（每次尝试独立预留并记账）。"""
-        models = [self.model] + [m for m in _text_candidates() if m != self.model]
+        models = _available_chat_models(self.model, getattr(self, "_quota_exhausted", ()))
         i = 0
         while True:
             model = models[i]
@@ -155,6 +175,7 @@ class ChatAPI:
                 raise
             except Exception as exc:
                 if _is_provider_quota_exhausted(exc) and i + 1 < len(models):
+                    self._quota_exhausted = {*getattr(self, "_quota_exhausted", ()), model}
                     self.calls.append({"model": model, "kind": "chat", "status": "model_switch",
                                        "to": models[i + 1], "reason": "AllocationQuota.FreeTierOnly"})
                     i += 1
@@ -222,15 +243,29 @@ class ChatAPI:
             self._settle(guard, reservation, record)
 
     def tool_turn(self, messages: list[dict], tools: list[dict], *, allow_tools: bool = True) -> dict:
-        guard, reservation = self._reserve("tool_chat", self.model, messages, tools, output_cap=_CHAT_OUTPUT_CAP)
+        models = _available_chat_models(self.model, getattr(self, "_quota_exhausted", ()))
+        for index, model in enumerate(models):
+            try:
+                return self._tool_turn_once(model, messages, tools, allow_tools=allow_tools)
+            except Exception as exc:
+                switch = _is_per_model_budget_refusal(exc) or _is_provider_quota_exhausted(exc)
+                if not switch or index + 1 == len(models):
+                    raise
+                if _is_provider_quota_exhausted(exc):
+                    self._quota_exhausted = {*getattr(self, "_quota_exhausted", ()), model}
+                self.calls.append({"model": model, "kind": "tool_chat", "status": "model_switch",
+                                   "to": models[index + 1], "reason": type(exc).__name__})
+
+    def _tool_turn_once(self, model, messages, tools, *, allow_tools=True):
+        guard, reservation = self._reserve("tool_chat", model, messages, tools, output_cap=_CHAT_OUTPUT_CAP)
         started = time.perf_counter()
-        record = {"model": self.model, "status": "error", "usage": {}}
+        record = {"model": model, "status": "error", "usage": {}}
         try:
             response = self.client.chat.completions.create(
-                model=self.model, messages=messages, tools=tools,
+                model=model, messages=messages, tools=tools,
                 tool_choice="auto" if allow_tools else "none", temperature=0, max_tokens=1536,
                 **({"extra_body": {"enable_thinking": False}} if self.is_dashscope
-                   and self.model not in _THINKING_DISABLE_UNSUPPORTED else {}),
+                   and model not in _THINKING_DISABLE_UNSUPPORTED else {}),
             )
             record["usage"] = response.usage.model_dump() if response.usage else {}
             message = response.choices[0].message

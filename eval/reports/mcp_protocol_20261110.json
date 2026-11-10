@@ -1,0 +1,27 @@
+{
+  "query_logs": {
+    "status": "ok",
+    "mcp": {
+      "transport": "stdio",
+      "protocol_version": "2026-07-28",
+      "discovered_tools": [
+        "query_logs",
+        "query_service_metrics"
+      ]
+    },
+    "error_type": null
+  },
+  "query_service_metrics": {
+    "status": "ok",
+    "mcp": {
+      "transport": "stdio",
+      "protocol_version": "2026-07-28",
+      "discovered_tools": [
+        "query_logs",
+        "query_service_metrics"
+      ]
+    },
+    "error_type": null
+  },
+  "other_tenant_status": "no_data"
+}

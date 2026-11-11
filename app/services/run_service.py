@@ -15,12 +15,49 @@ logger = logging.getLogger(__name__)
 _current = ContextVar("agent_run", default=None)
 _deadline = ContextVar("tool_deadline", default=None)
 _agent = ContextVar("agent_name", default="main")
+_live = ContextVar("live_events", default=False)
+_answer = ContextVar("answer_stream", default=False)
 # shortcut: 单API进程串行合并JSON事件；多实例时升级为数据库原子追加。
 _write_lock = threading.Lock()
 
 
 def current_run():
     return _current.get()
+
+
+@contextmanager
+def live_events():
+    token = _live.set(True)
+    try:
+        yield
+    finally:
+        _live.reset(token)
+
+
+@contextmanager
+def answer_stream():
+    token = _answer.set(True)
+    try:
+        yield
+    finally:
+        _answer.reset(token)
+
+
+def live_model_stream():
+    return _live.get() and _agent.get() == "main"
+
+
+def push_live(event):
+    if not _live.get() or (event["type"] in ("token", "answer_reset") and _agent.get() != "main"):
+        return
+    from langgraph.config import get_stream_writer
+
+    get_stream_writer()({**event, "agent": _agent.get()})
+
+
+def push_answer(delta):
+    if _answer.get():
+        push_live({"type": "token", "delta": delta})
 
 
 @contextmanager
@@ -109,7 +146,7 @@ class RunRecorder:
             if event:
                 data["events"].append({"at": datetime.now(timezone.utc).isoformat(), **event})
             if result is not None:
-                data["result"] = result
+                data["result"] = {**data.get("result", {}), **result}
                 row.status = result.get("approval_status") or result.get("status", "failed")
             row.data = data
             row.updated_at = datetime.now(timezone.utc)

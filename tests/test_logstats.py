@@ -10,8 +10,8 @@
 import json
 
 from app.agent.llm import diagnosis_system_prompt
-from app.rag.logstats import compute_range_stats, parse_conditions
 from app.rag.evidence import _resolve_target_lines
+from app.rag.logstats import compute_range_stats, parse_conditions
 
 # ---- 样本 A：已知计数、混合级别、残行与完整行重复 ----
 DOC_TITLE = "BGL 测试样本 L100-L110"
@@ -167,6 +167,7 @@ def test_stats_flow_through_full_offline_graph(client, admin_headers):
 def test_missing_range_grade_event_matches_state():
     from contextlib import contextmanager
     from types import SimpleNamespace
+
     from app.agent.nodes import DiagnosisNodes
 
     @contextmanager

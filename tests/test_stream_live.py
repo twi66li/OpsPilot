@@ -1,8 +1,67 @@
 """回归：SSE 过程事件必须边到边推送——首个 node_status 到达时图尚未被整图耗尽。"""
 import json
+import threading
 from contextlib import contextmanager
+from types import SimpleNamespace
 
 from app.services import agent_service
+
+
+def test_provider_tokens_arrive_before_node_completion_and_usage_is_settled():
+    from langgraph.graph import END, START, StateGraph
+    from openai.types.chat import ChatCompletionChunk
+
+    from app.services.model_api import ChatAPI
+    from app.services.run_service import live_events
+
+    release, completed = threading.Event(), threading.Event()
+    settled = []
+
+    class ProviderStream:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def __iter__(self):
+            for index, content in enumerate(("检查", "连接池")):
+                yield ChatCompletionChunk.model_validate({
+                    "id": "stream-check", "object": "chat.completion.chunk", "created": 1, "model": "demo",
+                    "choices": [{"index": 0, "delta": {"content": content}, "finish_reason": "stop" if index else None}],
+                    "usage": {"prompt_tokens": 5, "completion_tokens": 2, "total_tokens": 7} if index else None,
+                })
+                if index == 0:
+                    assert release.wait(5), "未在节点完成前收到第一个token"
+
+    model = object.__new__(ChatAPI)
+    model.calls, model.is_dashscope = [], False
+    model.client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=lambda **_: ProviderStream())))
+    model._reserve = lambda *args, **kwargs: (None, None)
+    model._settle = lambda guard, reservation, record: settled.append(record["usage"])
+
+    def node(state):
+        result = model._tool_turn_once("demo", [], [], allow_tools=False)
+        completed.set()
+        return {"events": [{"type": "answer", "answer": result["content"]}]}
+
+    builder = StateGraph(dict)
+    builder.add_node("generate", node)
+    builder.add_edge(START, "generate")
+    builder.add_edge("generate", END)
+    graph = builder.compile()
+    with live_events():
+        iterator = agent_service._iter_graph_events(graph.stream({}, stream_mode=["updates", "custom"]))
+        for event in iterator:
+            if event["type"] == "token":
+                assert event["delta"] == "检查" and not completed.is_set()
+                release.set()
+                break
+        else:
+            raise AssertionError("没有收到token事件")
+        rest = list(iterator)
+    assert any(event.get("answer") == "检查连接池" for event in rest)
+    assert len(model.calls) == 1 and settled[0]["total_tokens"] == 7
 
 
 class FakeDB:

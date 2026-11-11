@@ -13,7 +13,7 @@ from app.agent.tools import TOOL_REGISTRY
 from app.db.models import ApprovalRequest, Ticket
 from app.services import chat_service, ticket_service
 from app.services.budget import BudgetExceededError
-from app.services.run_service import RunRecorder, capture_run, current_run
+from app.services.run_service import RunRecorder, capture_run, current_run, live_events
 
 logger = logging.getLogger(__name__)
 # shortcut: 单 API 进程串行审批；多实例部署时升级为跨进程协调。
@@ -24,12 +24,22 @@ def _sse(data: dict) -> str:
     recorder = current_run()
     if recorder:
         data = {**data, "run_id": recorder.id}
+        if data.get("type") in ("node_status", "tool_start", "approval_required", "error"):
+            recorder.add("progress", data)
     return f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
 
 
 def _iter_graph_events(chunk_iter):
     """把 graph.stream(updates) 增量映射为事件流：节点更新到达即产出，不做整图缓存。"""
+    delivered_tools = set()
     for chunk in chunk_iter:
+        if isinstance(chunk, tuple):
+            mode, chunk = chunk
+            if mode == "custom":
+                if chunk.get("type") == "tool":
+                    delivered_tools.add(chunk.get("tool_call_id"))
+                yield chunk
+                continue
         for node, delta in chunk.items():
             if node == "__interrupt__":
                 payloads = delta if isinstance(delta, (list, tuple)) else [delta]
@@ -44,6 +54,8 @@ def _iter_graph_events(chunk_iter):
                 continue
             yield {"type": "node_status", "node": node, "status": "completed"}
             for event in delta.get("events", []) or []:
+                if event.get("type") == "tool" and event.get("tool_call_id") in delivered_tools:
+                    continue
                 yield event
 
 
@@ -134,7 +146,7 @@ def chat_stream(container, tenant_id: str, user_id: str, username: str, session_
         try:
             while True:
                 # SSE每次next可由不同工作线程执行，ContextVar不能跨yield保留token。
-                with capture_run(recorder):
+                with capture_run(recorder), live_events():
                     item = next(iterator)
                 yield item
         except StopIteration:
@@ -145,7 +157,8 @@ def chat_stream(container, tenant_id: str, user_id: str, username: str, session_
             raise
         except Exception as exc:
             recorder.finish({"status": "failed", "error_type": type(exc).__name__})
-            raise
+            yield _sse({"type": "error", "run_id": recorder.id, "error_type": type(exc).__name__,
+                        "message": "调查执行失败，请保留运行编号并检查服务状态"})
         finally:
             with capture_run(recorder):
                 iterator.close()
@@ -174,7 +187,7 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
             "run_id": run_id,
         }
         yield _sse({"type": "start", "session_id": session_id, "question": question})
-        stream = container.graph.stream(input_state, config, stream_mode="updates")
+        stream = container.graph.stream(input_state, config, stream_mode=["updates", "custom"])
         approval_emitted = False
         try:
             for event in _iter_graph_events(stream):

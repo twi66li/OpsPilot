@@ -14,7 +14,7 @@ import httpx
 from openai import OpenAI
 
 from app.services.budget import BudgetExceededError, BudgetLedgerError, get_budget_guard
-from app.services.run_service import emit, tool_time_left
+from app.services.run_service import emit, live_model_stream, push_answer, push_live, tool_time_left
 
 logger = logging.getLogger(__name__)
 
@@ -227,6 +227,8 @@ class ChatAPI:
                         if record["first_token_ms"] is None:
                             record["first_token_ms"] = (time.perf_counter() - started) * 1000
                         text.append(content)
+                        if not json_mode:
+                            push_answer(content)
                     finish = choice.finish_reason or finish
             if finish == "length" or not text:
                 raise ValueError("模型输出被截断或为空")
@@ -261,6 +263,10 @@ class ChatAPI:
         started = time.perf_counter()
         record = {"model": model, "status": "error", "usage": {}}
         try:
+            if live_model_stream():
+                result = self._stream_tool_turn(model, messages, tools, allow_tools, record, started)
+                record["status"] = "ok"
+                return result
             response = self.client.chat.completions.create(
                 model=model, messages=messages, tools=tools,
                 tool_choice="auto" if allow_tools else "none", temperature=0, max_tokens=1536,
@@ -288,6 +294,42 @@ class ChatAPI:
             logger.info("model_api_usage kind=tool_chat record=%s", json.dumps(record, ensure_ascii=False))
             emit("model_call", {"kind": "tool_chat", **record})
             self._settle(guard, reservation, record)
+
+
+    def _stream_tool_turn(self, model, messages, tools, allow_tools, record, started):
+        content, calls, finish = [], {}, None
+        push_live({"type": "answer_reset"})
+        with self.client.chat.completions.create(
+            model=model, messages=messages, tools=tools, tool_choice="auto" if allow_tools else "none",
+            temperature=0, max_tokens=_CHAT_OUTPUT_CAP, stream=True, stream_options={"include_usage": True},
+            **({"extra_body": {"enable_thinking": False}} if self.is_dashscope
+               and model not in _THINKING_DISABLE_UNSUPPORTED else {}),
+        ) as stream:
+            for chunk in stream:
+                if chunk.usage:
+                    record["usage"] = chunk.usage.model_dump()
+                if not chunk.choices:
+                    continue
+                choice = chunk.choices[0]
+                finish = choice.finish_reason or finish
+                delta = choice.delta
+                if delta.content:
+                    record.setdefault("first_token_ms", (time.perf_counter() - started) * 1000)
+                    content.append(delta.content)
+                    push_live({"type": "token", "delta": delta.content})
+                for update in delta.tool_calls or []:
+                    call = calls.setdefault(update.index, {"id": "", "type": "function", "function": {"name": "", "arguments": ""}})
+                    call["id"] += update.id or ""
+                    if update.function:
+                        call["function"]["name"] += update.function.name or ""
+                        call["function"]["arguments"] += update.function.arguments or ""
+        if finish == "length" or not (content or calls):
+            raise ValueError("模型工具调用输出为空或被截断")
+        result = {"role": "assistant", "content": "".join(content)}
+        if calls:
+            result["tool_calls"] = [call for _, call in sorted(calls.items())]
+            push_live({"type": "answer_reset"})
+        return result
 
 
 class RerankAPI:

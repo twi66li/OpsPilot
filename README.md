@@ -14,13 +14,12 @@
 - 结构化父子块、页码及来源回查、有效知识版本切换；失败和历史版本在召回前过滤。
 - SSE 节点事件、调查 trace、模型用量与轻量评测接口。
 
-React 工作台已接通登录、完整会话历史、调查过程、文件知识库、引用回查、审批工单与已有评测记录。完整异步数据访问、逐 token 输出与受控演练修复继续开发。普通 PDF 文本提取不包含 OCR，也不保证恢复复杂表格布局。
+React 工作台已接通登录、完整会话历史、调查过程、文件知识库、引用回查、审批工单与已有评测记录。认证、会话、工单与知识元数据查询使用 AsyncSession（PostgreSQL 使用 asyncpg）；同步图、检索API和入库任务由线程隔离。SSE 支持真实模型正文增量与即时工具进展，检索子Agent的中间答案不作为主回答输出。受控演练修复继续开发。普通 PDF 文本提取不包含 OCR，也不保证恢复复杂表格布局。
 
 ## 本机运行
 
 ```powershell
-python -m venv .venv
-.venv/Scripts/python -m pip install -r requirements.txt -r requirements-dev.txt
+uv sync --frozen
 Copy-Item .env.example .env
 # 默认 SQLite、内存向量库和 mock 模型，可先离线调试；真实模式在 .env 中配置。
 .venv/Scripts/python -m scripts.seed

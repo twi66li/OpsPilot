@@ -1,9 +1,12 @@
 """FastAPI 应用入口：uvicorn app.main:app --reload"""
 import logging
+import time
+import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI
+import structlog
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -15,8 +18,9 @@ from app.config import get_settings
 from app.db.base import SessionLocal, init_db
 from app.db.models import Tenant, User
 from app.services import kb_service
+from app.services.logging_setup import configure_logging
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+configure_logging()
 
 
 @asynccontextmanager
@@ -31,9 +35,11 @@ async def lifespan(_: FastAPI):
         start_worker()
         yield
     finally:
+        from app.db.async_session import close_async_db
         from app.services.ingestion_service import stop_worker
 
         stop_worker()
+        await close_async_db()
         reset_container()
 
 
@@ -79,6 +85,22 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.middleware("http")
+async def request_logging(request: Request, call_next):
+    request_id = uuid.uuid4().hex
+    structlog.contextvars.bind_contextvars(request_id=request_id)
+    started = time.perf_counter()
+    try:
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        structlog.get_logger("http").info("response_started", method=request.method, path=request.url.path,
+                                          status=response.status_code,
+                                          elapsed_ms=round((time.perf_counter() - started) * 1000, 1))
+        return response
+    finally:
+        structlog.contextvars.clear_contextvars()
 
 app.include_router(auth_router)
 app.include_router(router_admin.router)

@@ -32,7 +32,7 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
         const run = await api<Run>(`/api/agent/runs/${latestRun}`); setTrace(run);
         const final = run.data.result?.hits ? run.data.result : [...run.data.events].reverse().map(item => item.detail as AgentEvent).find(item => item.type === 'final');
         setHits(final?.hits || []);
-        setEvents(run.data.events.filter(item => item.kind === 'sse').map(item => item.detail as AgentEvent).filter(item => ['tool', 'node_status', 'tool_start'].includes(item.type)));
+        setEvents(run.data.events.filter(item => ['progress', 'tool'].includes(item.kind)).map(item => ({...item.detail, type: item.kind === 'tool' ? 'tool' : (item.detail as AgentEvent).type}) as AgentEvent));
       }
     } catch (error) {message.error((error as Error).message);} finally {setBusy(false);}
   }
@@ -53,6 +53,7 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
         if (event.run_id) setRunId(event.run_id);
         if (['tool', 'node_status', 'tool_start', 'tool_end', 'error'].includes(event.type)) setEvents(previous => [...previous, event]);
         if (event.type === 'token') setMessages(previous => previous.map((item, i) => i === answerIndex ? {...item, content: item.content + (event.delta || '')} : item));
+        if (event.type === 'answer_reset') setMessages(previous => previous.map((item, i) => i === answerIndex ? {...item, content: ''} : item));
         if (event.type === 'answer' || event.type === 'final') {
           if (event.answer !== undefined) setMessages(previous => previous.map((item, i) => i === answerIndex ? {...item, content: event.answer!, meta: {run_id: event.run_id}} : item));
           if (event.hits) setHits(event.hits);

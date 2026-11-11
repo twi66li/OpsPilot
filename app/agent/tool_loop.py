@@ -7,7 +7,7 @@ from contextvars import copy_context
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from app.services.budget import BudgetExceededError, BudgetLedgerError
-from app.services.run_service import emit, tool_deadline
+from app.services.run_service import emit, push_live, tool_deadline
 
 
 class _Args(BaseModel):
@@ -139,6 +139,7 @@ def run_tool_loop(question, api, execute, *, history=(), timeout=8.0, max_tool_c
                         fatal = "repeated_no_progress"
                     else:
                         signatures.add(signature)
+                        push_live({"type": "tool_start", "name": name, "args": args, "tool_call_id": call["id"]})
                         pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="opspilot-read")
                         call_timeout = (tool_timeouts or {}).get(name, timeout)
                         future = pool.submit(copy_context().run, _timed_execute, execute, name, args, call_timeout)
@@ -165,6 +166,7 @@ def run_tool_loop(question, api, execute, *, history=(), timeout=8.0, max_tool_c
                      "executed": did_execute, "duration_ms": round((time.perf_counter() - started) * 1000, 2)}
             events.append(event)
             emit("tool", event)
+            push_live({"type": "tool", **event, "summary": output.get("summary", output.get("message", ""))})
             tool_message = {"role": "tool", "tool_call_id": call["id"], "content": json.dumps(output, ensure_ascii=False)}
             messages.append(tool_message)
             emit("tool_message", tool_message)

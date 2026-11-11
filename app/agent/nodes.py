@@ -10,6 +10,7 @@ import re
 from app.agent.llm import detect_intent
 from app.agent.tools import make_tool_executor, run_diagnostic_tools
 from app.services.observability import estimate_tokens, get_tracer
+from app.services.run_service import answer_stream
 from app.services.ticket_service import get_or_create_approval
 
 logger = logging.getLogger(__name__)
@@ -374,10 +375,11 @@ class DiagnosisNodes:
                            "\n请补充同节点同时间窗的完整日志、监控、厂商诊断和变更记录；"
                            "取得这些证据及适用的厂商规范后再决定是否隔离、停机或换件。")
             else:
-                answer = self.container.llm.generate_answer(
-                    state["question"], state.get("hits", []), state.get("tool_events", []), state.get("fault_records", []), history,
-                    evidence_items=evidence_items, range_stats=range_stats,
-                )
+                with answer_stream():
+                    answer = self.container.llm.generate_answer(
+                        state["question"], state.get("hits", []), state.get("tool_events", []), state.get("fault_records", []), history,
+                        evidence_items=evidence_items, range_stats=range_stats,
+                    )
             metric_evidence = [event["summary"] for event in state.get("tool_events", []) if event["name"] == "query_service_metrics"]
             if metric_evidence:
                 answer += "\n\n指标证据：\n" + "\n".join(metric_evidence)

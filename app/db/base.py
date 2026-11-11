@@ -15,7 +15,7 @@ class Base(DeclarativeBase):
 def _make_engine(database_url: str):
     if database_url.startswith("sqlite"):
         # 支持 sqlite:///:memory:（配合 StaticPool 让多线程共享同一内存库）
-        if ":memory:" in database_url:
+        if ":memory:" in database_url or "mode=memory" in database_url:
             from sqlalchemy.pool import StaticPool
 
             return create_engine(
@@ -31,7 +31,15 @@ def _make_engine(database_url: str):
     return create_engine(database_url, pool_pre_ping=True, pool_recycle=3600)
 
 
-engine = _make_engine(get_settings().database_url)
+def shared_database_url():
+    url = get_settings().database_url
+    # 测试的同步图与异步接口使用同一个进程内SQLite库，仍不落盘。
+    if url == "sqlite:///:memory:":
+        return f"sqlite:///file:opspilot-{os.getpid()}?mode=memory&cache=shared&uri=true"
+    return url
+
+
+engine = _make_engine(shared_database_url())
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 

@@ -76,14 +76,20 @@ def _is_provider_transient(exc: Exception) -> bool:
     return status in (429, 500, 502, 503, 504)
 
 
-def _is_provider_quota_exhausted(exc: Exception) -> bool:
+def _provider_error_code(exc: Exception):
     body = getattr(exc, "body", None)
     code = None
     if isinstance(body, dict):
         code = body.get("code")
         if not code and isinstance(body.get("error"), dict):
             code = body["error"].get("code")
+    return code
+
+
+def _is_provider_quota_exhausted(exc: Exception) -> bool:
+    code = _provider_error_code(exc)
     return code == "AllocationQuota.FreeTierOnly" or (
+        code == "insufficient_quota" and getattr(exc, "status_code", None) in (402, 403, 429)) or (
         getattr(exc, "status_code", None) == 403 and "AllocationQuota.FreeTierOnly" in str(exc))
 
 # chat 模板包装余量（已验证协议事实的保守放大约束，非实测常数硬编码）：
@@ -287,6 +293,9 @@ class ChatAPI:
             return result
         except Exception as exc:
             record["error_type"] = type(exc).__name__
+            code = _provider_error_code(exc)
+            if isinstance(code, str):
+                record["error_code"] = code[:120]
             raise
         finally:
             record["elapsed_ms"] = (time.perf_counter() - started) * 1000

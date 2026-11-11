@@ -1,4 +1,20 @@
 * { box-sizing: border-box; }
+.home-intro { padding: 18px 0 24px; }
+.home-intro h1 { font-size: clamp(30px, 3vw, 44px); color: #173c40; line-height: 1.45; margin: 8px 0 18px; font-weight: 550; }
+.home-intro p { color: #536e75; margin-bottom: 24px; }
+.home-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.home-cards .ant-card-head-title { white-space: normal; }
+.support-grid { display: grid; grid-template-columns: 225px minmax(340px, 1fr) 275px; gap: 18px; align-items: start; }
+.support-grid > * { min-width: 0; }
+.support-case-list { max-height: 520px; overflow: auto; }
+.support-history { display: flex; flex-direction: column; gap: 22px; max-height: 430px; overflow: auto; }
+.support-summary { font-size: 16px; line-height: 1.9; }
+.check-step { margin-bottom: 24px; border-bottom: 1px solid #e8eeee; padding-bottom: 12px; }
+.support-main li { line-height: 1.9; margin-bottom: 8px; }
+.demo-workspace { height: 100%; display: flex; flex-direction: column; }
+.demo-workspace > .investigation-grid { flex: 1; min-height: 0; height: auto; }
+@media (max-width: 1250px) { .support-grid { grid-template-columns: 200px minmax(300px, 1fr); } .support-grid > aside:last-child { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; } }
+@media (max-width: 850px) { .home-cards { grid-template-columns: 1fr; } .support-grid { grid-template-columns: 1fr; } .support-grid > aside:last-child { display: flex; } }
 body { margin: 0; color: #26393f; font-family: "Microsoft YaHei", "Segoe UI", sans-serif; }
 button, input, textarea { font: inherit; }
 button { cursor: pointer; }

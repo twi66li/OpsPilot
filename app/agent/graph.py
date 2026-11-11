@@ -14,6 +14,7 @@ def build_graph(nodes, checkpointer=None):
     graph.add_node("route_intent", nodes.route_intent)
     graph.add_node("pure_range_answer", nodes.pure_range_answer)
     graph.add_node("native_tools", nodes.native_tools)
+    graph.add_node("personal_support", nodes.personal_support)
     graph.add_node("retrieve", nodes.retrieve)
     graph.add_node("grade", nodes.grade)
     graph.add_node("rewrite", nodes.rewrite)
@@ -25,7 +26,8 @@ def build_graph(nodes, checkpointer=None):
 
     graph.add_edge(START, "route_intent")
     graph.add_conditional_edges("route_intent", nodes.select_path,
-                                {"pure": "pure_range_answer", "rule": "retrieve", "native": "native_tools"})
+                                {"pure": "pure_range_answer", "rule": "retrieve", "native": "native_tools", "personal": "personal_support"})
+    graph.add_edge("personal_support", END)
     graph.add_edge("pure_range_answer", END)
     graph.add_conditional_edges("native_tools", nodes.route_after_native, {"approval": "prepare_approval", "end": END})
     graph.add_edge("retrieve", "grade")

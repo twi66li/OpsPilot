@@ -1,0 +1,241 @@
+{
+  "date": "2026-11-12",
+  "input_source": "明确标记的用户输入样例；不是生产或故障演练服务日志",
+  "session_id": "b70388ce6db3496690cb3ee39a683dc8",
+  "elapsed_s": 37.25,
+  "checks": {
+    "no_private_manual": true,
+    "official_sources_retrieved": true,
+    "personal_tools_only": true,
+    "initial_not_recovered": true,
+    "new_result_checked": true,
+    "case_saved": true
+  },
+  "verification": {
+    "verdict": "sample_recovered",
+    "evidence_ids": [
+      "E01f227e1"
+    ],
+    "reason": "提交样本中三次请求均 200 且无 QueuePool timeout，原症状在样本范围内不再复现；但样本仅覆盖 00:20–00:21 三次请求，缺少并发量、连接池配置及数据库连接状态的一致性证据，无法确认生产长期恢复或根因已消除"
+  },
+  "runs": [
+    {
+      "phase": "first",
+      "run_id": "70556604f3604a3db74195babdbb1415",
+      "model_calls": [
+        {
+          "kind": "tool_chat",
+          "model": "qwen3.8-2.4t-a95b",
+          "status": "error",
+          "usage": {},
+          "error_type": "PermissionDeniedError",
+          "error_code": "insufficient_quota",
+          "elapsed_ms": 4971.516289000647,
+          "agent": "support"
+        },
+        {
+          "kind": "tool_chat",
+          "model": "deepseek-v4-pro-0813",
+          "status": "ok",
+          "usage": {
+            "completion_tokens": 135,
+            "prompt_tokens": 1386,
+            "total_tokens": 1521,
+            "completion_tokens_details": null,
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 0
+            }
+          },
+          "elapsed_ms": 2776.9607919999544,
+          "agent": "support"
+        },
+        {
+          "kind": "embedding",
+          "model": "qwen3.7-text-embedding-flash",
+          "status": "ok",
+          "usage": {
+            "prompt_tokens": 29,
+            "total_tokens": 29
+          },
+          "elapsed_ms": 4220.327533999807,
+          "agent": "support"
+        },
+        {
+          "kind": "rerank",
+          "model": "qwen3.7-text-rerank",
+          "status": "ok",
+          "usage": {
+            "prompt_tokens": 1442,
+            "total_tokens": 1442
+          },
+          "elapsed_ms": 356.9928430006257,
+          "agent": "support"
+        },
+        {
+          "kind": "tool_chat",
+          "model": "deepseek-v4-pro-0813",
+          "status": "ok",
+          "usage": {
+            "completion_tokens": 684,
+            "prompt_tokens": 3082,
+            "total_tokens": 3766,
+            "completion_tokens_details": null,
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 1280
+            }
+          },
+          "elapsed_ms": 13212.700719999702,
+          "agent": "support"
+        }
+      ],
+      "source_titles": [
+        "Python 网站：SQLAlchemy 连接池等待超时",
+        "PostgreSQL：连接失败、连接数与活动事务检查"
+      ],
+      "result": {
+        "summary": "日志直接事实：2026-11-12 00:10:01 的 POST /orders 返回 HTTP 500，报错为 SQLAlchemy QueuePool 等待连接超时（size 5 / overflow 10，timeout 30s），数据库地址指向 db 容器的 site 库。这只能说明应用在 30 秒内没等到可用连接，不能据此断定数据库宕机或连接泄漏。可能原因：①连接池容量相对并发不足或瞬时并发升高；②连接未及时归还（Session 未在请求结束/异常路径关闭，或存在长事务占用）；③数据库侧连接被慢操作/长事务占满。",
+        "observations": [
+          {
+            "evidence_id": "Ee6dffe4a",
+            "line_start": 1,
+            "line_end": 3,
+            "meaning": "L1 显示 /orders 请求 500；L2 是 QueuePool 等待超时（size5/overflow10/timeout30），说明应用侧连接池等待超时；L3 仅给出数据库地址，未含密码，不能证明数据库本身故障。",
+            "quote": "2026-11-12T00:10:01+08:00 POST /orders HTTP 500\nsqlalchemy.exc.TimeoutError: QueuePool limit of size 5 overflow 10 reached, connection timed out, timeout 30.00\ndatabase_url=postgresql://app:[已脱敏]@db/site"
+          }
+        ],
+        "hypotheses": [
+          "连接池容量相对并发不足或瞬时并发升高，等待超过 30 秒",
+          "ORM Session 未在请求结束或异常路径关闭，连接未归还导致池被占满",
+          "数据库侧存在慢操作或长事务，占用连接不释放"
+        ],
+        "missing_info": [
+          "应用部署配置中的 pool_size、max_overflow、pool_timeout、进程/worker 数及该时段请求并发",
+          "同一时段数据库活动连接状态（idle / idle in transaction / active）与长事务情况"
+        ],
+        "steps": [
+          {
+            "location": "应用部署配置（Docker Compose / 环境变量或代码中的 SQLAlchemy engine 配置）",
+            "action": "只读核对 pool_size、max_overflow、pool_timeout 以及进程/worker 数，确认与日志中的 size5/overflow10/timeout30 是否一致，并估算该时段并发请求量",
+            "normal": "配置与日志一致且并发明显超过池容量，说明是容量/并发问题，下一步再核对数据库连接占用来源",
+            "abnormal": "配置与日志不一致（如实际 pool_size 更大），或并发不高却仍超时，则更指向连接未归还或长事务，进入下一步",
+            "risk": "只读",
+            "rollback": ""
+          },
+          {
+            "location": "数据库容器（已有授权的 psql 会话）",
+            "action": "只读执行 SHOW max_connections; 与 SELECT state, count(*) FROM pg_stat_activity GROUP BY state;，重点看 idle in transaction 与 active 数量是否长期不回落",
+            "normal": "连接数在数据库容量内且无大量 idle in transaction，说明问题更可能在应用侧连接归还/并发，需补充应用日志",
+            "abnormal": "存在大量 idle in transaction 或 active 长期占用，说明存在长事务或慢操作占用连接，需定位具体事务来源",
+            "risk": "只读",
+            "rollback": ""
+          }
+        ],
+        "references": [
+          1,
+          3
+        ],
+        "verification": {
+          "verdict": "inconclusive",
+          "evidence_ids": [],
+          "reason": "仅有单条 500 与连接池超时日志，缺少应用连接池配置、并发量及数据库活动连接状态，无法确认根因，也未提交任何恢复证据。"
+        }
+      }
+    },
+    {
+      "phase": "followup",
+      "run_id": "dfb0cd0b88ac4bb6a10e8441e6dbf6e9",
+      "model_calls": [
+        {
+          "kind": "tool_chat",
+          "model": "deepseek-v4-pro-0813",
+          "status": "ok",
+          "usage": {
+            "completion_tokens": 592,
+            "prompt_tokens": 2630,
+            "total_tokens": 3222,
+            "completion_tokens_details": null,
+            "prompt_tokens_details": {
+              "audio_tokens": null,
+              "cache_write_tokens": null,
+              "cached_tokens": 512
+            }
+          },
+          "elapsed_ms": 11346.499121000306,
+          "agent": "support"
+        }
+      ],
+      "source_titles": [],
+      "result": {
+        "summary": "提交的样例反馈显示，在 00:20 的采集窗口内三次 POST /orders 均返回 HTTP 200（约 118–125ms），且该窗口应用日志未再出现 QueuePool timeout。这仅说明提交样本中原症状（连接池等待超时导致的 500）在样本范围内不再复现，不能证明生产环境已恢复或根因已消除。",
+        "observations": [
+          {
+            "evidence_id": "E01f227e1",
+            "line_start": 2,
+            "line_end": 4,
+            "meaning": "三次 /orders 请求均返回 200 且耗时约 118–125ms，说明在提交样本的采集窗口内未再出现连接池超时导致的 500",
+            "quote": "2026-11-12T00:20:01+08:00 POST /orders HTTP 200 elapsed=120ms\n2026-11-12T00:20:02+08:00 POST /orders HTTP 200 elapsed=125ms\n2026-11-12T00:20:03+08:00 POST /orders HTTP 200 elapsed=118ms"
+          },
+          {
+            "evidence_id": "E01f227e1",
+            "line_start": 5,
+            "line_end": 5,
+            "meaning": "样本明确限定为 00:20:00–00:21:00 的应用日志，仅能说明这份提交样本，不能外推到生产长期状态",
+            "quote": "本次采集窗口00:20:00至00:21:00的应用日志未再出现QueuePool timeout；仅能说明这份提交的样本。"
+          },
+          {
+            "evidence_id": "E01f227e1",
+            "line_start": 1,
+            "line_end": 1,
+            "meaning": "反馈称已修正异常路径未关闭 Session 的问题，但这是用户自述的修改动作，未附代码或配置证据，无法独立核实",
+            "quote": "已在样例中修正异常路径未关闭Session的问题。"
+          }
+        ],
+        "hypotheses": [
+          "原症状在样本窗口内未复现，可能与异常路径 Session 未关闭的修正有关，但缺少代码/配置证据，无法确认该修正是否真正落地",
+          "样本窗口并发量、连接池配置与故障时段是否一致未知，200 响应可能只是低并发下的表现，不能排除容量或长事务问题仍存在"
+        ],
+        "missing_info": [
+          "故障时段与样本时段的并发量、连接池配置（pool_size/max_overflow/timeout）是否一致",
+          "异常路径 Session 关闭修正的代码或配置证据",
+          "数据库侧活动连接状态（idle in transaction / active）在样本时段是否回落"
+        ],
+        "steps": [
+          {
+            "location": "应用代码/配置",
+            "action": "只读核对异常路径是否确实关闭/归还 Session，并确认 pool_size、max_overflow、pool_timeout 与故障时段一致",
+            "normal": "确认修正已落地且配置一致，可进一步在同等并发下观察",
+            "abnormal": "修正未落地或配置不一致，则样本 200 不能归因于该修正，需继续排查",
+            "risk": "只读",
+            "rollback": ""
+          }
+        ],
+        "references": [],
+        "verification": {
+          "verdict": "sample_recovered",
+          "evidence_ids": [
+            "E01f227e1"
+          ],
+          "reason": "提交样本中三次请求均 200 且无 QueuePool timeout，原症状在样本范围内不再复现；但样本仅覆盖 00:20–00:21 三次请求，缺少并发量、连接池配置及数据库连接状态的一致性证据，无法确认生产长期恢复或根因已消除"
+        }
+      }
+    }
+  ],
+  "earlier_failures": [
+    {
+      "run_id": "2a8b5442d16346cebb46fbbf70cae5a3",
+      "reason": "8秒检索上限不足；已改为至少30秒"
+    },
+    {
+      "run_id": "c7d7989d2cad41558b6b49c7504eec7c",
+      "reason": "missing_info最多3项的展示性限制拒绝了4项输出；已去掉该限制"
+    },
+    {
+      "run_id": "1c985adeb946472083311b3501edb41a",
+      "reason": "供应商403 insufficient_quota此前未触发轮换；已纳入额度错误分类"
+    }
+  ]
+}

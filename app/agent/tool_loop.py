@@ -41,8 +41,9 @@ class LogArgs(MetricsArgs):
 
 
 ARGUMENTS = {"search_runbook": SearchArgs, "query_service_metrics": MetricsArgs, "query_fault_history": HistoryArgs, "query_logs": LogArgs,
-             "delegate_retrieval": SearchArgs}
+             "delegate_retrieval": SearchArgs, "search_saved_cases": SearchArgs}
 DESCRIPTIONS = {
+    "search_saved_cases": "只读查询本人在同一网站确认保存的处理案例，作为历史参考，不代表本次根因。",
     "search_runbook": "只读检索运维手册/SOP。query应包含问题关键术语；返回带编号的依据，不代表当前实时状态。",
     "query_service_metrics": "只读查询指定测试服务当前QPS/P99/错误率。window_minutes单位为分钟，取值5–240，仅支持以当前时间为终点的最近窗口；返回来源/时间窗/异常判定；不可用不等于正常。",
     "query_fault_history": "只读查询指定服务或错误码的精确历史故障；仅供排查参考，不能确认本次根因。",
@@ -51,7 +52,7 @@ DESCRIPTIONS = {
 }
 TOOL_SCHEMAS = [
     {"type": "function", "function": {"name": name, "description": DESCRIPTIONS[name], "parameters": args.model_json_schema()}}
-    for name, args in ARGUMENTS.items() if name != "delegate_retrieval"
+    for name, args in ARGUMENTS.items() if name not in ("delegate_retrieval", "search_saved_cases")
 ]
 SYSTEM = (
     "你是OpsPilot运维助手。自主选择必要的只读工具，总调用预算3次。"

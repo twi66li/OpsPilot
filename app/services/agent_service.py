@@ -14,6 +14,7 @@ from app.db.models import ApprovalRequest, Ticket
 from app.services import chat_service, ticket_service
 from app.services.budget import BudgetExceededError
 from app.services.run_service import RunRecorder, capture_run, current_run, live_events
+from app.services.support_service import context_for_session, redact
 
 logger = logging.getLogger(__name__)
 # shortcut: 单 API 进程串行审批；多实例部署时升级为跨进程协调。
@@ -84,10 +85,13 @@ def _final_snapshot(container, config: dict) -> dict:
         "docs_sufficient": values.get("docs_sufficient"),
         "run_id": values.get("run_id"),
         "end_reason": values.get("end_reason", "answered"),
+        "support_report": values.get("support_report"),
     }
 
 
 def chat_once(container, db: Session, tenant_id: str, user_id: str, username: str, session_id: str, question: str) -> dict:
+    if context_for_session(db, session_id, tenant_id, user_id) is not None:
+        question = redact(question)["text"]
     recorder = RunRecorder.start(container, tenant_id, session_id, question)
     try:
         with capture_run(recorder):
@@ -117,6 +121,8 @@ def _chat_once(container, db, tenant_id, user_id, username, session_id, question
         "username": username,
         "history": history,
         "run_id": run_id,
+        "support_context": context_for_session(db, session_id, tenant_id, user_id),
+        "support_report": None,
     }
     events: list[dict] = []
     _emit_graph_events(container.graph, container.graph.stream(input_state, config, stream_mode="updates"), events)
@@ -141,6 +147,9 @@ def _chat_once(container, db, tenant_id, user_id, username, session_id, question
 
 
 def chat_stream(container, tenant_id: str, user_id: str, username: str, session_id: str, question: str):
+    with container.db_session() as db:
+        if context_for_session(db, session_id, tenant_id, user_id) is not None:
+            question = redact(question)["text"]
     def recorded():
         recorder = RunRecorder.start(container, tenant_id, session_id, question)
         iterator = _chat_stream(container, tenant_id, user_id, username, session_id, question, recorder.id)
@@ -177,6 +186,7 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
         with container.db_session() as db:
             chat_service.add_message(db, tenant_id, session_id, "user", question)
             history = chat_service.get_history(db, session_id, limit=6)
+            support_context = context_for_session(db, session_id, tenant_id, user_id)
         config = {"configurable": {"thread_id": session_id}}
         input_state = {
             "question": question,
@@ -186,6 +196,8 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
             "username": username,
             "history": history,
             "run_id": run_id,
+            "support_context": support_context,
+            "support_report": None,
         }
         yield _sse({"type": "start", "session_id": session_id, "question": question})
         stream = container.graph.stream(input_state, config, stream_mode=["updates", "custom"])

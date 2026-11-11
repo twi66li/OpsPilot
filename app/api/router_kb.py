@@ -17,6 +17,7 @@ from app.db.base import get_db
 from app.db.models import Document, DocumentChunk, DocumentParent, DocumentVersion
 from app.services import kb_service
 from app.services.ingestion_service import enqueue
+from app.services.knowledge_access import personal_namespace, readable_namespaces
 
 router = APIRouter(prefix="/api/kb", tags=["knowledge-base"])
 
@@ -30,7 +31,8 @@ def _version_dict(version, doc):
 
 
 def _get_version(db, version_id, user):
-    version = db.query(DocumentVersion).filter_by(id=version_id, tenant_id=user.tenant_id).first()
+    version = db.query(DocumentVersion).filter(DocumentVersion.id == version_id,
+                                              DocumentVersion.tenant_id.in_(readable_namespaces(user))).first()
     if version is None:
         raise HTTPException(404, "知识版本不存在")
     return version, db.get(Document, version.doc_id)
@@ -94,7 +96,7 @@ def upload_document(file: UploadFile = File(...), title: str = Form(""), doc_id:
 @router.get("/versions/{version_id}")
 async def get_version(version_id: str, user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
     version, doc = await db.run_sync(_get_version, version_id, user)
-    chunks = (await db.scalars(select(DocumentChunk).filter_by(version_id=version.id, tenant_id=user.tenant_id))).all()
+    chunks = (await db.scalars(select(DocumentChunk).filter_by(version_id=version.id, tenant_id=version.tenant_id))).all()
     return {**_version_dict(version, doc), "pages": version.pages, "chunks": [c.payload for c in chunks]}
 
 
@@ -113,9 +115,11 @@ async def version_status(version_id: str, user: AuthUser = Depends(get_current_u
 
 
 @router.post("/versions/{version_id}/retry", status_code=202)
-def retry_version(version_id: str, user: AuthUser = Depends(require_roles("admin", "engineer")),
+def retry_version(version_id: str, user: AuthUser = Depends(get_current_user),
                   db: Session = Depends(get_db)):
     version, doc = _get_version(db, version_id, user)
+    if version.tenant_id != personal_namespace(user.user_id) and user.role not in ("admin", "engineer"):
+        raise HTTPException(403, "无权修改共享文档")
     updated = db.query(DocumentVersion).filter_by(id=version.id, status="failed").update(
         {"status": "uploaded", "progress": 0, "error": ""}, synchronize_session=False)
     if not updated:
@@ -128,9 +132,11 @@ def retry_version(version_id: str, user: AuthUser = Depends(require_roles("admin
 
 
 @router.post("/versions/{version_id}/activate")
-def activate_version(version_id: str, user: AuthUser = Depends(require_roles("admin", "engineer")),
+def activate_version(version_id: str, user: AuthUser = Depends(get_current_user),
                      db: Session = Depends(get_db)):
     version, doc = _get_version(db, version_id, user)
+    if version.tenant_id != personal_namespace(user.user_id) and user.role not in ("admin", "engineer"):
+        raise HTTPException(403, "无权修改共享文档")
     if version.status != "ready":
         raise HTTPException(409, "只有完成索引的版本可以生效")
     doc.active_version_id = version.id
@@ -142,10 +148,11 @@ def activate_version(version_id: str, user: AuthUser = Depends(require_roles("ad
 
 @router.get("/chunks/{chunk_id}")
 async def get_chunk(chunk_id: str, user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
-    chunk = await db.scalar(select(DocumentChunk).filter_by(id=chunk_id, tenant_id=user.tenant_id))
+    chunk = await db.scalar(select(DocumentChunk).where(DocumentChunk.id == chunk_id,
+                                                       DocumentChunk.tenant_id.in_(readable_namespaces(user))))
     if chunk is None:
         raise HTTPException(404, "片段不存在")
-    parent = await db.scalar(select(DocumentParent).filter_by(id=chunk.parent_id, tenant_id=user.tenant_id))
+    parent = await db.scalar(select(DocumentParent).filter_by(id=chunk.parent_id, tenant_id=chunk.tenant_id))
     version, doc = await db.run_sync(_get_version, chunk.version_id, user)
     return {**chunk.payload, "parent_text": parent.text, "active": version.id == doc.active_version_id,
             "file_url": f"/api/kb/versions/{version.id}/file"}
@@ -177,7 +184,7 @@ async def list_documents(user: AuthUser = Depends(get_current_user), db: AsyncSe
 
 @router.get("/documents/{doc_id}")
 async def get_document(doc_id: str, user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
-    doc = await db.scalar(select(Document).filter_by(id=doc_id, tenant_id=user.tenant_id))
+    doc = await db.scalar(select(Document).where(Document.id == doc_id, Document.tenant_id.in_(readable_namespaces(user))))
     if not doc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "文档不存在")
     return {"id": doc.id, "title": doc.title, "source": doc.source, "content": doc.content, "chunk_count": doc.chunk_count}
@@ -185,7 +192,7 @@ async def get_document(doc_id: str, user: AuthUser = Depends(get_current_user), 
 
 @router.get("/documents/{doc_id}/versions")
 async def list_versions(doc_id: str, user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
-    doc = await db.scalar(select(Document).filter_by(id=doc_id, tenant_id=user.tenant_id))
+    doc = await db.scalar(select(Document).where(Document.id == doc_id, Document.tenant_id.in_(readable_namespaces(user))))
     if doc is None:
         raise HTTPException(404, "文档不存在")
     versions = (await db.scalars(select(DocumentVersion).filter_by(doc_id=doc_id).order_by(DocumentVersion.number.desc()))).all()

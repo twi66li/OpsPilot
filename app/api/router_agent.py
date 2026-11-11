@@ -8,6 +8,7 @@ from app.api.schemas import ChatIn, DecisionIn
 from app.auth.deps import AuthUser, get_current_user, require_roles
 from app.container import get_container
 from app.db.base import get_db
+from app.db.models import SupportCase
 from app.services import agent_service, chat_service
 from app.services.cache import check_rate_limit
 
@@ -19,6 +20,9 @@ def _check_session_and_ratelimit(user: AuthUser, db: Session, session_id: str, q
     session = chat_service.get_session(db, user.tenant_id, session_id, user.user_id)
     if not session:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "会话不存在")
+    personal = db.get(SupportCase, session_id)
+    if personal and personal.status == "saved":
+        raise HTTPException(409, "此案例已确认保存，请为新问题创建会话")
     if not check_rate_limit(container.cache, f"{user.tenant_id}:{user.user_id}", container.settings.rate_limit_per_minute):
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "请求过于频繁，请稍后再试")
     return container

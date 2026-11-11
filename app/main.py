@@ -18,6 +18,7 @@ from app.api import (
     router_kb,
     router_remediation,
     router_session,
+    router_support,
     router_ticket,
 )
 from app.auth.router import router as auth_router
@@ -74,6 +75,9 @@ def bootstrap() -> None:
             synchronize_session=False)
         db.commit()
         chunk_total = kb_service.warm_indexes(db, container)
+        from app.services.official_library import ensure_library
+
+        ensure_library(db, container)
         logging.getLogger(__name__).info("启动完成：索引已就绪，共 %d 个分块", chunk_total)
 
 
@@ -122,6 +126,7 @@ app.include_router(router_agent.router)
 app.include_router(router_eval.router)
 app.include_router(router_ticket.router)
 app.include_router(router_remediation.router)
+app.include_router(router_support.router)
 
 
 @app.get("/health")

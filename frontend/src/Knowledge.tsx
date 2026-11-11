@@ -4,14 +4,15 @@ import { api, downloadFile, post } from './api';
 import type { Hit, KnowledgeDoc, Version } from './types';
 
 const statusText: Record<string, string> = {uploaded: '等待处理', parsing: '解析中', chunking: '切分中', indexing: '索引中', ready: '可检索', failed: '处理失败'};
-export default function Knowledge({onSource, canWrite}: {onSource: (hit: Hit) => void; canWrite: boolean}) {
+export default function Knowledge({onSource, canWrite, personal = false}: {onSource: (hit: Hit) => void; canWrite: boolean; personal?: boolean}) {
   const {message} = App.useApp();
   const [docs, setDocs] = useState<KnowledgeDoc[]>([]), [selected, setSelected] = useState<KnowledgeDoc | null>(null);
   const [versions, setVersions] = useState<Version[]>([]), [version, setVersion] = useState<Version | null>(null);
   const [versionId, setVersionId] = useState(''), [modal, setModal] = useState(false), [updating, setUpdating] = useState(false);
   const [file, setFile] = useState<File | null>(null), [parsed, setParsed] = useState<File | null>(null), [title, setTitle] = useState('');
   const [uploading, setUploading] = useState(false), [actionBusy, setActionBusy] = useState(false);
-  const refresh = useCallback(async () => setDocs(await api<KnowledgeDoc[]>('/api/kb/documents')), []);
+  const listPath = personal ? '/api/support/private-documents' : '/api/kb/documents';
+  const refresh = useCallback(async () => setDocs(await api<KnowledgeDoc[]>(listPath)), [listPath]);
   useEffect(() => {refresh().catch(e => message.error(e.message));}, [refresh, message]);
   useEffect(() => {
     let active = true; setVersion(null); setVersionId(''); setVersions([]);
@@ -46,8 +47,8 @@ export default function Knowledge({onSource, canWrite}: {onSource: (hit: Hit) =>
     if (parsed) body.set('parsed_file', parsed);
     setUploading(true);
     try {
-      const uploaded = await api<Version & {duplicate?: boolean}>('/api/kb/documents/upload', {method: 'POST', body});
-      const items = await api<KnowledgeDoc[]>('/api/kb/documents'); setDocs(items);
+      const uploaded = await api<Version & {duplicate?: boolean}>(personal ? '/api/support/documents/upload' : '/api/kb/documents/upload', {method: 'POST', body});
+      const items = await api<KnowledgeDoc[]>(listPath); setDocs(items);
       const doc = items.find(item => item.id === uploaded.doc_id)!;
       setSelected(doc); setModal(false);
       message.success(uploaded.duplicate ? '相同文件已有入库记录，已打开对应文档' : '已创建入库任务');
@@ -63,7 +64,8 @@ export default function Knowledge({onSource, canWrite}: {onSource: (hit: Hit) =>
     } catch (error) {message.error((error as Error).message);} finally {setActionBusy(false);}
   }
   return <div className="page-stack">
-    <div className="page-title"><div><h2>运维知识库</h2><p>管理手册、解析进度与有效版本，保留每次调查引用的来源。</p></div>
+    {personal && <Alert type="info" title="手册只属于你的个人空间。上传前请移除密码、令牌和无关个人信息；日志请在排障会话中脱敏后提交。" />}
+    <div className="page-title"><div><h2>{personal ? '我的网站手册' : '运维知识库'}</h2><p>{personal ? '上传部署说明或维护手册，入库完成后在网站背景中关联。当前日志请在排障会话中提交。' : '管理手册、解析进度与有效版本，保留每次调查引用的来源。'}</p></div>
       <Space><Button onClick={() => refresh().catch(e => message.error(e.message))}>刷新</Button><Button type="primary" disabled={!canWrite} onClick={() => openUpload(false)}>上传文档</Button></Space>
     </div>
     <div className="knowledge-grid">

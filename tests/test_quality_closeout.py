@@ -24,6 +24,8 @@ def test_chat_model_order_skips_expired_models_and_prefers_earlier_expiry(monkey
 
 @pytest.mark.parametrize("code,status,switch", [
     ("AllocationQuota.FreeTierOnly", 403, True),
+    ("insufficient_quota", 403, True),
+    ("insufficient_quota", 429, True),
     ("AccessDenied", 403, False),
     ("Unauthorized", 401, False),
 ])

@@ -228,3 +228,27 @@ class RemediationRequest(Base):
     result: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
     decided_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class WebsiteProfile(Base):
+    __tablename__ = "website_profiles"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    user_id: Mapped[str] = mapped_column(String(64), index=True)
+    data: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
+class SupportCase(Base):
+    """个人排障的环境快照、临时证据和用户确认；与演练流程分开存储。"""
+
+    __tablename__ = "support_cases"
+
+    session_id: Mapped[str] = mapped_column(String(64), ForeignKey("chat_sessions.id"), primary_key=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    user_id: Mapped[str] = mapped_column(String(64), index=True)
+    site_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    status: Mapped[str] = mapped_column(String(32), default="investigating")
+    data: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)

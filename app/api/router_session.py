@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.schemas import SessionIn
 from app.auth.deps import AuthUser, get_current_user
 from app.db.async_session import get_async_db
-from app.db.models import Message
+from app.db.models import Message, SupportCase
 from app.services import chat_service
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
@@ -21,6 +21,8 @@ async def create_session(body: SessionIn, user: AuthUser = Depends(get_current_u
 @router.get("")
 async def list_sessions(user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
     sessions = await db.run_sync(chat_service.list_sessions, user.tenant_id, user.user_id)
+    personal = set((await db.scalars(select(SupportCase.session_id).filter_by(tenant_id=user.tenant_id, user_id=user.user_id))).all())
+    sessions = [s for s in sessions if s.id not in personal]
     return [{"id": s.id, "title": s.title, "created_at": s.created_at.isoformat()} for s in sessions]
 
 

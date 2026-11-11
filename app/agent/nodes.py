@@ -49,12 +49,19 @@ class DiagnosisNodes:
         self.tracer = get_tracer()
 
     def select_path(self, state):
+        if state.get("support_context") is not None:
+            return "personal"
         mode = self.container.settings.agent_mode
         if mode not in ("rule", "native"):
             raise ValueError("agent_mode 必须是rule或native")
         if mode == "rule" and state.get("strategy") == "range_stats_direct":
             return "pure"
         return mode
+
+    def personal_support(self, state):
+        from app.services.support_service import run_personal
+
+        return run_personal(self.container, state)
 
     def native_tools(self, state):
         from app.agent.tool_loop import run_tool_loop

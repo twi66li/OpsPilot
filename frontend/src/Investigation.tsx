@@ -96,12 +96,13 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
       message.success(result.status === 'pending' ? '修复申请已保存，请到审批与工单页面审批' : '本次调查已有修复记录，请到审批与工单页面查看');
     } catch (error) {message.error((error as Error).message);} finally {setRepairBusy(false);}
   }
-  return <div className="investigation-grid">
+  return <div className="demo-workspace"><Alert type="warning" title="故障演练 · 独立测试环境" description="这里调查平台自带的 order-service 测试服务，可以体验异常、审批和固定恢复动作。它没有接入你的网站；自己的报错请前往「我的网站排障」。" />
+    <div className="investigation-grid">
     <aside className="session-panel"><div className="panel-heading"><strong>调查会话</strong><Button size="small" disabled={busy} onClick={() => {setSessionId(''); setMessages([]); setHits([]); setEvents([]); setApproval(null); setTrace(null); setRunId('');}}>新建</Button></div>
       {sessions.map(session => <button disabled={busy} key={session.id} className={`session-item ${session.id === sessionId ? 'selected' : ''}`} onClick={() => selectSession(session.id)}>{session.title}<small>{formatTime(session.created_at)}</small></button>)}
     </aside>
     <section className="chat-panel"><div className="panel-heading"><strong>故障调查</strong><Tag color={busy ? 'processing' : 'default'}>{busy ? '正在调查' : '就绪'}</Tag></div>
-      <div className="chat-history">{!messages.length && <div className="chat-empty"><span className="eyebrow">从证据开始</span><h2>描述异常，逐步确认原因</h2><p>结合实时日志、指标与运维手册，保留调查过程和引用依据。</p>
+      <div className="chat-history">{!messages.length && <div className="chat-empty"><span className="eyebrow">连接池超时演练</span><h2>体验一次故障调查与恢复</h2><p>测试环境会模拟连接池等待超时，可能看到请求失败、延迟上升和 ERR_5003 日志。先调查证据，再申请关闭故障注入，经审批后观察请求验证结果；实际异常以工具查询为准。</p>
         <Button onClick={() => setQuestion('调查 order-service 最近5分钟的错误，结合日志、指标和手册，说明已确认事实与证据缺口。')}>填入调查示例</Button></div>}
         {messages.map((item, i) => <article className={`chat-message ${item.role}`} key={i}><div className="message-label">{item.role === 'user' ? '你' : 'OpsPilot'}</div><div className="message-body">{item.content || (busy ? '正在收集证据…' : '本次没有生成回答，请查看执行记录。')}</div></article>)}
         {approval && <Card className="approval-card" title="工单等待审批" size="small"><pre>{JSON.stringify(approval.ticket_draft, null, 2)}</pre><Input.TextArea aria-label="审批意见" value={comment} onChange={e => setComment(e.target.value)} placeholder="审批意见" />
@@ -125,5 +126,5 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
       <Alert type="warning" title="固定动作：关闭 order-service 的测试故障注入。需要人工批准后才执行，并用短请求探针验证。" />
       <Input.TextArea className="section-gap" aria-label="演练修复理由" value={repairReason} maxLength={600} rows={4} onChange={e => setRepairReason(e.target.value)} />
     </Modal>
-  </div>;
+  </div></div>;
 }

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, App, Button, Card, Collapse, Empty, Input, Space, Tag, Timeline } from 'antd';
+import { Alert, App, Button, Card, Collapse, Empty, Input, Modal, Space, Tag, Timeline } from 'antd';
 import { api, post, streamChat } from './api';
-import type { AgentEvent, Approval, ChatMessage, Hit, Run, Session } from './types';
+import type { AgentEvent, Approval, ChatMessage, Hit, Remediation, Run, Session } from './types';
 
 const labels: Record<string, string> = {route_intent: '识别调查目标', retrieve: '检索运维手册', grade: '核对证据', rewrite: '补充检索',
   call_tools: '查询观测数据', generate: '整理调查结论', native_tools: '收集证据与分析', prepare_approval: '准备审批草稿',
@@ -15,9 +15,12 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
   const [events, setEvents] = useState<AgentEvent[]>([]), [hits, setHits] = useState<Hit[]>([]);
   const [approval, setApproval] = useState<Approval | null>(null), [deciding, setDeciding] = useState(false), [comment, setComment] = useState('');
   const [runId, setRunId] = useState(''), [trace, setTrace] = useState<Run | null>(null);
+  const [repairEnabled, setRepairEnabled] = useState(false), [repairOpen, setRepairOpen] = useState(false);
+  const [repairReason, setRepairReason] = useState(''), [repairBusy, setRepairBusy] = useState(false);
   const controller = useRef<AbortController | null>(null), bottom = useRef<HTMLDivElement>(null);
   const refresh = useCallback(async () => setSessions(await api<Session[]>('/api/sessions')), []);
   useEffect(() => {refresh().catch(e => message.error(e.message)); return () => controller.current?.abort();}, [refresh, message]);
+  useEffect(() => {api<{enabled: boolean}>('/api/remediations/actions').then(result => setRepairEnabled(result.enabled)).catch(() => setRepairEnabled(false));}, []);
   useEffect(() => {bottom.current?.scrollIntoView({behavior: 'smooth', block: 'nearest'});}, [messages]);
   async function selectSession(id: string) {
     setBusy(true); setTrace(null); setEvents([]); setHits([]); setRunId(''); setApproval(null);
@@ -77,8 +80,17 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
       setApproval(null); setComment(''); message.success(result.ticket_id ? `已创建工单 ${result.ticket_id.slice(0, 8)}` : '审批决定已保存');
     } catch (error) {message.error((error as Error).message);} finally {setDeciding(false);}
   }
+  async function requestRepair() {
+    if (!runId || !repairReason.trim()) return;
+    setRepairBusy(true);
+    try {
+      const result = await post<Remediation>('/api/remediations', {run_id: runId, action: 'reset_demo_fault', reason: repairReason.trim()});
+      setRepairOpen(false);
+      message.success(result.status === 'pending' ? '修复申请已保存，请到审批与工单页面审批' : '本次调查已有修复记录，请到审批与工单页面查看');
+    } catch (error) {message.error((error as Error).message);} finally {setRepairBusy(false);}
+  }
   return <div className="investigation-grid">
-    <aside className="session-panel"><div className="panel-heading"><strong>调查会话</strong><Button size="small" disabled={busy} onClick={() => {setSessionId(''); setMessages([]); setHits([]); setEvents([]); setApproval(null); setTrace(null);}}>新建</Button></div>
+    <aside className="session-panel"><div className="panel-heading"><strong>调查会话</strong><Button size="small" disabled={busy} onClick={() => {setSessionId(''); setMessages([]); setHits([]); setEvents([]); setApproval(null); setTrace(null); setRunId('');}}>新建</Button></div>
       {sessions.map(session => <button disabled={busy} key={session.id} className={`session-item ${session.id === sessionId ? 'selected' : ''}`} onClick={() => selectSession(session.id)}>{session.title}<small>{new Date(session.created_at).toLocaleString()}</small></button>)}
     </aside>
     <section className="chat-panel"><div className="panel-heading"><strong>故障调查</strong><Tag color={busy ? 'processing' : 'default'}>{busy ? '正在调查' : '就绪'}</Tag></div>
@@ -98,8 +110,13 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
       {hits.map((hit, i) => <button className="evidence-card" key={`${hit.chunk_id}-${i}`} onClick={() => onSource(hit)}><strong>[{i + 1}] {hit.doc_title}</strong><small>{hit.version ? `v${hit.version} · ` : ''}{hit.page_start ? `第${hit.page_start}页` : '文本来源'}</small><p>{hit.text.slice(0, 160)}</p><span>查看原文与上下文 →</span></button>)}
       <h4>执行过程</h4><Timeline items={events.map((event, i) => ({key: i, color: event.type === 'error' ? 'red' : 'green', content: <><strong>{labels[event.name || event.node || ''] || (event.type === 'error' ? '执行异常' : '调查进展')}</strong><p className="muted">{event.summary || event.message || (event.type === 'tool_start' ? '正在查询…' : '已完成')}</p><Collapse size="small" ghost items={[{key: 'raw', label: '查看记录', children: <pre>{JSON.stringify(event, null, 2)}</pre>}]} /></>}))} />
       {runId && <><small className="muted">Run {runId.slice(0, 12)}</small><Button size="small" onClick={() => api<Run>(`/api/agent/runs/${runId}`).then(setTrace).catch(e => message.error(e.message))}>读取完整记录</Button></>}
+      {runId && repairEnabled && canApprove && <Button className="section-gap" disabled={busy} onClick={() => {setRepairReason('根据本次调查，申请关闭 order-service 的演练故障注入，并核对实际请求结果。'); setRepairOpen(true);}}>申请演练修复</Button>}
       {trace && <Collapse size="small" items={[{key: 'trace', label: `调查记录 · ${trace.status}`, children: <pre>{JSON.stringify(trace.data, null, 2)}</pre>}]} />}
       {approval && !canApprove && <Alert type="info" title="当前账号可查看，需要工程师或管理员审批。" />}
     </div></aside>
+    <Modal open={repairOpen} title="申请演练修复" onCancel={() => setRepairOpen(false)} onOk={requestRepair} confirmLoading={repairBusy} okText="提交审批" okButtonProps={{disabled: !repairReason.trim()}}>
+      <Alert type="warning" title="固定动作：关闭 order-service 的测试故障注入。需要人工批准后才执行，并用短请求探针验证。" />
+      <Input.TextArea className="section-gap" aria-label="演练修复理由" value={repairReason} maxLength={600} rows={4} onChange={e => setRepairReason(e.target.value)} />
+    </Modal>
   </div>;
 }

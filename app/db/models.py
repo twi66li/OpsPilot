@@ -205,3 +205,25 @@ class AgentRun(Base):
     data: Mapped[dict] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
+class RemediationRequest(Base):
+    """演练修复审批与执行审计；一个调查、一个固定动作只执行一次。"""
+
+    __tablename__ = "remediation_requests"
+    __table_args__ = (Index("uq_remediation_run_action", "tenant_id", "run_id", "action", unique=True),)
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=_uuid)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    run_id: Mapped[str] = mapped_column(String(64), index=True)
+    action: Mapped[str] = mapped_column(String(64))
+    service: Mapped[str] = mapped_column(String(64), default="order-service")
+    reason: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
+    requested_by: Mapped[str] = mapped_column(String(64))
+    decided_by: Mapped[str] = mapped_column(String(64), default="")
+    approved: Mapped[bool | None] = mapped_column(nullable=True)
+    comment: Mapped[str] = mapped_column(String(600), default="")
+    result: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

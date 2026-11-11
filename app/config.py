@@ -67,6 +67,7 @@ class Settings(BaseSettings):
     tool_timeout_seconds: float = 8.0
     max_tool_calls: int = 5
     logs_url: str = "http://localhost:18081"
+    remediation_enabled: bool = False
     mcp_enabled: bool = False
     retrieval_subagent_enabled: bool = False
     retrieval_subagent_timeout_seconds: float = 120.0

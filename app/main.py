@@ -11,12 +11,20 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.api import router_admin, router_agent, router_eval, router_kb, router_session, router_ticket
+from app.api import (
+    router_admin,
+    router_agent,
+    router_eval,
+    router_kb,
+    router_remediation,
+    router_session,
+    router_ticket,
+)
 from app.auth.router import router as auth_router
 from app.auth.security import hash_password
 from app.config import get_settings
 from app.db.base import SessionLocal, init_db
-from app.db.models import Tenant, User
+from app.db.models import RemediationRequest, Tenant, User
 from app.services import kb_service
 from app.services.logging_setup import configure_logging
 
@@ -61,6 +69,10 @@ def bootstrap() -> None:
             )
             db.commit()
         container = _build_container()
+        db.query(RemediationRequest).filter_by(status="running").update(
+            {"status": "interrupted", "result": {"message": "服务重启中断了执行，外部最终状态需重新调查核对"}},
+            synchronize_session=False)
+        db.commit()
         chunk_total = kb_service.warm_indexes(db, container)
         logging.getLogger(__name__).info("启动完成：索引已就绪，共 %d 个分块", chunk_total)
 
@@ -109,6 +121,7 @@ app.include_router(router_session.router)
 app.include_router(router_agent.router)
 app.include_router(router_eval.router)
 app.include_router(router_ticket.router)
+app.include_router(router_remediation.router)
 
 
 @app.get("/health")

@@ -14,7 +14,7 @@
 - 结构化父子块、页码及来源回查、有效知识版本切换；失败和历史版本在召回前过滤。
 - SSE 节点事件、调查 trace、模型用量与轻量评测接口。
 
-React 工作台已接通登录、完整会话历史、调查过程、文件知识库、引用回查、审批工单与已有评测记录。认证、会话、工单与知识元数据查询使用 AsyncSession（PostgreSQL 使用 asyncpg）；同步图、检索API和入库任务由线程隔离。SSE 支持真实模型正文增量与即时工具进展，检索子Agent的中间答案不作为主回答输出。受控演练修复继续开发。普通 PDF 文本提取不包含 OCR，也不保证恢复复杂表格布局。
+React 工作台已接通登录、完整会话历史、调查过程、文件知识库、引用回查、审批工单与已有评测记录。认证、会话、工单与知识元数据查询使用 AsyncSession（PostgreSQL 使用 asyncpg）；同步图、检索API和入库任务由线程隔离。SSE 支持真实模型正文增量与即时工具进展，检索子Agent的中间答案不作为主回答输出。受控演练修复已接入：申请与审批后执行固定的测试故障注入关闭动作，保留执行前后实际请求验证。普通 PDF 文本提取不包含 OCR，也不保证恢复复杂表格布局。
 
 ## 本机运行
 
@@ -71,3 +71,16 @@ docker compose -f compose.local.yml exec api python -m scripts.seed
 ```
 
 模型额度、`.env`、原文数据和本地运行日志不要提交到 GitHub。已有评测是开发案例记录，不能据此宣称独立根因准确率。
+
+## 受控演练修复
+
+本地 Compose 默认可通过 `REMEDIATION_ENABLED=true` 开启（`.env.example` 默认关闭）。只为 default 租户配置了 order-service 演练目标。
+
+调查完成后，工作台可提出修复申请；管理员或工程师在“审批与工单”批准后才执行。固定动作是关闭 metrics-demo 的故障注入，不接受URL、Shell或模型自定义脚本。执行前后各发送3个实际请求，保存状态码、耗时、请求编号与故障配置。短探针恢复不等同于生产根因修复或长期SLO恢复。
+
+- `GET /api/remediations/actions`：当前环境可用动作。
+- `POST /api/remediations`：关联本人调查记录的修复申请。
+- `GET /api/remediations`：本租户申请与审计结果。
+- `POST /api/remediations/{id}/decide`：批准后执行或拒绝；重复批准不重复执行。
+
+运行状态在执行前持久化；服务重启时未完成的执行标为interrupted，需重新调查核对，不自动重放。演练控制服务只应绑定本机或容器内网。

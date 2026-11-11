@@ -39,6 +39,11 @@ async def control(config: FaultConfig):
     return {"service": "order-service", "environment": "test", "fault_injection": config.model_dump()}
 
 
+@app.get("/control")
+async def control_status():
+    return {"service": "order-service", "environment": "test", "fault_injection": fault.model_dump()}
+
+
 @app.get("/work")
 async def work():
     global sequence

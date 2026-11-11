@@ -43,6 +43,7 @@ services:
       QDRANT_URL: http://qdrant:6333
       PROMETHEUS_URL: http://prometheus:9090
       LOGS_URL: http://metrics-demo:8081
+      REMEDIATION_ENABLED: ${REMEDIATION_ENABLED:-true}
       BUDGET_LEDGER_PATH: /app/data/model-budget-20261110.jsonl
     ports: ["127.0.0.1:8000:8000"]
     volumes: ["./data:/app/data", "./eval:/app/eval:ro"]

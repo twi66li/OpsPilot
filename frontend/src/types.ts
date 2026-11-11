@@ -23,6 +23,10 @@ export interface Version {
   index_config: { chunk_count?: number }; pages?: {page: number | null; text: string}[]; chunks?: Hit[];
 }
 export interface Ticket { id: string; title: string; severity: string; status: string; description?: string; created_at: string }
+export interface Remediation {
+  id: string; run_id: string; action: string; action_label: string; service: string; reason: string;
+  status: string; requested_by: string; decided_by: string; comment: string; result: Record<string, unknown>;
+}
 export interface EvalQuestion {
   id: string; question: string; answer: string; status: string; elapsed_s?: number;
   usage: Record<string, unknown>; program_checks?: Record<string, unknown>; judges?: Record<string, unknown>;

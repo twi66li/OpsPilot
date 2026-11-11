@@ -1,0 +1,86 @@
+{
+  "scope": "单次演示后的快照，不是并发压力测试或峰值总内存",
+  "services": [
+    {
+      "BlockIO": "440MB / 57.4MB",
+      "CPUPerc": "10.50%",
+      "Container": "55cf4ee900f4c66301a935113991fac74cbca33e55cfd4321a483697839a503a",
+      "ID": "55cf4ee900f4",
+      "MemPerc": "77.13%",
+      "MemUsage": "296.2MiB / 384MiB",
+      "Name": "opspilot-demo-api-1",
+      "NetIO": "1.12MB / 981kB",
+      "PIDs": "7"
+    },
+    {
+      "BlockIO": "41.1MB / 5.81MB",
+      "CPUPerc": "0.19%",
+      "Container": "95f76730eb16a82eac996c2fbe27eb6dbd8e13132b402f43a3ea4bd893fa1996",
+      "ID": "95f76730eb16",
+      "MemPerc": "44.81%",
+      "MemUsage": "43.02MiB / 96MiB",
+      "Name": "opspilot-demo-metrics-demo-1",
+      "NetIO": "288kB / 1.03MB",
+      "PIDs": "5"
+    },
+    {
+      "BlockIO": "235MB / 74.8MB",
+      "CPUPerc": "0.00%",
+      "Container": "6a815cc587dc41755bf00c243333a2c879789437bdcf55f547566244ac5fea34",
+      "ID": "6a815cc587dc",
+      "MemPerc": "22.02%",
+      "MemUsage": "42.28MiB / 192MiB",
+      "Name": "opspilot-demo-postgres-1",
+      "NetIO": "1.16MB / 1.23MB",
+      "PIDs": "11"
+    },
+    {
+      "BlockIO": "46.3MB / 0B",
+      "CPUPerc": "0.42%",
+      "Container": "77f2cd435b604867dfe4408bb6495dae26eac8971c53f516da92831a7859d203",
+      "ID": "77f2cd435b60",
+      "MemPerc": "7.22%",
+      "MemUsage": "3.465MiB / 48MiB",
+      "Name": "opspilot-demo-redis-1",
+      "NetIO": "16.4kB / 11.2kB",
+      "PIDs": "6"
+    },
+    {
+      "BlockIO": "465MB / 1.11MB",
+      "CPUPerc": "0.01%",
+      "Container": "a5597334bf2470bc9739f0f69ac8dacf8532d4a4665594b6abdfa7e1cdb72dd7",
+      "ID": "a5597334bf24",
+      "MemPerc": "7.97%",
+      "MemUsage": "20.39MiB / 256MiB",
+      "Name": "opspilot-demo-qdrant-1",
+      "NetIO": "1.07MB / 63.6kB",
+      "PIDs": "20"
+    },
+    {
+      "BlockIO": "788MB / 1.89MB",
+      "CPUPerc": "0.24%",
+      "Container": "2ce6e26c17f46dc03bba3028dd0e28105d45bfe26a6e88372d6f91bc13758a43",
+      "ID": "2ce6e26c17f4",
+      "MemPerc": "27.32%",
+      "MemUsage": "26.22MiB / 96MiB",
+      "Name": "opspilot-demo-prometheus-1",
+      "NetIO": "1.32MB / 359kB",
+      "PIDs": "8"
+    }
+  ],
+  "host_and_memory_events": [
+    "low 0",
+    "high 0",
+    "max 1089",
+    "oom 0",
+    "oom_kill 0",
+    "               total        used        free      shared  buff/cache   available",
+    "Mem:            1608        1117          83          15         408         302",
+    "Swap:              0           0           0",
+    "Filesystem      Size  Used Avail Use% Mounted on",
+    "/dev/vda3        40G  8.5G   29G  23% /"
+  ],
+  "deployed_revision": "0069dea",
+  "cloud_investigation_seconds": 54.25,
+  "tool_timeout_seconds": 30
+}

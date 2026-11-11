@@ -40,9 +40,10 @@ services:
       LOGS_URL: http://metrics-demo:8081
       BUDGET_LEDGER_PATH: /app/data/model-budget-cloud.jsonl
       KB_STORAGE_PATH: /app/data/knowledge
+      TOOL_TIMEOUT_SECONDS: ${TOOL_TIMEOUT_SECONDS:-30}
     command: sh -c "python -m scripts.seed && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"
     ports: ["127.0.0.1:18000:8000"]
-    volumes: ["./data:/app/data"]
+    volumes: ["./data:/app/data", "./eval:/app/eval:ro"]
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_started}
@@ -51,6 +52,12 @@ services:
       prometheus: {condition: service_started}
     mem_limit: 384m
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 5s
+      timeout: 3s
+      start_period: 60s
+      retries: 12
   metrics-demo:
     image: ${OPSPILOT_IMAGE:-opspilot:20261111}
     command: uvicorn scripts.metrics_demo:app --host 0.0.0.0 --port 8081

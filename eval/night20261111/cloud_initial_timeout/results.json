@@ -1,0 +1,73 @@
+{
+  "batch": "cloud_initial_timeout_20261111",
+  "config": {
+    "agent_mode": "native",
+    "llm_provider": "openai",
+    "chat_model": "qwen3.8-2.4t-a95b",
+    "embedding_provider": "openai",
+    "embedding_model": "qwen3.7-text-embedding-flash",
+    "embedding_dim": 1024,
+    "rerank_model": "qwen3.7-text-rerank",
+    "retrieval_mode": "hybrid",
+    "tool_timeout_seconds": 8.0,
+    "model_strict": true,
+    "qdrant_mode": "remote",
+    "metrics_provider": "prometheus",
+    "mcp_enabled": true,
+    "retrieval_subagent_enabled": false
+  },
+  "summary": {
+    "cases": 1,
+    "scope": "首次云端开发记录：8秒只读工具上限触发，后续改为30秒并重新验收；非准确率样本"
+  },
+  "questions": {
+    "cloud-initial-timeout": {
+      "question": "调查order-service最近5分钟的异常，查询同一窗口日志和指标，并检索《OpsPilot演练修复手册》。区分测试注入与真实数据库根因，引用手册，说明证据缺口和审批后可执行的演练建议。",
+      "status": "failed",
+      "answer": "工具超时或重复调用未产生新证据，已停止；当前证据不足，不能确认根因。",
+      "end_reason": "tool_timeout",
+      "error": "query_service_metrics exceeded 8s",
+      "tool_evidence": [
+        {
+          "name": "query_service_metrics",
+          "tool_call_id": "call_7b273e60f1d6403f90417bfd",
+          "args": {
+            "service": "order-service",
+            "window_minutes": 5
+          },
+          "result": {
+            "status": "timeout",
+            "message": "只读工具超时，当前证据不足"
+          },
+          "executed": true,
+          "duration_ms": 8008.55,
+          "agent": "main"
+        },
+        {
+          "name": "query_logs",
+          "tool_call_id": "call_b79cdfcd858d4e63985777ec",
+          "args": {},
+          "result": {
+            "status": "skipped",
+            "message": "前一调用已终止本轮执行"
+          },
+          "executed": false,
+          "duration_ms": 0.0,
+          "agent": "main"
+        },
+        {
+          "name": "search_runbook",
+          "tool_call_id": "call_113a40d62c584c24ab4df045",
+          "args": {},
+          "result": {
+            "status": "skipped",
+            "message": "前一调用已终止本轮执行"
+          },
+          "executed": false,
+          "duration_ms": 0.0,
+          "agent": "main"
+        }
+      ]
+    }
+  }
+}

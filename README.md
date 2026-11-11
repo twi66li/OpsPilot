@@ -94,9 +94,13 @@ docker compose -f compose.local.yml --profile app --profile observability up -d 
 `compose.demo.yml` 使用本机构建的 `opspilot:20261111` 镜像，包含PostgreSQL、Redis、Qdrant、API、演练服务和Prometheus。上传镜像、配置与 `.env` 后执行：
 
 ```bash
-docker compose -f compose.demo.yml up -d
+docker compose -f compose.demo.yml up -d --wait --wait-timeout 180
 # 本机建立访问隧道：
 ssh -N -L 18000:127.0.0.1:18000 your-server
 ```
 
 随后打开 `http://127.0.0.1:18000`。配置独立管理员密码、JWT密钥和数据库密码；原文件及预算账本放持久卷。演示按单API worker运行，预算账本是单实例限制，不能当作跨主机共享额度。云端默认关闭检索子Agent以减少耗时，用开关保留对照能力。公网域名与TLS入口可在需要分享演示时另行配置。
+
+云端也已通过一次真实闭环：54.25秒完成调查，指标和日志工具返回ok，审批后测试请求从500恢复为200。该次调查调用8,059 tokens。验收后六容器内存快照约431.6MiB，不含宿主系统和Docker，也不是总峰值或并发能力。成功记录和首次8秒工具超时记录均保留在 `eval/night20261111`；演示配置的工具上限现为30秒，并通过健康检查等待API就绪。
+
+评测文件通过 `./eval:/app/eval:ro` 持久化挂载。`eval/reports/cloud_runtime_20261111.json` 保存资源快照；账户密码、API密钥和SSH隧道信息保存在本机被忽略的 `data/cloud-deploy`，不要提交到仓库。

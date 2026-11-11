@@ -83,6 +83,7 @@ def main():
             try:
                 for _ in range(3):
                     demo.get("/work")
+                time.sleep(3)  # 等待配置中的2秒Prometheus抓取，将演练请求纳入固定调查时间窗。
                 started = time.monotonic()
                 question = ("调查order-service最近5分钟的异常，查询同一窗口日志和指标，并检索《OpsPilot演练修复手册》。"
                             "区分测试注入与真实数据库根因，引用手册，说明证据缺口和审批后可执行的演练建议。")
@@ -103,7 +104,11 @@ def main():
                             raise RuntimeError(event.get("message", "调查失败"))
                         if event["type"] == "final":
                             final = event
-                assert final and final["answer"] and first_token_s is not None
+                assert final and final["answer"] and first_token_s is not None, {
+                    "run_id": final.get("run_id") if final else None,
+                    "end_reason": final.get("end_reason") if final else None,
+                    "first_token_s": first_token_s,
+                }
                 assert node_completed_s is not None and first_token_s <= node_completed_s
                 run = client.get(f"/api/agent/runs/{final['run_id']}").json()
                 config = run["data"]["config"]

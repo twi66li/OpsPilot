@@ -3,6 +3,7 @@
 创建租户/用户/知识库文档/历史故障记录，并对文档执行入库（分块 → 向量化 → Qdrant/BM25）。
 幂等：重复执行会跳过已存在的数据。
 """
+import argparse
 import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -54,7 +55,7 @@ FAULT_RECORDS = [
 ]
 
 
-def seed_all(db, container) -> dict:
+def seed_all(db, container, demo_users: bool = False) -> dict:
     created = {"tenants": 0, "users": 0, "docs": 0, "faults": 0}
 
     for tenant_id, name in (("default", "默认租户"), ("acme", "Acme 公司")):
@@ -63,22 +64,25 @@ def seed_all(db, container) -> dict:
             created["tenants"] += 1
     db.commit()
 
+    settings = get_settings()
+    users = USERS if demo_users else [("default", settings.admin_username, settings.admin_password, "admin")]
     user_ids: dict[str, str] = {}
-    for tenant_id, username, password, role in USERS:
+    for tenant_id, username, password, role in users:
+        if tenant_id == "default" and username == settings.admin_username:
+            password = settings.admin_password
         if not db.query(User).filter(User.username == username).first():
             user = User(tenant_id=tenant_id, username=username, password_hash=hash_password(password), role=role)
             db.add(user)
             db.commit()
             created["users"] += 1
         user_ids[username] = db.query(User).filter(User.username == username).first().id
-    settings = get_settings()
     if not db.query(User).filter(User.username == settings.admin_username).first():
         user = User(tenant_id="default", username=settings.admin_username, password_hash=hash_password(settings.admin_password), role="admin")
         db.add(user)
         db.commit()
         user_ids[settings.admin_username] = user.id
 
-    admin_id = user_ids.get("admin", "")
+    admin_id = user_ids.get(settings.admin_username, user_ids.get("admin", ""))
     for filename, title in KNOWLEDGE_DOCS:
         exists = db.query(Document).filter(Document.tenant_id == "default", Document.title == title).first()
         if exists:
@@ -123,10 +127,13 @@ def seed_all(db, container) -> dict:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--demo-users", action="store_true", help="额外创建仅供本机演示的固定账号")
+    args = parser.parse_args()
     init_db()
     container = get_container()
     with SessionLocal() as db:
-        result = seed_all(db, container)
+        result = seed_all(db, container, demo_users=args.demo_users)
     logger.info(
         "种子数据完成：新增租户 %d、用户 %d、文档 %d、故障记录 %d",
         result["tenants"],
@@ -134,7 +141,7 @@ def main() -> None:
         result["docs"],
         result["faults"],
     )
-    logger.info("内置账号：admin/admin123（管理员）、dev01/dev123456（工程师）、viewer01/view123456（只读），租户 acme：acme_admin/acme123456")
+    logger.info("管理员遵循ADMIN_USERNAME/ADMIN_PASSWORD配置；额外演示账号：%s", args.demo_users)
 
 
 if __name__ == "__main__":

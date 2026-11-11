@@ -1,6 +1,7 @@
 import type { AgentEvent, Auth } from './types';
 
 const storageKey = 'opspilot.auth';
+export const formatTime = (value: string) => new Date(/[zZ]$|[+-]\d{2}:\d{2}$/.test(value) ? value : value + 'Z').toLocaleString();
 export function savedAuth(): Auth | null {
   try { return JSON.parse(sessionStorage.getItem(storageKey) || 'null'); } catch { return null; }
 }

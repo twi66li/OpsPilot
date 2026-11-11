@@ -1,0 +1,791 @@
+{
+  "batch": "mcp_direct_205317",
+  "config": {
+    "evaluation_scope": "测试服务实际请求＋程序契约检查；未人工复核，不是根因准确率或线上收益。",
+    "generation": "qwen3.8-2.4t-a95b",
+    "embedding": "qwen3.7-text-embedding-flash",
+    "rerank": "qwen3.7-text-rerank",
+    "judges": [],
+    "revision": "4e015d9b6f36ab3cc28cfe9145ee29b8dae5a500",
+    "mcp_enabled": true,
+    "retrieval_subagent_enabled": false
+  },
+  "questions": {
+    "dev-downstream": {
+      "question": "调查order-service最近5分钟的错误，请查询当前指标、实际日志和适用手册，区分测试事实、假设及缺少的证据。",
+      "split": "dev",
+      "family": "ERR_DOWNSTREAM_TIMEOUT",
+      "model_config": {
+        "evaluation_scope": "测试服务实际请求＋程序契约检查；未人工复核，不是根因准确率或线上收益。",
+        "generation": "qwen3.8-2.4t-a95b",
+        "embedding": "qwen3.7-text-embedding-flash",
+        "rerank": "qwen3.7-text-rerank",
+        "judges": [],
+        "revision": "4e015d9b6f36ab3cc28cfe9145ee29b8dae5a500",
+        "mcp_enabled": true,
+        "retrieval_subagent_enabled": false
+      },
+      "status": "answered",
+      "answer": "## order-service 最近5分钟调查结论（测试环境）\n\n**时间窗（北京时间）**：2026-11-10 20:48:21 ~ 20:53:21（工具返回为 UTC，已换算）\n\n### 一、已确认事实（均为测试环境、测试注入来源）\n\n**指标**（来源：Prometheus 测试采集，判定异常）\n- 错误率 **50.00%**，超过 1% 阈值 ⚠️\n- QPS ≈ 0.04 req/s（流量极低）\n- P99 = 9.9ms（延迟正常，未出现超时型慢请求）\n\n**日志**（同时间窗，命中12条）\n- 6 条 500 错误，全部标记 `fault_injected=true`，message 明确为\"**测试注入**\"：\n  - `ERR_DOWNSTREAM_TIMEOUT` ×4（下游调用超时）\n  - `ERR_DB_POOL_TIMEOUT` ×2（数据库连接池超时）\n- 6 条 200 正常请求，与 50% 错误率吻合\n\n**结论**：本次错误的直接来源是**测试故障注入**，不是已确认的生产根因；当前环境为 test。\n\n### 二、适用手册（仅供参考，不代表实时状态）\n\n- 《order-service 接口超时排查 SOP》相关错误码：ERR_6001 下游调用超时、ERR_5003 数据库连接池耗尽【citation:2】——与本次注入的两类错误语义对应（编码命名不同）\n- 应急措施：对非核心下游降级、扩容实例；治理：下游调用设 200ms~1s 超时并启用熔断、优化慢 SQL【citation:1】\n- 注意：该 SOP 适用场景为 P99>1s 或大量 Read timed out【citation:3】，而本次 P99 仅 9.9ms，**场景不完全匹配**\n\n### 三、待验证假设\n\n1. 注入的 `ERR_DOWNSTREAM_TIMEOUT` 意在模拟某个下游服务超时，但**具体是哪个下游服务尚无证据**（不允许猜测服务名）\n2. `ERR_DB_POOL_TIMEOUT` 模拟数据库连接池耗尽，手册提示其\"常为上游表现\"【citation:2】，真实场景下可能需要向上游追溯\n\n### 四、缺少的证据\n\n- 未确认注入的目标下游服务名及其当前指标（如需，请告知或确认具体服务名，我可查询）\n- 无注入任务的配置/起止时间信息，无法判断错误何时停止\n- 日志仅12条、QPS极低，样本量小；空日志或缺失不代表正常\n- 无数据库侧（连接池水位、慢SQL）实际数据\n\n**建议**：若这是计划内演练，确认注入结束后错误率应回落；如需继续排查，请告知疑似下游服务名（限清单内：payment-service、user-service、inventory-service、api-gateway-service、notify-service），我再查其指标与日志。\n\n指标证据：\norder-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-11-10T12:48:21.145000+00:00 至 2026-11-10T12:53:21.145000+00:00；QPS=0.04027048341359464 requests/s, P99=9.9ms, 错误率=50.0%；本次阈值判定：错误率 50.00% 超过 1% 阈值",
+      "program_checks": {
+        "answered": true,
+        "required_tools": true,
+        "forbidden_tools": true,
+        "actual_request_evidence": true,
+        "requested_window": true,
+        "aligned_window": true,
+        "sources_available": true,
+        "metric_error_observed": true,
+        "source_disclosed": true,
+        "mcp_used": true,
+        "retrieval_subagent_used": true
+      },
+      "usage": {
+        "qwen3.8-2.4t-a95b": {
+          "calls": 2,
+          "tokens": 7446,
+          "missing_usage": 0
+        },
+        "qwen3.7-text-embedding-flash": {
+          "calls": 1,
+          "tokens": 24,
+          "missing_usage": 0
+        },
+        "qwen3.7-text-rerank": {
+          "calls": 1,
+          "tokens": 223,
+          "missing_usage": 0
+        }
+      },
+      "citations": [
+        "order-service 接口超时排查 SOP"
+      ],
+      "actual_models": [
+        "qwen3.8-2.4t-a95b",
+        "qwen3.7-text-embedding-flash",
+        "qwen3.7-text-rerank"
+      ],
+      "end_reason": "answered",
+      "tool_evidence": [
+        {
+          "name": "query_service_metrics",
+          "tool_call_id": "call_d6f900b0aa634f29ba26eb8e",
+          "args": {
+            "service": "order-service",
+            "window_minutes": 5
+          },
+          "result": {
+            "service": "order-service",
+            "window_minutes": 5,
+            "evaluation_time": 1794315201.145,
+            "window": {
+              "start": "2026-11-10T12:48:21.145000+00:00",
+              "end": "2026-11-10T12:53:21.145000+00:00"
+            },
+            "units": {
+              "qps": "requests/s",
+              "latency_p99_ms": "ms",
+              "error_rate_pct": "%"
+            },
+            "source": {
+              "kind": "prometheus",
+              "environment": "test",
+              "faults": "测试注入",
+              "url": "http://prometheus:9090"
+            },
+            "status": "ok",
+            "avg": {
+              "qps": 0.04027048341359464,
+              "latency_p99_ms": 9.9,
+              "error_rate_pct": 50.0
+            },
+            "anomalies": [
+              "错误率 50.00% 超过 1% 阈值"
+            ],
+            "queries": {
+              "scrape_up": "max(up{job=\"opspilot-demo\"})",
+              "qps": "sum(rate(aiops_demo_requests_total{service=\"order-service\"}[300s]))",
+              "latency_p99_ms": "1000 * histogram_quantile(0.99, sum by (le) (rate(aiops_demo_request_duration_seconds_bucket{service=\"order-service\"}[300s])))",
+              "error_rate_pct": "100 * sum(rate(aiops_demo_requests_total{service=\"order-service\",code=~\"5..\"}[300s])) / sum(rate(aiops_demo_requests_total{service=\"order-service\"}[300s]))"
+            },
+            "mcp": {
+              "transport": "stdio",
+              "protocol_version": "2026-07-28",
+              "discovered_tools": [
+                "query_logs",
+                "query_service_metrics"
+              ]
+            },
+            "summary": "order-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-11-10T12:48:21.145000+00:00 至 2026-11-10T12:53:21.145000+00:00；QPS=0.04027048341359464 requests/s, P99=9.9ms, 错误率=50.0%；本次阈值判定：错误率 50.00% 超过 1% 阈值"
+          },
+          "executed": true,
+          "duration_ms": 1742.49,
+          "agent": "main"
+        },
+        {
+          "name": "query_logs",
+          "tool_call_id": "call_ee4eb114808840e684783db4",
+          "args": {
+            "service": "order-service",
+            "window_minutes": 5,
+            "limit": 30
+          },
+          "result": {
+            "status": "ok",
+            "service": "order-service",
+            "source": {
+              "kind": "http_request_logs",
+              "environment": "test",
+              "faults": "测试注入"
+            },
+            "window": {
+              "start": "2026-11-10T12:48:21.145000+00:00",
+              "end": "2026-11-10T12:53:21.145000+00:00"
+            },
+            "records": [
+              {
+                "timestamp": 1794314970.9745858,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "d974f4109b614067824f2d1a3db763e4",
+                "status_code": 200,
+                "elapsed_ms": 0.129,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794314970.978244,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "ceda744148c745d1891f952e725a391c",
+                "status_code": 500,
+                "elapsed_ms": 0.012,
+                "error_code": "ERR_DOWNSTREAM_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DOWNSTREAM_TIMEOUT"
+              },
+              {
+                "timestamp": 1794314970.9799252,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "55a8c012b9964e92bf9971d6e6c9d28b",
+                "status_code": 200,
+                "elapsed_ms": 0.008,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794314970.9810307,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "cf6a8a6cdd7a477a952cab0d3d4e2af4",
+                "status_code": 500,
+                "elapsed_ms": 0.009,
+                "error_code": "ERR_DOWNSTREAM_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DOWNSTREAM_TIMEOUT"
+              },
+              {
+                "timestamp": 1794315016.9497168,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "f5ea15838b1e4fe5b3bb9a92e2d8573b",
+                "status_code": 200,
+                "elapsed_ms": 0.054,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794315016.9514954,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "1be4942ce11c4d2898cc421563615fd1",
+                "status_code": 500,
+                "elapsed_ms": 0.008,
+                "error_code": "ERR_DB_POOL_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DB_POOL_TIMEOUT"
+              },
+              {
+                "timestamp": 1794315016.9530861,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "2c55841e1ea64de9a963e98eb76eccad",
+                "status_code": 200,
+                "elapsed_ms": 0.012,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794315016.954491,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "7f72045c41734cf7a11478c4d20cac22",
+                "status_code": 500,
+                "elapsed_ms": 0.011,
+                "error_code": "ERR_DB_POOL_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DB_POOL_TIMEOUT"
+              },
+              {
+                "timestamp": 1794315198.0220895,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "2f28a68395c348f797d953120eb96ec3",
+                "status_code": 200,
+                "elapsed_ms": 0.041,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794315198.0252779,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "e656a5435afa4e6894c17cf430562936",
+                "status_code": 500,
+                "elapsed_ms": 0.011,
+                "error_code": "ERR_DOWNSTREAM_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DOWNSTREAM_TIMEOUT"
+              },
+              {
+                "timestamp": 1794315198.027582,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "e8bcbbd2f2864447b72bbaf461a81cca",
+                "status_code": 200,
+                "elapsed_ms": 0.018,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794315198.0295486,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "3e69eb55a9cd4d8e9e67b27539df9c38",
+                "status_code": 500,
+                "elapsed_ms": 0.013,
+                "error_code": "ERR_DOWNSTREAM_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DOWNSTREAM_TIMEOUT"
+              }
+            ],
+            "matched": 12,
+            "truncated": false,
+            "summary": "测试服务实际请求日志：命中12条，返回12条；空结果不能确认服务正常。",
+            "mcp": {
+              "transport": "stdio",
+              "protocol_version": "2026-07-28",
+              "discovered_tools": [
+                "query_logs",
+                "query_service_metrics"
+              ]
+            }
+          },
+          "executed": true,
+          "duration_ms": 1209.72,
+          "agent": "main"
+        },
+        {
+          "name": "search_runbook",
+          "tool_call_id": "call_54963ccedf024960bae55491",
+          "args": {
+            "query": "order-service 错误率升高 排查",
+            "top_k": 3
+          },
+          "result": {
+            "status": "ok",
+            "hits": [
+              {
+                "chunk_id": "83be1cd5adb24ab9b377493d6ab918b5::3",
+                "doc_id": "83be1cd5adb24ab9b377493d6ab918b5",
+                "doc_title": "order-service 接口超时排查 SOP",
+                "text": "# order-service 接口超时排查 SOP\n## 处理方案\n- 应急：对非核心下游执行降级；扩容 order-service 实例数。\n- 治理：为下游调用设置 200ms~1s 超时并启用熔断；优化慢 SQL。\n- 复盘：将根因与处理步骤录入故障知识库。",
+                "source": "knowledge/order-service_接口超时排查SOP.md",
+                "score": 0.8536,
+                "citation_id": 1
+              },
+              {
+                "chunk_id": "83be1cd5adb24ab9b377493d6ab918b5::4",
+                "doc_id": "83be1cd5adb24ab9b377493d6ab918b5",
+                "doc_title": "order-service 接口超时排查 SOP",
+                "text": "# order-service 接口超时排查 SOP\n## 相关错误码\n- ERR_6001：下游调用超时\n- ERR_5003：数据库连接池耗尽（常为上游表现）",
+                "source": "knowledge/order-service_接口超时排查SOP.md",
+                "score": 0.7707,
+                "citation_id": 2
+              },
+              {
+                "chunk_id": "83be1cd5adb24ab9b377493d6ab918b5::0",
+                "doc_id": "83be1cd5adb24ab9b377493d6ab918b5",
+                "doc_title": "order-service 接口超时排查 SOP",
+                "text": "# order-service 接口超时排查 SOP\n\n## 适用场景\n订单服务（order-service）对外接口 P99 延迟超过 1s，或出现大量 `Read timed out`。",
+                "source": "knowledge/order-service_接口超时排查SOP.md",
+                "score": 0.6882,
+                "citation_id": 3
+              }
+            ],
+            "summary": "检索到3个手册片段，片段不代表当前实时状态"
+          },
+          "executed": true,
+          "duration_ms": 902.2,
+          "agent": "main"
+        }
+      ],
+      "agent_usage": {
+        "main": {
+          "calls": 4,
+          "tokens": 7693,
+          "missing_usage": 0
+        }
+      },
+      "source_sha256": {
+        "app/agent/tool_loop.py": "d51e592fbe59a8912c899b0bcf26510ca409ea7e4df3ff2e5254d12a409d3c36",
+        "app/agent/tools.py": "9cebb1b9ab4927696953227abe6659a8a20dccf819a0f9444475821580747daf",
+        "app/agent/nodes.py": "2f4848f0cfe58e8d8460ea2758b2617093fbb8df3d0ce33df99037ffbfac1846",
+        "app/services/model_api.py": "811c33c2092d3a00cbcc1db3c99aa6ed3b275429559ed69c130c3f81593d5eca",
+        "app/services/metrics_service.py": "de8a912c4d61a1a8be7594e519e90def4b7058c38a279003120da19f4d1ed163",
+        "app/services/log_service.py": "65fc244c5348942a812d002c3516fe0c5627bed63877aaa5c5cad11c78d0b9da",
+        "app/mcp_server.py": "c7714269feb4053185a67dfef991fde207a862bb58da881d6e06eaf1434448e0",
+        "app/services/mcp_client.py": "fd34d6dc60f229aa2ec622c852c827bf031412461d9ceb92f33e1ac84c910654",
+        "app/agent/retrieval_agent.py": "370a16252c034b51e7bbed0a42759a88fbbb1da0d04cc98247e596778b7d2323"
+      },
+      "passed": true,
+      "elapsed_s": 47.001
+    },
+    "dev-pool": {
+      "question": "order-service最近5分钟返回500，请结合当前指标、实际日志和连接池手册排查，不能直接确认生产根因。",
+      "split": "dev",
+      "family": "ERR_DB_POOL_TIMEOUT",
+      "model_config": {
+        "evaluation_scope": "测试服务实际请求＋程序契约检查；未人工复核，不是根因准确率或线上收益。",
+        "generation": "qwen3.8-2.4t-a95b",
+        "embedding": "qwen3.7-text-embedding-flash",
+        "rerank": "qwen3.7-text-rerank",
+        "judges": [],
+        "revision": "4e015d9b6f36ab3cc28cfe9145ee29b8dae5a500",
+        "mcp_enabled": true,
+        "retrieval_subagent_enabled": false
+      },
+      "status": "answered",
+      "answer": "## order-service 排查结论（测试环境，非生产根因认定）\n\n### 一、已确认事实\n\n**1. 当前指标**（来源：Prometheus 测试采集；时间窗 UTC 2026-11-10 12:49:08–12:54:08，即**北京时间 20:49:08–20:54:08**）\n- QPS ≈ 0.054 req/s，P99 = 9.9ms，**错误率 = 50.0%**\n- 本次阈值判定：错误率 50.00% **超过 1% 阈值**，异常成立\n- 数据源标注：`environment: test`，`faults: 测试注入`\n\n**2. 同窗口实际请求日志**（16 条，与指标同一时间终点）\n- 8 条 500 错误，全部标记 `fault_injected: true`，message 均为“测试注入”：\n  - `ERR_DB_POOL_TIMEOUT` × 4（数据库连接获取超时类）\n  - `ERR_DOWNSTREAM_TIMEOUT` × 4（下游调用超时类）\n- 8 条 200 正常请求穿插出现，与 50% 错误率吻合\n- 错误请求耗时均 <0.02ms，为快速失败特征，不符合真实连接池排队导致 RT 飙升的形态\n\n**3. 手册依据**\n- 引用[1]《order-service 接口超时排查 SOP》：下游调用超时（ERR_6001）、数据库连接池耗尽（ERR_5003，常为上游表现）\n- 引用[2][3]《ERR_5003 数据库连接池耗尽处理手册》：典型症状为大量 500/超时、Sleep 连接堆积、等待队列堆积且 RT 从几十毫秒飙升至数秒；相关错误码 ERR_5003（池耗尽）、ERR_5004（获取超时）\n\n### 二、初步判断（仅限本次证据）\n本次 500 由**测试环境故障注入**产生，混合了“连接池超时”与“下游超时”两类注入错误。日志中 `fault_injected=true` 是直接证据。**不能据此确认生产环境存在连接池耗尽或下游超时根因。**\n\n### 三、待验证假设与缺失证据\n- 日志错误码（ERR_DB_POOL_TIMEOUT/ERR_DOWNSTREAM_TIMEOUT）与手册错误码（ERR_5003/5004/6001）**命名不完全一致**，映射关系需确认\n- 若怀疑真实连接池问题，还缺：数据库侧 `SHOW PROCESSLIST`/Sleep 连接数、应用侧连接池等待队列与 RT 趋势（引用[2] 的典型症状本次均未见，P99 仅 9.9ms）\n- 下游服务（如 payment/inventory）同窗口指标未查，无法判断下游超时是否为连带注入\n\n### 四、建议\n1. 先与测试平台确认该时段注入任务是否计划内；若是，无需生产侧动作\n2. 若需在真实环境复核，按引用[2]检查连接池水位、等待队列与 DB 活跃连接\n3. 如需建单请走人工审批，我只提供以上诊断建议，不执行写操作\n\n指标证据：\norder-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-11-10T12:49:08.041000+00:00 至 2026-11-10T12:54:08.041000+00:00；QPS=0.053693977884792854 requests/s, P99=9.9ms, 错误率=50.0%；本次阈值判定：错误率 50.00% 超过 1% 阈值",
+      "program_checks": {
+        "answered": true,
+        "required_tools": true,
+        "forbidden_tools": true,
+        "actual_request_evidence": true,
+        "requested_window": true,
+        "aligned_window": true,
+        "sources_available": true,
+        "metric_error_observed": true,
+        "source_disclosed": true,
+        "mcp_used": true,
+        "retrieval_subagent_used": true
+      },
+      "usage": {
+        "qwen3.8-2.4t-a95b": {
+          "calls": 2,
+          "tokens": 8320,
+          "missing_usage": 0
+        },
+        "qwen3.7-text-embedding-flash": {
+          "calls": 1,
+          "tokens": 28,
+          "missing_usage": 0
+        },
+        "qwen3.7-text-rerank": {
+          "calls": 1,
+          "tokens": 240,
+          "missing_usage": 0
+        }
+      },
+      "citations": [
+        "order-service 接口超时排查 SOP",
+        "ERR_5003 数据库连接池耗尽处理手册"
+      ],
+      "actual_models": [
+        "qwen3.8-2.4t-a95b",
+        "qwen3.7-text-embedding-flash",
+        "qwen3.7-text-rerank"
+      ],
+      "end_reason": "answered",
+      "tool_evidence": [
+        {
+          "name": "query_service_metrics",
+          "tool_call_id": "call_d045484214524d5f9b70823b",
+          "args": {
+            "service": "order-service",
+            "window_minutes": 5
+          },
+          "result": {
+            "service": "order-service",
+            "window_minutes": 5,
+            "evaluation_time": 1794315248.041,
+            "window": {
+              "start": "2026-11-10T12:49:08.041000+00:00",
+              "end": "2026-11-10T12:54:08.041000+00:00"
+            },
+            "units": {
+              "qps": "requests/s",
+              "latency_p99_ms": "ms",
+              "error_rate_pct": "%"
+            },
+            "source": {
+              "kind": "prometheus",
+              "environment": "test",
+              "faults": "测试注入",
+              "url": "http://prometheus:9090"
+            },
+            "status": "ok",
+            "avg": {
+              "qps": 0.053693977884792854,
+              "latency_p99_ms": 9.9,
+              "error_rate_pct": 50.0
+            },
+            "anomalies": [
+              "错误率 50.00% 超过 1% 阈值"
+            ],
+            "queries": {
+              "scrape_up": "max(up{job=\"opspilot-demo\"})",
+              "qps": "sum(rate(aiops_demo_requests_total{service=\"order-service\"}[300s]))",
+              "latency_p99_ms": "1000 * histogram_quantile(0.99, sum by (le) (rate(aiops_demo_request_duration_seconds_bucket{service=\"order-service\"}[300s])))",
+              "error_rate_pct": "100 * sum(rate(aiops_demo_requests_total{service=\"order-service\",code=~\"5..\"}[300s])) / sum(rate(aiops_demo_requests_total{service=\"order-service\"}[300s]))"
+            },
+            "mcp": {
+              "transport": "stdio",
+              "protocol_version": "2026-07-28",
+              "discovered_tools": [
+                "query_logs",
+                "query_service_metrics"
+              ]
+            },
+            "summary": "order-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-11-10T12:49:08.041000+00:00 至 2026-11-10T12:54:08.041000+00:00；QPS=0.053693977884792854 requests/s, P99=9.9ms, 错误率=50.0%；本次阈值判定：错误率 50.00% 超过 1% 阈值"
+          },
+          "executed": true,
+          "duration_ms": 1170.78,
+          "agent": "main"
+        },
+        {
+          "name": "query_logs",
+          "tool_call_id": "call_0a74bf9364d54a2894fe442a",
+          "args": {
+            "service": "order-service",
+            "window_minutes": 5,
+            "limit": 50
+          },
+          "result": {
+            "status": "ok",
+            "service": "order-service",
+            "source": {
+              "kind": "http_request_logs",
+              "environment": "test",
+              "faults": "测试注入"
+            },
+            "window": {
+              "start": "2026-11-10T12:49:08.041000+00:00",
+              "end": "2026-11-10T12:54:08.041000+00:00"
+            },
+            "records": [
+              {
+                "timestamp": 1794314970.9745858,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "d974f4109b614067824f2d1a3db763e4",
+                "status_code": 200,
+                "elapsed_ms": 0.129,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794314970.978244,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "ceda744148c745d1891f952e725a391c",
+                "status_code": 500,
+                "elapsed_ms": 0.012,
+                "error_code": "ERR_DOWNSTREAM_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DOWNSTREAM_TIMEOUT"
+              },
+              {
+                "timestamp": 1794314970.9799252,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "55a8c012b9964e92bf9971d6e6c9d28b",
+                "status_code": 200,
+                "elapsed_ms": 0.008,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794314970.9810307,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "cf6a8a6cdd7a477a952cab0d3d4e2af4",
+                "status_code": 500,
+                "elapsed_ms": 0.009,
+                "error_code": "ERR_DOWNSTREAM_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DOWNSTREAM_TIMEOUT"
+              },
+              {
+                "timestamp": 1794315016.9497168,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "f5ea15838b1e4fe5b3bb9a92e2d8573b",
+                "status_code": 200,
+                "elapsed_ms": 0.054,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794315016.9514954,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "1be4942ce11c4d2898cc421563615fd1",
+                "status_code": 500,
+                "elapsed_ms": 0.008,
+                "error_code": "ERR_DB_POOL_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DB_POOL_TIMEOUT"
+              },
+              {
+                "timestamp": 1794315016.9530861,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "2c55841e1ea64de9a963e98eb76eccad",
+                "status_code": 200,
+                "elapsed_ms": 0.012,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794315016.954491,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "7f72045c41734cf7a11478c4d20cac22",
+                "status_code": 500,
+                "elapsed_ms": 0.011,
+                "error_code": "ERR_DB_POOL_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DB_POOL_TIMEOUT"
+              },
+              {
+                "timestamp": 1794315198.0220895,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "2f28a68395c348f797d953120eb96ec3",
+                "status_code": 200,
+                "elapsed_ms": 0.041,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794315198.0252779,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "e656a5435afa4e6894c17cf430562936",
+                "status_code": 500,
+                "elapsed_ms": 0.011,
+                "error_code": "ERR_DOWNSTREAM_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DOWNSTREAM_TIMEOUT"
+              },
+              {
+                "timestamp": 1794315198.027582,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "e8bcbbd2f2864447b72bbaf461a81cca",
+                "status_code": 200,
+                "elapsed_ms": 0.018,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794315198.0295486,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "3e69eb55a9cd4d8e9e67b27539df9c38",
+                "status_code": 500,
+                "elapsed_ms": 0.013,
+                "error_code": "ERR_DOWNSTREAM_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DOWNSTREAM_TIMEOUT"
+              },
+              {
+                "timestamp": 1794315245.011415,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "1e0f56b04abb4a5a8a4a39732cd2174d",
+                "status_code": 200,
+                "elapsed_ms": 0.017,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794315245.0134444,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "f1a1c5b842464b679069668965d3c528",
+                "status_code": 500,
+                "elapsed_ms": 0.017,
+                "error_code": "ERR_DB_POOL_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DB_POOL_TIMEOUT"
+              },
+              {
+                "timestamp": 1794315245.015845,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "d359af2b48eb42d8902f34add6b2347e",
+                "status_code": 200,
+                "elapsed_ms": 0.011,
+                "error_code": "",
+                "fault_injected": false,
+                "message": "请求完成"
+              },
+              {
+                "timestamp": 1794315245.0174205,
+                "tenant_id": "default",
+                "service": "order-service",
+                "environment": "test",
+                "request_id": "81791b3bbd534bfdad9730761616a165",
+                "status_code": 500,
+                "elapsed_ms": 0.01,
+                "error_code": "ERR_DB_POOL_TIMEOUT",
+                "fault_injected": true,
+                "message": "测试注入：ERR_DB_POOL_TIMEOUT"
+              }
+            ],
+            "matched": 16,
+            "truncated": false,
+            "summary": "测试服务实际请求日志：命中16条，返回16条；空结果不能确认服务正常。",
+            "mcp": {
+              "transport": "stdio",
+              "protocol_version": "2026-07-28",
+              "discovered_tools": [
+                "query_logs",
+                "query_service_metrics"
+              ]
+            }
+          },
+          "executed": true,
+          "duration_ms": 1198.2,
+          "agent": "main"
+        },
+        {
+          "name": "search_runbook",
+          "tool_call_id": "call_c1d134aadc1c47a9890f3469",
+          "args": {
+            "query": "数据库连接池耗尽 500 错误 order-service",
+            "top_k": 3
+          },
+          "result": {
+            "status": "ok",
+            "hits": [
+              {
+                "chunk_id": "83be1cd5adb24ab9b377493d6ab918b5::4",
+                "doc_id": "83be1cd5adb24ab9b377493d6ab918b5",
+                "doc_title": "order-service 接口超时排查 SOP",
+                "text": "# order-service 接口超时排查 SOP\n## 相关错误码\n- ERR_6001：下游调用超时\n- ERR_5003：数据库连接池耗尽（常为上游表现）",
+                "source": "knowledge/order-service_接口超时排查SOP.md",
+                "score": 0.8329,
+                "citation_id": 1
+              },
+              {
+                "chunk_id": "8bc39c979ce748f5b5b8f86c85e89a59::1",
+                "doc_id": "8bc39c979ce748f5b5b8f86c85e89a59",
+                "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+                "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 典型症状\n- 接口大量 500/超时，堆栈中包含 `ERR_5003`\n- `SHOW PROCESSLIST` 中大量 Sleep 连接\n- 应用侧等待队列堆积，RT 从几十毫秒飙升至数秒",
+                "source": "knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+                "score": 0.827,
+                "citation_id": 2
+              },
+              {
+                "chunk_id": "8bc39c979ce748f5b5b8f86c85e89a59::4",
+                "doc_id": "8bc39c979ce748f5b5b8f86c85e89a59",
+                "doc_title": "ERR_5003 数据库连接池耗尽处理手册",
+                "text": "# ERR_5003 数据库连接池耗尽处理手册\n## 相关错误码\n- ERR_5003：连接池耗尽\n- ERR_5004：连接获取超时",
+                "source": "knowledge/ERR_5003_数据库连接池耗尽处理手册.md",
+                "score": 0.6858,
+                "citation_id": 3
+              }
+            ],
+            "summary": "检索到3个手册片段，片段不代表当前实时状态"
+          },
+          "executed": true,
+          "duration_ms": 1163.83,
+          "agent": "main"
+        }
+      ],
+      "agent_usage": {
+        "main": {
+          "calls": 4,
+          "tokens": 8588,
+          "missing_usage": 0
+        }
+      },
+      "source_sha256": {
+        "app/agent/tool_loop.py": "d51e592fbe59a8912c899b0bcf26510ca409ea7e4df3ff2e5254d12a409d3c36",
+        "app/agent/tools.py": "9cebb1b9ab4927696953227abe6659a8a20dccf819a0f9444475821580747daf",
+        "app/agent/nodes.py": "2f4848f0cfe58e8d8460ea2758b2617093fbb8df3d0ce33df99037ffbfac1846",
+        "app/services/model_api.py": "811c33c2092d3a00cbcc1db3c99aa6ed3b275429559ed69c130c3f81593d5eca",
+        "app/services/metrics_service.py": "de8a912c4d61a1a8be7594e519e90def4b7058c38a279003120da19f4d1ed163",
+        "app/services/log_service.py": "65fc244c5348942a812d002c3516fe0c5627bed63877aaa5c5cad11c78d0b9da",
+        "app/mcp_server.py": "c7714269feb4053185a67dfef991fde207a862bb58da881d6e06eaf1434448e0",
+        "app/services/mcp_client.py": "fd34d6dc60f229aa2ec622c852c827bf031412461d9ceb92f33e1ac84c910654",
+        "app/agent/retrieval_agent.py": "370a16252c034b51e7bbed0a42759a88fbbb1da0d04cc98247e596778b7d2323"
+      },
+      "passed": true,
+      "elapsed_s": 52.563
+    }
+  },
+  "judges": {},
+  "summary": {
+    "target": 2,
+    "completed": 2,
+    "program_passed": 2,
+    "status_counts": {
+      "answered": 2
+    }
+  }
+}

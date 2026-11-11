@@ -2,13 +2,13 @@ export interface Auth { access_token: string; username: string; role: string; te
 export interface Session { id: string; title: string; created_at: string }
 export interface Hit {
   chunk_id: string; doc_id: string; doc_title: string; text: string; source: string;
-  version_id?: string; version?: number; page_start?: number; page_end?: number; heading_path?: string[];
+  version_id?: string; version?: number; page_start?: number; page_end?: number; heading_path?: string[]; citation_id?: number;
   parent_text?: string; file_url?: string; content_type?: string; matched_text?: string; source_name?: string;
 }
 export interface ChatMessage { role: string; content: string; meta?: { run_id?: string; citations?: string[] } }
 export interface Approval { pending?: boolean; approval_id: string; ticket_draft: Record<string, unknown> }
 export interface AgentEvent {
-  type: string; answer?: string; delta?: string; message?: string; node?: string; name?: string;
+  type: string; answer?: string; delta?: string; message?: string; node?: string; name?: string; agent?: string;
   summary?: string; run_id?: string; hits?: Hit[]; approval?: Approval; approval_id?: string;
   ticket_draft?: Record<string, unknown>; result?: Record<string, unknown>; end_reason?: string;
 }

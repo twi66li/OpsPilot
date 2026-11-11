@@ -1,12 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, App, Button, Card, Collapse, Empty, Input, Modal, Space, Tag, Timeline } from 'antd';
-import { api, post, streamChat } from './api';
+import { api, formatTime, post, streamChat } from './api';
 import type { AgentEvent, Approval, ChatMessage, Hit, Remediation, Run, Session } from './types';
 
 const labels: Record<string, string> = {route_intent: '识别调查目标', retrieve: '检索运维手册', grade: '核对证据', rewrite: '补充检索',
   call_tools: '查询观测数据', generate: '整理调查结论', native_tools: '收集证据与分析', prepare_approval: '准备审批草稿',
   approval_gate: '等待人工审批', create_ticket: '创建工单', search_runbook: '检索运维手册', query_service_metrics: '查询服务指标',
   query_logs: '查询服务日志', query_fault_history: '查询历史故障', delegate_retrieval: '委派手册检索'};
+
+function toolHits(event: AgentEvent): Hit[] {
+  if (event.agent === 'retrieval' || !['search_runbook', 'delegate_retrieval'].includes(event.name || '')) return [];
+  return Array.isArray(event.result?.hits) ? event.result.hits as Hit[] : [];
+}
+const mergeHits = (previous: Hit[], next: Hit[]) => [...new Map([...previous, ...next].map(hit => [hit.chunk_id, hit])).values()];
 
 export default function Investigation({onSource, canApprove}: {onSource: (hit: Hit) => void; canApprove: boolean}) {
   const {message} = App.useApp();
@@ -33,8 +39,8 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
       if (latestRun) {
         setRunId(latestRun);
         const run = await api<Run>(`/api/agent/runs/${latestRun}`); setTrace(run);
-        const final = run.data.result?.hits ? run.data.result : [...run.data.events].reverse().map(item => item.detail as AgentEvent).find(item => item.type === 'final');
-        setHits(final?.hits || []);
+        const recovered = run.data.result?.hits || run.data.events.filter(item => item.kind === 'tool').flatMap(item => toolHits(item.detail as AgentEvent));
+        setHits(mergeHits([], recovered));
         setEvents(run.data.events.filter(item => ['progress', 'tool'].includes(item.kind)).map(item => ({...item.detail, type: item.kind === 'tool' ? 'tool' : (item.detail as AgentEvent).type}) as AgentEvent));
       }
     } catch (error) {message.error((error as Error).message);} finally {setBusy(false);}
@@ -59,10 +65,11 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
         if (event.type === 'answer_reset') setMessages(previous => previous.map((item, i) => i === answerIndex ? {...item, content: ''} : item));
         if (event.type === 'answer' || event.type === 'final') {
           if (event.answer !== undefined) setMessages(previous => previous.map((item, i) => i === answerIndex ? {...item, content: event.answer!, meta: {run_id: event.run_id}} : item));
-          if (event.hits) setHits(event.hits);
+          if (event.hits) setHits(mergeHits([], event.hits));
           if (event.approval) setApproval(event.approval);
         }
         if (event.type === 'retrieval' && event.hits) setHits(event.hits);
+        if (event.type === 'tool') setHits(previous => mergeHits(previous, toolHits(event)));
         if (event.type === 'approval_required' && event.approval_id) setApproval({approval_id: event.approval_id, ticket_draft: event.ticket_draft || {}});
         if (event.type === 'error') message.error(event.message || '调查失败，请查看执行记录');
       }, controller.current.signal);
@@ -91,7 +98,7 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
   }
   return <div className="investigation-grid">
     <aside className="session-panel"><div className="panel-heading"><strong>调查会话</strong><Button size="small" disabled={busy} onClick={() => {setSessionId(''); setMessages([]); setHits([]); setEvents([]); setApproval(null); setTrace(null); setRunId('');}}>新建</Button></div>
-      {sessions.map(session => <button disabled={busy} key={session.id} className={`session-item ${session.id === sessionId ? 'selected' : ''}`} onClick={() => selectSession(session.id)}>{session.title}<small>{new Date(session.created_at).toLocaleString()}</small></button>)}
+      {sessions.map(session => <button disabled={busy} key={session.id} className={`session-item ${session.id === sessionId ? 'selected' : ''}`} onClick={() => selectSession(session.id)}>{session.title}<small>{formatTime(session.created_at)}</small></button>)}
     </aside>
     <section className="chat-panel"><div className="panel-heading"><strong>故障调查</strong><Tag color={busy ? 'processing' : 'default'}>{busy ? '正在调查' : '就绪'}</Tag></div>
       <div className="chat-history">{!messages.length && <div className="chat-empty"><span className="eyebrow">从证据开始</span><h2>描述异常，逐步确认原因</h2><p>结合实时日志、指标与运维手册，保留调查过程和引用依据。</p>
@@ -107,7 +114,7 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
     </section>
     <aside className="evidence-panel"><div className="panel-heading"><strong>证据与执行过程</strong></div><div className="evidence-scroll">
       <h4>知识引用 · {hits.length}</h4>{!hits.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="检索到手册后显示来源" />}
-      {hits.map((hit, i) => <button className="evidence-card" key={`${hit.chunk_id}-${i}`} onClick={() => onSource(hit)}><strong>[{i + 1}] {hit.doc_title}</strong><small>{hit.version ? `v${hit.version} · ` : ''}{hit.page_start ? `第${hit.page_start}页` : '文本来源'}</small><p>{hit.text.slice(0, 160)}</p><span>查看原文与上下文 →</span></button>)}
+      {hits.map((hit, i) => <button className="evidence-card" key={`${hit.chunk_id}-${i}`} onClick={() => onSource(hit)}><strong>[{hit.citation_id || i + 1}] {hit.doc_title}</strong><small>{hit.version ? `v${hit.version} · ` : ''}{hit.page_start ? `第${hit.page_start}页` : '文本来源'}</small><p>{hit.text.slice(0, 160)}</p><span>查看原文与上下文 →</span></button>)}
       <h4>执行过程</h4><Timeline items={events.map((event, i) => ({key: i, color: event.type === 'error' ? 'red' : 'green', content: <><strong>{labels[event.name || event.node || ''] || (event.type === 'error' ? '执行异常' : '调查进展')}</strong><p className="muted">{event.summary || event.message || (event.type === 'tool_start' ? '正在查询…' : '已完成')}</p><Collapse size="small" ghost items={[{key: 'raw', label: '查看记录', children: <pre>{JSON.stringify(event, null, 2)}</pre>}]} /></>}))} />
       {runId && <><small className="muted">Run {runId.slice(0, 12)}</small><Button size="small" onClick={() => api<Run>(`/api/agent/runs/${runId}`).then(setTrace).catch(e => message.error(e.message))}>读取完整记录</Button></>}
       {runId && repairEnabled && canApprove && <Button className="section-gap" disabled={busy} onClick={() => {setRepairReason('根据本次调查，申请关闭 order-service 的演练故障注入，并核对实际请求结果。'); setRepairOpen(true);}}>申请演练修复</Button>}

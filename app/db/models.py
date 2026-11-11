@@ -17,7 +17,8 @@ def _uuid() -> str:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    # 现有DateTime列不含时区，统一存UTC；asyncpg不接受带时区值写入这些列。
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 class Tenant(Base):

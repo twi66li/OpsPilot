@@ -1,0 +1,17 @@
+{
+  "scenarios": [
+    {
+      "id": "dev-downstream",
+      "split": "dev",
+      "code": "ERR_DOWNSTREAM_TIMEOUT",
+      "window": 5,
+      "question": "调查order-service最近5分钟的错误，请查询当前指标、实际日志和适用手册，区分测试事实、假设及缺少的证据。",
+      "tools": [
+        "query_service_metrics",
+        "query_logs",
+        "search_runbook"
+      ],
+      "forbid": []
+    }
+  ]
+}

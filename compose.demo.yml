@@ -1,0 +1,68 @@
+# 使用本机构建的镜像；API只绑定云主机回环地址，通过SSH隧道访问演示。
+name: opspilot-demo
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: opspilot
+      POSTGRES_USER: opspilot
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?请配置POSTGRES_PASSWORD}
+    command: postgres -c shared_buffers=48MB -c max_connections=30
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
+    mem_limit: 192m
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opspilot -d opspilot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  redis:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 24mb --maxmemory-policy allkeys-lru
+    mem_limit: 48m
+    restart: unless-stopped
+  qdrant:
+    image: qdrant/qdrant:v1.12.4
+    environment:
+      QDRANT__STORAGE__ON_DISK_PAYLOAD: "true"
+    volumes: ["qdrant_data:/qdrant/storage"]
+    mem_limit: 256m
+    restart: unless-stopped
+  api:
+    image: ${OPSPILOT_IMAGE:-opspilot:20261111}
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://opspilot:${POSTGRES_PASSWORD}@postgres:5432/opspilot
+      REDIS_URL: redis://redis:6379/0
+      QDRANT_MODE: remote
+      QDRANT_URL: http://qdrant:6333
+      PROMETHEUS_URL: http://prometheus:9090
+      LOGS_URL: http://metrics-demo:8081
+      BUDGET_LEDGER_PATH: /app/data/model-budget-cloud.jsonl
+      KB_STORAGE_PATH: /app/data/knowledge
+    command: sh -c "python -m scripts.seed && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports: ["127.0.0.1:18000:8000"]
+    volumes: ["./data:/app/data"]
+    depends_on:
+      postgres: {condition: service_healthy}
+      redis: {condition: service_started}
+      qdrant: {condition: service_started}
+      metrics-demo: {condition: service_started}
+      prometheus: {condition: service_started}
+    mem_limit: 384m
+    restart: unless-stopped
+  metrics-demo:
+    image: ${OPSPILOT_IMAGE:-opspilot:20261111}
+    command: uvicorn scripts.metrics_demo:app --host 0.0.0.0 --port 8081
+    mem_limit: 96m
+    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:v3.13.5
+    command: --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.retention.time=6h --storage.tsdb.retention.size=100MB
+    volumes: ["./prometheus.yml:/etc/prometheus/prometheus.yml:ro", "prometheus_data:/prometheus"]
+    mem_limit: 96m
+    restart: unless-stopped
+volumes:
+  postgres_data:
+  qdrant_data:
+  prometheus_data:

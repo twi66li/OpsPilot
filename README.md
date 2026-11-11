@@ -39,9 +39,9 @@ cd ..
 ```powershell
 # 在 .env 中设置 POSTGRES_PASSWORD，并按 .env.example 配置真实模型。
 docker compose -f compose.local.yml --profile app --profile observability up -d --build
-# 首次建立演示手册、账号与历史故障：
-docker compose -f compose.local.yml exec api python -m scripts.seed
 ```
+
+启动时先初始化手册和历史故障，再启动API，避免两个模型进程同时持有同一预算账本。管理员按环境配置创建；额外固定演示账号仅在本机显式执行 `python -m scripts.seed --demo-users` 时创建。
 
 `compose.local.yml` 为当前主配置；`docker-compose.yml` 保留早期 MySQL 配置。
 业务数据库、Qdrant 与原文件均需持久化；原文件默认放在 `data/knowledge`。入库 worker 与模型预算账本共用 API 进程，当前部署使用单个 API worker。复杂 OCR 在本机或独立环境执行，2GB 演示服务器不部署 MinerU 模型。
@@ -84,3 +84,19 @@ docker compose -f compose.local.yml exec api python -m scripts.seed
 - `POST /api/remediations/{id}/decide`：批准后执行或拒绝；重复批准不重复执行。
 
 运行状态在执行前持久化；服务重启时未完成的执行标为interrupted，需重新调查核对，不自动重放。演练控制服务只应绑定本机或容器内网。
+
+## 完整演示与小型部署
+
+`uv run python -m scripts.demo_acceptance` 串起真实PDF、来源回查、真实模型流式调查和审批修复。它使用已配置的模型额度，并保存一条工作台可读的验收记录；不是批量评测或独立准确率测试。
+
+2026-11-11的一次实际记录：调查83.1秒，首个正文增量63.2秒，模型与Embedding/Rerank合计13,148 tokens；引用命中上传手册，审批后3次测试请求由500恢复为200。记录位于 `eval/night20261111/demo_acceptance/results.json`。该耗时包含检索子Agent，不能作为延迟SLA。
+
+`compose.demo.yml` 使用本机构建的 `opspilot:20261111` 镜像，包含PostgreSQL、Redis、Qdrant、API、演练服务和Prometheus。上传镜像、配置与 `.env` 后执行：
+
+```bash
+docker compose -f compose.demo.yml up -d
+# 本机建立访问隧道：
+ssh -N -L 18000:127.0.0.1:18000 your-server
+```
+
+随后打开 `http://127.0.0.1:18000`。配置独立管理员密码、JWT密钥和数据库密码；原文件及预算账本放持久卷。演示按单API worker运行，预算账本是单实例限制，不能当作跨主机共享额度。云端默认关闭检索子Agent以减少耗时，用开关保留对照能力。公网域名与TLS入口可在需要分享演示时另行配置。

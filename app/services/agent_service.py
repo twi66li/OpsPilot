@@ -73,6 +73,7 @@ def _final_snapshot(container, config: dict) -> dict:
         "generation_policy": values.get("generation_policy"),
         "citations": values.get("citations", []),
         "citations_indexed": values.get("citations_indexed", []),
+        "hits": values.get("hits", []),
         "used_evidence": values.get("used_evidence"),
         "range_assembly": values.get("range_assembly"),
         "range_coverage": values.get("range_coverage"),

@@ -1,0 +1,218 @@
+{
+  "batch": "demo_acceptance_20261111",
+  "config": {
+    "agent_mode": "native",
+    "llm_provider": "openai",
+    "chat_model": "qwen3.8-2.4t-a95b",
+    "embedding_provider": "openai",
+    "embedding_model": "qwen3.7-text-embedding-flash",
+    "embedding_dim": 1024,
+    "rerank_model": "qwen3.7-text-rerank",
+    "retrieval_mode": "hybrid",
+    "tool_timeout_seconds": 8.0,
+    "model_strict": true,
+    "qdrant_mode": "remote",
+    "metrics_provider": "prometheus",
+    "mcp_enabled": true,
+    "retrieval_subagent_enabled": true
+  },
+  "summary": {
+    "cases": 1,
+    "scope": "已见开发演示，程序验收通过；不是独立根因准确率"
+  },
+  "questions": {
+    "demo-e2e": {
+      "status": "completed",
+      "question": "调查order-service最近5分钟的异常，查询同一窗口日志和指标，并检索《OpsPilot演练修复手册》。区分测试注入与真实数据库根因，引用手册，说明证据缺口和审批后可执行的演练建议。",
+      "answer": "## order-service 最近5分钟异常调查结论\n\n**时间窗（UTC→北京时间）**：2026-11-11 02:37:33 ~ 02:42:33 UTC，即 **北京时间 10:37:33 ~ 10:42:33**。来源：Prometheus 测试环境采集 + 测试服务实际请求日志（环境标注：test，故障类型=测试注入）。\n\n---\n\n### 一、已确认事实\n\n**1. 日志（同窗口，命中3条，未截断）**\n- 3条请求均为 HTTP 500，错误码 `ERR_DB_POOL_TIMEOUT`\n- 每条记录均带 **`fault_injected: true`**，message 明确为\"**测试注入：ERR_DB_POOL_TIMEOUT**\"\n- 耗时仅 0.013~0.039ms——真实数据库连接池超时通常表现为秒级等待，亚毫秒耗时与注入/模拟行为一致\n\n**2. 指标（同窗口）**\n- 状态：**insufficient_data**（未找到 order-service 指标序列或采样不足），QPS=0，P99 与错误率均为 null\n- ⚠️ 指标缺失**不能**证明服务正常，也不能证明异常；本次无法用指标做阈值判定\n\n### 二、测试注入 vs 真实数据库根因判定\n\n| 判据 | 结果 |\n|---|---|\n| 日志 `fault_injected` 标记 | ✅ 全部为 true，明确标注测试注入 |\n| 环境来源 | ✅ test 环境，数据源自带\"故障为测试注入\"标注 |\n| 请求耗时特征 | ✅ 亚毫秒，不符合真实连接池耗尽的等待特征 |\n| 指标佐证 | ❌ 指标缺失，无法交叉验证 |\n\n**结论：本次异常为测试注入（演练模拟），无证据表明存在真实数据库连接池耗尽。** 这与《OpsPilot演练修复手册》要求一致：\"不得仅凭注入错误码断定真实数据库连接池耗尽\"（引用¹）。\n\n### 三、手册引用\n\n1. **《OpsPilot演练修复手册》**（opspilot-demo-guide.pdf）：order-service 的 `ERR_DB_POOL_TIMEOUT` 可能是测试注入；须对比同一近期时间窗的日志与指标；**人工审批后** `reset_demo_fault` 仅清除演示注入；执行前后需验证实际请求，且不能证明长期 SLO 已恢复。\n2. 《order-service 接口超时排查 SOP》（备查）：真实场景下数据库连接池耗尽对应 **ERR_5003**，下游超时对应 ERR_6001；处理方向为降级、扩容、超时熔断、慢SQL优化——本次无证据触发这些动作。\n\n### 四、证据缺口\n\n- 指标序列缺失（insufficient_data），无法确认服务真实流量与健康基线\n- 手册未提供区分注入与真实故障的量化阈值/字段规则，本次主要依赖 `fault_injected` 标记\n- 无数据库连接池、慢SQL、DB实例侧指标，无法彻底排除真实DB问题（但现有证据已指向注入）\n- `reset_demo_fault` 的审批角色与前置条件未在手册中明确\n\n### 五、审批后可执行的演练建议（我仅给建议，不执行写操作）\n\n1. **人工审批通过后**执行 `reset_demo_fault`，仅清除本次演示注入（引用¹）\n2. 执行前后各查一次同窗口日志，确认不再出现 `fault_injected: true` 记录\n3. 排查 order-service 指标采集链路（为何无指标序列），恢复可观测性\n4. 注意：清除注入≠长期 SLO 恢复证明，需持续观察（引用¹）\n5. 将本次演练结论录入复盘记录（SOP建议，引用⁴）\n\n如需建单，请走人工审批流程，我可补充诊断描述建议。\n\n指标证据：\norder-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-11-11T02:37:33.775000+00:00 至 2026-11-11T02:42:33.775000+00:00；状态=insufficient_data，未找到该服务的指标序列（服务名可能不存在于指标系统）或采样不足，不能据此判定服务正常或根因",
+      "elapsed_s": 83.125,
+      "usage": {
+        "total_tokens": 13148,
+        "unknown_usage_calls": 0
+      },
+      "agent_usage": {
+        "main": {
+          "calls": 2,
+          "total_tokens": 7436,
+          "unknown_usage_calls": 0
+        },
+        "retrieval": {
+          "calls": 6,
+          "total_tokens": 5712,
+          "unknown_usage_calls": 0
+        }
+      },
+      "actual_models": [
+        "qwen3.7-text-embedding-flash",
+        "qwen3.7-text-rerank",
+        "qwen3.8-2.4t-a95b"
+      ],
+      "citations": [
+        "OpsPilot演练修复手册",
+        "order-service 接口超时排查 SOP"
+      ],
+      "evidence": [
+        {
+          "chunk_id": "3116626bb0de450bbf4f7c547af08a1c:c0",
+          "doc_id": "522c9c5cb5574f978ff7d3114fc256af",
+          "doc_title": "OpsPilot演练修复手册",
+          "text": "OpsPilot demo remediation guide\nERR_DB_POOL_TIMEOUT on order-service can be TEST INJECTION.\nCompare actual request logs and service metrics in the SAME recent window.\nDo not claim a real database pool is exhausted from the injected error code.\nAfter HUMAN APPROVAL, reset_demo_fault clears only the demo injection.\nVerify actual requests before and after; this does not prove long-term SLO recovery.",
+          "source": "opspilot-demo-guide.pdf",
+          "score": 0.8628,
+          "version_id": "3116626bb0de450bbf4f7c547af08a1c",
+          "version": 1,
+          "parent_id": "3116626bb0de450bbf4f7c547af08a1c:p0",
+          "page_start": 1,
+          "page_end": 1,
+          "heading_path": [],
+          "content_type": "text",
+          "source_name": "opspilot-demo-guide.pdf",
+          "parser": "pypdf",
+          "matched_text": "OpsPilot demo remediation guide\nERR_DB_POOL_TIMEOUT on order-service can be TEST INJECTION.\nCompare actual request logs and service metrics in the SAME recent window.\nDo not claim a real database pool is exhausted from the injected error code.\nAfter HUMAN APPROVAL, reset_demo_fault clears only the demo injection.\nVerify actual requests before and after; this does not prove long-term SLO recovery.",
+          "citation_id": 1
+        },
+        {
+          "chunk_id": "83be1cd5adb24ab9b377493d6ab918b5::1",
+          "doc_id": "83be1cd5adb24ab9b377493d6ab918b5",
+          "doc_title": "order-service 接口超时排查 SOP",
+          "text": "# order-service 接口超时排查 SOP\n## 常见根因\n1. 数据库连接池耗尽（见 ERR_5003 手册）。\n2. 下游依赖（库存服务、支付服务）抖动，未配置合理超时与熔断。\n3. 大促期间 QPS 突增，线程池打满。\n4. GC 停顿：Full GC 频繁导致 STW。",
+          "source": "knowledge/order-service_接口超时排查SOP.md",
+          "score": 0.5994,
+          "citation_id": 2
+        },
+        {
+          "chunk_id": "83be1cd5adb24ab9b377493d6ab918b5::4",
+          "doc_id": "83be1cd5adb24ab9b377493d6ab918b5",
+          "doc_title": "order-service 接口超时排查 SOP",
+          "text": "# order-service 接口超时排查 SOP\n## 相关错误码\n- ERR_6001：下游调用超时\n- ERR_5003：数据库连接池耗尽（常为上游表现）",
+          "source": "knowledge/order-service_接口超时排查SOP.md",
+          "score": 0.3306,
+          "citation_id": 3
+        },
+        {
+          "chunk_id": "83be1cd5adb24ab9b377493d6ab918b5::3",
+          "doc_id": "83be1cd5adb24ab9b377493d6ab918b5",
+          "doc_title": "order-service 接口超时排查 SOP",
+          "text": "# order-service 接口超时排查 SOP\n## 处理方案\n- 应急：对非核心下游执行降级；扩容 order-service 实例数。\n- 治理：为下游调用设置 200ms~1s 超时并启用熔断；优化慢 SQL。\n- 复盘：将根因与处理步骤录入故障知识库。",
+          "source": "knowledge/order-service_接口超时排查SOP.md",
+          "score": 0.34,
+          "citation_id": 4
+        }
+      ],
+      "program_checks": {
+        "pdf_original_hash_matches": true,
+        "live_tokens_before_node_completion": true,
+        "approved_demo_remediation_succeeded": true
+      }
+    }
+  },
+  "acceptance": {
+    "knowledge": {
+      "version_id": "3116626bb0de450bbf4f7c547af08a1c",
+      "parser": "pypdf",
+      "page": 1,
+      "chunks": 1,
+      "original_hash_matches": true
+    },
+    "investigation": {
+      "run_id": "e2ba03447e4747bf8930d69169b73176",
+      "first_token_s": 63.219,
+      "node_completed_s": 83.125,
+      "end_reason": "answered",
+      "citations": [
+        "OpsPilot演练修复手册",
+        "order-service 接口超时排查 SOP"
+      ],
+      "backends": {
+        "llm": "OpenAIChatLLM",
+        "embedder": "OpenAIEmbedding",
+        "vector_store": "QdrantVectorStore",
+        "cache": "RedisCache"
+      },
+      "tools": [
+        "query_service_metrics",
+        "query_logs",
+        "search_runbook",
+        "search_runbook",
+        "delegate_retrieval"
+      ]
+    },
+    "remediation": {
+      "id": "ddfbb08c945c45fea760f73fb2225477",
+      "status": "succeeded",
+      "result": {
+        "environment": "test",
+        "source": "actual_test_requests",
+        "probe_count_each": 3,
+        "verification_scope": "短请求探针，不代表长期SLO；关闭演练注入不等同于生产故障根因修复",
+        "before": {
+          "control": {
+            "service": "order-service",
+            "environment": "test",
+            "fault_injection": {
+              "delay_ms": 0,
+              "error_every": 1,
+              "error_code": "ERR_DB_POOL_TIMEOUT"
+            }
+          },
+          "samples": [
+            {
+              "status_code": 500,
+              "elapsed_ms": 1.8,
+              "request_id": "5bd10700cff54fd7ab2195b1286acc9d"
+            },
+            {
+              "status_code": 500,
+              "elapsed_ms": 0.96,
+              "request_id": "6075eff3077a469180a4a1b0cf4bb29e"
+            },
+            {
+              "status_code": 500,
+              "elapsed_ms": 0.95,
+              "request_id": "3a71a1d6a1be48759dd47f47d483d08b"
+            }
+          ],
+          "healthy": false
+        },
+        "action_response": {
+          "service": "order-service",
+          "environment": "test",
+          "fault_injection": {
+            "delay_ms": 0,
+            "error_every": 0,
+            "error_code": "ERR_INJECTED"
+          }
+        },
+        "after": {
+          "control": {
+            "service": "order-service",
+            "environment": "test",
+            "fault_injection": {
+              "delay_ms": 0,
+              "error_every": 0,
+              "error_code": "ERR_INJECTED"
+            }
+          },
+          "samples": [
+            {
+              "status_code": 200,
+              "elapsed_ms": 0.93,
+              "request_id": "a5940542f9fa46e0b6828141c60b3c8b"
+            },
+            {
+              "status_code": 200,
+              "elapsed_ms": 0.75,
+              "request_id": "cad96349d60d406f9ddec44c21d584f7"
+            },
+            {
+              "status_code": 200,
+              "elapsed_ms": 0.69,
+              "request_id": "98362dc48d2c429bb1effd1f0a87ea7b"
+            }
+          ],
+          "healthy": true
+        }
+      }
+    }
+  }
+}

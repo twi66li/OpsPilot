@@ -1,0 +1,62 @@
+{
+  "batch": "mcp_direct_204929",
+  "config": {
+    "evaluation_scope": "测试服务实际请求＋程序契约检查；未人工复核，不是根因准确率或线上收益。",
+    "generation": "qwen3.8-2.4t-a95b",
+    "embedding": "qwen3.7-text-embedding-flash",
+    "rerank": "qwen3.7-text-rerank",
+    "judges": [],
+    "revision": "4e015d9b6f36ab3cc28cfe9145ee29b8dae5a500",
+    "mcp_enabled": true,
+    "retrieval_subagent_enabled": false
+  },
+  "questions": {
+    "dev-downstream": {
+      "question": "调查order-service最近5分钟的错误，请查询当前指标、实际日志和适用手册，区分测试事实、假设及缺少的证据。",
+      "split": "dev",
+      "family": "ERR_DOWNSTREAM_TIMEOUT",
+      "model_config": {
+        "evaluation_scope": "测试服务实际请求＋程序契约检查；未人工复核，不是根因准确率或线上收益。",
+        "generation": "qwen3.8-2.4t-a95b",
+        "embedding": "qwen3.7-text-embedding-flash",
+        "rerank": "qwen3.7-text-rerank",
+        "judges": [],
+        "revision": "4e015d9b6f36ab3cc28cfe9145ee29b8dae5a500",
+        "mcp_enabled": true,
+        "retrieval_subagent_enabled": false
+      },
+      "status": "failed",
+      "error": "HTTPStatusError",
+      "passed": false,
+      "elapsed_s": 46.019
+    },
+    "dev-pool": {
+      "question": "order-service最近5分钟返回500，请结合当前指标、实际日志和连接池手册排查，不能直接确认生产根因。",
+      "split": "dev",
+      "family": "ERR_DB_POOL_TIMEOUT",
+      "model_config": {
+        "evaluation_scope": "测试服务实际请求＋程序契约检查；未人工复核，不是根因准确率或线上收益。",
+        "generation": "qwen3.8-2.4t-a95b",
+        "embedding": "qwen3.7-text-embedding-flash",
+        "rerank": "qwen3.7-text-rerank",
+        "judges": [],
+        "revision": "4e015d9b6f36ab3cc28cfe9145ee29b8dae5a500",
+        "mcp_enabled": true,
+        "retrieval_subagent_enabled": false
+      },
+      "status": "failed",
+      "error": "HTTPStatusError",
+      "passed": false,
+      "elapsed_s": 57.43
+    }
+  },
+  "judges": {},
+  "summary": {
+    "target": 2,
+    "completed": 2,
+    "program_passed": 0,
+    "status_counts": {
+      "failed": 2
+    }
+  }
+}

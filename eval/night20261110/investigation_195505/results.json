@@ -1,0 +1,188 @@
+{
+  "batch": "investigation_195505",
+  "config": {
+    "evaluation_scope": "测试服务实际请求＋程序契约检查；未人工复核，不是根因准确率或线上收益。",
+    "generation": "qwen3.8-2.4t-a95b",
+    "embedding": "qwen3.7-text-embedding-flash",
+    "rerank": "qwen3.7-text-rerank",
+    "judges": [],
+    "revision": "4e015d9b6f36ab3cc28cfe9145ee29b8dae5a500"
+  },
+  "questions": {
+    "dev-downstream": {
+      "question": "调查order-service最近5分钟的错误，请查询当前指标、实际日志和适用手册，区分测试事实、假设及缺少的证据。",
+      "split": "dev",
+      "family": "ERR_DOWNSTREAM_TIMEOUT",
+      "model_config": {
+        "evaluation_scope": "测试服务实际请求＋程序契约检查；未人工复核，不是根因准确率或线上收益。",
+        "generation": "qwen3.8-2.4t-a95b",
+        "embedding": "qwen3.7-text-embedding-flash",
+        "rerank": "qwen3.7-text-rerank",
+        "judges": [],
+        "revision": "4e015d9b6f36ab3cc28cfe9145ee29b8dae5a500"
+      },
+      "status": "answered",
+      "answer": "## order-service 最近5分钟错误调查结论\n\n**调查窗口**：2026-11-10 19:50:06 ~ 19:55:06（北京时间，工具返回UTC 11:50:06~11:55:06 换算）\n**环境声明**：指标与日志来源均标注 `environment: test`、`faults: 测试注入`，以下为**测试环境**结论，不代表生产状况。\n\n---\n\n### ✅ 已确认事实（有工具证据）\n\n1. **指标**（Prometheus 测试采集，5分钟窗口）：\n   - QPS ≈ 0.0035 req/s（流量极低）\n   - P99 = 9.9ms，错误率 = 0.0%，`anomalies: []`，未触发异常判定\n2. **日志**（同窗口共5条，未截断）：\n   - 3 条 HTTP 200 正常\n   - 2 条 HTTP 500，错误码 `ERR_DOWNSTREAM_TIMEOUT`，且均标记 `fault_injected: true`，message 明确写着\"**测试注入：ERR_DOWNSTREAM_TIMEOUT**\"\n   - 即：窗口内确实出现了 500 错误，但**来源为测试故障注入，非真实故障**\n3. **手册对照**（《order-service 接口超时排查 SOP》）：\n   - 适用场景为\"P99 超过 1s 或大量 Read timed out\"〔引用3〕——当前 P99 仅 9.9ms，**不满足该SOP触发条件**\n   - 手册中 `ERR_6001`=下游调用超时、`ERR_5003`=数据库连接池耗尽〔引用2〕；日志中的 `ERR_DOWNSTREAM_TIMEOUT` 语义上对应\"下游调用超时\"类，但编码格式与手册不一致\n4. **历史故障**：order-service + `ERR_DOWNSTREAM_TIMEOUT` 精确匹配 0 条（仅供参考）。\n\n### ⚠️ 待验证假设\n\n- 若此类错误在**生产**出现，按 SOP 应怀疑下游依赖超时/熔断限流问题，需检查下游服务状态〔引用1、2〕——但本次已确认为注入错误，**不能将其当作真实根因**。\n- 指标错误率 0.0% 与日志 2 条 500 存在表面不一致：可能因 QPS 极低、rate() 在 300s 窗口内的聚合/取整所致，属合理推测，未验证。\n\n### ❌ 缺少的证据\n\n- 未验证指标与日志计数差异的具体原因（采集聚合机制）。\n- 未查询下游服务（如 payment/inventory）指标——因错误已标注为注入，当前无必要；如需演练真实性验证可补查。\n- 无法查询该窗口之前的历史时间窗（工具仅支持以当前为终点的最近窗口）。\n\n### 📋 建议\n\n本次为**测试注入的模拟故障**，服务当前指标无异常，无需处置。若后续在非注入环境复现 `ERR_DOWNSTREAM_TIMEOUT`，再按 SOP 步骤〔引用1〕排查下游依赖熔断/限流与线程阻塞。如需建单记录本次演练，请走人工审批流程，我只提供诊断建议、不直接创建工单。\n\n指标证据：\norder-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-11-10T11:50:06.250000+00:00 至 2026-11-10T11:55:06.250000+00:00；QPS=0.003451861729218176 requests/s, P99=9.9ms, 错误率=0.0%",
+      "program_checks": {
+        "answered": true,
+        "required_tools": true,
+        "forbidden_tools": true,
+        "actual_request_evidence": true,
+        "requested_window": true,
+        "aligned_window": true,
+        "sources_available": true,
+        "source_disclosed": true
+      },
+      "usage": {
+        "qwen3.8-2.4t-a95b": {
+          "calls": 3,
+          "tokens": 11193,
+          "missing_usage": 0
+        },
+        "qwen3.7-text-embedding-flash": {
+          "calls": 1,
+          "tokens": 25,
+          "missing_usage": 0
+        },
+        "qwen3.7-text-rerank": {
+          "calls": 1,
+          "tokens": 259,
+          "missing_usage": 0
+        }
+      },
+      "citations": [
+        "order-service 接口超时排查 SOP"
+      ],
+      "actual_models": [
+        "qwen3.8-2.4t-a95b",
+        "qwen3.7-text-embedding-flash",
+        "qwen3.7-text-rerank"
+      ],
+      "source_sha256": {
+        "app/agent/tool_loop.py": "a5f5fa57a4ffa7cf354f64bd110fe5c0551ea379c2e649c6032a98410acb4271",
+        "app/agent/tools.py": "34df0113f588cd78a0a0e76cc2c79c381501ed8b9c1c2252de3decb062b62041",
+        "app/agent/nodes.py": "fe84da52084a688d3e2ee498b691b245465e4df011e4542643e79ff5154e4233",
+        "app/services/model_api.py": "811c33c2092d3a00cbcc1db3c99aa6ed3b275429559ed69c130c3f81593d5eca",
+        "app/services/metrics_service.py": "de8a912c4d61a1a8be7594e519e90def4b7058c38a279003120da19f4d1ed163",
+        "app/services/log_service.py": "65fc244c5348942a812d002c3516fe0c5627bed63877aaa5c5cad11c78d0b9da"
+      },
+      "passed": true,
+      "elapsed_s": 62.771
+    },
+    "dev-pool": {
+      "question": "order-service最近5分钟返回500，请结合当前指标、实际日志和连接池手册排查，不能直接确认生产根因。",
+      "split": "dev",
+      "family": "ERR_DB_POOL_TIMEOUT",
+      "model_config": {
+        "evaluation_scope": "测试服务实际请求＋程序契约检查；未人工复核，不是根因准确率或线上收益。",
+        "generation": "qwen3.8-2.4t-a95b",
+        "embedding": "qwen3.7-text-embedding-flash",
+        "rerank": "qwen3.7-text-rerank",
+        "judges": [],
+        "revision": "4e015d9b6f36ab3cc28cfe9145ee29b8dae5a500"
+      },
+      "status": "answered",
+      "answer": "## order-service 500 排查结果（最近5分钟）\n\n### 一、已确认事实（测试环境数据）\n\n**当前指标**（来源：Prometheus 测试服务采集，标注为\"测试注入\"）\n- 时间窗：UTC 2026-11-10 11:51:10 ~ 11:56:10，换算北京时间 **19:51:10 ~ 19:56:10**\n- QPS ≈ 0.017 req/s（流量很低）\n- P99 = 9.9ms（未见明显升高）\n- 错误率 = **40.0%，超过 1% 阈值**，判定为异常\n\n**同窗口请求日志**（共9条，其中4条500）\n| 北京时间约 | 状态 | 错误码 | 备注 |\n|---|---|---|---|\n| 19:55:06 | 500 ×2 | ERR_DOWNSTREAM_TIMEOUT | 标记\"测试注入\" |\n| 19:56:10 | 500 ×2 | ERR_DB_POOL_TIMEOUT | 标记\"测试注入\" |\n\n⚠️ 全部9条日志均带 `fault_injected=true`，数据源环境为 **test**、故障标注为**测试注入**。这些500是测试注入产物，**不能作为已确认的生产根因**。\n\n### 二、与连接池手册对照\n\n依据《ERR_5003 数据库连接池耗尽处理手册》：\n- 适用场景为日志出现 `ERR_5003`（连接池耗尽）或数据库活跃连接数长期等于 max_connections【citation:2】\n- 典型症状：大量 500/超时、Sleep 连接堆积、等待队列堆积、RT 从几十毫秒飙升至数秒【citation:1】\n- 相关错误码：ERR_5003 连接池耗尽、ERR_5004 连接获取超时【citation:3】\n\n**匹配度评估**：日志中的 `ERR_DB_POOL_TIMEOUT` 与手册的 ERR_5004（连接获取超时）语义相近，但并非手册主错误码；且当前 P99 仅 9.9ms，未出现手册描述的 RT 飙升症状，典型症状仅部分吻合。\n\n### 三、待验证假设（非结论）\n1. **DB 连接获取超时**：需验证连接池利用率、活跃连接数、等待队列——当前工具无法取得这些数据\n2. **下游依赖超时**：`ERR_DOWNSTREAM_TIMEOUT` 指向某个下游服务，具体是哪个下游、是否同样为注入，需要进一步确认\n\n### 四、缺少的证据\n- 数据库侧连接数/池水位监控（本工具集无法查询）\n- 下游服务侧的同窗口指标（如需可继续查，请告知或我按服务清单逐个确认）\n- **生产环境**同服务指标——当前所有证据均来自测试环境注入，不能外推到生产\n\n### 五、建议\n- 若这是计划内故障演练，建议确认注入规则后归档；若非预期注入，应先联系测试环境负责人关闭注入再复测\n- 如需按手册深入，请在有 DB 监控权限后核对活跃连接数与 max_connections 的关系【citation:2】\n- 本次仅为诊断建议，不创建工单；如需建单请走人工审批\n\n指标证据：\norder-service；来源：Prometheus测试服务实际采集（故障为测试注入）；时间窗：2026-11-10T11:51:10.319000+00:00 至 2026-11-10T11:56:10.319000+00:00；QPS=0.01699843007809355 requests/s, P99=9.9ms, 错误率=40.0%；本次阈值判定：错误率 40.00% 超过 1% 阈值",
+      "program_checks": {
+        "answered": true,
+        "required_tools": true,
+        "forbidden_tools": true,
+        "actual_request_evidence": true,
+        "requested_window": true,
+        "aligned_window": true,
+        "sources_available": true,
+        "source_disclosed": true
+      },
+      "usage": {
+        "qwen3.8-2.4t-a95b": {
+          "calls": 2,
+          "tokens": 7712,
+          "missing_usage": 0
+        },
+        "qwen3.7-text-embedding-flash": {
+          "calls": 1,
+          "tokens": 27,
+          "missing_usage": 0
+        },
+        "qwen3.7-text-rerank": {
+          "calls": 1,
+          "tokens": 247,
+          "missing_usage": 0
+        }
+      },
+      "citations": [
+        "ERR_5003 数据库连接池耗尽处理手册"
+      ],
+      "actual_models": [
+        "qwen3.8-2.4t-a95b",
+        "qwen3.7-text-embedding-flash",
+        "qwen3.7-text-rerank"
+      ],
+      "source_sha256": {
+        "app/agent/tool_loop.py": "a5f5fa57a4ffa7cf354f64bd110fe5c0551ea379c2e649c6032a98410acb4271",
+        "app/agent/tools.py": "34df0113f588cd78a0a0e76cc2c79c381501ed8b9c1c2252de3decb062b62041",
+        "app/agent/nodes.py": "fe84da52084a688d3e2ee498b691b245465e4df011e4542643e79ff5154e4233",
+        "app/services/model_api.py": "811c33c2092d3a00cbcc1db3c99aa6ed3b275429559ed69c130c3f81593d5eca",
+        "app/services/metrics_service.py": "de8a912c4d61a1a8be7594e519e90def4b7058c38a279003120da19f4d1ed163",
+        "app/services/log_service.py": "65fc244c5348942a812d002c3516fe0c5627bed63877aaa5c5cad11c78d0b9da"
+      },
+      "passed": true,
+      "elapsed_s": 51.025
+    },
+    "dev-logs": {
+      "question": "只查order-service最近5分钟实际日志，说明发现的错误；不要查询指标、手册和历史故障。",
+      "split": "dev",
+      "family": "ERR_INJECTED",
+      "model_config": {
+        "evaluation_scope": "测试服务实际请求＋程序契约检查；未人工复核，不是根因准确率或线上收益。",
+        "generation": "qwen3.8-2.4t-a95b",
+        "embedding": "qwen3.7-text-embedding-flash",
+        "rerank": "qwen3.7-text-rerank",
+        "judges": [],
+        "revision": "4e015d9b6f36ab3cc28cfe9145ee29b8dae5a500"
+      },
+      "status": "answered",
+      "answer": "已按要求仅查询 order-service 最近 5 分钟的实际请求日志（未查指标、手册、历史故障）。\n\n**查询范围与来源**\n- 时间窗：2026-11-10 11:52:01 ~ 11:57:01 UTC，换算为北京时间 **19:52:01 ~ 19:57:01（+08:00）**\n- 来源：测试环境（test）HTTP 请求日志，数据源标注为**测试注入**故障\n- 命中 13 条，全部返回（未截断）\n\n**发现的错误（共 6 条 500，均为测试注入标记 `fault_injected=true`）**\n\n| 错误码 | 条数 | 时间（北京时间） | 说明 |\n|---|---|---|---|\n| ERR_DOWNSTREAM_TIMEOUT | 2 | 19:55:06 | 消息为\"测试注入：ERR_DOWNSTREAM_TIMEOUT\"，下游超时类模拟错误 |\n| ERR_DB_POOL_TIMEOUT | 2 | 19:56:10 | 消息为\"测试注入：ERR_DB_POOL_TIMEOUT\"，数据库连接池超时类模拟错误 |\n| ERR_INJECTED | 2 | 19:57:01 | 消息为\"测试注入：ERR_INJECTED\"，通用注入错误 |\n\n其余 7 条为 status 200 的正常完成请求（耗时均 <0.05ms），但这些记录同样带 `fault_injected=true` 标记。\n\n**结论与边界**\n- 已确认事实：窗口内存在 3 类 500 错误，各 2 条；全部记录均来自测试环境且标注为测试注入。\n- 这些错误是**测试注入/模拟来源**，不能据此认定为真实生产根因或真实下游/数据库故障。\n- 按你的要求未查询指标，因此无法给出错误率、QPS、P99 等阈值判定；如需评估影响面，可后续补查同时间窗指标。",
+      "program_checks": {
+        "answered": true,
+        "required_tools": true,
+        "forbidden_tools": true,
+        "actual_request_evidence": true,
+        "requested_window": true,
+        "aligned_window": true,
+        "sources_available": true,
+        "source_disclosed": true
+      },
+      "usage": {
+        "qwen3.8-2.4t-a95b": {
+          "calls": 2,
+          "tokens": 6099,
+          "missing_usage": 0
+        }
+      },
+      "citations": [],
+      "actual_models": [
+        "qwen3.8-2.4t-a95b"
+      ],
+      "source_sha256": {
+        "app/agent/tool_loop.py": "a5f5fa57a4ffa7cf354f64bd110fe5c0551ea379c2e649c6032a98410acb4271",
+        "app/agent/tools.py": "34df0113f588cd78a0a0e76cc2c79c381501ed8b9c1c2252de3decb062b62041",
+        "app/agent/nodes.py": "fe84da52084a688d3e2ee498b691b245465e4df011e4542643e79ff5154e4233",
+        "app/services/model_api.py": "811c33c2092d3a00cbcc1db3c99aa6ed3b275429559ed69c130c3f81593d5eca",
+        "app/services/metrics_service.py": "de8a912c4d61a1a8be7594e519e90def4b7058c38a279003120da19f4d1ed163",
+        "app/services/log_service.py": "65fc244c5348942a812d002c3516fe0c5627bed63877aaa5c5cad11c78d0b9da"
+      },
+      "passed": true,
+      "elapsed_s": 34.444
+    }
+  },
+  "judges": {},
+  "summary": {
+    "target": 3,
+    "completed": 3,
+    "program_passed": 3,
+    "status_counts": {
+      "answered": 3
+    }
+  }
+}

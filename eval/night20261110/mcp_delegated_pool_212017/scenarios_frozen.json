@@ -1,0 +1,17 @@
+{
+  "scenarios": [
+    {
+      "id": "dev-pool",
+      "split": "dev",
+      "code": "ERR_DB_POOL_TIMEOUT",
+      "window": 5,
+      "question": "order-service最近5分钟返回500，请结合当前指标、实际日志和连接池手册排查，不能直接确认生产根因。",
+      "tools": [
+        "query_service_metrics",
+        "query_logs",
+        "search_runbook"
+      ],
+      "forbid": []
+    }
+  ]
+}

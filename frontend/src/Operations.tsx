@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, App, Button, Card, Collapse, Drawer, Empty, Input, Space, Table, Tag } from 'antd';
-import { api, post } from './api';
+import { api, formatTime, post } from './api';
 import type { Approval, Remediation, Ticket } from './types';
 
 const repairStatuses: Record<string, string> = {pending: '待审批', running: '执行中', succeeded: '验证通过', failed: '执行或验证失败', rejected: '已拒绝', interrupted: '执行中断，待核对'};
@@ -42,7 +42,7 @@ export default function Operations({canApprove}: {canApprove: boolean}) {
       {title: '标题', dataIndex: 'title', render: (title, item) => <Button type="link" onClick={() => api<Ticket>(`/api/tickets/${item.id}`).then(setDetail).catch(e => message.error(e.message))}>{title}</Button>},
       {title: '级别', dataIndex: 'severity', render: value => <Tag color={value === 'P1' ? 'error' : 'warning'}>{value}</Tag>},
       {title: '状态', dataIndex: 'status', render: value => <Tag>{value}</Tag>},
-      {title: '创建时间', dataIndex: 'created_at', render: value => new Date(value).toLocaleString()},
+      {title: '创建时间', dataIndex: 'created_at', render: formatTime},
     ]} /></Card>
     <Drawer open={!!detail} title={detail?.title} size="large" onClose={() => setDetail(null)}><pre className="source-text">{detail?.description}</pre></Drawer>
   </div>;

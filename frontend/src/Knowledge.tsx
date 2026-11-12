@@ -79,7 +79,7 @@ export default function Knowledge({onSource, canWrite, personal = false, initial
         {docs.length ? docs.map(doc => <div key={doc.id}>{personal&&<Checkbox aria-label={`选择手册：${doc.title}`} checked={checked.includes(doc.id)} onChange={e=>setChecked(previous=>e.target.checked?[...previous,doc.id]:previous.filter(id=>id!==doc.id))}/>}<button className={`document-item ${selected?.id === doc.id ? 'selected' : ''}`} key={doc.id} onClick={() => {setSelected(doc);opened?.(doc.id);}}>
           <strong>{doc.title}</strong><span>{doc.source || '正文录入'}</span><small>{doc.chunk_count} 个有效片段</small>
         </button></div>) : <Empty description="上传第一份运维手册" />}
-        {personal&&<Pagination simple current={page} total={total} pageSize={10} onChange={setPage}/>}
+        {personal&&total>10&&<Pagination simple current={page} total={total} pageSize={10} onChange={setPage}/>}
       </Card>
       <Card title={selected?.title || '解析与切分预览'} extra={selected && <Space><Button disabled={!canWrite} onClick={() => openUpload(true)}>上传新版本</Button><Popconfirm title="将文档移出新检索？" description="历史引用及原文件保留。正在入库的文档需先等待完成。" onConfirm={remove} okText="确认移除" cancelText="取消"><Button danger disabled={!canWrite} loading={actionBusy}>删除文档</Button></Popconfirm></Space>}>
         {!selected ? <Empty description="选择左侧文档查看详情" /> : !versions.length ? <Alert type="info" title="此文档通过正文接口录入。上传新版本后可查看页码、切分与版本历史。" /> : <>

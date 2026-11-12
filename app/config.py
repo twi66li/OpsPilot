@@ -14,7 +14,7 @@ class Settings(BaseSettings):
 
     app_name: str = "aiops-diagnosis-agent"
     app_env: Literal["development", "demo", "production"] = "development"
-    registration_enabled: bool = True
+    registration_enabled: bool = False
     cors_origins: list[str] = []
     auth_rate_limit_per_minute: int = 30
 
@@ -101,6 +101,12 @@ class Settings(BaseSettings):
                 raise ValueError("生产环境 ADMIN_PASSWORD 必须配置至少12字符的独立密码")
             if "*" in self.cors_origins:
                 raise ValueError("生产环境 CORS_ORIGINS 必须指定明确来源")
+            if self.database_url.startswith("sqlite"):
+                raise ValueError("生产环境 DATABASE_URL 必须使用持久化数据库")
+            if self.qdrant_mode != "remote":
+                raise ValueError("生产环境 QDRANT_MODE 必须为 remote")
+            if self.llm_provider == "mock" or self.embedding_provider == "mock":
+                raise ValueError("生产环境 LLM_PROVIDER 和 EMBEDDING_PROVIDER 不能使用 mock")
         return self
 
 

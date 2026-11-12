@@ -52,7 +52,7 @@ services:
       qdrant: {condition: service_started}
       metrics-demo: {condition: service_started}
       prometheus: {condition: service_started}
-    mem_limit: 384m
+    mem_limit: 512m
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=4)"]

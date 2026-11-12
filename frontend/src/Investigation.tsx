@@ -105,7 +105,7 @@ export default function Investigation({onSource, canApprove, initialId, opened}:
     <aside className="session-panel"><div className="panel-heading"><strong>调查会话</strong><Button size="small" disabled={busy} onClick={fresh}>新建</Button></div>
       <Input.Search aria-label="搜索演练会话" placeholder="搜索历史会话" onSearch={v=>{setSearch(v);setPage(1);}} />
       <ConversationList items={sessions.map(s=>({id:s.id,title:s.title,detail:formatTime(s.created_at)}))} current={sessionId} busy={busy} open={id=>void selectSession(id)} deleted={async ids=>{if(ids.includes(sessionId))fresh();await refresh();}} />
-      <Pagination simple current={page} total={total} pageSize={10} onChange={setPage} />
+      {total>10&&<Pagination simple current={page} total={total} pageSize={10} onChange={setPage} />}
     </aside>
     <section className="chat-panel"><div className="panel-heading"><strong>故障调查</strong><Tag color={busy ? 'processing' : 'default'}>{busy ? '正在调查' : '就绪'}</Tag></div>
       <div className="chat-history">{!messages.length && <div className="chat-empty"><span className="eyebrow">连接池超时演练</span><h2>体验一次故障调查与恢复</h2><p>测试环境会模拟连接池等待超时，可能看到请求失败、延迟上升和 ERR_5003 日志。先调查证据，再申请关闭故障注入，经审批后观察请求验证结果；实际异常以工具查询为准。</p>

@@ -11,6 +11,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException
 
 from app.api import (
     router_admin,
@@ -167,22 +168,26 @@ def health():
 class WorkspaceFiles(StaticFiles):
     async def get_response(self, path, scope):
         try:
-            return await super().get_response(path, scope)
-        except Exception as exc:
-            if getattr(exc, "status_code", None) != 404 or path.split("/")[0] not in {
-                "home",
-                "websites",
-                "issues",
-                "support",
-                "knowledge",
-                "investigation",
-                "operations",
-                "evaluation",
-            }:
+            response = await super().get_response(path, scope)
+            if response.status_code != 404:
+                return response
+        except HTTPException as exc:
+            if exc.status_code != 404:
                 raise
-            response = await super().get_response("index.html", scope)
-            response.headers["Cache-Control"] = "no-store"
-            return response
+        if scope["path"].strip("/").split("/")[0] not in {
+            "home",
+            "websites",
+            "issues",
+            "support",
+            "knowledge",
+            "investigation",
+            "operations",
+            "evaluation",
+        }:
+            raise HTTPException(status_code=404)
+        response = await super().get_response("index.html", scope)
+        response.headers["Cache-Control"] = "no-store"
+        return response
 
 
 # 诊断工作台单页（同源挂载）。必须最后注册：通配 mount 会吞掉其后定义的所有路由。

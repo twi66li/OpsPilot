@@ -1,20 +1,51 @@
-import { Button, Card, Space, Steps, Tag } from 'antd';
+import { useCallback, useEffect, useState } from 'react';
+import { Alert, Button, Card, Empty, Skeleton, Tag } from 'antd';
+import { ArrowRightOutlined, GlobalOutlined, PlusOutlined } from '@ant-design/icons';
+import { api, formatTime } from './api';
+import type { PageData, PersonalCase, Site } from './types';
+import { caseStates } from './supportTypes';
 
-export default function Home({navigate}: {navigate: (page: 'websites' | 'issues' | 'support' | 'knowledge' | 'investigation') => void}) {
+type Todo = {id:string;title:string;state:string;url:string};
+const statusColor = (status:string) => status === 'user_resolved' ? 'success' : status === 'awaiting_results' ? 'processing' : 'warning';
+
+export default function Home({navigate,canWrite}: {navigate:(path:string)=>void;canWrite:boolean}) {
+  const [cases,setCases]=useState<PageData<PersonalCase>|null>(null),[sites,setSites]=useState<PageData<Site>|null>(null);
+  const [todos,setTodos]=useState<Todo[]>([]),[approvals,setApprovals]=useState(0),[loading,setLoading]=useState(true),[error,setError]=useState('');
+  const refresh=useCallback(async()=>{
+    setLoading(true);setError('');
+    try{
+      const [caseData,siteData,todoData,approvalData]=await Promise.all([
+        api<PageData<PersonalCase>>('/api/workspace/cases?case_kind=problem&archived=false&page=1&page_size=6'),
+        api<PageData<Site>>('/api/workspace/sites?page=1&page_size=6'),
+        api<{items:Todo[]}>('/api/maintenance/todos'),
+        canWrite?api<PageData<Record<string,unknown>>>('/api/workspace/approvals?status=pending&page=1&page_size=1'):Promise.resolve(null),
+      ]);
+      setCases(caseData);setSites(siteData);setTodos(todoData.items);setApprovals(approvalData?.total||0);
+    }catch(e){setError((e as Error).message);}finally{setLoading(false);}
+  },[canWrite]);
+  useEffect(()=>{void refresh();},[refresh]);
+  const activeTodos=todos.filter(item=>item.state!=='最近已完成');
+  const firstUse=!loading&&!cases?.total&&!sites?.total;
   return <div className="page-stack home-page">
-    <section className="home-intro"><span className="eyebrow">OPSPILOT / 网站维护助手</span>
-      <h1>网站怎么维护，<br />问题如何处理，都有记录。</h1>
-      <p>集中查看网站环境、维护手册和历史问题。需要帮助时，向助手咨询，或提交日志逐步排查。<br />无需接入监控，网站背景和手册也可以稍后补充。</p>
-      <Space wrap><Button type="primary" size="large" onClick={() => navigate('websites')}>管理我的网站</Button><Button size="large" onClick={() => navigate('support')}>直接问维护助手</Button></Space>
+    <div className="page-title"><div><h2>维护工作台</h2><p>先处理需要你确认的事，再继续上次排查。</p></div><Button type="primary" icon={<PlusOutlined />} onClick={()=>navigate('/support')}>发起维护咨询</Button></div>
+    {error&&<Alert type="error" title="工作台数据加载失败" description={error} action={<Button onClick={()=>void refresh()}>重新加载</Button>}/>}
+    <section className="home-stats" aria-label="维护工作概览">
+      <button type="button" className="stat-card" onClick={()=>navigate('/websites')}><span className="stat-icon"><GlobalOutlined /></span><span><small>已记录网站</small><strong>{sites?.total??'—'}</strong><em>查看环境与最近检查</em></span></button>
+      <button type="button" className="stat-card" onClick={()=>navigate('/issues')}><span><small>未归档问题</small><strong>{cases?.total??'—'}</strong><em>继续排查或确认结果</em></span></button>
+      <button type="button" className="stat-card" onClick={()=>document.getElementById('home-todos')?.scrollIntoView({behavior:'smooth'})}><span><small>当前待办</small><strong>{activeTodos.length}</strong><em>证据、结果与入库任务</em></span></button>
+      {canWrite&&<button type="button" className="stat-card" onClick={()=>navigate('/operations')}><span><small>待审批</small><strong>{approvals}</strong><em>只涉及独立演练环境</em></span></button>}
     </section>
-    <div className="home-cards">
-      <Card title="网站遇到问题"><Tag>问题中心</Tag><p>记录异常、影响与近期变更，查看检查进度和处理结果。排查中的问题可随时继续，解决和归档分别管理。</p><Button onClick={() => navigate('issues')}>查看与处理问题</Button></Card>
-      <Card title="想了解网站怎么维护"><Tag>资料与咨询</Tag><p>内置 Python、Docker、Nginx、PostgreSQL 排障资料。选填网站背景或上传自己的部署手册，让回答更贴合环境。</p><Button onClick={() => navigate('knowledge')}>查看资料库</Button></Card>
-      <Card title="先体验一次故障处理"><Tag color="gold">独立测试环境</Tag><p>了解连接池超时会产生哪些异常，再体验证据调查、人工审批和恢复请求验证。演练不会操作你的网站。</p><Button onClick={() => navigate('investigation')}>了解并进入演练</Button></Card>
-    </div>
-    <Card title="第一次使用，按这三步就可以">
-      <Steps items={[{title: '选择网站或直接提问', content: '记录环境与资料，也可以先做基础咨询。'}, {title: '咨询或逐步排查', content: '知识问答直接解释；故障问题记录证据、方案和逐项检查结果。'}, {title: '确认实际结果', content: '程序核对提交样本，用户确认问题结局，再决定是否归档。'}]} />
-      <p className="muted">支持先从 Python 网站的数据库连接失败、连接池超时、反向代理 502 / 504、容器异常开始。助手提供指导，个人网站的操作由你执行。</p>
-    </Card>
+    {firstUse?<Card className="onboarding-panel"><div><span className="eyebrow">第一次使用</span><h3>从一次真实问题开始</h3><p>可以先记录网站环境，也可以直接描述异常。助手只提供指导，网站上的操作始终由你执行。</p><div className="onboarding-actions"><Button type="primary" onClick={()=>navigate('/support')}>直接描述问题</Button><Button onClick={()=>navigate('/websites')}>先添加网站</Button></div></div><ol className="getting-started"><li><span>1</span><div><strong>描述现象</strong><p>填写异常、影响和近期变更。</p></div></li><li><span>2</span><div><strong>提交证据</strong><p>上传脱敏日志，按建议逐项检查。</p></div></li><li><span>3</span><div><strong>确认结果</strong><p>核对提交样本，再记录实际结局。</p></div></li></ol></Card>:
+    <div className="home-dashboard">
+      <Card title="最近问题" extra={<Button type="link" onClick={()=>navigate('/issues')}>全部问题<ArrowRightOutlined /></Button>} className="workbench-panel">
+        {loading&&!cases?<Skeleton active paragraph={{rows:5}}/>:!cases?.items.length?<Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="还没有未归档问题"><Button type="primary" onClick={()=>navigate('/support?workflow=diagnose')}>开始第一次排查</Button></Empty>:
+        <div className="work-list">{cases.items.map(item=><button className="work-item" key={item.id} onClick={()=>navigate('/issues/'+item.id)}><span className="work-item-main"><span className="work-item-title">{item.title||'未命名问题'}</span><small>{item.site_name||'未关联网站'} · 更新于 {formatTime(item.updated_at||item.created_at)}</small></span><span className="work-item-meta"><Tag color={statusColor(item.status)}>{caseStates[item.status]||item.status}</Tag><ArrowRightOutlined /></span></button>)}</div>}
+      </Card>
+      <Card id="home-todos" title="需要跟进" extra={<Tag>{activeTodos.length} 项</Tag>} className="workbench-panel">
+        {!activeTodos.length?<Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无待办，可以继续维护网站或咨询助手"/>:
+        <div className="work-list">{activeTodos.slice(0,6).map(item=><button className="work-item" key={item.id} onClick={()=>navigate(item.url)}><span className="work-item-main"><span className="work-item-title">{item.title}</span><small>{item.state}</small></span><ArrowRightOutlined /></button>)}</div>}
+      </Card>
+    </div>}
+    <section className="home-shortcuts" aria-label="常用功能"><button onClick={()=>navigate('/websites')}><strong>网站与检查</strong><span>维护环境，执行只读 HTTP 检查</span><ArrowRightOutlined /></button><button onClick={()=>navigate('/knowledge')}><strong>维护资料库</strong><span>管理手册，验证检索结果</span><ArrowRightOutlined /></button><button onClick={()=>navigate('/investigation')}><strong>独立故障演练</strong><span>体验调查、审批和恢复验证</span><ArrowRightOutlined /></button></section>
   </div>;
 }

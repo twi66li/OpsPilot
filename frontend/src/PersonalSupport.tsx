@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, App, Button, Card, Checkbox, Collapse, Empty, Input, Modal, Pagination, Select, Space, Steps, Tag } from 'antd';
+import { Alert, App, Button, Card, Checkbox, Collapse, Drawer, Empty, Input, Modal, Pagination, Select, Space, Steps, Tag } from 'antd';
 import { api, formatTime, post, streamChat } from './api';
 import type { AgentEvent, ChatMessage, Hit, PageData, PersonalCase, Site, SupportEntry, Workflow } from './types';
 import { caseStates as states, workflowNames, workflows } from './supportTypes';
@@ -20,7 +20,7 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
   const [events, setEvents] = useState<AgentEvent[]>([]), [hits, setHits] = useState<Hit[]>([]);
   const [siteOpen, setSiteOpen] = useState(false), [editingSite, setEditingSite] = useState<string | undefined>();
   const [workflow, setWorkflow] = useState<Workflow>('auto'), [evidenceEndpoint, setEvidenceEndpoint] = useState(''), [evidenceStep, setEvidenceStep] = useState<number | undefined>();
-  const [evidenceOpen, setEvidenceOpen] = useState(false), [evidenceText, setEvidenceText] = useState(''), [evidenceLabel, setEvidenceLabel] = useState('应用错误日志');
+  const [evidenceOpen, setEvidenceOpen] = useState(false), [evidencePanelOpen, setEvidencePanelOpen] = useState(false), [evidenceText, setEvidenceText] = useState(''), [evidenceLabel, setEvidenceLabel] = useState('应用错误日志');
   const [evidenceKind, setEvidenceKind] = useState<'initial' | 'check_result'>('initial'), [collectedAt, setCollectedAt] = useState(''), [previewed, setPreviewed] = useState(false);
   const [actionBusy, setActionBusy] = useState(false), [saveOpen, setSaveOpen] = useState(false), [solution, setSolution] = useState(''), [confirmed, setConfirmed] = useState(false);
   const controller = useRef<AbortController | null>(null);
@@ -39,13 +39,13 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
   useEffect(()=>{if(!cancelling&&!waitingRun)return;const timer=setInterval(()=>{if(run.current)api<{status:string}>(`/api/agent/runs/${run.current}`).then(r=>{if(!['running','cancel_requested'].includes(r.status)){setCancelling(false);setWaitingRun(false);setPhase(['completed','answered'].includes(r.status)?'分析已完成':'运行已结束，已有证据保留');if(current)void load(current.id);}}).catch(()=>{});},1500);return()=>clearInterval(timer);},[cancelling,waitingRun,current?.id]);
   async function stop() {if(!run.current)return;setCancelling(true);setPhase('正在停止，请等待当前请求收尾');try{await post(`/api/agent/runs/${run.current}/cancel`);controller.current?.abort();}catch(e){setCancelling(false);message.error((e as Error).message);}}
   async function load(id: string) {
-    setBusy(true);setCurrent(null);setMessages([]);setHits([]);setLoadError(''); setEvents([]); setWorkflow('auto'); setQuestion('');
+    setBusy(true);setCurrent(null);setMessages([]);setHits([]);setLoadError(''); setEvents([]); setWorkflow('auto'); setQuestion('');setDraft('');setPhase('');liveWorkflow.current='auto';
     try {
       const [record, history] = await Promise.all([api<PersonalCase>(`/api/support/cases/${id}`), api<{messages: ChatMessage[]}>(`/api/sessions/${id}`)]);
       setCurrent(record); opened?.(record.id); setSiteId(record.site_id); setMessages(history.messages); setHits(record.report_hits || []);
     } catch (error) {setLoadError((error as Error).message);message.error((error as Error).message);} finally {setBusy(false);}
   }
-  function fresh() {setLoadError('');setCurrent(null); setMessages([]); setHits([]); setEvents([]); setQuestion(''); setWorkflow('auto');}
+  function fresh() {setLoadError('');setCurrent(null); setMessages([]); setHits([]); setEvents([]); setQuestion(''); setWorkflow('auto');setDraft('');setPhase('');liveWorkflow.current='auto';}
   async function ensureCase() {
     if (current) return current;
     const kind = workflow === 'history' ? 'history' : workflow === 'diagnose' || workflow === 'review' || /报错|异常|错误|超时|502|504|反复退出/.test(question) ? 'problem' : 'consult';
@@ -54,7 +54,7 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
   }
   async function send() {
     const text = question.trim(); if (!text || busy || cancelling || waitingRun || loadError) return;
-    setBusy(true); setFailed(false); setLastQuestion(text); setStartedAt(new Date().toLocaleTimeString());setPhase('正在开始本次分析');setDraft('');rawDraft.current='';run.current='';setUpdated(new Date().toLocaleTimeString());setEvents([]); controller.current = new AbortController();
+    setBusy(true); setFailed(false); setLastQuestion(text); setStartedAt(new Date().toLocaleTimeString());setPhase('正在开始本次分析');setDraft('');rawDraft.current='';liveWorkflow.current=workflow;run.current='';setUpdated(new Date().toLocaleTimeString());setEvents([]); controller.current = new AbortController();
     try {
       const record = await ensureCase(); setQuestion('');
       const signature=JSON.stringify([record.id,text,workflow,(record.evidence || []).map(e=>e.id)]);
@@ -133,27 +133,22 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
   const readOnly = !!current?.archived || current?.status === 'user_resolved';
   const examples = workflow === 'consult' ? ['Docker怎么查看日志？', '数据库连接池有什么作用？', '怎么理解Nginx的502和504？'] : workflow === 'history' ? ['这个网站上次遇到类似异常时怎么处理的？'] : ['网站返回502，但我还没有日志。应该先收集什么信息？', '日志出现QueuePool连接等待超时，这说明什么，下一步怎么检查？', 'Docker里的Python应用反复退出，该怎么看日志？'];
   return <div className="page-stack">
-    <div className="page-title"><div><h2>智能维护助手</h2><p>咨询知识、排查异常、核对结果或查询历史。网站背景和手册均可选。</p></div><Space><Button onClick={onIssues}>管理问题记录</Button><Button disabled={busy || actionBusy} onClick={()=>{fresh();opened?.('');}}>新对话</Button></Space></div>
+    <div className="page-title"><div><h2>智能维护助手</h2><p>描述问题、补充证据，再逐项核对建议。</p></div><Space wrap><Button onClick={onIssues}>问题记录</Button><Button type="primary" disabled={busy || actionBusy} onClick={()=>{fresh();opened?.('');}}>新对话</Button></Space></div>
     {loadError&&<Alert type="error" title="无法打开这条维护记录" description={loadError}/>}
     {readOnly && <Alert type="info" title={current?.archived ? '当前记录已归档，原问题状态保留。' : '这个问题已由你确认解决。'} description="可以查看历史和证据；需要继续排查时，请在问题中心重新打开。" action={<Button onClick={onIssues}>前往问题中心</Button>} />}
-    <div className="support-grid"><aside className="page-stack">
-      <Card size="small" title="网站背景（选填）"><Select aria-label="选择网站" style={{width: '100%'}} allowClear disabled={!!current || busy} placeholder="暂不填写也能提问" value={siteId} onChange={setSiteId} options={sites.map(s => ({value: s.id, label: s.name}))} />
-        <Space className="section-gap" wrap><Button size="small" disabled={!!current || busy} onClick={() => editSite(false)}>添加网站</Button><Button size="small" disabled={!siteId || !!current || busy} onClick={() => editSite(true)}>修改背景</Button></Space>
-        {current && <p className="muted">本会话保留创建时的网站背景。修改背景后请开始新问题，历史依据不会随之改变。</p>}
-        {current?.profile?.name && <p>{current.profile.name}<br /><small>{[current.profile.framework, current.profile.deployment, current.profile.database, current.profile.versions].filter(Boolean).join(' · ') || '技术环境尚未填写'}</small></p>}
-        <Button type="link" onClick={onKnowledge}>可选：上传网站手册</Button>
-      </Card>
-      <Card size="small" title="维护对话与问题">{!cases.length && <p className="muted">首次提问后自动保存，之后可以继续补充结果。</p>}
+    <div className="support-grid"><aside className="support-sidebar">
+      <Card size="small" title="最近维护记录" extra={<span className="muted">{caseTotal} 条</span>}>{!cases.length && <p className="muted">首次提问后自动保存，之后可以继续补充结果。</p>}
         <div className="support-case-list"><ConversationList items={cases.map(c=>({id:c.id,title:c.title || '维护对话',detail:`${c.kind === 'problem' ? states[c.status] || c.status : c.kind === 'history' ? '历史查询' : '知识咨询'}${c.archived ? ' · 已归档' : ''} · ${formatTime(c.created_at)}`}))} current={current?.id} busy={busy || actionBusy} open={id=>void load(id)} deleted={async ids=>{if(current && ids.includes(current.id)){fresh();setSiteId(undefined);}await refresh();}} /></div>
-        <Pagination simple current={casePage} total={caseTotal} pageSize={10} onChange={setCasePage} />
+        {caseTotal>10&&<Pagination simple current={casePage} total={caseTotal} pageSize={10} onChange={setCasePage} />}
       </Card>
     </aside><main className="page-stack support-main">
-      <Card title={<Space>{current?.kind === 'problem' ? '当前问题' : '维护咨询'}<Tag>{workflowNames[report?.workflow || workflow] || '维护助手'}</Tag></Space>}>
-        {!messages.length && <><p>例如：网站返回 502、接口一直超时，或 Python 日志出现数据库连接错误。说清楚异常和发生时间；不知道技术细节可以留空。</p>
-          <Space wrap className="quick-examples"><CollectionGuide useResult={()=>openEvidence('initial')}/>{examples.map(text => <Button key={text} size="small" disabled={busy} onClick={() => setQuestion(text)}>{text}</Button>)}</Space></>}
+      <div className="support-context"><div><small>网站背景（选填）</small><Select aria-label="选择网站" allowClear disabled={!!current || busy} placeholder="暂不填写也能提问" value={siteId} onChange={setSiteId} options={sites.map(s => ({value: s.id, label: s.name}))} /></div><Space wrap><Button size="small" disabled={!!current || busy} onClick={() => editSite(false)}>添加网站</Button><Button size="small" disabled={!siteId || !!current || busy} onClick={() => editSite(true)}>修改背景</Button><Button size="small" type="link" onClick={onKnowledge}>维护手册</Button></Space></div>
+      {current?.profile?.name&&<div className="context-note"><strong>{current.profile.name}</strong><span>{[current.profile.framework,current.profile.deployment,current.profile.database,current.profile.versions].filter(Boolean).join(' · ')||'技术环境尚未填写'}</span></div>}
+      <Card className="assistant-card" title={<Space>{current?.kind === 'problem' ? '当前问题' : '维护咨询'}<Tag>{workflowNames[report?.workflow || workflow] || '维护助手'}</Tag></Space>} extra={<Button onClick={()=>setEvidencePanelOpen(true)}>证据与资料 · {(current?.evidence?.length||0)+hits.length}</Button>}>
+        {!messages.length && <div className="assistant-empty"><h3>网站遇到了什么问题？</h3><p>描述异常、发生时间和影响即可；没有日志也可以先咨询。</p><Space wrap className="quick-examples"><CollectionGuide useResult={()=>openEvidence('initial')}/>{examples.map(text => <Button key={text} size="small" disabled={busy} onClick={() => setQuestion(text)}>{text}</Button>)}</Space></div>}
         {!!messages.length && <Collapse className="section-bottom" items={[{key: 'history', label: `完整对话 · ${messages.length} 条`, children: <div className="support-history">{messages.map((m, i) => <article className={`chat-message ${m.role}`} key={i}><div className="message-label">{m.role === 'user' ? '你' : 'OpsPilot'}</div><div className="message-body">{m.content}</div></article>)}</div>}]} />}
         <Select className="section-gap" aria-label="维护任务类型" disabled={busy || readOnly} value={workflow} onChange={setWorkflow} options={workflows} style={{width:200}} />
-        <Input.TextArea className="section-gap" aria-label="网站排障问题" disabled={readOnly} placeholder="可以问维护知识，也可以描述异常。日志建议先通过下面的入口脱敏后提交。" value={question} maxLength={6000} rows={3} onChange={e => setQuestion(e.target.value)} onKeyDown={e => {if (e.ctrlKey && e.key === 'Enter') void send();}} />
+        <Input.TextArea className="section-gap" aria-label="网站排障问题" disabled={readOnly} placeholder="可以问维护知识，也可以描述异常。日志建议先通过下面的入口脱敏后提交。" value={question} maxLength={6000} rows={4} onChange={e => setQuestion(e.target.value)} onKeyDown={e => {if (e.ctrlKey && e.key === 'Enter') void send();}} />
         <div className="composer-footer"><Space wrap><Button disabled={busy || actionBusy || readOnly} onClick={() => openEvidence('initial')}>添加日志 / 补充证据</Button><Button disabled={busy || actionBusy || readOnly || !planConfirmed} onClick={() => openEvidence('check_result')}>提交操作后结果</Button></Space>
           <Space>{(busy||waitingRun)&&<Button danger disabled={!run.current || cancelling} onClick={stop}>停止生成</Button>}<Button type="primary" loading={busy} disabled={!question.trim() || actionBusy || readOnly || cancelling || waitingRun} onClick={send}>发送给助手</Button></Space></div>
         {phase && <Alert className="section-gap" type={failed?'warning':'info'} title={phase} description={`开始于 ${startedAt} · 最后更新 ${updated}${cancelling?'；当前请求可能仍产生模型用量':''}`} />}
@@ -182,13 +177,14 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
         </Card>
       </>}
       {!report && messages.length > 0 && !busy && <Alert type="info" title="未获得有效的新报告，可补充准确报错后重试；已有记录不会自动表示问题已解决。" />}
-    </main><aside className="page-stack">
+    </main></div>
+    <Drawer title="本次证据与资料" width={430} open={evidencePanelOpen} onClose={()=>setEvidencePanelOpen(false)}><div className="page-stack">
       <Card size="small" title={`本次证据 · ${current?.evidence?.length || 0}`}>{!current?.evidence?.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="可以先咨询；排查具体故障时再提交日志" />}
         <Collapse items={(current?.evidence || []).map(e => ({key: e.id, label: <>{e.label}<small> · {e.kind === 'check_result' ? '操作后结果' : '初始/补充证据'}</small></>, children: <><small>{e.id} · {e.collected_at || '未填写采集时间'}</small><pre>{e.text.split('\n').map((line, i) => `L${i + 1}: ${line}`).join('\n')}</pre></>}))} />
       </Card>
-      <Card size="small" title={`资料依据 · ${hits.length}`}>{!hits.length && <p className="muted">检索后显示官方出处或你选中的网站手册。手册不是本次故障的实时证据。</p>}{hits.map(h => <button key={h.chunk_id} className="evidence-card" onClick={() => onSource(h)}><strong>[{h.citation_id}] {h.doc_title}</strong><Tag>{report?.references.includes(h.citation_id || 0)?'本次回答引用':'检索候选'}</Tag><small>{h.source_kind === 'official' ? `官方资料整理 · ${h.checked_at}` : `网站手册 · ${h.version ? `v${h.version}` : '正文'}`}</small><span>查看适用版本与原文 →</span></button>)}</Card>
+      <Card size="small" title={`资料依据 · ${hits.length}`}><p className="muted">手册是参考依据，不是本次故障的实时证据。</p>{!hits.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="检索后在这里查看出处"/>}{hits.map(h => <button key={h.chunk_id} className="evidence-card" onClick={() => onSource(h)}><strong>[{h.citation_id}] {h.doc_title}</strong><Tag>{report?.references.includes(h.citation_id || 0)?'本次回答引用':'检索候选'}</Tag><small>{h.source_kind === 'official' ? `官方资料整理 · ${h.checked_at}` : `网站手册 · ${h.version ? `v${h.version}` : '正文'}`}</small><span>查看适用版本与原文 →</span></button>)}</Card>
       {!!current?.reports?.length && <Card size="small" title="历次判断与资料版本"><Collapse items={current.reports.map(r => ({key: String(r.revision), label: `第 ${r.revision} 次分析`, children: <><p>{r.report.summary}</p><small>{verdicts[r.report.verification.verdict]}</small>{r.hits.map(h => <Button type="link" style={{whiteSpace: 'normal', height: 'auto'}} key={h.chunk_id} onClick={() => onSource(h)}>[{h.citation_id}] {h.doc_title}{h.version ? ` v${h.version}` : ''}</Button>)}</>}))} /></Card>}
-    </aside></div>
+    </div></Drawer>
     <SiteEditor open={siteOpen} site={sites.find(s => s.id === editingSite)} close={() => setSiteOpen(false)} saved={s => {setSiteId(s.id); setSiteOpen(false); refresh().catch(e => message.error(e.message));}} />
     <Modal open={evidenceOpen} title={evidenceKind === 'check_result' ? '提交操作后的新结果' : '添加日志或检查证据'} onCancel={() => setEvidenceOpen(false)} footer={<Space><Button onClick={() => setEvidenceOpen(false)}>取消</Button><Button loading={actionBusy} disabled={!evidenceText.trim()} onClick={preview}>脱敏预览</Button><Button type="primary" disabled={!previewed || !evidenceText.trim() || !evidenceLabel.trim()} loading={actionBusy} onClick={submitEvidence}>确认提交这份证据</Button></Space>}><label className="form-field">上传日志片段（TXT / LOG / JSON，UTF-8，最多64KB / 12000字符）<input aria-label="上传日志片段" type="file" accept=".txt,.log,.json" onChange={async e=>{const f=e.target.files?.[0];if(!f)return;setActionBusy(true);try{const body=new FormData();body.append('file',f);const r=await api<{text:string;filename:string}>('/api/maintenance/evidence/file-preview',{method:'POST',body});setEvidenceText(r.text);setEvidenceLabel(r.filename.slice(0,100));setPreviewed(true);}catch(error){message.error((error as Error).message);}finally{setActionBusy(false);}}}/></label>
       <Alert type="info" title="日志只作为本次会话证据，不会自动写进长期知识库。" description="先遮蔽常见密码、令牌、连接串密码和邮箱；仍需人工检查IP和其他个人信息。只有确认提交后的文本才会发送给模型。" />
@@ -196,7 +192,6 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
       <div className="form-field"><label htmlFor="evidence-time">采集时间 / 时区 / 请求范围（可选）</label><Input id="evidence-time" value={collectedAt} maxLength={80} onChange={e => setCollectedAt(e.target.value)} placeholder="例如 2026-11-11 21:00 北京时间，重试了3次下单请求" /></div>
       <div className="form-field"><label htmlFor="evidence-endpoint">对应接口（只有HTTP状态行时请填写）</label><Input id="evidence-endpoint" value={evidenceEndpoint} maxLength={200} onChange={e => setEvidenceEndpoint(e.target.value)} placeholder="/orders；日志中保留带时区时间戳，如2026-11-12T10:00:00+08:00" /></div>
       {evidenceStep !== undefined && <Tag>关联已确认方案的检查 {evidenceStep + 1}</Tag>}
-      <input aria-label="选择日志文件" type="file" accept=".txt,.log" onChange={async e => {const file = e.target.files?.[0]; if (!file) return; if (file.size > 48000) {message.warning('请截取相关日志，文本不超过12000字符'); return;} const text = await file.text(); if (text.length > 12000) {message.warning('日志不超过12000字符'); return;} setEvidenceText(text); setPreviewed(false);}} />
       <Input.TextArea className="section-gap" aria-label="证据文本" value={evidenceText} maxLength={12000} rows={10} onChange={e => {setEvidenceText(e.target.value); setPreviewed(false);}} placeholder="粘贴相关日志、报错、脱敏配置片段，或操作后重新请求的结果…" />
       {previewed && <Alert className="section-gap" type="warning" title="上面已替换为脱敏预览。请核对无误后确认提交；编辑后需要重新预览。" />}
     </Modal>

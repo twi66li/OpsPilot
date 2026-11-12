@@ -14,10 +14,10 @@ test('普通用户注册、问题深链接和日志预览',async({page})=>{
   await page.getByRole('button',{name:'注册并进入工作台'}).click();
   await expect(page.getByText('普通用户',{exact:true})).toBeVisible();
   await page.getByRole('menuitem',{name:'问题中心'}).click();
-  await page.getByRole('button',{name:'新建排障问题'}).click();
+  await page.getByRole('button',{name:'新建问题'}).click();
   await page.getByLabel('问题标题').fill('浏览器验收样例');
   await page.getByRole('button',{name:/确\s*定/}).click();
-  await page.getByRole('button',{name:'查看 / 继续'}).first().click();
+  await page.getByRole('button',{name:'继续处理'}).first().click();
   await expect(page).toHaveURL(/\/issues\/[a-f0-9]+/);
   await page.reload();
   await page.getByRole('button',{name:'添加日志 / 补充证据'}).click();

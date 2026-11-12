@@ -68,6 +68,7 @@ jobs:
       MODEL_STRICT: 'false'
       AGENT_MODE: rule
       AUTH_RATE_LIMIT_PER_MINUTE: '1000'
+      REGISTRATION_ENABLED: 'true'
       JWT_SECRET: integration-only-random-value-for-jwt-at-least32
       OPSPILOT_E2E_ISOLATED: '1'
     steps:

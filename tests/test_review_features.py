@@ -74,3 +74,10 @@ def test_personal_document_delete_excludes_search_but_retains_source(client, adm
     with SessionLocal() as db:
         retained = db.get(Document, doc_id)
         assert retained.deleted_at and "会话关闭" in retained.content
+
+
+def test_frontend_deep_links_fall_back_without_hiding_api_404(client):
+    page = client.get("/operations/test-approval-id")
+    assert page.status_code == 200 and "text/html" in page.headers["content-type"]
+    assert '<div id="root"></div>' in page.text
+    assert client.get("/api/not-a-route").status_code == 404

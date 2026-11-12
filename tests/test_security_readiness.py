@@ -14,9 +14,49 @@ def test_production_rejects_defaults():
     with pytest.raises(ValidationError):
         Settings(_env_file=None, app_env="production")
     settings = Settings(
-        _env_file=None, app_env="production", jwt_secret="x" * 40, admin_password="long-unique-password"
+        _env_file=None,
+        app_env="production",
+        jwt_secret="x" * 40,
+        admin_password="long-unique-password",
+        database_url="postgresql+psycopg://opspilot:password@postgres:5432/opspilot",
+        qdrant_mode="remote",
+        llm_provider="openai",
+        embedding_provider="openai",
+        registration_enabled=False,
     )
     assert settings.cors_origins == []
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("database_url", "sqlite:///./data/app.db"),
+        ("qdrant_mode", "memory"),
+        ("llm_provider", "mock"),
+        ("embedding_provider", "mock"),
+    ],
+)
+def test_production_rejects_temporary_dependencies(field, value):
+    overrides = {
+        "database_url": "postgresql+psycopg://opspilot:password@postgres:5432/opspilot",
+        "qdrant_mode": "remote",
+        "llm_provider": "openai",
+        "embedding_provider": "openai",
+        field: value,
+    }
+    with pytest.raises(ValidationError):
+        Settings(
+            _env_file=None,
+            app_env="production",
+            jwt_secret="x" * 40,
+            admin_password="long-unique-password",
+            **overrides,
+        )
+
+
+def test_registration_is_opt_in(monkeypatch):
+    monkeypatch.delenv("REGISTRATION_ENABLED", raising=False)
+    assert Settings(_env_file=None).registration_enabled is False
 
 
 def test_revocation_password_change_and_registration_switch(client, monkeypatch):

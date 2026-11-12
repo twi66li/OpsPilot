@@ -60,7 +60,7 @@ docker compose -f compose.demo.yml up -d
 
 `/live`检查进程，`/ready`检查数据库、向量库、缓存和入库线程；镜像及云端Compose使用readiness。真实基础设施检查：`docker compose -f compose.local.yml exec -T api python -m integration.check_stack`，不调用模型供应商，只创建并清理本次随机测试资源。CI另设独立PostgreSQL/Qdrant/Redis与三条浏览器流程；浏览器流程要求`OPSPILOT_E2E_ISOLATED=1`，禁止直接针对生产运行。
 
-本轮代码已在本机升级；云端仍须另行同步镜像、配置及目录权限。PDF报告、生产Prometheus连接器、组织成员邀请/共享和从页面启动新评测继续后置。
+阿里云已部署业务工作台，包含API与React前端、PostgreSQL、Qdrant、Redis、演练服务和Prometheus；MySQL服务及客户端已卸载，原数据与备份保留。本轮新增的界面与生产校验已在本机检查，暂未替换云端版本。PDF报告、生产Prometheus连接器、组织成员邀请/共享和从页面启动新评测继续后置。
 
 ## 第一次使用
 
@@ -78,11 +78,11 @@ docker compose -f compose.demo.yml up -d
 
 `app/knowledge/scenarios.json` 保存三类场景素材，相关内容会一起进入已有官方来源索引。`uv run python -m scripts.workspace_acceptance` 使用已配置的真实模型，按网站登记、咨询、排查、程序核对、状态管理和历史查询验收一次；它提交的是明确标记的样例，不是生产恢复评测。个人验收脚本默认注册独立私人账号；演练验收使用专用工程师账号，均不再写入管理员的会话或网站。需要继续已有验收时，显式设置原账号的 `ACCEPTANCE_USERNAME` / `ACCEPTANCE_PASSWORD`。
 
-2026-11-12，维护业务流程已在本机完成一次真实模型验收，四类任务合计38.11秒，咨询分离、网站与问题关联、检查标记不代表恢复、程序样本比较、解决与归档分离和同网站历史复用六项检查通过。记录为 `eval/night20261112/maintenance_workspace/results.json`；25项相关离线检查与前端生产构建通过。当前云端仍为此前演练版本。
+2026-11-12，维护业务流程已在本机完成一次真实模型验收，四类任务合计38.11秒，咨询分离、网站与问题关联、检查标记不代表恢复、程序样本比较、解决与归档分离和同网站历史复用六项检查通过。记录为 `eval/night20261112/maintenance_workspace/results.json`；25项相关离线检查与前端生产构建通过。该业务版本随后已同步云端；此后的界面更新另行验证。
 
 个人排障入口为 `/api/support`。内置指南在 `app/knowledge/official.json`；运行 `uv run python -m scripts.collect_official_sources` 可采集固定官方页面的核对快照到被 Git 忽略的 `data/official_sources`。下载成功不会自动发布新知识，需核对内容和适用版本后更新整理语料。复杂扫描 PDF 继续沿用本机 MinerU 解析产物导入流程。
 
-2026-11-12，本机真实模型样例闭环已通过，两轮分析合计37.25秒，核对结果明确限定为提交样本。成功记录和遇到的问题见 `eval/night20261112/personal_support/results.json`。个人资料检索需串行调用Embedding和Rerank，等待上限至少30秒。供应商 `insufficient_quota` 可触发已授权的候选轮换，普通鉴权错误不会轮换；模型总预算仍然生效。该新版目前在本机运行，下面的云端部署记录对应此前的演练版本。
+2026-11-12，本机真实模型样例闭环已通过，两轮分析合计37.25秒，核对结果明确限定为提交样本。成功记录和遇到的问题见 `eval/night20261112/personal_support/results.json`。个人资料检索需串行调用Embedding和Rerank，等待上限至少30秒。供应商 `insufficient_quota` 可触发已授权的候选轮换，普通鉴权错误不会轮换；模型总预算仍然生效。下方2026-11-11的云端记录属于较早演练版本；2026-11-12已更新为业务工作台。
 
 ## 本机运行
 
@@ -169,6 +169,8 @@ ssh -N -L 18000:127.0.0.1:18000 your-server
 
 随后打开 `http://127.0.0.1:18000`。配置独立管理员密码、JWT密钥和数据库密码；原文件及预算账本放持久卷。演示按单API worker运行，预算账本是单实例限制，不能当作跨主机共享额度。云端默认关闭检索子Agent以减少耗时，用开关保留对照能力。公网域名与TLS入口可在需要分享演示时另行配置。
 
-云端也已通过一次真实闭环：54.25秒完成调查，指标和日志工具返回ok，审批后测试请求从500恢复为200。该次调查调用8,059 tokens。验收后六容器内存快照约431.6MiB，不含宿主系统和Docker，也不是总峰值或并发能力。成功记录和首次8秒工具超时记录均保留在 `eval/night20261111`；演示配置的工具上限现为30秒，并通过健康检查等待API就绪。
+2026-11-11，云端通过一次真实闭环：54.25秒完成调查，指标和日志工具返回ok，审批后测试请求从500恢复为200。该次调查调用8,059 tokens。验收后六容器内存快照约431.6MiB，不含宿主系统和Docker，也不是总峰值或并发能力。成功记录和首次8秒工具超时记录均保留在 `eval/night20261111`；演示配置的工具上限现为30秒，并通过健康检查等待API就绪。
+
+2026-11-12，云端更新为应用镜像`opspilot:5a4f207`，数据库迁移至0003；API使用非root用户，内存上限512MiB，保持单worker与串行调查。独立账号已验证私人PDF入库、唯一手册标记检索与流式引用、日志脱敏和退出撤销；主Agent通过真实MCP协议查询演练日志和Prometheus指标。六容器验收后合计约483MiB，整机可用内存约657MiB；这是轻载快照。记录保存在云端`/opt/opspilot/data/cloud-deploy-smoke-5a4f207.json`和`cloud-native-mcp-5a4f207.json`，并非独立准确率或压力测试。本轮界面、页面懒加载和生产校验更新已在本机完成14项相关检查、Docker生产构建及接口验收，尚未替换该云端镜像；云端环境已通过新增配置规则的兼容性检查。
 
 评测文件通过 `./eval:/app/eval:ro` 持久化挂载。`eval/reports/cloud_runtime_20261111.json` 保存资源快照；账户密码、API密钥和SSH隧道信息保存在本机被忽略的 `data/cloud-deploy`，不要提交到仓库。

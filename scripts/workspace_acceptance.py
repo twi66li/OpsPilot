@@ -5,17 +5,14 @@ from pathlib import Path
 
 import httpx
 
-from app.config import get_settings
+from scripts.acceptance_account import login_acceptance
 
 
 def main():
-    settings = get_settings()
     started = time.monotonic()
     stages = []
     with httpx.Client(base_url="http://127.0.0.1:8000", timeout=180) as client:
-        login = client.post("/auth/login", json={"username": settings.admin_username, "password": settings.admin_password})
-        login.raise_for_status()
-        client.headers["Authorization"] = "Bearer " + login.json()["access_token"]
+        login_acceptance(client)
 
         def call(method, path, body=None):
             response = client.request(method, path, json=body)

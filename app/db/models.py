@@ -49,6 +49,7 @@ class ChatSession(Base):
     tenant_id: Mapped[str] = mapped_column(String(64), ForeignKey("tenants.id"), index=True)
     user_id: Mapped[str] = mapped_column(String(64), ForeignKey("users.id"), index=True)
     title: Mapped[str] = mapped_column(String(256), default="新会话")
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
@@ -237,6 +238,7 @@ class WebsiteProfile(Base):
     tenant_id: Mapped[str] = mapped_column(String(64), index=True)
     user_id: Mapped[str] = mapped_column(String(64), index=True)
     data: Mapped[dict] = mapped_column(JSON, default=dict)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 

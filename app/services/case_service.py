@@ -26,7 +26,7 @@ def assert_editable(case):
 
 def list_cases(db, user, site_id=None, kind=None, status=None, archived=None):
     query = db.query(SupportCase, ChatSession).join(ChatSession, SupportCase.session_id == ChatSession.id).filter(
-        SupportCase.tenant_id == user.tenant_id, SupportCase.user_id == user.user_id)
+        SupportCase.tenant_id == user.tenant_id, SupportCase.user_id == user.user_id, ChatSession.deleted_at.is_(None))
     if site_id:
         query = query.filter(SupportCase.site_id == site_id)
     rows = query.order_by(SupportCase.created_at.desc()).all()

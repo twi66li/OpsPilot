@@ -11,7 +11,7 @@ from pydantic import BaseModel, Field, model_validator
 
 from app.agent.llm import OpenAIChatLLM
 from app.agent.tool_loop import run_tool_loop
-from app.db.models import Document, SupportCase, WebsiteProfile
+from app.db.models import ChatSession, Document, SupportCase, WebsiteProfile
 from app.rag.embeddings import tokenize
 from app.rag.fusion import rrf_fuse
 from app.services.case_service import case_status, is_archived
@@ -113,13 +113,14 @@ def redact(text):
 
 def owned_case(db, user, session_id):
     case = db.query(SupportCase).filter_by(session_id=session_id, tenant_id=user.tenant_id, user_id=user.user_id).first()
-    if not case:
+    session = db.get(ChatSession, session_id)
+    if not case or not session or session.deleted_at is not None:
         raise HTTPException(404, "排障会话不存在")
     return case
 
 
 def owned_site(db, user, site_id):
-    site = db.query(WebsiteProfile).filter_by(id=site_id, tenant_id=user.tenant_id, user_id=user.user_id).first()
+    site = db.query(WebsiteProfile).filter_by(id=site_id, tenant_id=user.tenant_id, user_id=user.user_id, deleted_at=None).first()
     if not site:
         raise HTTPException(404, "网站背景不存在")
     return site
@@ -251,8 +252,9 @@ def run_personal(container, state):
     def execute(name, args):
         if name == "get_site_overview":
             with container.db_session() as db:
-                site = db.query(WebsiteProfile).filter_by(id=context.get("site_id"), tenant_id=state["tenant_id"], user_id=state["user_id"]).first()
-                rows = db.query(SupportCase).filter_by(site_id=context.get("site_id"), tenant_id=state["tenant_id"], user_id=state["user_id"]).all()
+                site = db.query(WebsiteProfile).filter_by(id=context.get("site_id"), tenant_id=state["tenant_id"], user_id=state["user_id"], deleted_at=None).first()
+                rows = db.query(SupportCase).join(ChatSession).filter(SupportCase.site_id == context.get("site_id"),
+                    SupportCase.tenant_id == state["tenant_id"], SupportCase.user_id == state["user_id"], ChatSession.deleted_at.is_(None)).all()
                 return {"status": "ok" if site else "no_data", "profile": site.data if site else {},
                         "session_profile_snapshot": context.get("profile", {}),
                         "problem_count": sum(r.data.get("kind", "problem") == "problem" for r in rows) if site else 0,
@@ -265,8 +267,8 @@ def run_personal(container, state):
                     "summary": f"检索到{len(found)}条资料；知识仅供排查参考"}
         if name == "search_saved_cases":
             with container.db_session() as db:
-                rows = db.query(SupportCase).filter_by(tenant_id=state["tenant_id"], user_id=state["user_id"],
-                                                        site_id=context.get("site_id")).all()
+                rows = db.query(SupportCase).join(ChatSession).filter(SupportCase.tenant_id == state["tenant_id"],
+                    SupportCase.user_id == state["user_id"], SupportCase.site_id == context.get("site_id"), ChatSession.deleted_at.is_(None)).all()
             terms = [token for token in tokenize(args["query"]) if len(token) > 1]
             matches = [r for r in rows if (is_archived(r) or case_status(r) == "user_resolved") and r.data.get("kind", "problem") == "problem"
                        and r.session_id != state["session_id"]

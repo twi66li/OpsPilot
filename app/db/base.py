@@ -55,6 +55,10 @@ def init_db() -> None:
     from app.db import models  # noqa: F401  确保模型注册
 
     Base.metadata.create_all(bind=engine)
+    for table in ("chat_sessions", "website_profiles"):
+        if "deleted_at" not in {column["name"] for column in inspect(engine).get_columns(table)}:
+            with engine.begin() as conn:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN deleted_at TIMESTAMP NULL"))
     if "active_version_id" not in {column["name"] for column in inspect(engine).get_columns("documents")}:
         with engine.begin() as conn:
             conn.execute(text("ALTER TABLE documents ADD COLUMN active_version_id VARCHAR(64) NULL"))

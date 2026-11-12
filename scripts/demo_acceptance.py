@@ -11,6 +11,7 @@ from pypdf import PdfWriter
 from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
 from app.config import get_settings
+from scripts.acceptance_account import login_acceptance
 
 
 def demo_pdf():
@@ -40,9 +41,7 @@ def main():
     args = parser.parse_args()
     settings, report = get_settings(), {}
     with httpx.Client(base_url=args.base_url, timeout=180, trust_env=False) as client:
-        response = client.post("/auth/login", json={"username": settings.admin_username, "password": settings.admin_password})
-        response.raise_for_status()
-        client.headers["Authorization"] = "Bearer " + response.json()["access_token"]
+        login_acceptance(client, engineer=True)
         pdf = demo_pdf()
         response = client.post("/api/kb/documents/upload", data={"title": "OpsPilot演练修复手册"},
                                files={"file": ("opspilot-demo-guide.pdf", pdf, "application/pdf")})

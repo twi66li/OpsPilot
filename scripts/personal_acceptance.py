@@ -1,20 +1,20 @@
 """单次本机真实模型验收：模拟用户提交的日志→确认方案→新结果→保存案例。"""
 import argparse
 import json
+import os
 import time
 from pathlib import Path
 
 import httpx
 
-from app.config import get_settings
+from scripts.acceptance_account import login_acceptance
 
 
 def main(session_id=None):
-    settings = get_settings()
+    if session_id and not os.getenv("ACCEPTANCE_USERNAME"):
+        raise ValueError("继续已有会话请设置原验收账号的 ACCEPTANCE_USERNAME / ACCEPTANCE_PASSWORD")
     with httpx.Client(base_url="http://127.0.0.1:8000", timeout=180) as client:
-        response = client.post("/auth/login", json={"username": settings.admin_username, "password": settings.admin_password})
-        response.raise_for_status()
-        client.headers["Authorization"] = "Bearer " + response.json()["access_token"]
+        login_acceptance(client)
 
         def call(method, path, body=None):
             response = client.request(method, path, json=body)

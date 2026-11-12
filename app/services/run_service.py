@@ -165,5 +165,5 @@ def get_run(db, tenant_id, run_id, user_id):
 
     return db.query(AgentRun).join(ChatSession, AgentRun.session_id == ChatSession.id).filter(
         AgentRun.id == run_id, AgentRun.tenant_id == tenant_id,
-        ChatSession.tenant_id == tenant_id, ChatSession.user_id == user_id,
+        ChatSession.tenant_id == tenant_id, ChatSession.user_id == user_id, ChatSession.deleted_at.is_(None),
     ).first()

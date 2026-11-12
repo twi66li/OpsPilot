@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.deps import AuthUser, get_current_user
 from app.db.base import get_db
-from app.db.models import Document, SupportCase, Tenant, WebsiteProfile
+from app.db.models import ChatSession, Document, SupportCase, Tenant, WebsiteProfile, _now
 from app.services import chat_service
 from app.services.case_service import CASE_STATUSES, assert_editable, case_status, is_archived, list_cases, reopen
 from app.services.evidence_checks import analyze_samples
@@ -77,7 +77,7 @@ def sites(user: AuthUser = Depends(get_current_user), db: Session = Depends(get_
     records = list_cases(db, user, kind="problem")
     return [{"id": s.id, **s.data, "problem_count": sum(c["site_id"] == s.id for c in records),
              "open_count": sum(c["site_id"] == s.id and c["status"] != "user_resolved" and not c["archived"] for c in records)}
-            for s in db.query(WebsiteProfile).filter_by(tenant_id=user.tenant_id, user_id=user.user_id).all()]
+            for s in db.query(WebsiteProfile).filter_by(tenant_id=user.tenant_id, user_id=user.user_id, deleted_at=None).all()]
 
 
 @router.get("/sites/{site_id}")
@@ -108,6 +108,21 @@ def create_site(body: SiteIn, user: AuthUser = Depends(get_current_user), db: Se
 @router.put("/sites/{site_id}")
 def update_site(site_id: str, body: SiteIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     return save_site(db, user, body, owned_site(db, user, site_id))
+
+
+@router.delete("/sites/{site_id}")
+def delete_site(site_id: str, delete_records: bool = False, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    site = owned_site(db, user, site_id)
+    records = db.query(SupportCase).join(ChatSession, ChatSession.id == SupportCase.session_id).filter(
+        SupportCase.site_id == site_id, SupportCase.tenant_id == user.tenant_id, SupportCase.user_id == user.user_id,
+        ChatSession.deleted_at.is_(None)).all()
+    if delete_records and records:
+        chat_service.delete_sessions(db, user.tenant_id, user.user_id, [c.session_id for c in records])
+    for case in records:
+        case.site_id = None  # 历史环境快照保留，原手册不随网站删除。
+    site.deleted_at = _now()
+    db.commit()
+    return {"deleted": 1, "deleted_records": len(records) if delete_records else 0}
 
 
 @router.post("/cases")
@@ -181,6 +196,14 @@ def change_status(session_id: str, body: StatusIn, user: AuthUser = Depends(get_
 @router.get("/cases/{session_id}")
 def get_case(session_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     return case_dict(owned_case(db, user, session_id))
+
+
+@router.delete("/cases/{session_id}")
+def delete_case(session_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    owned_case(db, user, session_id)
+    count = chat_service.delete_sessions(db, user.tenant_id, user.user_id, [session_id])
+    db.commit()
+    return {"deleted": count}
 
 
 @router.post("/evidence/preview")

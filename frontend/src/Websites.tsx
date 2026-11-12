@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { App, Button, Card, Descriptions, Empty, Space, Table, Tag } from 'antd';
+import { App, Button, Card, Checkbox, Descriptions, Empty, Modal, Space, Table, Tag } from 'antd';
 import { api, formatTime } from './api';
 import type { KnowledgeDoc, PersonalCase, Site, SupportEntry } from './types';
 import { caseStates } from './supportTypes';
@@ -10,14 +10,20 @@ export default function Websites({assist, knowledge}: {assist: (entry: SupportEn
   const {message} = App.useApp();
   const [sites, setSites] = useState<Site[]>([]), [detail, setDetail] = useState<Detail | null>(null);
   const [editing, setEditing] = useState<Site | undefined>(), [editor, setEditor] = useState(false), [busy, setBusy] = useState(false);
+  const [deleting, setDeleting] = useState<Site | null>(null), [deleteRecords, setDeleteRecords] = useState(false);
   const refresh = useCallback(async () => setSites(await api<Site[]>('/api/support/sites')), []);
   useEffect(() => {refresh().catch(e => message.error(e.message));}, [refresh, message]);
   async function select(id: string) {setBusy(true); try {setDetail(await api<Detail>(`/api/support/sites/${id}`));} catch (e) {message.error((e as Error).message);} finally {setBusy(false);}}
+  async function remove() {
+    if (!deleting) return; setBusy(true);
+    try {await api(`/api/support/sites/${deleting.id}?delete_records=${deleteRecords}`, {method:'DELETE'}); if (detail?.id === deleting.id) setDetail(null); setDeleting(null); await refresh(); message.success('网站已删除');}
+    catch (error) {message.error((error as Error).message);} finally {setBusy(false);}
+  }
   return <div className="page-stack"><div className="page-title"><div><h2>我的网站</h2><p>集中管理环境、维护资料与问题记录。网站运行状态以你提交的证据为准。</p></div><Button type="primary" onClick={() => {setEditing(undefined); setEditor(true);}}>添加网站</Button></div>
     {!sites.length && <Card><Empty description="先添加一个网站，或直接向助手提问" /><Space><Button onClick={() => {setEditing(undefined); setEditor(true);}}>添加我的网站</Button><Button onClick={() => assist({workflow: 'consult'})}>先咨询维护问题</Button></Space></Card>}
     <div className="home-cards">{sites.map(s => <Card key={s.id} title={s.name} className={detail?.id === s.id ? 'selected-site' : ''}>
       <p>{[s.framework, s.deployment, s.database].filter(Boolean).join(' · ') || '环境信息尚未填写'}</p><Space wrap><Tag>{s.problem_count || 0} 个问题</Tag><Tag color={s.open_count ? 'orange' : 'default'}>{s.open_count || 0} 个待处理</Tag><Tag>{s.doc_ids.length} 份关联资料</Tag></Space>
-      <div className="section-gap"><Space wrap><Button loading={busy && detail?.id === s.id} onClick={() => select(s.id)}>打开网站</Button><Button type="link" onClick={() => assist({siteId: s.id, workflow: 'diagnose'})}>排查新问题</Button></Space></div>
+      <div className="section-gap"><Space wrap><Button loading={busy && detail?.id === s.id} onClick={() => select(s.id)}>打开网站</Button><Button type="link" onClick={() => assist({siteId: s.id, workflow: 'diagnose'})}>排查新问题</Button><Button danger type="text" disabled={busy} onClick={()=>{setDeleting(s);setDeleteRecords(false);}}>删除网站</Button></Space></div>
     </Card>)}</div>
     {detail && <><Card title={detail.name} extra={<Button onClick={() => {setEditing(sites.find(s => s.id === detail.id)); setEditor(true);}}>编辑网站</Button>}>
       <Descriptions column={2} items={[{key:'framework',label:'框架',children:detail.framework || '未填写'},{key:'deploy',label:'部署',children:detail.deployment || '未填写'},{key:'database',label:'数据库',children:detail.database || '未填写'},{key:'versions',label:'版本',children:detail.versions || '未填写'},{key:'notes',label:'维护说明',children:detail.notes || '暂无'}]} />
@@ -31,5 +37,9 @@ export default function Websites({assist, knowledge}: {assist: (entry: SupportEn
       ]} />
     </Card></>}
     <SiteEditor open={editor} site={editing} close={() => setEditor(false)} saved={s => {setEditor(false); refresh().catch(e => message.error(e.message)); void select(s.id);}} />
+    <Modal open={!!deleting} title={`删除网站「${deleting?.name || ''}」？`} onCancel={()=>setDeleting(null)} onOk={remove} confirmLoading={busy} okText="确认删除" cancelText="取消" okButtonProps={{danger:true}}>
+      <p>默认保留问题和维护对话，解除网站关联并保留当时的环境快照。上传的手册不会被删除。</p>
+      <Checkbox checked={deleteRecords} onChange={e=>setDeleteRecords(e.target.checked)}>同时删除这个网站关联的问题和维护对话</Checkbox><p className="muted">记录从工作区移除，关联审批与执行审计保留。</p>
+    </Modal>
   </div>;
 }

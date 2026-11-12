@@ -266,6 +266,8 @@ def decide_approval(container, db: Session, auth, approval_id: str, approved: bo
         req = db.get(ApprovalRequest, approval_id)
         if req is None or req.tenant_id != auth.tenant_id:
             raise HTTPException(status_code=404, detail="审批单不存在")
+        if req.status == "cancelled":
+            raise HTTPException(status_code=409, detail="会话已删除，待审批动作已取消")
         config = {"configurable": {"thread_id": req.session_id}}
         snapshot = container.graph.get_state(config)
         values = snapshot.values or {}

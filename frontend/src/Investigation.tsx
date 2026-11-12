@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, App, Button, Card, Collapse, Empty, Input, Modal, Space, Tag, Timeline } from 'antd';
 import { api, formatTime, post, streamChat } from './api';
+import ConversationList from './ConversationList';
 import type { AgentEvent, Approval, ChatMessage, Hit, Remediation, Run, Session } from './types';
 
 const labels: Record<string, string> = {route_intent: '识别调查目标', retrieve: '检索运维手册', grade: '核对证据', rewrite: '补充检索',
@@ -28,6 +29,7 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
   useEffect(() => {refresh().catch(e => message.error(e.message)); return () => controller.current?.abort();}, [refresh, message]);
   useEffect(() => {api<{enabled: boolean}>('/api/remediations/actions').then(result => setRepairEnabled(result.enabled)).catch(() => setRepairEnabled(false));}, []);
   useEffect(() => {bottom.current?.scrollIntoView({behavior: 'smooth', block: 'nearest'});}, [messages]);
+  function fresh() {setSessionId(''); setMessages([]); setHits([]); setEvents([]); setApproval(null); setTrace(null); setRunId('');}
   async function selectSession(id: string) {
     setBusy(true); setTrace(null); setEvents([]); setHits([]); setRunId(''); setApproval(null);
     try {
@@ -98,8 +100,8 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
   }
   return <div className="demo-workspace"><Alert type="warning" title="故障演练 · 独立测试环境" description="这里调查平台自带的 order-service 测试服务，可以体验异常、审批和固定恢复动作。它没有接入你的网站；自己的报错请前往「我的网站排障」。" />
     <div className="investigation-grid">
-    <aside className="session-panel"><div className="panel-heading"><strong>调查会话</strong><Button size="small" disabled={busy} onClick={() => {setSessionId(''); setMessages([]); setHits([]); setEvents([]); setApproval(null); setTrace(null); setRunId('');}}>新建</Button></div>
-      {sessions.map(session => <button disabled={busy} key={session.id} className={`session-item ${session.id === sessionId ? 'selected' : ''}`} onClick={() => selectSession(session.id)}>{session.title}<small>{formatTime(session.created_at)}</small></button>)}
+    <aside className="session-panel"><div className="panel-heading"><strong>调查会话</strong><Button size="small" disabled={busy} onClick={fresh}>新建</Button></div>
+      <ConversationList items={sessions.map(s=>({id:s.id,title:s.title,detail:formatTime(s.created_at)}))} current={sessionId} busy={busy} open={id=>void selectSession(id)} deleted={async ids=>{if(ids.includes(sessionId))fresh();await refresh();}} />
     </aside>
     <section className="chat-panel"><div className="panel-heading"><strong>故障调查</strong><Tag color={busy ? 'processing' : 'default'}>{busy ? '正在调查' : '就绪'}</Tag></div>
       <div className="chat-history">{!messages.length && <div className="chat-empty"><span className="eyebrow">连接池超时演练</span><h2>体验一次故障调查与恢复</h2><p>测试环境会模拟连接池等待超时，可能看到请求失败、延迟上升和 ERR_5003 日志。先调查证据，再申请关闭故障注入，经审批后观察请求验证结果；实际异常以工具查询为准。</p>

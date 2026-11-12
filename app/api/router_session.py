@@ -1,5 +1,6 @@
 """会话接口：创建 / 列表 / 详情（含消息）。"""
 from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,6 +11,24 @@ from app.db.models import Message, SupportCase
 from app.services import chat_service
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
+
+
+class DeleteSessionsIn(BaseModel):
+    ids: list[str] = Field(min_length=1, max_length=100)
+
+
+@router.post("/delete")
+async def delete_sessions(body: DeleteSessionsIn, user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
+    count = await db.run_sync(chat_service.delete_sessions, user.tenant_id, user.user_id, body.ids)
+    await db.commit()
+    return {"deleted": count}
+
+
+@router.delete("/{session_id}")
+async def delete_session(session_id: str, user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
+    count = await db.run_sync(chat_service.delete_sessions, user.tenant_id, user.user_id, [session_id])
+    await db.commit()
+    return {"deleted": count}
 
 
 @router.post("")

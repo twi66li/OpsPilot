@@ -3,7 +3,7 @@ import { Alert, App, Button, Card, Collapse, Drawer, Empty, Input, Space, Table,
 import { api, formatTime, post } from './api';
 import type { Approval, Remediation, Ticket } from './types';
 
-const repairStatuses: Record<string, string> = {pending: '待审批', running: '执行中', succeeded: '验证通过', failed: '执行或验证失败', rejected: '已拒绝', interrupted: '执行中断，待核对'};
+const repairStatuses: Record<string, string> = {pending: '待审批', running: '执行中', succeeded: '验证通过', failed: '执行或验证失败', rejected: '已拒绝', interrupted: '执行中断，待核对', cancelled: '会话已删除，申请取消'};
 
 export default function Operations({canApprove}: {canApprove: boolean}) {
   const {message} = App.useApp();

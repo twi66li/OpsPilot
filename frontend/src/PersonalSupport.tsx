@@ -6,6 +6,7 @@ import { caseStates as states, workflowNames, workflows } from './supportTypes';
 import SiteEditor from './SiteEditor';
 import SampleResults from './SampleResults';
 import PlanChecklist from './PlanChecklist';
+import ConversationList from './ConversationList';
 
 const verdicts: Record<string, string> = {inconclusive: '证据仍不足', still_failing: '样本中仍有异常', improved: '样本显示改善', sample_recovered: '提交样本支持原症状不再复现'};
 
@@ -118,7 +119,7 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues}
         <Button type="link" onClick={onKnowledge}>可选：上传网站手册</Button>
       </Card>
       <Card size="small" title="维护对话与问题">{!cases.length && <p className="muted">首次提问后自动保存，之后可以继续补充结果。</p>}
-        <div className="support-case-list">{cases.map(c => <button key={c.id} disabled={busy || actionBusy} className={`session-item ${current?.id === c.id ? 'selected' : ''}`} onClick={() => load(c.id)}>{c.title}<small>{c.kind === 'problem' ? states[c.status] || c.status : c.kind === 'history' ? '历史查询' : '知识咨询'}{c.archived ? ' · 已归档' : ''} · {formatTime(c.created_at)}</small></button>)}</div>
+        <div className="support-case-list"><ConversationList items={cases.map(c=>({id:c.id,title:c.title || '维护对话',detail:`${c.kind === 'problem' ? states[c.status] || c.status : c.kind === 'history' ? '历史查询' : '知识咨询'}${c.archived ? ' · 已归档' : ''} · ${formatTime(c.created_at)}`}))} current={current?.id} busy={busy || actionBusy} open={id=>void load(id)} deleted={async ids=>{if(current && ids.includes(current.id)){fresh();setSiteId(undefined);}await refresh();}} /></div>
       </Card>
     </aside><main className="page-stack support-main">
       <Card title={<Space>{current?.kind === 'problem' ? '当前问题' : '维护咨询'}<Tag>{workflowNames[report?.workflow || workflow] || '维护助手'}</Tag></Space>}>

@@ -13,6 +13,11 @@ from app.auth.deps import AuthUser, require_roles
 router = APIRouter(prefix="/api/eval", tags=["eval-results"])
 
 _EVAL_ROOT = Path(__file__).resolve().parents[2] / "eval"
+_EVALUATION_LABELS = {
+    "night20261031/real_run": "历史基线评测",
+    "night20261101/rerank_run": "重排恢复评测",
+    "night20261102q/quality_closeout": "质量改进评测",
+}
 
 
 def _discover_runs() -> dict[str, dict]:
@@ -23,10 +28,15 @@ def _discover_runs() -> dict[str, dict]:
             records = json.loads(results_fp.read_text(encoding="utf-8"))
         except (OSError, ValueError):
             continue
+        if not isinstance(records, dict):
+            continue
         cfg = records.get("config", {})
         rerank_desc = str(cfg.get("rerank", ""))
         runs[run_id] = {
             "id": run_id,
+            "label": _EVALUATION_LABELS.get(run_id, str(records.get("batch") or results_fp.parent.name)),
+            "category": "evaluation" if run_id in _EVALUATION_LABELS else "development",
+            "question_count": len(records.get("questions") or {}),
             "namespace": records.get("namespace"),
             "batch": records.get("batch"),
             "rerank_active": bool(rerank_desc) and "停用" not in rerank_desc,
@@ -40,9 +50,11 @@ def _discover_runs() -> dict[str, dict]:
 
 def _load_run(run_id: str) -> tuple[dict, dict]:
     runs = _discover_runs()
+    if not runs:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "暂无评测记录，请先导入评测结果")
     if run_id and run_id not in runs:
         raise HTTPException(status.HTTP_404_NOT_FOUND, f"评测运行不存在：{run_id}")
-    run_id = run_id or next(iter(runs))
+    run_id = run_id or _default_run(list(runs.values()))
     fp = _EVAL_ROOT / run_id / "results.json"
     records = json.loads(fp.read_text(encoding="utf-8"))
     frozen_fp = fp.parent / "scenarios_frozen.json"
@@ -50,10 +62,19 @@ def _load_run(run_id: str) -> tuple[dict, dict]:
     return records, {"frozen": frozen, "meta": runs[run_id]}
 
 
+def _default_run(runs: list[dict]) -> str:
+    candidates = [r for r in runs if r["question_count"] and r["category"] == "evaluation"]
+    candidates = candidates or [r for r in runs if r["question_count"]] or runs
+    return candidates[0]["id"] if candidates else ""
+
+
 @router.get("/runs")
-def eval_runs(user: AuthUser = Depends(require_roles("admin"))):
+def eval_runs(include_development: bool = False, user: AuthUser = Depends(require_roles("admin"))):
     """列出可查看的评测运行（历史基线 / 重排恢复批），供工作台切换。"""
-    return {"runs": list(_discover_runs().values())}
+    all_runs = list(_discover_runs().values())
+    runs = [r for r in all_runs if include_development or r["category"] == "evaluation" and r["question_count"]]
+    return {"runs": runs, "default_run": _default_run(runs),
+            "development_count": sum(r["category"] == "development" for r in all_runs)}
 
 
 @router.get("/results")
@@ -123,4 +144,5 @@ def eval_results(user: AuthUser = Depends(require_roles("admin")), run: str = ""
         "cross_reviews": records.get("cross_reviews", {}),
         "not_run": records.get("not_run", {}),
         "questions": questions,
+        "details": records if not questions else None,
     }

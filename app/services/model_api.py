@@ -22,11 +22,9 @@ logger = logging.getLogger(__name__)
 _CHAT_OUTPUT_CAP = 1536
 _RERANK_OUTPUT_CAP = 64
 _RERANK_WRAP_BYTES = 128  # rerank 请求协议包装余量
-# enable_thinking 参数仅对接受该参数的模型发送（探针实测）：
-# qwen3.8-2.4t-a95b 强制思考（param restricted to True），发送 False 会 400，必须省略。
-_THINKING_DISABLE_UNSUPPORTED = {"qwen3.8-2.4t-a95b"}
-# 可计费推理 tokens 预留（探针实测 2.4t-a95b 强制思考且 usage 返回 reasoning_tokens）
-_THINKING_CAP = {"qwen3.8-2.4t-a95b": 4096}
+# 当前候选均支持关闭思考；遇到供应商特殊模型时再按探针结果补充。
+_THINKING_DISABLE_UNSUPPORTED: set[str] = set()
+_THINKING_CAP: dict[str, int] = {}
 # 文本候选切换链（P1-Q-SWITCH）：由启动器按 budget.json generation_order 注入（JSON 列表，
 # 不含首选模型）。仅本模型项目预留不足时按序切换；总额不足/认证/参数错误不切换。
 _TEXT_CANDIDATES_ENV = "CHAT_MODEL_CANDIDATES"

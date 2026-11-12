@@ -65,6 +65,12 @@ services:
     command: uvicorn scripts.metrics_demo:app --host 0.0.0.0 --port 8081
     mem_limit: 96m
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8081/metrics', timeout=2)"]
+      interval: 10s
+      timeout: 3s
+      start_period: 15s
+      retries: 6
   prometheus:
     image: prom/prometheus:v3.13.5
     command: --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.retention.time=6h --storage.tsdb.retention.size=100MB

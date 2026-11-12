@@ -159,7 +159,7 @@ docker compose -f compose.local.yml --profile app --profile observability up -d 
 
 2026-11-11的一次实际记录：调查83.1秒，首个正文增量63.2秒，模型与Embedding/Rerank合计13,148 tokens；引用命中上传手册，审批后3次测试请求由500恢复为200。记录位于 `eval/night20261111/demo_acceptance/results.json`。该耗时包含检索子Agent，不能作为延迟SLA。
 
-`compose.demo.yml` 使用本机构建的 `opspilot:20261111` 镜像，包含PostgreSQL、Redis、Qdrant、API、演练服务和Prometheus。上传镜像、配置与 `.env` 后执行：
+`compose.demo.yml` 使用本机构建的 `opspilot:20261112` 镜像，包含PostgreSQL、Redis、Qdrant、API、演练服务和Prometheus。上传镜像、配置与 `.env` 后执行：
 
 ```bash
 docker compose -f compose.demo.yml up -d --wait --wait-timeout 180

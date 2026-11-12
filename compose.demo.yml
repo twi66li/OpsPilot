@@ -1,4 +1,4 @@
-# 使用本机构建的镜像；API只绑定云主机回环地址，通过SSH隧道访问演示。
+# 使用本机构建的镜像；API绑定回环地址，公网入口由deploy/nginx/opspilot.conf提供。
 name: opspilot-demo
 services:
   postgres:

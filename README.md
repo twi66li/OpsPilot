@@ -60,7 +60,7 @@ docker compose -f compose.demo.yml up -d
 
 `/live`检查进程，`/ready`检查数据库、向量库、缓存和入库线程；镜像及云端Compose使用readiness。真实基础设施检查：`docker compose -f compose.local.yml exec -T api python -m integration.check_stack`，不调用模型供应商，只创建并清理本次随机测试资源。CI另设独立PostgreSQL/Qdrant/Redis与三条浏览器流程；浏览器流程要求`OPSPILOT_E2E_ISOLATED=1`，禁止直接针对生产运行。
 
-阿里云已部署业务工作台，包含API与React前端、PostgreSQL、Qdrant、Redis、演练服务和Prometheus；MySQL服务及客户端已卸载，原数据与备份保留。本轮新增的界面与生产校验已在本机及云端验证，当前云端应用镜像为`opspilot:a832352`。PDF报告、生产Prometheus连接器、组织成员邀请/共享和从页面启动新评测继续后置。
+阿里云已部署业务工作台，包含API与React前端、PostgreSQL、Qdrant、Redis、演练服务和Prometheus；MySQL服务及客户端已卸载，原数据与备份保留。当前云端应用镜像为`opspilot:f75f501`，公网演示入口：[OpsPilot](http://47.107.106.89:8080)。PDF报告、生产Prometheus连接器、组织成员邀请/共享和从页面启动新评测继续后置。
 
 ## 第一次使用
 
@@ -169,9 +169,11 @@ ssh -N -L 18000:127.0.0.1:18000 your-server
 
 随后打开 `http://127.0.0.1:18000`。配置独立管理员密码、JWT密钥和数据库密码；原文件及预算账本放持久卷。演示按单API worker运行，预算账本是单实例限制，不能当作跨主机共享额度。云端默认关闭检索子Agent以减少耗时，用开关保留对照能力。公网域名与TLS入口可在需要分享演示时另行配置。
 
-公网IP演示使用`deploy/nginx/opspilot.conf`：宿主机Nginx监听8080，转发到回环地址18000，前端、认证、上传与SSE保持同源。安全组放行TCP 8080即可，数据服务不发布公网端口；上传上限25MiB，流式响应关闭代理缓冲，读写超时300秒。安装配置并通过`nginx -t`后reload。服务器`.env`中将实际Docker网关与`127.0.0.1,::1`加入`FORWARDED_ALLOW_IPS`，将实际公网Origin加入`CORS_ORIGINS`，重建API容器使配置生效；Nginx覆盖外部传入的转发IP头。
+公网IP演示使用`deploy/nginx/opspilot.conf`：宿主机Nginx监听8080，转发到回环地址18000，前端、认证、上传与SSE保持同源。入口为`http://47.107.106.89:8080`，可直接注册普通账号。安全组放行TCP 8080即可，数据服务不发布公网端口；上传上限25MiB，流式响应关闭代理缓冲，读写超时300秒。安装配置并通过`nginx -t`后reload。服务器`.env`中将实际Docker网关与`127.0.0.1,::1`加入`FORWARDED_ALLOW_IPS`，将实际公网Origin加入`CORS_ORIGINS`，重建API容器使配置生效；Nginx覆盖外部传入的转发IP头。
 
 IP加HTTP入口兼容请求编号生成与用户点击复制；浏览器缺少`crypto.randomUUID`时使用`crypto.getRandomValues`生成v4编号，避免提问失败。HTTPS环境优先使用原生UUID与Clipboard接口。依据：[MDN randomUUID](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID)、[MDN getRandomValues](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues)、[Nginx代理缓冲](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffering)。当前HTTP入口用于演示，真实账号与私人资料应通过HTTPS访问。
+
+公网入口版本`f75f501`的CI运行43186062411已通过，浏览器流程实际关闭原生UUID与Clipboard接口，验证命令复制、日志上传及请求编号生成。公网独立账号进一步验证注册登录、17个懒加载资源、上传脱敏、详情链接与真实模型SSE；一次咨询首事件0.203秒、总耗时7.328秒，收到49个正文增量事件。首事件不等于首个正文，该记录不是延迟SLA或准确率评测。真实客户端IP与伪造转发头处理已核对。部署时另备份并移走服务器原有的空Nginx服务覆盖文件，恢复发行版服务定义与reload；原80端口站点响应保持一致。公网验收记录在本机`data/public-ingress-smoke.json`，代理核对记录在云端`/opt/opspilot/releases/f75f501/proxy-ip-check.json`。
 
 2026-11-11，云端通过一次真实闭环：54.25秒完成调查，指标和日志工具返回ok，审批后测试请求从500恢复为200。该次调查调用8,059 tokens。验收后六容器内存快照约431.6MiB，不含宿主系统和Docker，也不是总峰值或并发能力。成功记录和首次8秒工具超时记录均保留在 `eval/night20261111`；演示配置的工具上限现为30秒，并通过健康检查等待API就绪。
 

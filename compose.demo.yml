@@ -43,7 +43,7 @@ services:
       BUDGET_LEDGER_PATH: /app/data/model-budget-cloud.jsonl
       KB_STORAGE_PATH: /app/data/knowledge
       TOOL_TIMEOUT_SECONDS: ${TOOL_TIMEOUT_SECONDS:-30}
-    command: sh -c "python -m scripts.migrate && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    command: sh -c "python -m scripts.migrate && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers"
     ports: ["127.0.0.1:18000:8000"]
     volumes: ["./data:/app/data", "./eval:/app/eval:ro"]
     depends_on:

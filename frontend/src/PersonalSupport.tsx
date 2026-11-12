@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, App, Button, Card, Checkbox, Collapse, Drawer, Empty, Input, Modal, Pagination, Select, Space, Steps, Tag } from 'antd';
-import { api, formatTime, post, streamChat } from './api';
+import { api, formatTime, newRequestId, post, streamChat } from './api';
 import type { AgentEvent, ChatMessage, Hit, PageData, PersonalCase, Site, SupportEntry, Workflow } from './types';
 import { caseStates as states, workflowNames, workflows } from './supportTypes';
 import SiteEditor from './SiteEditor';
@@ -58,7 +58,7 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
     try {
       const record = await ensureCase(); setQuestion('');
       const signature=JSON.stringify([record.id,text,workflow,(record.evidence || []).map(e=>e.id)]);
-      if(request.current.signature!==signature)request.current={id:crypto.randomUUID(),signature};
+      if(request.current.signature!==signature)request.current={id:newRequestId(),signature};
       let answer = '', runId = '';
       setMessages(previous => [...previous, {role: 'user', content: text}]);
       await streamChat(record.id, text, event => {

@@ -169,6 +169,10 @@ ssh -N -L 18000:127.0.0.1:18000 your-server
 
 随后打开 `http://127.0.0.1:18000`。配置独立管理员密码、JWT密钥和数据库密码；原文件及预算账本放持久卷。演示按单API worker运行，预算账本是单实例限制，不能当作跨主机共享额度。云端默认关闭检索子Agent以减少耗时，用开关保留对照能力。公网域名与TLS入口可在需要分享演示时另行配置。
 
+公网IP演示使用`deploy/nginx/opspilot.conf`：宿主机Nginx监听8080，转发到回环地址18000，前端、认证、上传与SSE保持同源。安全组放行TCP 8080即可，数据服务不发布公网端口；上传上限25MiB，流式响应关闭代理缓冲，读写超时300秒。安装配置并通过`nginx -t`后reload。服务器`.env`中将实际Docker网关与`127.0.0.1,::1`加入`FORWARDED_ALLOW_IPS`，将实际公网Origin加入`CORS_ORIGINS`，重建API容器使配置生效；Nginx覆盖外部传入的转发IP头。
+
+IP加HTTP入口兼容请求编号生成与用户点击复制；浏览器缺少`crypto.randomUUID`时使用`crypto.getRandomValues`生成v4编号，避免提问失败。HTTPS环境优先使用原生UUID与Clipboard接口。依据：[MDN randomUUID](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID)、[MDN getRandomValues](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues)、[Nginx代理缓冲](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffering)。当前HTTP入口用于演示，真实账号与私人资料应通过HTTPS访问。
+
 2026-11-11，云端通过一次真实闭环：54.25秒完成调查，指标和日志工具返回ok，审批后测试请求从500恢复为200。该次调查调用8,059 tokens。验收后六容器内存快照约431.6MiB，不含宿主系统和Docker，也不是总峰值或并发能力。成功记录和首次8秒工具超时记录均保留在 `eval/night20261111`；演示配置的工具上限现为30秒，并通过健康检查等待API就绪。
 
 2026-11-12，云端先更新为应用镜像`opspilot:5a4f207`，数据库迁移至0003；API使用非root用户，内存上限512MiB，保持单worker与串行调查。独立账号已验证私人PDF入库、唯一手册标记检索与流式引用、日志脱敏和退出撤销；主Agent通过真实MCP协议查询演练日志和Prometheus指标。六容器验收后合计约483MiB，整机可用内存约657MiB；这是轻载快照。记录保存在云端`/opt/opspilot/data/cloud-deploy-smoke-5a4f207.json`和`cloud-native-mcp-5a4f207.json`，并非独立准确率或压力测试。

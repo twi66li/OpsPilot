@@ -6,6 +6,10 @@ test.beforeAll(()=>{
 
 test('普通用户注册、问题深链接和日志预览',async({page})=>{
   const name='browser_'+Date.now();
+  await page.addInitScript(()=>{
+    Object.defineProperty(crypto,'randomUUID',{value:undefined,configurable:true});
+    Object.defineProperty(navigator,'clipboard',{value:undefined,configurable:true});
+  });
   await page.goto('/home');
   await page.getByRole('tab',{name:'注册普通账号'}).click();
   await page.getByLabel('用户名',{exact:true}).fill(name);
@@ -20,13 +24,22 @@ test('普通用户注册、问题深链接和日志预览',async({page})=>{
   await page.getByRole('button',{name:'继续处理'}).first().click();
   await expect(page).toHaveURL(/\/issues\/[a-f0-9]+/);
   await page.reload();
-  await page.getByRole('button',{name:'添加日志 / 补充证据'}).click();
+  await page.getByRole('button',{name:'不知道如何取日志？'}).click();
+  await page.getByRole('combobox',{name:'实际部署方式'}).click();
+  await page.getByText('Docker',{exact:true}).click();
+  await page.getByRole('textbox',{name:'实际容器或服务名'}).fill('nginx');
+  await page.getByRole('button',{name:'生成采集步骤'}).click();
+  await page.getByRole('button',{name:'复制命令',exact:true}).first().click();
+  await expect(page.getByText('已复制只读命令',{exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'我已收集结果，开始脱敏预览'}).click();
   await page.getByLabel('上传日志片段',{exact:true}).setInputFiles({name:'sample.log',mimeType:'text/plain',buffer:Buffer.from('GET /orders HTTP 500\npassword=browser-private')});
   await expect(page.getByRole('button',{name:'确认提交这份证据'})).toBeEnabled();
   await page.getByRole('button',{name:'确认提交这份证据'}).click();
   await expect(page.getByText('证据已保存',{exact:false})).toBeVisible();
   await page.getByLabel('网站排障问题').fill('请分析这个验收样例');
+  const streamed=page.waitForRequest(request=>request.url().endsWith('/api/agent/chat/stream')&&request.method()==='POST');
   await page.getByRole('button',{name:'发送给助手'}).click();
+  expect((await streamed).postDataJSON().request_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   await expect(page.getByText('本次分析已完成',{exact:true})).toBeVisible({timeout:30000});
 });
 

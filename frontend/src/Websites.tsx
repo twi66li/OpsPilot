@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { App, Button, Card, Checkbox, Descriptions, Empty, Modal, Pagination, Input, Space, Table, Tag } from 'antd';
-import { api, post, formatTime } from './api';
+import { api, copyText, post, formatTime } from './api';
 import type { KnowledgeDoc, PageData, PersonalCase, Site, SupportEntry } from './types';
 import { caseStates } from './supportTypes';
 import SiteEditor from './SiteEditor';
@@ -33,7 +33,7 @@ export default function Websites({assist, knowledge, initialId, opened}: {initia
     {detail && <><Card title={detail.name} extra={<Button onClick={() => {setEditing(sites.find(s => s.id === detail.id)); setEditor(true);}}>编辑网站</Button>}>
       <Descriptions column={2} items={[{key:'framework',label:'框架',children:detail.framework || '未填写'},{key:'deploy',label:'部署',children:detail.deployment || '未填写'},{key:'database',label:'数据库',children:detail.database || '未填写'},{key:'versions',label:'版本',children:detail.versions || '未填写'},{key:'notes',label:'维护说明',children:detail.notes || '暂无'}]} />
       <Space wrap><Button disabled={!detail.url || busy} onClick={async()=>{setBusy(true);try{await post(`/api/maintenance/sites/${detail.id}/http-check`);await select(detail.id);await refresh();message.success('本次HTTP响应已记录');}catch(e){message.error((e as Error).message);}finally{setBusy(false);}}}>主动检查HTTP响应</Button><Button type="primary" onClick={() => assist({siteId: detail.id, workflow: 'diagnose'})}>为这个网站排障</Button><Button onClick={() => assist({siteId: detail.id, workflow: 'consult'})}>咨询维护知识</Button><Button onClick={() => assist({siteId: detail.id, workflow: 'history', question: '请查询这个网站以前保存的处理案例，说明哪些问题已确认解决，哪些只是归档。'})}>询问历史处理</Button></Space>
-      {detail.health_check&&<p>最近单次HTTP检查：{({normal:'响应正常',abnormal:'响应异常',unknown:'结果未知'} as Record<string,string>)[detail.health_check.state]} · HTTP {detail.health_check.http_status || '未取得'} · {formatTime(detail.health_check.collected_at)}<br/><small>{detail.health_check.scope}</small><br/><Button size="small" onClick={()=>navigator.clipboard.writeText(JSON.stringify(detail.health_check,null,2)).then(()=>message.success('已复制检查结果，可在排障时提交')).catch(()=>message.error('复制失败，请手动记录检查结果'))}>复制这次结果</Button></p>}
+      {detail.health_check&&<p>最近单次HTTP检查：{({normal:'响应正常',abnormal:'响应异常',unknown:'结果未知'} as Record<string,string>)[detail.health_check.state]} · HTTP {detail.health_check.http_status || '未取得'} · {formatTime(detail.health_check.collected_at)}<br/><small>{detail.health_check.scope}</small><br/><Button size="small" onClick={()=>copyText(JSON.stringify(detail.health_check,null,2)).then(()=>message.success('已复制检查结果，可在排障时提交')).catch(()=>message.error('复制失败，请手动记录检查结果'))}>复制这次结果</Button></p>}
     </Card><Card title="关联资料" extra={<Button onClick={knowledge}>上传 / 管理我的手册</Button>}>
       {detail.documents.length ? <Space wrap>{detail.documents.map(d => <Tag key={d.id}>{d.title} · {d.chunk_count}个有效片段</Tag>)}</Space> : <p className="muted">还没有关联手册，仍可使用内置官方来源指南。上传后在“编辑网站”中关联。</p>}
     </Card><Card title="这个网站的问题与维护记录">

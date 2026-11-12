@@ -36,7 +36,26 @@ export async function downloadFile(path: string, name: string) {
   const link = document.createElement('a'); link.href = url; link.download = name; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-export async function streamChat(sessionId: string, message: string, onEvent: (event: AgentEvent) => void, signal: AbortSignal, workflow: Workflow = 'auto', requestId:string=crypto.randomUUID()) {
+export function newRequestId(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  // IP加HTTP没有randomUUID，getRandomValues仍可生成同样格式的v4请求编号。
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, value => value.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
+}
+export async function copyText(text: string): Promise<void> {
+  if (navigator.clipboard?.writeText) {
+    try { await navigator.clipboard.writeText(text); return; } catch { /* 权限被拒时尝试用户点击触发的复制。 */ }
+  }
+  const previous = document.activeElement, input = document.createElement('textarea');
+  input.value = text; input.style.position = 'fixed'; input.style.opacity = '0';
+  document.body.append(input); input.select();
+  try { if (!document.execCommand('copy')) throw new Error('请手动选中并复制'); }
+  finally { input.remove(); if (previous instanceof HTMLElement) previous.focus({preventScroll:true}); }
+}
+export async function streamChat(sessionId: string, message: string, onEvent: (event: AgentEvent) => void, signal: AbortSignal, workflow: Workflow = 'auto', requestId:string=newRequestId()) {
   const response = await checked(await fetch('/api/agent/chat/stream', {
     method: 'POST', headers: headers({'Content-Type': 'application/json'}),
     body: JSON.stringify({session_id: sessionId, message, workflow, request_id:requestId}), signal,

@@ -62,3 +62,5 @@ p { line-height: 1.8; } small, .muted { color: #72838b; font-size: 12px; }
 @media (max-width: 680px) { .app-content { padding: 16px; } .chat-content { padding: 0; } .investigation-grid { grid-template-columns: 1fr; } .session-panel { max-height: 170px; border-bottom: 1px solid #e1e8e6; } .page-title { align-items: flex-start; flex-direction: column; } .login-story { display: none; } .login-page { padding: 20px; } .composer-footer > span { display: none; } .composer-footer { justify-content: flex-end; } }
 
 @media(max-width:991px){.support-grid{display:flex;flex-direction:column}.support-grid>aside:first-child{order:2}.support-main{order:1;width:100%}.support-grid>aside:last-child{order:3}.app-header{height:auto;min-height:72px;padding:10px 12px;flex-wrap:wrap}.account-name{display:none}.app-content{padding:14px}.login-card{width:min(100%,400px)}}
+
+@media(max-width:991px){.quick-examples,.quick-examples .ant-space-item{max-width:100%}.quick-examples .ant-btn{max-width:100%;height:auto;white-space:normal;text-align:left}.quick-examples .ant-btn span{white-space:normal;overflow-wrap:anywhere}.quick-examples .ant-space-item:nth-child(n+3){display:none}}

@@ -38,10 +38,11 @@ test('390px导航和提问区可见',async({page,request},testInfo)=>{
   await page.goto('/support');
   const box=await page.getByLabel('网站排障问题').boundingBox();
   expect(box?.y).toBeLessThan(844);
-  await page.screenshot({path:testInfo.outputPath('mobile-assistant.png')});
+  for(const button of await page.locator('.quick-examples button').all()){if(await button.isVisible()){const bounds=await button.boundingBox();expect((bounds?.x||0)+(bounds?.width||0)).toBeLessThanOrEqual(390);}}
+  await page.screenshot({path:testInfo.outputPath('mobile-assistant.png'),animations:'disabled'});
   await page.getByRole('button',{name:'打开功能导航'}).click();
-  await expect(page.getByRole('menuitem',{name:'我的网站'})).toBeVisible();
-  await page.screenshot({path:testInfo.outputPath('mobile-navigation.png')});
+  await expect(page.getByRole('menuitem',{name:'我的网站'})).toBeInViewport({ratio:0.9});
+  await page.screenshot({path:testInfo.outputPath('mobile-navigation.png'),animations:'disabled'});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
 });
 

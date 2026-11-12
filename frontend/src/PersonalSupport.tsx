@@ -150,7 +150,7 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
     </aside><main className="page-stack support-main">
       <Card title={<Space>{current?.kind === 'problem' ? '当前问题' : '维护咨询'}<Tag>{workflowNames[report?.workflow || workflow] || '维护助手'}</Tag></Space>}>
         {!messages.length && <><p>例如：网站返回 502、接口一直超时，或 Python 日志出现数据库连接错误。说清楚异常和发生时间；不知道技术细节可以留空。</p>
-          <Space wrap><CollectionGuide useResult={()=>openEvidence('initial')}/>{examples.map(text => <Button key={text} size="small" disabled={busy} onClick={() => setQuestion(text)}>{text}</Button>)}</Space></>}
+          <Space wrap className="quick-examples"><CollectionGuide useResult={()=>openEvidence('initial')}/>{examples.map(text => <Button key={text} size="small" disabled={busy} onClick={() => setQuestion(text)}>{text}</Button>)}</Space></>}
         {!!messages.length && <Collapse className="section-bottom" items={[{key: 'history', label: `完整对话 · ${messages.length} 条`, children: <div className="support-history">{messages.map((m, i) => <article className={`chat-message ${m.role}`} key={i}><div className="message-label">{m.role === 'user' ? '你' : 'OpsPilot'}</div><div className="message-body">{m.content}</div></article>)}</div>}]} />}
         <Select className="section-gap" aria-label="维护任务类型" disabled={busy || readOnly} value={workflow} onChange={setWorkflow} options={workflows} style={{width:200}} />
         <Input.TextArea className="section-gap" aria-label="网站排障问题" disabled={readOnly} placeholder="可以问维护知识，也可以描述异常。日志建议先通过下面的入口脱敏后提交。" value={question} maxLength={6000} rows={3} onChange={e => setQuestion(e.target.value)} onKeyDown={e => {if (e.ctrlKey && e.key === 'Enter') void send();}} />

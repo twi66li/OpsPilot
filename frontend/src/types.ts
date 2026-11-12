@@ -37,17 +37,29 @@ export interface EvalQuestion {
 export interface EvalReport { id: string; summary: Record<string, unknown>; questions: EvalQuestion[] }
 export interface Site {
   id: string; name: string; framework: string; deployment: string; database: string; versions: string; notes: string; doc_ids: string[];
+  problem_count?: number; open_count?: number;
 }
-export interface SubmittedEvidence { id: string; label: string; kind: 'initial' | 'check_result'; text: string; collected_at: string; submitted_at: string }
+export type Workflow = 'auto' | 'consult' | 'diagnose' | 'review' | 'history';
+export interface SupportEntry {caseId?: string; siteId?: string; workflow?: Workflow; question?: string}
+export interface SubmittedEvidence { id: string; label: string; kind: 'initial' | 'check_result'; text: string; collected_at: string; submitted_at: string; endpoint?: string; step_index?: number; plan_revision?: number }
+export interface SampleChecks {
+  scope: string; measurements: {evidence_id:string; request_count:number; failed_requests:number; pool_error_lines:number[]; container_states:Record<string,unknown>[]; requests:{endpoint:string; status:number; at:string; elapsed_ms:number|null}[]}[];
+  comparison?: {method:string; endpoint:string; before_failed_samples:number; after_requests:number; after_failures:number; after_from:string; after_until:string};
+  verification: {verdict:string; evidence_ids:string[]; reason:string; method?:string};
+}
 export interface CheckStep { location: string; action: string; normal: string; abnormal: string; risk: string; rollback: string }
 export interface SupportReport {
   summary: string; observations: { evidence_id: string; line_start: number; line_end: number; meaning: string; quote: string }[];
   hypotheses: string[]; missing_info: string[]; steps: CheckStep[]; references: number[];
-  verification: { verdict: string; evidence_ids: string[]; reason: string };
+  verification: { verdict: string; evidence_ids: string[]; reason: string; method?:string };
+  workflow?: string; program_checks?: SampleChecks;
 }
 export interface PersonalCase {
   id: string; title?: string; site_id?: string; status: string; created_at: string; saved?: boolean; profile?: Partial<Site>;
+  archived?: boolean; kind?:string; site_name?:string; summary?:string; sample_checks?: SampleChecks;
+  problem?: {symptom?:string; endpoint?:string; impact?:string; started_at?:string; recent_changes?:string};
   evidence?: SubmittedEvidence[]; report?: SupportReport; report_hits?: Hit[]; revision?: number; last_run_id?: string;
-  plan?: { revision: number; evidence_ids: string[] }; solution?: string;
+  plan?: { revision: number; evidence_ids: string[]; steps: CheckStep[]; checks?: {status:string; note:string}[] }; solution?: string;
   reports?: {revision: number; report: SupportReport; hits: Hit[]; run_id: string}[];
+  related_cases?: {session_id:string; solution:string; outcome:string; archived:boolean}[];
 }

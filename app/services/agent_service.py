@@ -89,13 +89,13 @@ def _final_snapshot(container, config: dict) -> dict:
     }
 
 
-def chat_once(container, db: Session, tenant_id: str, user_id: str, username: str, session_id: str, question: str) -> dict:
+def chat_once(container, db: Session, tenant_id: str, user_id: str, username: str, session_id: str, question: str, workflow="auto") -> dict:
     if context_for_session(db, session_id, tenant_id, user_id) is not None:
         question = redact(question)["text"]
     recorder = RunRecorder.start(container, tenant_id, session_id, question)
     try:
         with capture_run(recorder):
-            result = _chat_once(container, db, tenant_id, user_id, username, session_id, question, recorder.id)
+            result = _chat_once(container, db, tenant_id, user_id, username, session_id, question, recorder.id, workflow)
         result["run_id"] = recorder.id
         recorder.finish(result)
         return result
@@ -108,7 +108,7 @@ def chat_once(container, db: Session, tenant_id: str, user_id: str, username: st
         raise
 
 
-def _chat_once(container, db, tenant_id, user_id, username, session_id, question, run_id):
+def _chat_once(container, db, tenant_id, user_id, username, session_id, question, run_id, workflow="auto"):
     """非流式诊断：返回最终结果与全部过程事件（便于测试与调试）。"""
     chat_service.add_message(db, tenant_id, session_id, "user", question)
     history = chat_service.get_history(db, session_id, limit=6)
@@ -123,6 +123,7 @@ def _chat_once(container, db, tenant_id, user_id, username, session_id, question
         "run_id": run_id,
         "support_context": context_for_session(db, session_id, tenant_id, user_id),
         "support_report": None,
+        "support_workflow": workflow,
     }
     events: list[dict] = []
     _emit_graph_events(container.graph, container.graph.stream(input_state, config, stream_mode="updates"), events)
@@ -146,13 +147,13 @@ def _chat_once(container, db, tenant_id, user_id, username, session_id, question
     return result
 
 
-def chat_stream(container, tenant_id: str, user_id: str, username: str, session_id: str, question: str):
+def chat_stream(container, tenant_id: str, user_id: str, username: str, session_id: str, question: str, workflow="auto"):
     with container.db_session() as db:
         if context_for_session(db, session_id, tenant_id, user_id) is not None:
             question = redact(question)["text"]
     def recorded():
         recorder = RunRecorder.start(container, tenant_id, session_id, question)
-        iterator = _chat_stream(container, tenant_id, user_id, username, session_id, question, recorder.id)
+        iterator = _chat_stream(container, tenant_id, user_id, username, session_id, question, recorder.id, workflow)
         try:
             while True:
                 # SSE每次next可由不同工作线程执行，ContextVar不能跨yield保留token。
@@ -176,7 +177,7 @@ def chat_stream(container, tenant_id: str, user_id: str, username: str, session_
     return recorded()
 
 
-def _chat_stream(container, tenant_id, user_id, username, session_id, question, run_id):
+def _chat_stream(container, tenant_id, user_id, username, session_id, question, run_id, workflow="auto"):
     """SSE 流式诊断：推送 start → 节点状态/检索/工具/回答 → (approval_required) → final → done。
 
     注意：不复用请求级 DB 会话，生成器内部自管会话，避免依赖在流式响应期间被提前关闭。
@@ -198,6 +199,7 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
             "run_id": run_id,
             "support_context": support_context,
             "support_report": None,
+            "support_workflow": workflow,
         }
         yield _sse({"type": "start", "session_id": session_id, "question": question})
         stream = container.graph.stream(input_state, config, stream_mode=["updates", "custom"])

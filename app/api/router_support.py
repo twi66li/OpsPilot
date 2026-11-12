@@ -7,10 +7,12 @@ from sqlalchemy.orm import Session
 
 from app.auth.deps import AuthUser, get_current_user
 from app.db.base import get_db
-from app.db.models import ChatSession, Document, SupportCase, Tenant, WebsiteProfile
+from app.db.models import Document, SupportCase, Tenant, WebsiteProfile
 from app.services import chat_service
+from app.services.case_service import CASE_STATUSES, assert_editable, case_status, is_archived, list_cases, reopen
+from app.services.evidence_checks import analyze_samples
 from app.services.knowledge_access import personal_namespace
-from app.services.official_library import BY_ID, catalog
+from app.services.official_library import BY_ID, SCENARIOS, catalog
 from app.services.support_service import (
     CaseIn,
     EvidenceIn,
@@ -26,13 +28,19 @@ router = APIRouter(prefix="/api/support", tags=["personal-support"])
 
 
 def case_dict(case):
-    return {"id": case.session_id, "site_id": case.site_id, "status": case.status,
-            "created_at": case.created_at.isoformat(), **case.data}
+    return {**case.data, "id": case.session_id, "site_id": case.site_id, "status": case_status(case),
+            "archived": is_archived(case), "saved": is_archived(case), "kind": case.data.get("kind", "problem"),
+            "sample_checks": analyze_samples(case.data), "created_at": case.created_at.isoformat()}
 
 
 @router.get("/library")
 def library(user: AuthUser = Depends(get_current_user)):
     return catalog()
+
+
+@router.get("/scenarios")
+def scenarios(user: AuthUser = Depends(get_current_user)):
+    return [{**guide, "source": BY_ID[guide["doc_id"]]["url"]} for guide in SCENARIOS]
 
 
 @router.get("/library/{doc_id}")
@@ -66,7 +74,20 @@ def upload_personal(file: UploadFile = File(...), title: str = Form(""), doc_id:
 
 @router.get("/sites")
 def sites(user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
-    return [{"id": s.id, **s.data} for s in db.query(WebsiteProfile).filter_by(tenant_id=user.tenant_id, user_id=user.user_id).all()]
+    records = list_cases(db, user, kind="problem")
+    return [{"id": s.id, **s.data, "problem_count": sum(c["site_id"] == s.id for c in records),
+             "open_count": sum(c["site_id"] == s.id and c["status"] != "user_resolved" and not c["archived"] for c in records)}
+            for s in db.query(WebsiteProfile).filter_by(tenant_id=user.tenant_id, user_id=user.user_id).all()]
+
+
+@router.get("/sites/{site_id}")
+def site_detail(site_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    site = owned_site(db, user, site_id)
+    docs = db.query(Document).filter(Document.id.in_(site.data.get("doc_ids", [])),
+                                     Document.tenant_id == personal_namespace(user.user_id)).all()
+    return {"id": site.id, **site.data, "documents": [{"id": d.id, "title": d.title,
+            "chunk_count": d.chunk_count, "active_version_id": d.active_version_id} for d in docs],
+            "cases": list_cases(db, user, site_id=site_id, kind="problem")}
 
 
 def save_site(db, user, body, site=None):
@@ -95,18 +116,66 @@ def create_case(body: CaseIn, user: AuthUser = Depends(get_current_user), db: Se
     session = chat_service.create_session(db, user.tenant_id, user.user_id, redact(body.title)["text"])
     case = SupportCase(session_id=session.id, tenant_id=user.tenant_id, user_id=user.user_id,
                        site_id=site.id if site else None,
-                       data={"profile": site.data if site else {}, "evidence": [], "revision": 0})
+                       data={"profile": site.data if site else {}, "evidence": [], "revision": 0, "kind": body.kind,
+                             "problem": {key: redact(getattr(body, key))["text"] for key in
+                                         ("symptom", "endpoint", "impact", "started_at", "recent_changes")}})
     db.add(case)
     db.commit()
     return case_dict(case)
 
 
 @router.get("/cases")
-def cases(user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
-    rows = db.query(SupportCase, ChatSession).join(ChatSession, SupportCase.session_id == ChatSession.id).filter(
-        SupportCase.tenant_id == user.tenant_id, SupportCase.user_id == user.user_id).order_by(SupportCase.created_at.desc()).all()
-    return [{"id": c.session_id, "title": s.title, "status": c.status, "site_id": c.site_id,
-             "saved": c.data.get("saved", False), "created_at": c.created_at.isoformat()} for c, s in rows]
+def cases(site_id: str | None = None, kind: str | None = None, status: str | None = None, archived: bool | None = None,
+          user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    return list_cases(db, user, site_id, kind, status, archived)
+
+
+class ProblemIn(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=100)
+    symptom: str = Field(default="", max_length=2000)
+    endpoint: str = Field(default="", max_length=200)
+    impact: str = Field(default="", max_length=500)
+    started_at: str = Field(default="", max_length=100)
+    recent_changes: str = Field(default="", max_length=1000)
+
+
+@router.put("/cases/{session_id}/problem")
+def update_problem(session_id: str, body: ProblemIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    case = owned_case(db, user, session_id)
+    assert_editable(case)
+    if body.title is not None:
+        session = chat_service.get_session(db, user.tenant_id, session_id, user.user_id)
+        session.title = redact(body.title)["text"]
+    case.data = {**case.data, "kind": "problem", "problem": {k: redact(v)["text"] for k, v in body.model_dump(exclude={"title"}).items()}}
+    db.commit()
+    return case_dict(case)
+
+
+class StatusIn(BaseModel):
+    status: str
+    note: str = Field(default="", max_length=2000)
+    user_confirmed: bool = False
+
+
+@router.post("/cases/{session_id}/status")
+def change_status(session_id: str, body: StatusIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    case = owned_case(db, user, session_id)
+    if body.status == "reopen":
+        reopen(case)
+    else:
+        assert_editable(case)
+        if body.status not in CASE_STATUSES:
+            raise HTTPException(400, "未知的问题状态")
+        if body.status == "user_resolved" and (not body.user_confirmed or not body.note.strip()):
+            raise HTTPException(400, "确认解决需要本人确认并填写实际处理记录")
+        if body.status == "sample_recovered":
+            raise HTTPException(400, "样本核对状态由程序计算，不能手动指定")
+        case.status = body.status
+    case.data = {**case.data, "status_note": redact(body.note)["text"]}
+    if body.status == "user_resolved":
+        case.data = {**case.data, "solution": redact(body.note)["text"], "user_confirmed_resolved": True}
+    db.commit()
+    return case_dict(case)
 
 
 @router.get("/cases/{session_id}")
@@ -122,15 +191,21 @@ def preview(body: EvidenceIn, user: AuthUser = Depends(get_current_user)):
 @router.post("/cases/{session_id}/evidence")
 def submit_evidence(session_id: str, body: EvidenceIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     case = owned_case(db, user, session_id)
-    if case.status == "saved":
-        raise HTTPException(409, "已保存的案例保留原记录，请为新问题创建会话")
+    assert_editable(case)
     evidence = case.data.get("evidence", [])
     if len(evidence) >= 12 or sum(len(e["text"]) for e in evidence) + len(body.text) > 30000:
         raise HTTPException(400, "本会话证据已达上限，请为新的问题创建会话")
     if body.kind == "check_result" and not case.data.get("plan"):
         raise HTTPException(409, "请先确认当前检查方案；普通补充日志请选择初始/补充证据")
     item = new_evidence(body)
-    case.data = {**case.data, "evidence": [*evidence, item]}
+    if body.kind == "check_result":
+        plan = case.data["plan"]
+        if body.plan_revision is not None and body.plan_revision != plan["revision"]:
+            raise HTTPException(409, "检查方案已经更新，请刷新后提交")
+        if body.step_index is not None and body.step_index >= len(plan["steps"]):
+            raise HTTPException(400, "检查步骤不存在")
+        item["plan_revision"] = plan["revision"]
+    case.data = {**case.data, "kind": "problem", "evidence": [*evidence, item]}
     case.status = "evidence_submitted"
     db.commit()
     return item
@@ -139,19 +214,42 @@ def submit_evidence(session_id: str, body: EvidenceIn, user: AuthUser = Depends(
 @router.post("/cases/{session_id}/confirm-plan")
 def confirm_plan(session_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     case = owned_case(db, user, session_id)
-    if case.status == "saved":
-        raise HTTPException(409, "已保存的案例不能重新确认方案，请创建新问题")
-    report = case.data.get("report", {})
+    assert_editable(case)
+    report = case.data.get("report") or {}
     if not report.get("steps"):
         raise HTTPException(409, "当前没有可确认的检查方案")
     revision = case.data["revision"]
     # 重复确认同一方案不重置证据基线。
     if case.data.get("plan", {}).get("revision") != revision:
         case.data = {**case.data, "plan": {"revision": revision, "steps": report["steps"],
-                                           "evidence_ids": [e["id"] for e in case.data.get("evidence", [])]}}
+                                           "evidence_ids": [e["id"] for e in case.data.get("evidence", [])],
+                                           "checks": [{"status": "pending", "note": ""} for _ in report["steps"]]}}
         case.status = "awaiting_results"
         db.commit()
     return {"status": case.status, "message": "已记录方案确认。请在自己的网站环境操作，再提交新的检查结果；本平台未执行任何操作。"}
+
+
+class StepIn(BaseModel):
+    revision: int
+    status: str = "done"
+    note: str = Field(default="", max_length=2000)
+
+
+@router.post("/cases/{session_id}/plan/steps/{step_index}")
+def update_step(session_id: str, step_index: int, body: StepIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    case = owned_case(db, user, session_id)
+    assert_editable(case)
+    plan = dict(case.data.get("plan", {}))
+    if plan.get("revision") != body.revision or not 0 <= step_index < len(plan.get("steps", [])):
+        raise HTTPException(409, "检查方案或步骤已变化，请刷新后重试")
+    if body.status not in ("pending", "done", "skipped"):
+        raise HTTPException(400, "未知的步骤状态")
+    checks = [*plan.get("checks", [{"status": "pending", "note": ""} for _ in plan["steps"]])]
+    checks[step_index] = {"status": body.status, "note": redact(body.note)["text"]}
+    plan["checks"] = checks
+    case.data = {**case.data, "plan": plan}
+    db.commit()
+    return case_dict(case)
 
 
 class SaveIn(BaseModel):
@@ -162,14 +260,13 @@ class SaveIn(BaseModel):
 @router.post("/cases/{session_id}/save")
 def save_case(session_id: str, body: SaveIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     case = owned_case(db, user, session_id)
-    if case.status == "saved":
+    if is_archived(case):
         return case_dict(case)
     if not body.user_confirmed:
         raise HTTPException(400, "保存案例需要本人确认处理记录")
     if not case.data.get("report"):
         raise HTTPException(409, "请先完成一次排障分析")
-    case.data = {**case.data, "saved": True, "solution": redact(body.solution)["text"],
+    case.data = {**case.data, "saved": True, "archived": True, "solution": redact(body.solution)["text"],
                  "result_label": "用户确认的处理记录；恢复结论以报告中的证据范围为限"}
-    case.status = "saved"
     db.commit()
     return case_dict(case)

@@ -1,0 +1,31 @@
+[
+  {"id":"database-pool","title":"数据库连接失败与连接池等待超时","doc_id":"official-sqlalchemy-pool","components":["Python","PostgreSQL","SQLAlchemy"],
+   "description":"先区分认证、网络连接、数据库容量与应用连接池等待，保留完整异常类型。",
+   "symptoms":["QueuePool limit / connection timed out","psycopg OperationalError 或 too many connections","原接口返回500或等待很久"],
+   "checks":[
+     {"where":"应用配置及部署文件","action":"只读查看pool_size、max_overflow、pool_timeout与worker数量。不要提交连接串密码。","normal":"配置与日志一致且总连接需求在数据库容量内，继续核对事务占用。","abnormal":"记录配置差异或总需求过大，先定位来源。","risk":"只读"},
+     {"where":"已有授权的PostgreSQL会话","action":"SHOW max_connections;\nSELECT state, count(*) FROM pg_stat_activity GROUP BY state;","normal":"活动连接数量可控；继续检查应用Session是否在正常和异常路径释放。","abnormal":"记录长事务或idle in transaction情况；不要批量终止连接。","risk":"只读"}],
+   "change_guidance":"确认连接生命周期问题后，在自己的代码中修复异常路径的释放并按原部署流程发布。先保存原配置与版本，异常时回滚原版本；增大连接池可能转移压力，不作为默认处理。",
+   "sample_before":"2026-11-12T10:00:01+08:00 POST /orders HTTP 500\nsqlalchemy.exc.TimeoutError: QueuePool limit of size 5 overflow 10 reached, connection timed out, timeout 30.00",
+   "sample_after":"2026-11-12T10:10:01+08:00 POST /orders HTTP 200 elapsed=120ms\n2026-11-12T10:10:02+08:00 POST /orders HTTP 200 elapsed=125ms\n2026-11-12T10:10:03+08:00 POST /orders HTTP 200 elapsed=118ms",
+   "verification":"重跑原失败接口并提交带时区的请求结果及新异常日志。程序比较同一接口至少3次新请求；成功样本不能证明连接泄漏已经消除。"},
+  {"id":"nginx-upstream","title":"Nginx 502 / 504","doc_id":"official-nginx-upstream","components":["Nginx","Docker","HTTP"],
+   "description":"把网关现象与上游故障分开，使用同一请求、同一时段的访问日志和错误日志。",
+   "symptoms":["访问网站返回502或504","connect() failed / connection refused","upstream timed out"],
+   "checks":[
+     {"where":"Nginx所在主机或容器","action":"查看原请求附近的访问日志和error日志，保留upstream、接口、时间与请求编号，移除令牌和个人信息。","normal":"能关联同一请求和上游地址，继续核对对应服务。","abnormal":"只有一个状态码时先补充错误日志，不能据此指定根因。","risk":"只读"},
+     {"where":"网关所在网络位置和部署配置","action":"只读核对proxy_pass中的名称、端口和容器网络；检查对应上游是否运行、是否返回预期业务响应。","normal":"上游可达但仍502/504时，继续核对响应和等待阶段。","abnormal":"拒绝连接、DNS失败或上游超时，沿对应分支检查服务与依赖。","risk":"只读"}],
+   "change_guidance":"有证据后再修改代理地址或超时。保存原配置，执行nginx -t验证配置后，按自己的发布方式重载；配置或请求异常时恢复原配置。不要默认无限增大超时。",
+   "sample_before":"2026-11-12T10:00:01+08:00 GET /checkout HTTP/1.1 502\n[error] connect() failed (111: Connection refused) while connecting to upstream",
+   "sample_after":"2026-11-12T10:10:01+08:00 GET /checkout HTTP/1.1 200\n2026-11-12T10:10:02+08:00 GET /checkout HTTP/1.1 200\n2026-11-12T10:10:03+08:00 GET /checkout HTTP/1.1 200",
+   "verification":"从原访问入口重试同一接口，提交新访问日志及相关错误日志。另一个接口的200或缺失日志都不能证明原问题恢复。"},
+  {"id":"docker-restart","title":"容器退出、重启与内存异常","doc_id":"official-docker-state","components":["Docker","Python"],
+   "description":"先看退出现场，再判断业务恢复；容器状态与网站能否正常响应是两件事。",
+   "symptoms":["容器反复退出或restarting","ExitCode 137","OOMKilled true或启动依赖报错"],
+   "checks":[
+     {"where":"运行容器的主机终端","action":"docker inspect --format '{{json .State}}' <容器名>\ndocker logs --since 10m --tail 100 --timestamps <容器名>","normal":"running只说明容器进程在运行，继续重试原业务请求。","abnormal":"保留ExitCode、OOMKilled和异常前后日志；137本身不能确认OOM。","risk":"只读"}],
+   "change_guidance":"先保存现场，再根据证据决定修复启动配置、依赖或资源限制。重启会造成短暂中断并可能掩盖现场；修改前保留原配置/镜像，异常时回滚。平台不替用户重启容器。",
+   "sample_before":"{\"Status\":\"exited\",\"ExitCode\":137,\"OOMKilled\":true}\n2026-11-12T10:00:01+08:00 GET /health HTTP 502",
+   "sample_after":"{\"Status\":\"running\",\"ExitCode\":0,\"OOMKilled\":false}\n2026-11-12T10:10:01+08:00 GET /health HTTP 200\n2026-11-12T10:10:02+08:00 GET /health HTTP 200\n2026-11-12T10:10:03+08:00 GET /health HTTP 200",
+   "verification":"同时提交新容器State和原失败业务接口的请求结果。只提供running仍是证据不足；业务健康检查也不能代替所有真实业务路径。"}
+]

@@ -1,4 +1,4 @@
-import type { AgentEvent, Auth } from './types';
+import type { AgentEvent, Auth, Workflow } from './types';
 
 const storageKey = 'opspilot.auth';
 export const formatTime = (value: string) => new Date(/[zZ]$|[+-]\d{2}:\d{2}$/.test(value) ? value : value + 'Z').toLocaleString();
@@ -36,10 +36,10 @@ export async function downloadFile(path: string, name: string) {
   const link = document.createElement('a'); link.href = url; link.download = name; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-export async function streamChat(sessionId: string, message: string, onEvent: (event: AgentEvent) => void, signal: AbortSignal) {
+export async function streamChat(sessionId: string, message: string, onEvent: (event: AgentEvent) => void, signal: AbortSignal, workflow: Workflow = 'auto') {
   const response = await checked(await fetch('/api/agent/chat/stream', {
     method: 'POST', headers: headers({'Content-Type': 'application/json'}),
-    body: JSON.stringify({session_id: sessionId, message}), signal,
+    body: JSON.stringify({session_id: sessionId, message, workflow}), signal,
   }));
   if (!response.body) throw new Error('浏览器不支持流式响应');
   const reader = response.body.getReader(), decoder = new TextDecoder();

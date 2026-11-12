@@ -63,7 +63,8 @@ def main(session_id=None):
         path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
         print(json.dumps({"record": str(path), "session_id": case["id"], "elapsed_s": record["elapsed_s"],
                           "first_run": first["run_id"], "followup_run": second["run_id"],
-                          "verification": second["support_report"]["verification"], "saved": record["saved"]["status"]}, ensure_ascii=False))
+                          "verification": second["support_report"]["verification"], "archived": record["saved"]["archived"],
+                          "problem_status": record["saved"]["status"]}, ensure_ascii=False))
 
 
 if __name__ == "__main__":

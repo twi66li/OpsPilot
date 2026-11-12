@@ -1,0 +1,318 @@
+{
+  "date": "2026-11-12",
+  "source": "明确标注的验收输入样例；非生产实采",
+  "elapsed_s": 38.11,
+  "site_id": "a21bf7b9735f41a6829fa8a785ca0f77",
+  "issue_id": "b156edc8622b4c2b9879bb0b4e06012b",
+  "checks": {
+    "consultation_separate": true,
+    "site_issue_linked": true,
+    "step_completion_not_recovery": true,
+    "sample_comparison_by_program": true,
+    "resolution_separate_from_archive": true,
+    "saved_case_recalled_for_same_site": true
+  },
+  "stages": [
+    {
+      "kind": "consult",
+      "run_id": "234c9aeab4004a6eb1f9028987035aaa",
+      "report": {
+        "summary": "在 Docker 容器中只读提取最近 10 分钟日志，可用 `docker logs --since 10m <容器名>`（或 `--since \"10 minutes ago\"`），该命令仅读取日志输出、不修改容器状态。提交前请先脱敏，移除日志中的密码、令牌、密钥、IP、手机号等敏感信息。",
+        "observations": [],
+        "hypotheses": [],
+        "missing_info": [],
+        "steps": [],
+        "references": [],
+        "verification": {
+          "verdict": "inconclusive",
+          "evidence_ids": [],
+          "reason": "本轮为知识或历史咨询，不进行恢复判定。"
+        },
+        "workflow": "consult"
+      }
+    },
+    {
+      "kind": "diagnose",
+      "run_id": "b8e4d3df92874ccb99d740d638202b50",
+      "report": {
+        "summary": "提交的样例显示：2026-11-12 10:00:00 GET /checkout 返回502，Nginx错误日志为 connect() failed (111: Connection refused) while connecting to upstream。这直接说明网关在连接上游时被拒绝，属于连接阶段失败，不是上游超时或业务报错。已知事实仅此一条：网关无法建立到上游的连接。待验证原因包括：上游服务未启动或已退出、proxy_pass 指向的端口/主机名配置错误、容器网络路径不通。由于样例标注为教学样例、非网站实采，且没有提供 proxy_pass 配置、上游服务状态或同一请求的完整错误上下文，目前不能确定根因。",
+        "observations": [
+          {
+            "evidence_id": "E421a9067",
+            "line_start": 1,
+            "line_end": 2,
+            "meaning": "L1显示GET /checkout返回502；L2显示Nginx连接上游时被拒绝（Connection refused），说明失败发生在连接阶段而非读取等待阶段。",
+            "quote": "127.0.0.1 - - [12/Nov/2026:10:00:00 +0800] \"GET /checkout HTTP/1.1\" 502 100\n[error] connect() failed (111: Connection refused) while connecting to upstream"
+          }
+        ],
+        "hypotheses": [
+          "上游服务未启动或已退出，导致网关连接被拒绝",
+          "proxy_pass 指向的主机名或端口配置错误，网关连到了错误地址",
+          "容器网络路径不通，网关无法到达上游容器"
+        ],
+        "missing_info": [
+          "Nginx 中 /checkout 对应的 proxy_pass 配置（主机名、端口、网络）",
+          "上游服务当前是否运行及其监听端口",
+          "同一请求的完整 error 日志上下文（upstream 地址、请求编号）"
+        ],
+        "steps": [
+          {
+            "location": "Nginx 所在主机或容器内",
+            "action": "只读查看 /checkout 对应的 proxy_pass 配置，确认上游主机名、端口和容器网络；同时查看上游服务是否运行、监听哪个端口。",
+            "normal": "proxy_pass 指向的地址与上游实际监听一致，且上游正在运行；则继续从网关所在网络位置直接访问上游，核对是否返回预期业务响应。",
+            "abnormal": "proxy_pass 指向的端口无服务监听，或上游服务未运行；则说明连接被拒绝的原因，再决定是否启动服务或修正配置。",
+            "risk": "只读",
+            "rollback": ""
+          }
+        ],
+        "references": [
+          1
+        ],
+        "verification": {
+          "verdict": "inconclusive",
+          "evidence_ids": [],
+          "reason": "请先确认检查方案，再提交包含接口、时间戳和响应状态的新结果。",
+          "method": "program"
+        },
+        "workflow": "diagnose",
+        "program_checks": {
+          "scope": "仅限用户提交样本，非实时监控",
+          "measurements": [
+            {
+              "evidence_id": "E421a9067",
+              "kind": "initial",
+              "request_count": 1,
+              "failed_requests": 1,
+              "requests": [
+                {
+                  "line": 1,
+                  "method": "GET",
+                  "endpoint": "/checkout",
+                  "status": 502,
+                  "at": "2026-11-12T10:00:00+08:00",
+                  "elapsed_ms": null
+                }
+              ],
+              "pool_error_lines": [],
+              "container_states": []
+            }
+          ],
+          "verification": {
+            "verdict": "inconclusive",
+            "evidence_ids": [],
+            "reason": "请先确认检查方案，再提交包含接口、时间戳和响应状态的新结果。",
+            "method": "program"
+          }
+        }
+      }
+    },
+    {
+      "kind": "review",
+      "run_id": "5cdc874b078b485fbb7a4a5dcc6e7961",
+      "report": {
+        "summary": "程序对照仅针对用户提交的验收样例：同一接口 GET /checkout，处理前样本（E421a9067）在 2026-11-12 10:00:00 有 1 次请求、1 次失败（502）；处理后样本（E93f09acf）在 10:10:00–10:10:02 有 3 次请求、0 次失败（均 200）。时间上处理后样本晚于原失败记录，请求数从 1 增至 3 且无失败，因此程序判定为 sample_recovered。该结论只说明提交样本内原 HTTP 异常不再复现，不能证明生产长期恢复或连接泄漏已修复，也未声称修改过真实网站。",
+        "observations": [
+          {
+            "evidence_id": "E421a9067",
+            "line_start": 1,
+            "line_end": 2,
+            "meaning": "处理前样本：GET /checkout 返回 502，Nginx 连接上游被拒绝（Connection refused），1 次请求 1 次失败。",
+            "quote": "127.0.0.1 - - [12/Nov/2026:10:00:00 +0800] \"GET /checkout HTTP/1.1\" 502 100\n[error] connect() failed (111: Connection refused) while connecting to upstream"
+          },
+          {
+            "evidence_id": "E93f09acf",
+            "line_start": 1,
+            "line_end": 3,
+            "meaning": "处理后样本：同一接口 3 次请求均返回 200，0 次失败，时间晚于原失败记录。",
+            "quote": "127.0.0.1 - - [12/Nov/2026:10:10:00 +0800] \"GET /checkout HTTP/1.1\" 200 100\n127.0.0.1 - - [12/Nov/2026:10:10:01 +0800] \"GET /checkout HTTP/1.1\" 200 100\n127.0.0.1 - - [12/Nov/2026:10:10:02 +0800] \"GET /checkout HTTP/1.1\" 200 100"
+          }
+        ],
+        "hypotheses": [
+          "样本内 502 不再复现，可能因上游已恢复或配置已修正，但缺少 proxy_pass 配置与上游运行状态，无法确认根因。"
+        ],
+        "missing_info": [
+          "proxy_pass 指向的主机名、端口与容器网络",
+          "上游服务当前运行状态及监听端口",
+          "生产环境长期监控数据以确认是否真正恢复"
+        ],
+        "steps": [],
+        "references": [],
+        "verification": {
+          "verdict": "sample_recovered",
+          "evidence_ids": [
+            "E93f09acf"
+          ],
+          "reason": "原接口处理后的3次提交样本均未返回HTTP错误，且时间晚于原失败记录；仅支持样本内原HTTP异常不再复现，不能证明生产长期恢复或连接泄漏已修复。",
+          "method": "program"
+        },
+        "workflow": "review",
+        "program_checks": {
+          "scope": "仅限用户提交样本，非实时监控",
+          "measurements": [
+            {
+              "evidence_id": "E421a9067",
+              "kind": "initial",
+              "request_count": 1,
+              "failed_requests": 1,
+              "requests": [
+                {
+                  "line": 1,
+                  "method": "GET",
+                  "endpoint": "/checkout",
+                  "status": 502,
+                  "at": "2026-11-12T10:00:00+08:00",
+                  "elapsed_ms": null
+                }
+              ],
+              "pool_error_lines": [],
+              "container_states": []
+            },
+            {
+              "evidence_id": "E93f09acf",
+              "kind": "check_result",
+              "request_count": 3,
+              "failed_requests": 0,
+              "requests": [
+                {
+                  "line": 1,
+                  "method": "GET",
+                  "endpoint": "/checkout",
+                  "status": 200,
+                  "at": "2026-11-12T10:10:00+08:00",
+                  "elapsed_ms": null
+                },
+                {
+                  "line": 2,
+                  "method": "GET",
+                  "endpoint": "/checkout",
+                  "status": 200,
+                  "at": "2026-11-12T10:10:01+08:00",
+                  "elapsed_ms": null
+                },
+                {
+                  "line": 3,
+                  "method": "GET",
+                  "endpoint": "/checkout",
+                  "status": 200,
+                  "at": "2026-11-12T10:10:02+08:00",
+                  "elapsed_ms": null
+                }
+              ],
+              "pool_error_lines": [],
+              "container_states": []
+            }
+          ],
+          "verification": {
+            "verdict": "sample_recovered",
+            "evidence_ids": [
+              "E93f09acf"
+            ],
+            "reason": "原接口处理后的3次提交样本均未返回HTTP错误，且时间晚于原失败记录；仅支持样本内原HTTP异常不再复现，不能证明生产长期恢复或连接泄漏已修复。",
+            "method": "program"
+          },
+          "comparison": {
+            "method": "GET",
+            "endpoint": "/checkout",
+            "before_failed_samples": 1,
+            "after_requests": 3,
+            "after_failures": 0,
+            "after_from": "2026-11-12T10:10:00+08:00",
+            "after_until": "2026-11-12T10:10:02+08:00"
+          }
+        }
+      }
+    },
+    {
+      "kind": "history",
+      "run_id": "0a4c09a76689431693c47a9973b8a8b9",
+      "report": {
+        "summary": "已查到本人在同一网站保存的一条结算页502处理记录（session b156edc8622b4c2b9879bb0b4e06012b）。该案例针对 GET /checkout：处理前样本1次请求1次失败（502，Nginx连接上游被拒），处理后样本3次请求0次失败（均200），程序判定为 sample_recovered。该案例已由用户确认解决（outcome=user_resolved）并已归档（archived=true）。需要说明：样本核对（sample_recovered）仅表示用户提交的样本内原HTTP异常不再复现，不代表生产长期恢复或连接泄漏已修复；而用户确认（user_resolved）是用户本人明确标记问题已解决，两者性质不同——前者是程序对提交样本的客观比对，后者是用户的主观确认结论。",
+        "observations": [],
+        "hypotheses": [],
+        "missing_info": [],
+        "steps": [],
+        "references": [],
+        "verification": {
+          "verdict": "inconclusive",
+          "evidence_ids": [],
+          "reason": "本轮为知识或历史咨询，不进行恢复判定。"
+        },
+        "workflow": "history"
+      }
+    }
+  ],
+  "sample_checks": {
+    "scope": "仅限用户提交样本，非实时监控",
+    "measurements": [
+      {
+        "evidence_id": "E421a9067",
+        "kind": "initial",
+        "request_count": 1,
+        "failed_requests": 1,
+        "requests": [
+          {
+            "line": 1,
+            "method": "GET",
+            "endpoint": "/checkout",
+            "status": 502,
+            "at": "2026-11-12T10:00:00+08:00",
+            "elapsed_ms": null
+          }
+        ],
+        "pool_error_lines": [],
+        "container_states": []
+      },
+      {
+        "evidence_id": "E93f09acf",
+        "kind": "check_result",
+        "request_count": 3,
+        "failed_requests": 0,
+        "requests": [
+          {
+            "line": 1,
+            "method": "GET",
+            "endpoint": "/checkout",
+            "status": 200,
+            "at": "2026-11-12T10:10:00+08:00",
+            "elapsed_ms": null
+          },
+          {
+            "line": 2,
+            "method": "GET",
+            "endpoint": "/checkout",
+            "status": 200,
+            "at": "2026-11-12T10:10:01+08:00",
+            "elapsed_ms": null
+          },
+          {
+            "line": 3,
+            "method": "GET",
+            "endpoint": "/checkout",
+            "status": 200,
+            "at": "2026-11-12T10:10:02+08:00",
+            "elapsed_ms": null
+          }
+        ],
+        "pool_error_lines": [],
+        "container_states": []
+      }
+    ],
+    "verification": {
+      "verdict": "sample_recovered",
+      "evidence_ids": [
+        "E93f09acf"
+      ],
+      "reason": "原接口处理后的3次提交样本均未返回HTTP错误，且时间晚于原失败记录；仅支持样本内原HTTP异常不再复现，不能证明生产长期恢复或连接泄漏已修复。",
+      "method": "program"
+    },
+    "comparison": {
+      "method": "GET",
+      "endpoint": "/checkout",
+      "before_failed_samples": 1,
+      "after_requests": 3,
+      "after_failures": 0,
+      "after_from": "2026-11-12T10:10:00+08:00",
+      "after_until": "2026-11-12T10:10:02+08:00"
+    }
+  }
+}

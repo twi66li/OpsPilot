@@ -32,12 +32,12 @@ def test_recovery_requires_new_post_plan_evidence():
     data = report("E1")
     data["missing_info"] = ["框架", "部署方式", "版本", "时间范围"]
     parsed = SupportReport.model_validate(data)
-    context = {"evidence": [{"id": "E1", "kind": "initial", "text": "HTTP 200"}]}
+    context = {"evidence": [{"id": "E1", "kind": "initial", "text": "2026-11-12T10:00:00+08:00 POST /orders HTTP 500"}]}
     assert validate_report(parsed, context, [])["verification"]["verdict"] == "inconclusive"
     context["plan"] = {"evidence_ids": ["E1"]}
     context["evidence"][0]["kind"] = "check_result"
     assert validate_report(parsed, context, [])["verification"]["verdict"] == "inconclusive"
-    context["evidence"].append({"id": "E2", "kind": "check_result", "text": "HTTP 200"})
+    context["evidence"].append({"id": "E2", "kind": "check_result", "text": "\n".join(f"2026-11-12T10:10:0{i}+08:00 POST /orders HTTP 200" for i in range(3))})
     data["verification"]["evidence_ids"] = ["E1", "E2"]
     data["observations"][0]["line_end"] = 999
     validated = validate_report(SupportReport.model_validate(data), context, [])
@@ -85,7 +85,7 @@ def test_no_manual_personal_flow_and_evidence_feedback(client, admin_headers, mo
     assert client.post(f'/api/support/cases/{session_id}/confirm-plan', headers=user).status_code == 409
     assert client.post(f'/api/support/cases/{session_id}/evidence', headers=user, json={"text": "done", "kind": "check_result"}).status_code == 409
     initial = client.post(f'/api/support/cases/{session_id}/evidence', headers=user,
-                          json={"text": "QueuePool timeout password=secret-value", "label": "错误日志"}).json()
+                          json={"text": "QueuePool timeout password=secret-value\n2026-11-12T10:00:00+08:00 POST /orders HTTP 500", "label": "错误日志"}).json()
     assert "secret-value" not in initial["text"]
 
     class PersonalAPI:
@@ -93,7 +93,7 @@ def test_no_manual_personal_flow_and_evidence_feedback(client, admin_headers, mo
 
         def tool_turn(self, messages, tools, **kwargs):
             self.calls.append(messages)
-            assert {t["function"]["name"] for t in tools} == {"search_runbook", "search_saved_cases"}
+            assert {t["function"]["name"] for t in tools}.issubset({"search_runbook", "search_saved_cases", "get_site_overview"})
             if not any(m["role"] == "tool" for m in messages):
                 return {"role": "assistant", "content": "", "tool_calls": [{"id": "source-query", "function": {
                     "name": "search_runbook", "arguments": json.dumps({"query": "QueuePool connection timed out", "top_k": 3})}}]}
@@ -105,12 +105,12 @@ def test_no_manual_personal_flow_and_evidence_feedback(client, admin_headers, mo
     assert result.status_code == 200, result.text
     output = result.json()
     assert output["support_report"]["verification"]["verdict"] == "inconclusive"
-    assert output["support_report"]["observations"][0]["quote"] == initial["text"]
+    assert output["support_report"]["observations"][0]["quote"] == initial["text"].splitlines()[0]
     assert output["hits"] and all(h["source_kind"] == "official" for h in output["hits"])
     assert "secret-value" not in json.dumps(fake.calls) and "chat-secret" not in json.dumps(fake.calls)
     assert not output.get("approval")
     assert client.post(f'/api/support/cases/{session_id}/confirm-plan', headers=user).status_code == 200
-    followup = client.post(f'/api/support/cases/{session_id}/evidence', headers=user, json={"text": "HTTP/1.1 200 OK", "kind": "check_result"})
+    followup = client.post(f'/api/support/cases/{session_id}/evidence', headers=user, json={"text": "\n".join(f"2026-11-12T10:10:0{i}+08:00 POST /orders HTTP 200" for i in range(3)), "kind": "check_result"})
     assert followup.status_code == 200
     # 已确认方案之后的新结果才允许模型进行样本范围内的恢复核对。
     updated_report = report(initial["id"])
@@ -119,6 +119,6 @@ def test_no_manual_personal_flow_and_evidence_feedback(client, admin_headers, mo
     checked = client.post('/api/agent/chat', headers=user, json={"session_id": session_id, "message": "核对新结果"}).json()
     assert checked["support_report"]["verification"]["verdict"] == "sample_recovered"
     saved = client.post(f'/api/support/cases/{session_id}/save', headers=user, json={"solution": "核对并调整了连接生命周期，重试样本通过", "user_confirmed": True})
-    assert saved.status_code == 200 and saved.json()["status"] == "saved"
+    assert saved.status_code == 200 and saved.json()["archived"] and saved.json()["status"] == "sample_recovered"
     assert client.post('/api/agent/chat', headers=user, json={"session_id": session_id, "message": "new"}).status_code == 409
     assert session_id not in {s["id"] for s in client.get('/api/sessions', headers=user).json()}

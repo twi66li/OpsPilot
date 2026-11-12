@@ -11,6 +11,7 @@ from app.db.base import get_db
 from app.db.models import SupportCase
 from app.services import agent_service, chat_service
 from app.services.cache import check_rate_limit
+from app.services.case_service import assert_editable
 
 router = APIRouter(prefix="/api/agent", tags=["agent"])
 
@@ -21,8 +22,8 @@ def _check_session_and_ratelimit(user: AuthUser, db: Session, session_id: str, q
     if not session:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "会话不存在")
     personal = db.get(SupportCase, session_id)
-    if personal and personal.status == "saved":
-        raise HTTPException(409, "此案例已确认保存，请为新问题创建会话")
+    if personal:
+        assert_editable(personal)
     if not check_rate_limit(container.cache, f"{user.tenant_id}:{user.user_id}", container.settings.rate_limit_per_minute):
         raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, "请求过于频繁，请稍后再试")
     return container
@@ -32,14 +33,14 @@ def _check_session_and_ratelimit(user: AuthUser, db: Session, session_id: str, q
 def chat(body: ChatIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     """非流式诊断：一次返回最终结果与全部过程事件（便于测试与调试）。"""
     container = _check_session_and_ratelimit(user, db, body.session_id, body.message)
-    return agent_service.chat_once(container, db, user.tenant_id, user.user_id, user.username, body.session_id, body.message)
+    return agent_service.chat_once(container, db, user.tenant_id, user.user_id, user.username, body.session_id, body.message, body.workflow)
 
 
 @router.post("/chat/stream")
 def chat_stream(body: ChatIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     """SSE 流式诊断：推送节点状态、检索命中、工具事件、回答与审批请求。"""
     container = _check_session_and_ratelimit(user, db, body.session_id, body.message)
-    generator = agent_service.chat_stream(container, user.tenant_id, user.user_id, user.username, body.session_id, body.message)
+    generator = agent_service.chat_stream(container, user.tenant_id, user.user_id, user.username, body.session_id, body.message, body.workflow)
     return StreamingResponse(
         generator,
         media_type="text/event-stream",

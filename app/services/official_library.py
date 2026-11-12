@@ -8,6 +8,17 @@ from app.services.kb_service import ingest_document
 
 OFFICIAL_TENANT = "__opspilot_official__"
 CATALOG = json.loads((Path(__file__).resolve().parents[1] / "knowledge" / "official.json").read_text(encoding="utf-8"))
+SCENARIOS = json.loads((Path(__file__).resolve().parents[1] / "knowledge" / "scenarios.json").read_text(encoding="utf-8"))
+for guide in SCENARIOS:
+    item = next(item for item in CATALOG if "official-" + item["id"] == guide["doc_id"])
+    sections = [f"\n\n## 场景指南：{guide['title']}", guide["description"], "常见现象：" + "；".join(guide["symptoms"])]
+    for step in guide["checks"]:
+        sections.extend([f"### {step['where']}（{step['risk']}）", step["action"], "正常：" + step["normal"], "异常：" + step["abnormal"]])
+    sections.extend(["修改与回退：" + guide["change_guidance"], "恢复核对：" + guide["verification"],
+                     "以下仅为教学样例，不是用户网站的运行证据。", "处理前样例：\n" + guide["sample_before"], "处理后样例：\n" + guide["sample_after"]])
+    item["content"] += "\n".join(sections)
+    item["scenario_id"] = guide["id"]
+    item["checked_at"] = "2026-11-12"
 BY_ID = {"official-" + item["id"]: item for item in CATALOG}
 
 

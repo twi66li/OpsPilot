@@ -15,6 +15,7 @@ from app.api import (
     router_admin,
     router_agent,
     router_eval,
+    router_health,
     router_kb,
     router_remediation,
     router_session,
@@ -60,6 +61,8 @@ def bootstrap() -> None:
             db.add(Tenant(id="default", name="默认租户"))
             db.commit()
         if not db.query(User).filter(User.username == settings.admin_username).first():
+            if settings.app_env == "production":
+                raise RuntimeError("请先运行 python -m scripts.init_admin 初始化生产管理员")
             db.add(
                 User(
                     tenant_id="default",
@@ -96,8 +99,8 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=get_settings().cors_origins,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -110,6 +113,8 @@ async def request_logging(request: Request, call_next):
     started = time.perf_counter()
     try:
         response = await call_next(request)
+        if request.url.path in ("/", "/index.html"):
+            response.headers["Cache-Control"] = "no-store"
         response.headers["X-Request-ID"] = request_id
         structlog.get_logger("http").info("response_started", method=request.method, path=request.url.path,
                                           status=response.status_code,
@@ -119,6 +124,7 @@ async def request_logging(request: Request, call_next):
         structlog.contextvars.clear_contextvars()
 
 app.include_router(auth_router)
+app.include_router(router_health.router)
 app.include_router(router_admin.router)
 app.include_router(router_kb.router)
 app.include_router(router_session.router)

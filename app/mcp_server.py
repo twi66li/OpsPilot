@@ -8,7 +8,7 @@ from mcp.types import ToolAnnotations
 from app.agent.tool_loop import LogArgs, MetricsArgs
 from app.auth.security import decode_token
 from app.db.base import SessionLocal
-from app.db.models import User
+from app.db.models import LoginSession, User, _now
 from app.services.log_service import query_logs as read_logs
 from app.services.metrics_service import query_service_metrics as read_metrics
 
@@ -23,6 +23,12 @@ def authenticated_tenant():
         user = db.get(User, claims.get("sub", ""))
         if user is None or user.tenant_id != claims.get("tenant_id"):
             raise ValueError("MCP身份已失效或租户不匹配")
+        if claims.get("token_use") == "access":
+            session = db.get(LoginSession, claims.get("jti", ""))
+            if not session or session.user_id != user.id or session.revoked_at or session.expires_at <= _now():
+                raise ValueError("MCP登录已失效")
+        elif claims.get("token_use") != "mcp":
+            raise ValueError("MCP令牌用途不匹配")
         return user.tenant_id
 
 

@@ -18,7 +18,7 @@ def observability_server_params(settings, user_id, tenant_id, evaluation_time):
         "database_url", "jwt_secret", "jwt_algorithm", "metrics_provider", "logs_url",
         "prometheus_url", "prometheus_timeout_seconds",
     )}
-    env.update(OPSPILOT_MCP_TOKEN=create_access_token(user_id, "", tenant_id, "viewer"),
+    env.update(OPSPILOT_MCP_TOKEN=create_access_token(user_id, "", tenant_id, "viewer", purpose="mcp"),
                OPSPILOT_MCP_EVALUATION_TIME=str(evaluation_time))
     return StdioServerParameters(command=sys.executable, args=["-m", "app.mcp_server"],
                                  cwd=Path(__file__).resolve().parents[2], env=env)

@@ -26,14 +26,16 @@ def verify_password(password: str, stored: str) -> bool:
     return hmac.compare_digest(calc, digest)
 
 
-def create_access_token(user_id: str, username: str, tenant_id: str, role: str) -> str:
+def create_access_token(user_id: str, username: str, tenant_id: str, role: str, *, session_id: str = "", purpose="access") -> str:
     settings = get_settings()
     payload = {
         "sub": user_id,
         "username": username,
         "tenant_id": tenant_id,
         "role": role,
-        "exp": datetime.now(timezone.utc) + timedelta(minutes=settings.access_token_expire_minutes),
+        "jti": session_id,
+        "token_use": purpose,
+        "exp": datetime.now(timezone.utc) + timedelta(minutes=1 if purpose == "mcp" else settings.access_token_expire_minutes),
         "iat": datetime.now(timezone.utc),
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth.security import decode_token
 from app.db.async_session import get_async_db
-from app.db.models import User
+from app.db.models import LoginSession, User, _now
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -20,6 +20,7 @@ class AuthUser:
     username: str
     tenant_id: str
     role: str
+    session_id: str = ""
 
 
 async def get_current_user(
@@ -35,7 +36,10 @@ async def get_current_user(
     user = await db.get(User, payload.get("sub", ""))
     if user is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "用户不存在或已被删除")
-    return AuthUser(user_id=user.id, username=user.username, tenant_id=user.tenant_id, role=user.role)
+    session = await db.get(LoginSession, payload.get("jti", ""))
+    if payload.get("token_use") != "access" or not session or session.user_id != user.id or session.revoked_at or session.expires_at <= _now():
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "登录已失效，请重新登录")
+    return AuthUser(user_id=user.id, username=user.username, tenant_id=user.tenant_id, role=user.role, session_id=session.id)
 
 
 def require_roles(*roles: str):

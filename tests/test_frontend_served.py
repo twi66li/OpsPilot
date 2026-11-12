@@ -9,6 +9,7 @@ from app.main import _FRONTEND_DIR, app
 def test_frontend_index_served():
     client = TestClient(app)
     r = client.get("/")
+    assert r.headers.get("cache-control") == "no-store"
     if not _FRONTEND_DIR.is_dir():
         assert r.status_code == 503 and "npm run build" in r.text
         return

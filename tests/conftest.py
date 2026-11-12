@@ -18,6 +18,7 @@ os.environ["CHAT_MODEL_CANDIDATES"] = "[]"
 os.environ["CHAT_MODEL_EXPIRATIONS"] = "{}"
 os.environ["MCP_ENABLED"] = "false"
 os.environ["RETRIEVAL_SUBAGENT_ENABLED"] = "false"
+os.environ["AUTH_RATE_LIMIT_PER_MINUTE"] = "10000"
 
 import pytest
 from fastapi.testclient import TestClient

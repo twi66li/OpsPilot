@@ -32,6 +32,8 @@ services:
     image: ${OPSPILOT_IMAGE:-opspilot:20261111}
     env_file: .env
     environment:
+      APP_ENV: production
+      REGISTRATION_ENABLED: ${REGISTRATION_ENABLED:-false}
       DATABASE_URL: postgresql+psycopg://opspilot:${POSTGRES_PASSWORD}@postgres:5432/opspilot
       REDIS_URL: redis://redis:6379/0
       QDRANT_MODE: remote
@@ -41,7 +43,7 @@ services:
       BUDGET_LEDGER_PATH: /app/data/model-budget-cloud.jsonl
       KB_STORAGE_PATH: /app/data/knowledge
       TOOL_TIMEOUT_SECONDS: ${TOOL_TIMEOUT_SECONDS:-30}
-    command: sh -c "python -m scripts.seed && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    command: sh -c "python -m scripts.migrate && exec uvicorn app.main:app --host 0.0.0.0 --port 8000"
     ports: ["127.0.0.1:18000:8000"]
     volumes: ["./data:/app/data", "./eval:/app/eval:ro"]
     depends_on:
@@ -53,7 +55,7 @@ services:
     mem_limit: 384m
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ready', timeout=4)"]
       interval: 5s
       timeout: 3s
       start_period: 60s

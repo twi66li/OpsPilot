@@ -1,6 +1,8 @@
 """全局配置：全部通过环境变量 / .env 覆盖，默认值支持零依赖离线运行。"""
 from functools import lru_cache
+from typing import Literal
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,6 +10,10 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     app_name: str = "aiops-diagnosis-agent"
+    app_env: Literal["development", "demo", "production"] = "development"
+    registration_enabled: bool = True
+    cors_origins: list[str] = []
+    auth_rate_limit_per_minute: int = 30
 
     # ---- 存储 ----
     database_url: str = "sqlite:///./data/app.db"
@@ -16,7 +22,7 @@ class Settings(BaseSettings):
     # ---- 认证 ----
     jwt_secret: str = "dev-secret-change-me"
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 720
+    access_token_expire_minutes: int = 60
     admin_username: str = "admin"
     admin_password: str = "admin123"
 
@@ -81,6 +87,17 @@ class Settings(BaseSettings):
     budget_ledger_path: str = ""
     budget_token_limit: int = 0
     budget_model_limits: dict[str, int] = {}  # 按 budget.json p1 列的分模型授权；未授权模型一律拒绝
+
+    @model_validator(mode="after")
+    def production_security(self):
+        if self.app_env == "production":
+            if self.jwt_secret == "dev-secret-change-me" or len(self.jwt_secret) < 32:
+                raise ValueError("生产环境 JWT_SECRET 必须使用至少32字符的独立随机密钥")
+            if self.admin_password == "admin123" or len(self.admin_password) < 12:
+                raise ValueError("生产环境 ADMIN_PASSWORD 必须配置至少12字符的独立密码")
+            if "*" in self.cors_origins:
+                raise ValueError("生产环境 CORS_ORIGINS 必须指定明确来源")
+        return self
 
 
 @lru_cache

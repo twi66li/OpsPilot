@@ -11,6 +11,10 @@ logger = logging.getLogger(__name__)
 _worker: ThreadPoolExecutor | None = None
 
 
+def worker_ready():
+    return _worker is not None
+
+
 def start_worker():
     global _worker
     with SessionLocal() as db:

@@ -32,6 +32,7 @@ dependencies = [
   "aiosqlite==0.22.1",
   "aiomysql==0.3.2",
   "structlog==26.1.0",
+  "alembic>=1.20.1",
 ]
 
 [dependency-groups]

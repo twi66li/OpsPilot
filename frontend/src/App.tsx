@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Layout, Menu, Space, Tag } from 'antd';
-import { api, savedAuth, saveAuth } from './api';
+import { api, post, savedAuth, saveAuth } from './api';
 import type { Auth, Hit, SupportEntry } from './types';
 import Investigation from './Investigation';
 import Operations from './Operations';
@@ -12,6 +12,7 @@ import PersonalSupport from './PersonalSupport';
 import Websites from './Websites';
 import Issues from './Issues';
 import AuthPanel from './AuthPanel';
+import PasswordDialog from './PasswordDialog';
 
 const pages = {home: '开始使用', websites: '我的网站', issues: '问题中心', support: '智能维护助手', knowledge: '维护资料库', investigation: '故障演练', operations: '演练审批与工单', evaluation: '评测记录'};
 type Page = keyof typeof pages;
@@ -20,13 +21,15 @@ export default function App() {
   const [page, setPage] = useState<Page>('home'), [source, setSource] = useState<Hit | null>(null);
   const [healthy, setHealthy] = useState<boolean | null>(null);
   const [supportEntry, setSupportEntry] = useState<SupportEntry>({});
+  const [passwordOpen,setPasswordOpen] = useState(false);
   function assist(entry: SupportEntry) {setSupportEntry(entry); setPage('support');}
   const canWrite = !!auth && ['admin', 'engineer'].includes(auth.role);
-  function logout() {saveAuth(null); setAuth(null); setSource(null); setPage('home');}
+  function clearAuth() {saveAuth(null); setAuth(null); setSource(null); setPasswordOpen(false); setPage('home');}
+  async function logout() {try{await post('/auth/logout');clearAuth();}catch{window.alert('退出未能在服务端确认，请稍后重试。');}}
   useEffect(() => {
     const unauthorized = () => {saveAuth(null); setAuth(null); setSource(null);};
     window.addEventListener('opspilot:unauthorized', unauthorized);
-    api('/health').then(() => setHealthy(true)).catch(() => setHealthy(false));
+    api('/ready').then(() => setHealthy(true)).catch(() => setHealthy(false));
     if (savedAuth()) api('/auth/me').catch(() => unauthorized());
     return () => window.removeEventListener('opspilot:unauthorized', unauthorized);
   }, []);
@@ -35,7 +38,7 @@ export default function App() {
     <div className="brand"><span className="brand-symbol">O</span><span>OpsPilot</span></div><div className="sidebar-label">个人网站维护助手</div>
     <Menu theme="dark" mode="inline" selectedKeys={[page]} onClick={({key}) => {if (key === 'support') setSupportEntry({}); setPage(key as Page);}} items={Object.entries(pages).filter(([key]) => (key !== 'evaluation' || auth.role === 'admin') && (key !== 'operations' || canWrite)).map(([key, label], i) => ({key, label, icon: <span className="nav-number">0{i + 1}</span>}))} />
     <div className="sidebar-foot"><span className="status-dot" />{healthy === false ? '连接异常' : healthy === true ? '服务已连接' : '正在连接'}<br /><small>调查 · 证据 · 审批</small></div>
-  </Layout.Sider><Layout><Layout.Header className="app-header"><div><strong>{pages[page]}</strong><span className="header-subtitle">基于证据，审慎执行</span></div><Space><Tag color={auth.role === 'admin' ? 'purple' : 'blue'}>{{admin:'管理员',engineer:'工程师',viewer:'普通用户'}[auth.role] || auth.role}</Tag><span>{auth.username}</span><Button type="text" onClick={logout}>退出</Button></Space></Layout.Header>
+  </Layout.Sider><Layout><Layout.Header className="app-header"><div><strong>{pages[page]}</strong><span className="header-subtitle">基于证据，审慎执行</span></div><Space><Tag color={auth.role === 'admin' ? 'purple' : 'blue'}>{{admin:'管理员',engineer:'工程师',viewer:'普通用户'}[auth.role] || auth.role}</Tag><span>{auth.username}</span><Button type="text" onClick={()=>setPasswordOpen(true)}>改密</Button><Button type="text" onClick={logout}>退出</Button></Space></Layout.Header>
     <Layout.Content className={`app-content ${page === 'investigation' ? 'chat-content' : ''}`}>
       {page === 'home' && <Home navigate={setPage} />}
       {page === 'websites' && <Websites assist={assist} knowledge={() => setPage('knowledge')} />}
@@ -46,5 +49,5 @@ export default function App() {
       {page === 'operations' && canWrite && <Operations canApprove={canWrite} />}
       {page === 'evaluation' && auth.role === 'admin' && <Evaluation />}
     </Layout.Content>
-  </Layout><SourceDrawer hit={source} close={() => setSource(null)} /></Layout>;
+  </Layout><SourceDrawer hit={source} close={() => setSource(null)} /><PasswordDialog open={passwordOpen} close={()=>setPasswordOpen(false)} changed={clearAuth} /></Layout>;
 }

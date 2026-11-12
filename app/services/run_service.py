@@ -182,7 +182,7 @@ class RunRecorder:
 
             active = (
                 db.query(AgentRun)
-                .join(ChatSession)
+                .join(ChatSession, AgentRun.session_id == ChatSession.id)
                 .filter(AgentRun.status.in_(["running", "cancel_requested"]), ChatSession.deleted_at.is_(None))
             )
             if active.filter(AgentRun.session_id == session_id).first():

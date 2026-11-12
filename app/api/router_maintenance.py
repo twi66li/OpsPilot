@@ -256,7 +256,7 @@ def todos(user: AuthUser = Depends(get_current_user), db: Session = Depends(get_
     )
     runs = (
         db.query(AgentRun)
-        .join(ChatSession)
+        .join(ChatSession, AgentRun.session_id == ChatSession.id)
         .filter(
             ChatSession.user_id == user.user_id,
             AgentRun.tenant_id == user.tenant_id,
@@ -280,7 +280,7 @@ def todos(user: AuthUser = Depends(get_current_user), db: Session = Depends(get_
     )
     finished = (
         db.query(AgentRun)
-        .join(ChatSession)
+        .join(ChatSession, AgentRun.session_id == ChatSession.id)
         .filter(
             ChatSession.user_id == user.user_id,
             AgentRun.tenant_id == user.tenant_id,

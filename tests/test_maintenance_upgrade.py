@@ -122,3 +122,4 @@ def test_problem_timeline_export_and_server_search(client, admin_headers, viewer
     assert report.status_code == 200 and "P1" in report.text and "private-token" not in report.text
     assert client.get(f"/api/maintenance/cases/{cid}/report", headers=viewer_headers).status_code == 404
     assert client.get(f"/api/maintenance/sites/{site['id']}/timeline", headers=admin_headers).json()["events"]
+    assert client.get("/api/maintenance/todos", headers=admin_headers).status_code == 200

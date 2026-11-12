@@ -1,4 +1,5 @@
 """Agent 服务层：运行诊断图、SSE 事件映射、审批恢复。"""
+
 import json
 import logging
 import threading
@@ -13,7 +14,7 @@ from app.agent.tools import TOOL_REGISTRY
 from app.db.models import ApprovalRequest, Ticket
 from app.services import chat_service, ticket_service
 from app.services.budget import BudgetExceededError
-from app.services.run_service import RunRecorder, capture_run, current_run, live_events
+from app.services.run_service import RunCancelled, RunRecorder, capture_run, check_cancelled, current_run, live_events
 from app.services.support_service import context_for_session, redact
 
 logger = logging.getLogger(__name__)
@@ -69,7 +70,11 @@ def _final_snapshot(container, config: dict) -> dict:
     snapshot = container.graph.get_state(config)
     values = snapshot.values or {}
     return {
-        "status": "approval_required" if snapshot.next else "answered" if values.get("end_reason", "answered") == "answered" else "failed",
+        "status": "approval_required"
+        if snapshot.next
+        else "answered"
+        if values.get("end_reason", "answered") == "answered"
+        else "failed",
         "answer": values.get("answer", ""),
         "generation_policy": values.get("generation_policy"),
         "citations": values.get("citations", []),
@@ -89,16 +94,31 @@ def _final_snapshot(container, config: dict) -> dict:
     }
 
 
-def chat_once(container, db: Session, tenant_id: str, user_id: str, username: str, session_id: str, question: str, workflow="auto") -> dict:
+def chat_once(
+    container,
+    db: Session,
+    tenant_id: str,
+    user_id: str,
+    username: str,
+    session_id: str,
+    question: str,
+    workflow="auto",
+    request_id=None,
+) -> dict:
     if context_for_session(db, session_id, tenant_id, user_id) is not None:
         question = redact(question)["text"]
-    recorder = RunRecorder.start(container, tenant_id, session_id, question)
+    recorder = RunRecorder.start(container, tenant_id, session_id, question, request_id, workflow)
     try:
         with capture_run(recorder):
-            result = _chat_once(container, db, tenant_id, user_id, username, session_id, question, recorder.id, workflow)
+            result = _chat_once(
+                container, db, tenant_id, user_id, username, session_id, question, recorder.id, workflow
+            )
         result["run_id"] = recorder.id
         recorder.finish(result)
         return result
+    except RunCancelled:
+        recorder.finish({"status": "cancelled", "end_reason": "user_cancelled"})
+        raise HTTPException(409, "运行已停止，已有证据保留")
     except BudgetExceededError as exc:
         # 预算门控拒绝（请求未到达供应商）：给出明确语义而非 5xx，便于操作者分辨额度与故障
         recorder.finish({"status": "budget_refused", "error": str(exc)[:200]})
@@ -142,17 +162,32 @@ def _chat_once(container, db, tenant_id, user_id, username, session_id, question
         session_id,
         "assistant",
         result["answer"],
-        meta={"citations": result["citations"], "intent": result["intent"], "ticket_id": result["ticket_id"], "run_id": run_id},
+        meta={
+            "citations": result["citations"],
+            "intent": result["intent"],
+            "ticket_id": result["ticket_id"],
+            "run_id": run_id,
+        },
     )
     return result
 
 
-def chat_stream(container, tenant_id: str, user_id: str, username: str, session_id: str, question: str, workflow="auto"):
+def chat_stream(
+    container,
+    tenant_id: str,
+    user_id: str,
+    username: str,
+    session_id: str,
+    question: str,
+    workflow="auto",
+    request_id=None,
+):
     with container.db_session() as db:
         if context_for_session(db, session_id, tenant_id, user_id) is not None:
             question = redact(question)["text"]
+    recorder = RunRecorder.start(container, tenant_id, session_id, question, request_id, workflow)
+
     def recorded():
-        recorder = RunRecorder.start(container, tenant_id, session_id, question)
         iterator = _chat_stream(container, tenant_id, user_id, username, session_id, question, recorder.id, workflow)
         try:
             while True:
@@ -164,12 +199,23 @@ def chat_stream(container, tenant_id: str, user_id: str, username: str, session_
             return
         except GeneratorExit:
             if not recorder.finished:
+                recorder.cancel_signal.set()
                 recorder.finish({"status": "cancelled", "end_reason": "client_disconnected"})
             raise
+        except RunCancelled:
+            recorder.finish({"status": "cancelled", "end_reason": "user_cancelled"})
+            yield _sse({"type": "cancelled", "message": "已停止，已有证据保留"})
+            yield _sse({"type": "done"})
         except Exception as exc:
             recorder.finish({"status": "failed", "error_type": type(exc).__name__})
-            yield _sse({"type": "error", "run_id": recorder.id, "error_type": type(exc).__name__,
-                        "message": "调查执行失败，请保留运行编号并检查服务状态"})
+            yield _sse(
+                {
+                    "type": "error",
+                    "run_id": recorder.id,
+                    "error_type": type(exc).__name__,
+                    "message": "调查执行失败，请保留运行编号并检查服务状态",
+                }
+            )
         finally:
             with capture_run(recorder):
                 iterator.close()
@@ -206,14 +252,21 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
         approval_emitted = False
         try:
             for event in _iter_graph_events(stream):
+                check_cancelled()
                 if event.get("type") == "approval_required":
                     approval_emitted = True
                 yield _sse(event)  # 到达即推送，避免先耗尽整图再补发
         except BudgetExceededError as exc:
             # 预算门控拒绝（请求未到达供应商）：流内给出明确错误事件，不让前端只见断流
             current_run().finish({"status": "budget_refused", "error": str(exc)[:200]})
-            yield _sse({"type": "error", "error_type": "budget_exceeded", "message": str(exc)[:300],
-                        "hint": "预算不足，请求在到达供应商前被拒绝（fail closed）；补充授权后重试即可恢复"})
+            yield _sse(
+                {
+                    "type": "error",
+                    "error_type": "budget_exceeded",
+                    "message": str(exc)[:300],
+                    "hint": "预算不足，请求在到达供应商前被拒绝（fail closed）；补充授权后重试即可恢复",
+                }
+            )
             return
         with container.db_session() as db:
             events: list[dict] = []
@@ -232,7 +285,12 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
                 session_id,
                 "assistant",
                 result["answer"],
-                meta={"citations": result["citations"], "intent": result["intent"], "ticket_id": result["ticket_id"], "run_id": run_id},
+                meta={
+                    "citations": result["citations"],
+                    "intent": result["intent"],
+                    "ticket_id": result["ticket_id"],
+                    "run_id": run_id,
+                },
             )
         result["run_id"] = run_id
         current_run().finish(result)
@@ -242,7 +300,9 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
     return generator()
 
 
-def _ensure_approval_event(container, db: Session, config: dict, tenant_id: str, session_id: str, events: list[dict]) -> None:
+def _ensure_approval_event(
+    container, db: Session, config: dict, tenant_id: str, session_id: str, events: list[dict]
+) -> None:
     """兜底：部分 langgraph 版本不把 interrupt 放进 updates 流，用挂起的审批单补齐事件。"""
     snapshot = container.graph.get_state(config)
     if snapshot.next and not any(e.get("type") == "approval_required" for e in events):
@@ -281,7 +341,11 @@ def decide_approval(container, db: Session, auth, approval_id: str, approved: bo
                 raise HTTPException(status_code=409, detail="该流程没有等待审批的节点")
             changed = db.execute(
                 update(ApprovalRequest)
-                .where(ApprovalRequest.id == approval_id, ApprovalRequest.tenant_id == auth.tenant_id, ApprovalRequest.status == "pending")
+                .where(
+                    ApprovalRequest.id == approval_id,
+                    ApprovalRequest.tenant_id == auth.tenant_id,
+                    ApprovalRequest.status == "pending",
+                )
                 .values(status=target, comment=comment, decided_by=auth.username, decided_at=datetime.now(timezone.utc))
             ).rowcount
             db.commit()
@@ -293,11 +357,17 @@ def decide_approval(container, db: Session, auth, approval_id: str, approved: bo
         if snapshot.next:
             interrupted = any(task.interrupts for task in snapshot.tasks)
             graph_input = Command(resume=resume_value) if interrupted else None
-            _emit_graph_events(container.graph, container.graph.stream(graph_input, config, stream_mode="updates"), events)
+            _emit_graph_events(
+                container.graph, container.graph.stream(graph_input, config, stream_mode="updates"), events
+            )
             snapshot = container.graph.get_state(config)
             # prepare_approval 已提交、但进程在进入 interrupt 前崩溃时，先跑到等待点再恢复。
             if snapshot.next == ("approval_gate",) and any(task.interrupts for task in snapshot.tasks):
-                _emit_graph_events(container.graph, container.graph.stream(Command(resume=resume_value), config, stream_mode="updates"), events)
+                _emit_graph_events(
+                    container.graph,
+                    container.graph.stream(Command(resume=resume_value), config, stream_mode="updates"),
+                    events,
+                )
             values = container.graph.get_state(config).values or {}
         ticket = db.query(Ticket).filter(Ticket.approval_id == approval_id, Ticket.tenant_id == auth.tenant_id).first()
         result = {
@@ -310,7 +380,10 @@ def decide_approval(container, db: Session, auth, approval_id: str, approved: bo
         if values.get("run_id"):
             result["run_id"] = values["run_id"]
             recorder = RunRecorder(values["run_id"], auth.tenant_id)
-            recorder.add("approval_decision", {"approved": approved, "decided_by": auth.username, "ticket_id": result["ticket_id"]})
+            recorder.add(
+                "approval_decision",
+                {"approved": approved, "decided_by": auth.username, "ticket_id": result["ticket_id"]},
+            )
             recorder.finish(result)
         return result
 

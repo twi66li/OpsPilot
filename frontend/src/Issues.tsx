@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, App, Button, Checkbox, Form, Input, Modal, Select, Space, Table, Tag } from 'antd';
 import { api, formatTime, post } from './api';
-import type { PersonalCase, Site, SupportEntry } from './types';
+import type { PageData, PersonalCase, Site, SupportEntry } from './types';
 import { caseStates } from './supportTypes';
 import DeleteRecordsButton from './DeleteRecordsButton';
 
@@ -9,15 +9,18 @@ export default function Issues({assist}: {assist: (entry: SupportEntry) => void}
   const {message} = App.useApp(), [form] = Form.useForm();
   const [records, setRecords] = useState<PersonalCase[]>([]), [sites, setSites] = useState<Site[]>([]), [site, setSite] = useState<string>();
   const [status, setStatus] = useState<string>(), [archive, setArchive] = useState('active'), [search, setSearch] = useState('');
+  const [page,setPage]=useState(1),[total,setTotal]=useState(0);
+  const [severity,setSeverity]=useState<string>();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [selected, setSelected] = useState<PersonalCase | null>(null), [action, setAction] = useState<'create'|'edit'|'resolve'|'archive'|null>(null);
   const [note, setNote] = useState(''), [confirmed, setConfirmed] = useState(false), [busy, setBusy] = useState(false);
   const refresh = useCallback(async () => {
-    const query = new URLSearchParams({kind:'problem'});
+    const query = new URLSearchParams({case_kind:'problem',page:String(page),page_size:'10',q:search});
+    if(severity)query.set('severity',severity);
     if (site) query.set('site_id',site); if (status) query.set('status',status); if (archive !== 'all') query.set('archived',String(archive === 'archived'));
-    setRecords(await api<PersonalCase[]>('/api/support/cases?' + query));
-  }, [site,status,archive]);
-  useEffect(() => {refresh().catch(e => message.error(e.message));}, [refresh,message]);
+    const result=await api<PageData<PersonalCase>>('/api/workspace/cases?'+query);setRecords(result.items);setTotal(result.total);
+  }, [site,status,archive,page,search,severity]);
+  useEffect(() => {const timer=setTimeout(()=>refresh().catch(e => message.error(e.message)),200);return()=>clearTimeout(timer);}, [refresh,message]);
   useEffect(() => {api<Site[]>('/api/support/sites').then(setSites).catch(e => message.error(e.message));}, [message]);
   function open(c: PersonalCase, mode: 'edit'|'resolve'|'archive') {setSelected(c); setAction(mode); setConfirmed(false); setNote(c.solution || ''); form.resetFields(); form.setFieldsValue({title:c.title,...c.problem});}
   function create() {setSelected(null); setAction('create'); form.resetFields(); form.setFieldsValue({site_id:site});}
@@ -34,10 +37,10 @@ export default function Issues({assist}: {assist: (entry: SupportEntry) => void}
   }
   async function reopen(id: string) {setBusy(true); try {await post(`/api/support/cases/${id}/status`,{status:'reopen'}); await refresh(); message.success('已重新打开，原证据和资料版本保留');} catch(e) {message.error((e as Error).message);} finally {setBusy(false);}}
   return <div className="page-stack"><div className="page-title"><div><h2>问题中心</h2><p>查看异常、检查进度和处理结果。归档保留记录；“用户确认解决”与“样本通过”分别展示。</p></div><Button type="primary" onClick={create}>新建排障问题</Button></div>
-    <Space wrap><Select aria-label="按网站筛选问题" allowClear placeholder="全部网站" value={site} onChange={setSite} style={{width:190}} options={sites.map(s => ({value:s.id,label:s.name}))} /><Select aria-label="按问题状态筛选" allowClear placeholder="全部问题状态" value={status} onChange={setStatus} style={{width:190}} options={Object.entries(caseStates).map(([value,label]) => ({value,label}))} /><Select aria-label="归档筛选" value={archive} onChange={setArchive} options={[{value:'active',label:'未归档'},{value:'archived',label:'已归档'},{value:'all',label:'全部记录'}]} /><Input.Search aria-label="搜索问题" placeholder="问题标题或异常关键词" value={search} onChange={e => setSearch(e.target.value)} style={{width:220}} /></Space>
+    <Space wrap><Select aria-label="按严重度筛选" allowClear value={severity} placeholder="全部严重度" onChange={v=>{setSeverity(v);setPage(1);}} options={['P0','P1','P2','P3'].map(value=>({value,label:value}))}/><Select aria-label="按网站筛选问题" allowClear placeholder="全部网站" value={site} onChange={v=>{setSite(v);setPage(1);}} style={{width:190}} options={sites.map(s => ({value:s.id,label:s.name}))} /><Select aria-label="按问题状态筛选" allowClear placeholder="全部问题状态" value={status} onChange={v=>{setStatus(v);setPage(1);}} style={{width:190}} options={Object.entries(caseStates).map(([value,label]) => ({value,label}))} /><Select aria-label="归档筛选" value={archive} onChange={v=>{setArchive(v);setPage(1);}} options={[{value:'active',label:'未归档'},{value:'archived',label:'已归档'},{value:'all',label:'全部记录'}]} /><Input.Search aria-label="搜索问题" placeholder="问题标题或异常关键词" value={search} onChange={e => {setSearch(e.target.value);setPage(1);}} style={{width:220}} /></Space>
     <DeleteRecordsButton ids={selectedIds.filter(id=>records.some(c=>c.id===id))} disabled={busy} label={`删除选中（${selectedIds.filter(id=>records.some(c=>c.id===id)).length}）`} onDeleted={async()=>{setSelectedIds([]);await refresh();}} />
-    <Table<PersonalCase> rowKey="id" rowSelection={{selectedRowKeys:selectedIds.filter(id=>records.some(c=>c.id===id)),onChange:keys=>setSelectedIds(keys.map(String))}} dataSource={records.filter(c => ((c.title || '') + (c.problem?.symptom || '') + (c.summary || '')).toLowerCase().includes(search.toLowerCase()))} pagination={{pageSize:10}} scroll={{x:850}} expandable={{expandedRowRender:c => <><p><strong>异常：</strong>{c.problem?.symptom || '尚未补充'}</p><p><strong>接口：</strong>{c.problem?.endpoint || '未指定'}　<strong>发生时间：</strong>{c.problem?.started_at || '未知'}</p><p><strong>影响：</strong>{c.problem?.impact || '未填写'}　<strong>近期变更：</strong>{c.problem?.recent_changes || '未填写'}</p><p>{c.summary}</p>{c.solution && <p><strong>用户处理记录：</strong>{c.solution}</p>}</>}} columns={[
-      {title:'问题',dataIndex:'title'}, {title:'网站',dataIndex:'site_name'}, {title:'状态',render:(_,c) => <Space wrap><Tag color={c.status === 'user_resolved' ? 'green' : 'default'}>{caseStates[c.status] || c.status}</Tag>{c.archived && <Tag>已归档</Tag>}</Space>}, {title:'创建',render:(_,c) => formatTime(c.created_at)},
+    <Table<PersonalCase> rowKey="id" rowSelection={{selectedRowKeys:selectedIds.filter(id=>records.some(c=>c.id===id)),onChange:keys=>setSelectedIds(keys.map(String))}} dataSource={records} pagination={{current:page,pageSize:10,total,onChange:setPage}} scroll={{x:850}} expandable={{expandedRowRender:c => <><p><strong>异常：</strong>{c.problem?.symptom || '尚未补充'}</p><p><strong>接口：</strong>{c.problem?.endpoint || '未指定'}　<strong>发生时间：</strong>{c.problem?.started_at || '未知'}</p><p><strong>影响：</strong>{c.problem?.impact || '未填写'}　<strong>近期变更：</strong>{c.problem?.recent_changes || '未填写'}</p><p>{c.summary}</p>{c.solution && <p><strong>用户处理记录：</strong>{c.solution}</p>}</>}} columns={[
+      {title:'问题',dataIndex:'title'}, {title:'严重度',dataIndex:'severity',render:value=><Tag color={value==='P0'||value==='P1'?'red':'default'}>{value||'P2'}</Tag>}, {title:'网站',dataIndex:'site_name'}, {title:'状态',render:(_,c) => <Space wrap><Tag color={c.status === 'user_resolved' ? 'green' : 'default'}>{caseStates[c.status] || c.status}</Tag>{c.archived && <Tag>已归档</Tag>}</Space>}, {title:'创建',render:(_,c) => formatTime(c.created_at)},
       {title:'操作',width:300,render:(_,c) => <Space wrap><Button size="small" onClick={() => assist({caseId:c.id})}>查看 / 继续</Button>{!c.archived && c.status !== 'user_resolved' && <><Button size="small" onClick={() => open(c,'edit')}>问题信息</Button><Button size="small" onClick={() => open(c,'resolve')}>确认解决</Button></>}{!c.archived && <Button size="small" onClick={() => open(c,'archive')}>归档</Button>}{(c.archived || c.status === 'user_resolved') && <Button size="small" loading={busy} onClick={() => reopen(c.id)}>重新打开</Button>}<DeleteRecordsButton ids={[c.id]} label="删除" disabled={busy} onDeleted={async()=>{setSelectedIds(previous=>previous.filter(id=>id!==c.id));await refresh();}} /></Space>},
     ]} />
     <Modal open={!!action} title={action === 'create' ? '创建网站问题记录' : action === 'edit' ? '维护问题信息' : action === 'resolve' ? '由你确认问题已解决' : '归档处理记录'} onCancel={() => setAction(null)} onOk={submit} confirmLoading={busy} okButtonProps={{disabled: action !== 'edit' && action !== 'create' && (!confirmed || !note.trim())}}>

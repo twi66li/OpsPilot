@@ -1,4 +1,5 @@
 """文件检查点重开、提交后中断的幂等恢复与无损迁移；模型/业务库为离线夹具。"""
+
 import sqlite3
 from dataclasses import replace
 
@@ -90,7 +91,14 @@ def test_legacy_ticket_migration_preserves_rows_and_adds_unique_constraint(tmp_p
 
     old = create_engine("sqlite:///" + str(tmp_path / "legacy.sqlite3"))
     with old.begin() as conn:
-        conn.execute(text("CREATE TABLE tickets (id VARCHAR(64) PRIMARY KEY, title VARCHAR(256))"))
+        conn.execute(
+            text("""CREATE TABLE tickets (
+            id VARCHAR(64) PRIMARY KEY,tenant_id VARCHAR(64) NOT NULL DEFAULT 'default',session_id VARCHAR(64) NOT NULL DEFAULT '',
+            title VARCHAR(256) NOT NULL,description TEXT NOT NULL DEFAULT '',severity VARCHAR(16) NOT NULL DEFAULT 'P2',
+            status VARCHAR(16) NOT NULL DEFAULT 'open',created_by VARCHAR(64) NOT NULL DEFAULT '',approver VARCHAR(64) NOT NULL DEFAULT '',
+            decision_comment VARCHAR(512) NOT NULL DEFAULT '',created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,decided_at DATETIME NULL
+        )""")
+        )
         conn.execute(text("INSERT INTO tickets (id,title) VALUES ('legacy','原工单')"))
     monkeypatch.setattr(base, "engine", old)
     base.init_db()

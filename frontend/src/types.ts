@@ -1,6 +1,7 @@
 export interface Auth { access_token: string; username: string; role: string; tenant_id: string }
 export interface Session { id: string; title: string; created_at: string }
 export interface Hit {
+  score?: number;
   chunk_id: string; doc_id: string; doc_title: string; text: string; source: string;
   version_id?: string; version?: number; page_start?: number; page_end?: number; heading_path?: string[]; citation_id?: number;
   parent_text?: string; file_url?: string; content_type?: string; matched_text?: string; source_name?: string;
@@ -13,6 +14,8 @@ export interface AgentEvent {
   summary?: string; run_id?: string; hits?: Hit[]; approval?: Approval; approval_id?: string;
   ticket_draft?: Record<string, unknown>; result?: Record<string, unknown>; end_reason?: string;
   support_report?: SupportReport;
+  workflow?: string;
+  status?: string;
 }
 export interface Run {
   run_id: string; status: string;
@@ -36,8 +39,9 @@ export interface EvalQuestion {
 }
 export interface EvalReport { id: string; summary: Record<string, unknown>; questions: EvalQuestion[] }
 export interface Site {
+  url?:string;health_check?:{state:string;http_status?:number;collected_at:string;source_url:string;note?:string;scope:string};
   id: string; name: string; framework: string; deployment: string; database: string; versions: string; notes: string; doc_ids: string[];
-  problem_count?: number; open_count?: number;
+  problem_count?: number; open_count?: number; last_check_at?:string;last_activity_at?:string; document_tasks?:{failed:number;processing:number};
 }
 export type Workflow = 'auto' | 'consult' | 'diagnose' | 'review' | 'history';
 export interface SupportEntry {caseId?: string; siteId?: string; workflow?: Workflow; question?: string}
@@ -55,6 +59,7 @@ export interface SupportReport {
   workflow?: string; program_checks?: SampleChecks;
 }
 export interface PersonalCase {
+  severity?:string; labels?:string[]; updated_at?:string;
   id: string; title?: string; site_id?: string; status: string; created_at: string; saved?: boolean; profile?: Partial<Site>;
   archived?: boolean; kind?:string; site_name?:string; summary?:string; sample_checks?: SampleChecks;
   problem?: {symptom?:string; endpoint?:string; impact?:string; started_at?:string; recent_changes?:string};
@@ -63,3 +68,5 @@ export interface PersonalCase {
   reports?: {revision: number; report: SupportReport; hits: Hit[]; run_id: string}[];
   related_cases?: {session_id:string; solution:string; outcome:string; archived:boolean}[];
 }
+
+export interface PageData<T> {items:T[];total:number;page:number;page_size:number}

@@ -3,6 +3,7 @@
 所有通道在发送前经统一预算门控预留（超限/账本写失败在到达供应商前拒绝），
 响应后按实际 usage 结算；缺 usage 记 unknown，不按零费用释放预留。
 """
+
 import json
 import logging
 import os
@@ -14,7 +15,7 @@ import httpx
 from openai import OpenAI
 
 from app.services.budget import BudgetExceededError, BudgetLedgerError, get_budget_guard
-from app.services.run_service import emit, live_model_stream, push_answer, push_live, tool_time_left
+from app.services.run_service import check_cancelled, emit, live_model_stream, push_answer, push_live, tool_time_left
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +40,10 @@ def _text_candidates() -> list[str]:
         parsed = json.loads(raw) if raw else settings.chat_model_candidates
         today = datetime.now(timezone(timedelta(hours=8))).date().isoformat()
         expirations = settings.chat_model_expirations
-        return sorted(dict.fromkeys(str(m) for m in parsed if expirations.get(str(m), "9999-12-31") >= today),
-                      key=lambda m: expirations.get(m, "9999-12-31"))
+        return sorted(
+            dict.fromkeys(str(m) for m in parsed if expirations.get(str(m), "9999-12-31") >= today),
+            key=lambda m: expirations.get(m, "9999-12-31"),
+        )
     except ValueError:
         return []
 
@@ -50,8 +53,11 @@ def _available_chat_models(primary, excluded=()):
 
     expirations = get_settings().chat_model_expirations
     today = datetime.now(timezone(timedelta(hours=8))).date().isoformat()
-    models = [m for m in dict.fromkeys([primary, *_text_candidates()])
-              if m not in excluded and expirations.get(m, "9999-12-31") >= today]
+    models = [
+        m
+        for m in dict.fromkeys([primary, *_text_candidates()])
+        if m not in excluded and expirations.get(m, "9999-12-31") >= today
+    ]
     if not models:
         raise BudgetExceededError("没有未到期且额度可用的聊天模型")
     return sorted(models, key=lambda m: expirations.get(m, "9999-12-31"))
@@ -86,9 +92,12 @@ def _provider_error_code(exc: Exception):
 
 def _is_provider_quota_exhausted(exc: Exception) -> bool:
     code = _provider_error_code(exc)
-    return code == "AllocationQuota.FreeTierOnly" or (
-        code == "insufficient_quota" and getattr(exc, "status_code", None) in (402, 403, 429)) or (
-        getattr(exc, "status_code", None) == 403 and "AllocationQuota.FreeTierOnly" in str(exc))
+    return (
+        code == "AllocationQuota.FreeTierOnly"
+        or (code == "insufficient_quota" and getattr(exc, "status_code", None) in (402, 403, 429))
+        or (getattr(exc, "status_code", None) == 403 and "AllocationQuota.FreeTierOnly" in str(exc))
+    )
+
 
 # chat 模板包装余量（已验证协议事实的保守放大约束，非实测常数硬编码）：
 # Qwen 模板每条消息渲染 <|im_start|>role\n…<|im_end|>\n 等 ASCII 标记（单个标记 ≤11 字节），
@@ -117,8 +126,15 @@ def reserve_for_channel(calls: list, guard, kind: str, model: str, estimate: int
     try:
         return guard, guard.reserve(kind, model, estimate)
     except (BudgetExceededError, BudgetLedgerError) as exc:
-        calls.append({"model": model, "kind": kind, "status": "budget_refused",
-                      "error_type": type(exc).__name__, "message": str(exc)})
+        calls.append(
+            {
+                "model": model,
+                "kind": kind,
+                "status": "budget_refused",
+                "error_type": type(exc).__name__,
+                "message": str(exc),
+            }
+        )
         raise
 
 
@@ -138,7 +154,9 @@ class ChatAPI:
         # 真实供应商入口：无持久账本配置即 fail closed，Mock 路径（MockLLM 等）不经过本类
         self._budget = get_budget_guard()
         if self._budget is None:
-            raise BudgetLedgerError("真实对话模型入口未配置持久预算账本（BUDGET_LEDGER_PATH/BUDGET_TOKEN_LIMIT），拒绝启动")
+            raise BudgetLedgerError(
+                "真实对话模型入口未配置持久预算账本（BUDGET_LEDGER_PATH/BUDGET_TOKEN_LIMIT），拒绝启动"
+            )
         self.client = OpenAI(api_key=api_key, base_url=base_url or None, timeout=60, max_retries=0)
         self.model = model
         self.is_dashscope = "aliyuncs.com" in (base_url or "")
@@ -149,9 +167,19 @@ class ChatAPI:
         # 可计费推理预留按模型配置（探针实测 2.4t-a95b 强制思考且 usage 返回 reasoning_tokens）
         return _THINKING_CAP.get(model, 0)
 
-    def _reserve(self, kind: str, model: str, messages: list[dict], tools: list[dict] | None, *, output_cap: int, thinking_cap: int = 0):
-        estimate = estimate_chat_bound(messages, tools, output_cap=output_cap,
-                                       thinking_cap=thinking_cap + self._thinking_cap(model))
+    def _reserve(
+        self,
+        kind: str,
+        model: str,
+        messages: list[dict],
+        tools: list[dict] | None,
+        *,
+        output_cap: int,
+        thinking_cap: int = 0,
+    ):
+        estimate = estimate_chat_bound(
+            messages, tools, output_cap=output_cap, thinking_cap=thinking_cap + self._thinking_cap(model)
+        )
         return reserve_for_channel(self.calls, self._budget, kind, model, estimate)
 
     @staticmethod
@@ -163,6 +191,7 @@ class ChatAPI:
         - 首选模型"分模型预留不足"时按候选链切换（每次切换记入 calls 审计）；
         - 总额不足/halt、认证/参数错误不切换（不能借换模型突破总额）；
         - 供应商 429/5xx 同模型最多额外重试一次（每次尝试独立预留并记账）。"""
+        check_cancelled()
         models = _available_chat_models(self.model, getattr(self, "_quota_exhausted", ()))
         i = 0
         while True:
@@ -171,8 +200,15 @@ class ChatAPI:
                 return self._chat_once(model, system, user, json_mode=json_mode, output_cap=output_cap)
             except BudgetExceededError as exc:
                 if _is_per_model_budget_refusal(exc) and i + 1 < len(models):
-                    self.calls.append({"model": model, "kind": "chat", "status": "model_switch",
-                                       "to": models[i + 1], "reason": str(exc)[:220]})
+                    self.calls.append(
+                        {
+                            "model": model,
+                            "kind": "chat",
+                            "status": "model_switch",
+                            "to": models[i + 1],
+                            "reason": str(exc)[:220],
+                        }
+                    )
                     logger.warning("模型 %s 分模型预留不足，按候选链切换至 %s", model, models[i + 1])
                     i += 1
                     continue
@@ -180,24 +216,39 @@ class ChatAPI:
             except Exception as exc:
                 if _is_provider_quota_exhausted(exc) and i + 1 < len(models):
                     self._quota_exhausted = {*getattr(self, "_quota_exhausted", ()), model}
-                    self.calls.append({"model": model, "kind": "chat", "status": "model_switch",
-                                       "to": models[i + 1], "reason": "AllocationQuota.FreeTierOnly"})
+                    self.calls.append(
+                        {
+                            "model": model,
+                            "kind": "chat",
+                            "status": "model_switch",
+                            "to": models[i + 1],
+                            "reason": "AllocationQuota.FreeTierOnly",
+                        }
+                    )
                     i += 1
                     continue
                 if _is_provider_transient(exc):
-                    self.calls.append({"model": model, "kind": "chat", "status": "transient_retry",
-                                       "error": str(exc)[:220]})
+                    self.calls.append(
+                        {"model": model, "kind": "chat", "status": "transient_retry", "error": str(exc)[:220]}
+                    )
                     logger.warning("模型 %s 供应商暂时性错误（%s），同模型额外重试一次", model, type(exc).__name__)
                     try:
                         return self._chat_once(model, system, user, json_mode=json_mode, output_cap=output_cap)
                     except Exception as exc2:
-                        self.calls.append({"model": model, "kind": "chat", "status": "transient_retry_failed",
-                                           "error": str(exc2)[:220]})
+                        self.calls.append(
+                            {
+                                "model": model,
+                                "kind": "chat",
+                                "status": "transient_retry_failed",
+                                "error": str(exc2)[:220],
+                            }
+                        )
                         raise
                 raise
 
-    def _chat_once(self, model: str, system: str, user: str, *, json_mode: bool = False,
-                   output_cap: int = _CHAT_OUTPUT_CAP) -> str:
+    def _chat_once(
+        self, model: str, system: str, user: str, *, json_mode: bool = False, output_cap: int = _CHAT_OUTPUT_CAP
+    ) -> str:
         messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
         guard, reservation = self._reserve("chat", model, messages, None, output_cap=output_cap)
         emit("model_input", {"kind": "chat", "model": model, "system": system, "user": user})
@@ -221,6 +272,7 @@ class ChatAPI:
                 **params,
             ) as stream:
                 for chunk in stream:
+                    check_cancelled()
                     if chunk.usage:
                         record["usage"] = chunk.usage.model_dump()
                     if not chunk.choices:
@@ -249,6 +301,7 @@ class ChatAPI:
             self._settle(guard, reservation, record)
 
     def tool_turn(self, messages: list[dict], tools: list[dict], *, allow_tools: bool = True) -> dict:
+        check_cancelled()
         models = _available_chat_models(self.model, getattr(self, "_quota_exhausted", ()))
         for index, model in enumerate(models):
             try:
@@ -259,8 +312,15 @@ class ChatAPI:
                     raise
                 if _is_provider_quota_exhausted(exc):
                     self._quota_exhausted = {*getattr(self, "_quota_exhausted", ()), model}
-                self.calls.append({"model": model, "kind": "tool_chat", "status": "model_switch",
-                                   "to": models[index + 1], "reason": type(exc).__name__})
+                self.calls.append(
+                    {
+                        "model": model,
+                        "kind": "tool_chat",
+                        "status": "model_switch",
+                        "to": models[index + 1],
+                        "reason": type(exc).__name__,
+                    }
+                )
 
     def _tool_turn_once(self, model, messages, tools, *, allow_tools=True):
         guard, reservation = self._reserve("tool_chat", model, messages, tools, output_cap=_CHAT_OUTPUT_CAP)
@@ -272,10 +332,17 @@ class ChatAPI:
                 record["status"] = "ok"
                 return result
             response = self.client.chat.completions.create(
-                model=model, messages=messages, tools=tools,
-                tool_choice="auto" if allow_tools else "none", temperature=0, max_tokens=1536,
-                **({"extra_body": {"enable_thinking": False}} if self.is_dashscope
-                   and model not in _THINKING_DISABLE_UNSUPPORTED else {}),
+                model=model,
+                messages=messages,
+                tools=tools,
+                tool_choice="auto" if allow_tools else "none",
+                temperature=0,
+                max_tokens=1536,
+                **(
+                    {"extra_body": {"enable_thinking": False}}
+                    if self.is_dashscope and model not in _THINKING_DISABLE_UNSUPPORTED
+                    else {}
+                ),
             )
             record["usage"] = response.usage.model_dump() if response.usage else {}
             message = response.choices[0].message
@@ -284,7 +351,11 @@ class ChatAPI:
             result = {"role": "assistant", "content": message.content or ""}
             if message.tool_calls:
                 result["tool_calls"] = [
-                    {"id": c.id, "type": "function", "function": {"name": c.function.name, "arguments": c.function.arguments}}
+                    {
+                        "id": c.id,
+                        "type": "function",
+                        "function": {"name": c.function.name, "arguments": c.function.arguments},
+                    }
                     for c in message.tool_calls
                 ]
             record["status"] = "ok"
@@ -302,17 +373,26 @@ class ChatAPI:
             emit("model_call", {"kind": "tool_chat", **record})
             self._settle(guard, reservation, record)
 
-
     def _stream_tool_turn(self, model, messages, tools, allow_tools, record, started):
         content, calls, finish = [], {}, None
         push_live({"type": "answer_reset"})
         with self.client.chat.completions.create(
-            model=model, messages=messages, tools=tools, tool_choice="auto" if allow_tools else "none",
-            temperature=0, max_tokens=_CHAT_OUTPUT_CAP, stream=True, stream_options={"include_usage": True},
-            **({"extra_body": {"enable_thinking": False}} if self.is_dashscope
-               and model not in _THINKING_DISABLE_UNSUPPORTED else {}),
+            model=model,
+            messages=messages,
+            tools=tools,
+            tool_choice="auto" if allow_tools else "none",
+            temperature=0,
+            max_tokens=_CHAT_OUTPUT_CAP,
+            stream=True,
+            stream_options={"include_usage": True},
+            **(
+                {"extra_body": {"enable_thinking": False}}
+                if self.is_dashscope and model not in _THINKING_DISABLE_UNSUPPORTED
+                else {}
+            ),
         ) as stream:
             for chunk in stream:
+                check_cancelled()
                 if chunk.usage:
                     record["usage"] = chunk.usage.model_dump()
                 if not chunk.choices:
@@ -325,7 +405,9 @@ class ChatAPI:
                     content.append(delta.content)
                     push_live({"type": "token", "delta": delta.content})
                 for update in delta.tool_calls or []:
-                    call = calls.setdefault(update.index, {"id": "", "type": "function", "function": {"name": "", "arguments": ""}})
+                    call = calls.setdefault(
+                        update.index, {"id": "", "type": "function", "function": {"name": "", "arguments": ""}}
+                    )
                     call["id"] += update.id or ""
                     if update.function:
                         call["function"]["name"] += update.function.name or ""
@@ -363,11 +445,15 @@ class RerankAPI:
         record = {"model": self.model, "status": "error", "usage": {}}
         try:
             remaining = tool_time_left()
-            response = self.client.post(self.url, **({"timeout": remaining} if remaining is not None else {}), json={
-                "model": self.model,
-                "input": {"query": query, "documents": [c.text for c in chunks]},
-                "parameters": {"top_n": min(top_k, len(chunks))},
-            })
+            response = self.client.post(
+                self.url,
+                **({"timeout": remaining} if remaining is not None else {}),
+                json={
+                    "model": self.model,
+                    "input": {"query": query, "documents": [c.text for c in chunks]},
+                    "parameters": {"top_n": min(top_k, len(chunks))},
+                },
+            )
             response.raise_for_status()
             body = response.json()
             rows = body["output"]["results"]

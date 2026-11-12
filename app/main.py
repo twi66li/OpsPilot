@@ -1,4 +1,5 @@
 """FastAPI 应用入口：uvicorn app.main:app --reload"""
+
 import logging
 import time
 import uuid
@@ -17,13 +18,15 @@ from app.api import (
     router_eval,
     router_health,
     router_kb,
+    router_maintenance,
     router_remediation,
     router_session,
     router_support,
     router_ticket,
+    router_workspace,
 )
 from app.auth.router import router as auth_router
-from app.auth.security import hash_password
+from app.auth.security import hash_password, verify_password
 from app.config import get_settings
 from app.db.base import SessionLocal, init_db
 from app.db.models import RemediationRequest, Tenant, User
@@ -57,6 +60,13 @@ def bootstrap() -> None:
     """初始化默认租户、管理员账号，并基于 MySQL 全量文档重建 BM25 索引。"""
     settings = get_settings()
     with SessionLocal() as db:
+        existing_admin = db.query(User).filter_by(username=settings.admin_username).first()
+        if (
+            settings.app_env == "production"
+            and existing_admin
+            and (existing_admin.role != "admin" or verify_password("admin123", existing_admin.password_hash))
+        ):
+            raise RuntimeError("生产管理员角色或密码不安全，请显式运行 scripts.init_admin --reset-password 核对处理")
         if not db.get(Tenant, "default"):
             db.add(Tenant(id="default", name="默认租户"))
             db.commit()
@@ -72,10 +82,17 @@ def bootstrap() -> None:
                 )
             )
             db.commit()
+        from app.db.models import AgentRun
+
+        db.query(AgentRun).filter(AgentRun.status.in_(["running", "cancel_requested"])).update(
+            {"status": "interrupted"}, synchronize_session=False
+        )
+        db.commit()
         container = _build_container()
         db.query(RemediationRequest).filter_by(status="running").update(
             {"status": "interrupted", "result": {"message": "服务重启中断了执行，外部最终状态需重新调查核对"}},
-            synchronize_session=False)
+            synchronize_session=False,
+        )
         db.commit()
         chunk_total = kb_service.warm_indexes(db, container)
         from app.services.official_library import ensure_library
@@ -116,13 +133,20 @@ async def request_logging(request: Request, call_next):
         if request.url.path in ("/", "/index.html"):
             response.headers["Cache-Control"] = "no-store"
         response.headers["X-Request-ID"] = request_id
-        structlog.get_logger("http").info("response_started", method=request.method, path=request.url.path,
-                                          status=response.status_code,
-                                          elapsed_ms=round((time.perf_counter() - started) * 1000, 1))
+        structlog.get_logger("http").info(
+            "response_started",
+            method=request.method,
+            path=request.url.path,
+            status=response.status_code,
+            elapsed_ms=round((time.perf_counter() - started) * 1000, 1),
+        )
         return response
     finally:
         structlog.contextvars.clear_contextvars()
 
+
+app.include_router(router_maintenance.router)
+app.include_router(router_workspace.router)
 app.include_router(auth_router)
 app.include_router(router_health.router)
 app.include_router(router_admin.router)
@@ -140,11 +164,33 @@ def health():
     return {"status": "ok", "app": get_settings().app_name}
 
 
+class WorkspaceFiles(StaticFiles):
+    async def get_response(self, path, scope):
+        try:
+            return await super().get_response(path, scope)
+        except Exception as exc:
+            if getattr(exc, "status_code", None) != 404 or path.split("/")[0] not in {
+                "home",
+                "websites",
+                "issues",
+                "support",
+                "knowledge",
+                "investigation",
+                "operations",
+                "evaluation",
+            }:
+                raise
+            response = await super().get_response("index.html", scope)
+            response.headers["Cache-Control"] = "no-store"
+            return response
+
+
 # 诊断工作台单页（同源挂载）。必须最后注册：通配 mount 会吞掉其后定义的所有路由。
 _FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend" / "dist"
 if _FRONTEND_DIR.is_dir():
-    app.mount("/", StaticFiles(directory=_FRONTEND_DIR, html=True), name="frontend")
+    app.mount("/", WorkspaceFiles(directory=_FRONTEND_DIR, html=True), name="frontend")
 else:
+
     @app.get("/", response_class=HTMLResponse, status_code=503, include_in_schema=False)
     def frontend_not_built():
         return '<html lang="zh-CN"><h1>OpsPilot</h1><p>请在frontend目录执行 npm ci 和 npm run build，随后重启API。</p></html>'

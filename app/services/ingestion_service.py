@@ -1,5 +1,7 @@
 """单进程、单并发入库任务；状态持久化，重启中断的任务可显式重试。"""
+
 import logging
+import threading
 from concurrent.futures import ThreadPoolExecutor
 from importlib.metadata import version as package_version
 
@@ -9,6 +11,8 @@ from app.services.document_parser import build_version_chunks, parse_file
 
 logger = logging.getLogger(__name__)
 _worker: ThreadPoolExecutor | None = None
+_pending = set()
+_queue_lock = threading.Lock()
 
 
 def worker_ready():
@@ -18,10 +22,18 @@ def worker_ready():
 def start_worker():
     global _worker
     with SessionLocal() as db:
-        interrupted = db.query(DocumentVersion).filter(DocumentVersion.status.notin_(["ready", "failed"]))
+        interrupted = db.query(DocumentVersion).filter(DocumentVersion.status.in_(["parsing", "chunking", "indexing"]))
         interrupted.update({"status": "failed", "error": "服务重启中断了入库，请重试"}, synchronize_session=False)
         db.commit()
     _worker = ThreadPoolExecutor(max_workers=1, thread_name_prefix="knowledge-ingest")
+    from app.container import get_container
+
+    with SessionLocal() as db:
+        queued = [
+            v.id for v in db.query(DocumentVersion).filter(DocumentVersion.status.in_(["uploaded", "queued"])).all()
+        ]
+    for version_id in queued:
+        enqueue(version_id, get_container())
 
 
 def stop_worker():
@@ -34,7 +46,24 @@ def stop_worker():
 def enqueue(version_id: str, container):
     if _worker is None:
         raise RuntimeError("入库工作线程尚未启动")
-    _worker.submit(process_version, version_id, container)
+    with _queue_lock:
+        if version_id in _pending:
+            return
+        _pending.add(version_id)
+    with SessionLocal() as db:
+        version = db.get(DocumentVersion, version_id)
+        if version is None:
+            _pending.discard(version_id)
+            return
+        version.status = "queued"
+        db.commit()
+    future = _worker.submit(process_version, version_id, container)
+
+    def completed(_):
+        with _queue_lock:
+            _pending.discard(version_id)
+
+    future.add_done_callback(completed)
 
 
 def process_version(version_id: str, container):
@@ -58,16 +87,28 @@ def process_version(version_id: str, container):
             for parent in parents:
                 db.add(DocumentParent(tenant_id=doc.tenant_id, doc_id=doc.id, version_id=version.id, **parent))
             for chunk in chunks:
-                db.add(DocumentChunk(id=chunk["chunk_id"], tenant_id=doc.tenant_id, doc_id=doc.id,
-                                     version_id=version.id, parent_id=chunk["parent_id"], payload=chunk))
-            version.index_config = {**version.index_config, "embedding_model": container.settings.embedding_model,
-                                    "embedding_dim": container.settings.embedding_dim,
-                                    "chunking_version": "structure-v1", "chunk_count": len(chunks),
-                                    "parser_version": package_version("pypdf") if parser == "pypdf" else "v1"}
+                db.add(
+                    DocumentChunk(
+                        id=chunk["chunk_id"],
+                        tenant_id=doc.tenant_id,
+                        doc_id=doc.id,
+                        version_id=version.id,
+                        parent_id=chunk["parent_id"],
+                        payload=chunk,
+                    )
+                )
+            version.index_config = {
+                **version.index_config,
+                "embedding_model": container.settings.embedding_model,
+                "embedding_dim": container.settings.embedding_dim,
+                "chunking_version": "structure-v1",
+                "chunk_count": len(chunks),
+                "parser_version": package_version("pypdf") if parser == "pypdf" else "v1",
+            }
             version.status, version.progress = "indexing", 45
             db.commit()
             for offset in range(0, len(chunks), 16):
-                batch = chunks[offset:offset + 16]
+                batch = chunks[offset : offset + 16]
                 vectors = container.embedder.embed([c["text"] for c in batch])
                 if len(vectors) != len(batch):
                     raise ValueError("Embedding返回数量与片段数量不一致")
@@ -85,6 +126,11 @@ def process_version(version_id: str, container):
             db.rollback()
             version = db.get(DocumentVersion, version_id)
             if version:
+                version.index_config = {
+                    **version.index_config,
+                    "failure_stage": version.status,
+                    "failure_type": type(exc).__name__,
+                }
                 version.error = f"{version.status}阶段失败：{type(exc).__name__}，请检查文档或服务后重试"
                 if isinstance(exc, ValueError):
                     version.error += f"；{str(exc)[:300]}"

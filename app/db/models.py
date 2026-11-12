@@ -3,10 +3,11 @@
 约定：所有业务表都带 tenant_id，查询层强制租户过滤；
 向量数据（文档分块）存储在 Qdrant，payload 中同样携带 tenant_id。
 """
+
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, DateTime, Float, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import JSON, DateTime, Float, ForeignKey, Index, Integer, String, Text, func, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -86,6 +87,7 @@ class Document(Base):
     source: Mapped[str] = mapped_column(String(256), default="")
     content: Mapped[str] = mapped_column(Text)
     chunk_count: Mapped[int] = mapped_column(Integer, default=0)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     active_version_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_by: Mapped[str] = mapped_column(String(64), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
@@ -208,6 +210,17 @@ class RetrievalLog(Base):
 
 class AgentRun(Base):
     __tablename__ = "agent_runs"
+    __table_args__ = (
+        Index("uq_agent_request", "session_id", "request_id", unique=True),
+        Index(
+            "uq_agent_active_session",
+            "session_id",
+            unique=True,
+            sqlite_where=text("status IN ('running', 'cancel_requested')"),
+            postgresql_where=text("status IN ('running', 'cancel_requested')"),
+        ),
+    )
+    request_id: Mapped[str | None] = mapped_column(String(80), nullable=True)
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True)
     tenant_id: Mapped[str] = mapped_column(String(64), index=True)
@@ -217,6 +230,28 @@ class AgentRun(Base):
     data: Mapped[dict] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
+class AgentRunEvent(Base):
+    __tablename__ = "agent_run_events"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    run_id: Mapped[str] = mapped_column(String(64), ForeignKey("agent_runs.id"), index=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    kind: Mapped[str] = mapped_column(String(64))
+    detail: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+
+
+class WorkspaceEvent(Base):
+    __tablename__ = "workspace_events"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    user_id: Mapped[str] = mapped_column(String(64), index=True)
+    resource_type: Mapped[str] = mapped_column(String(16))
+    resource_id: Mapped[str] = mapped_column(String(64), index=True)
+    kind: Mapped[str] = mapped_column(String(64))
+    detail: Mapped[dict] = mapped_column(JSON, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
 class RemediationRequest(Base):
@@ -256,6 +291,9 @@ class SupportCase(Base):
     """个人排障的环境快照、临时证据和用户确认；与演练流程分开存储。"""
 
     __tablename__ = "support_cases"
+    severity: Mapped[str] = mapped_column(String(8), default="P2", server_default="P2", index=True)
+    labels: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now, onupdate=_now, server_default=func.now())
 
     session_id: Mapped[str] = mapped_column(String(64), ForeignKey("chat_sessions.id"), primary_key=True)
     tenant_id: Mapped[str] = mapped_column(String(64), index=True)

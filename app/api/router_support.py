@@ -1,4 +1,5 @@
 """网站背景、提交证据与人工排障闭环；不会访问用户服务器。"""
+
 from dataclasses import replace
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
@@ -12,6 +13,7 @@ from app.services import chat_service
 from app.services.case_service import CASE_STATUSES, assert_editable, case_status, is_archived, list_cases, reopen
 from app.services.evidence_checks import analyze_samples
 from app.services.knowledge_access import personal_namespace
+from app.services.maintenance_service import record_event, site_summaries
 from app.services.official_library import BY_ID, SCENARIOS, catalog
 from app.services.support_service import (
     CaseIn,
@@ -28,9 +30,20 @@ router = APIRouter(prefix="/api/support", tags=["personal-support"])
 
 
 def case_dict(case):
-    return {**case.data, "id": case.session_id, "site_id": case.site_id, "status": case_status(case),
-            "archived": is_archived(case), "saved": is_archived(case), "kind": case.data.get("kind", "problem"),
-            "sample_checks": analyze_samples(case.data), "created_at": case.created_at.isoformat()}
+    return {
+        **case.data,
+        "id": case.session_id,
+        "site_id": case.site_id,
+        "status": case_status(case),
+        "archived": is_archived(case),
+        "saved": is_archived(case),
+        "kind": case.data.get("kind", "problem"),
+        "sample_checks": analyze_samples(case.data),
+        "severity": case.severity,
+        "labels": case.labels,
+        "updated_at": case.updated_at.isoformat(),
+        "created_at": case.created_at.isoformat(),
+    }
 
 
 @router.get("/library")
@@ -48,21 +61,46 @@ def library_document(doc_id: str, user: AuthUser = Depends(get_current_user)):
     item = BY_ID.get(doc_id)
     if not item:
         raise HTTPException(404, "资料不存在")
-    return {"doc_id": doc_id, "doc_title": item["title"], "text": item["content"], "parent_text": item["content"],
-            "source": item["url"], "source_kind": "official", "applicable_version": item["applicable_version"],
-            "checked_at": item["checked_at"]}
+    return {
+        "doc_id": doc_id,
+        "doc_title": item["title"],
+        "text": item["content"],
+        "parent_text": item["content"],
+        "source": item["url"],
+        "source_kind": "official",
+        "applicable_version": item["applicable_version"],
+        "checked_at": item["checked_at"],
+    }
 
 
 @router.get("/private-documents")
 def private_documents(user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
-    docs = db.query(Document).filter_by(tenant_id=personal_namespace(user.user_id), created_by=user.user_id).all()
-    return [{"id": d.id, "title": d.title, "source": d.source, "chunk_count": d.chunk_count,
-             "active_version_id": d.active_version_id} for d in docs]
+    docs = (
+        db.query(Document)
+        .filter_by(tenant_id=personal_namespace(user.user_id), created_by=user.user_id, deleted_at=None)
+        .all()
+    )
+    return [
+        {
+            "id": d.id,
+            "title": d.title,
+            "source": d.source,
+            "chunk_count": d.chunk_count,
+            "active_version_id": d.active_version_id,
+        }
+        for d in docs
+    ]
 
 
 @router.post("/documents/upload", status_code=202)
-def upload_personal(file: UploadFile = File(...), title: str = Form(""), doc_id: str = Form(""),
-                    parsed_file: UploadFile | None = File(None), user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def upload_personal(
+    file: UploadFile = File(...),
+    title: str = Form(""),
+    doc_id: str = Form(""),
+    parsed_file: UploadFile | None = File(None),
+    user: AuthUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     from app.api.router_kb import upload_document
 
     namespace = personal_namespace(user.user_id)
@@ -74,20 +112,29 @@ def upload_personal(file: UploadFile = File(...), title: str = Form(""), doc_id:
 
 @router.get("/sites")
 def sites(user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
-    records = list_cases(db, user, kind="problem")
-    return [{"id": s.id, **s.data, "problem_count": sum(c["site_id"] == s.id for c in records),
-             "open_count": sum(c["site_id"] == s.id and c["status"] != "user_resolved" and not c["archived"] for c in records)}
-            for s in db.query(WebsiteProfile).filter_by(tenant_id=user.tenant_id, user_id=user.user_id, deleted_at=None).all()]
+    rows = db.query(WebsiteProfile).filter_by(tenant_id=user.tenant_id, user_id=user.user_id, deleted_at=None).all()
+    summaries = site_summaries(db, user, rows)
+    return [{"id": site.id, **site.data, **summaries[site.id]} for site in rows]
 
 
 @router.get("/sites/{site_id}")
 def site_detail(site_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     site = owned_site(db, user, site_id)
-    docs = db.query(Document).filter(Document.id.in_(site.data.get("doc_ids", [])),
-                                     Document.tenant_id == personal_namespace(user.user_id)).all()
-    return {"id": site.id, **site.data, "documents": [{"id": d.id, "title": d.title,
-            "chunk_count": d.chunk_count, "active_version_id": d.active_version_id} for d in docs],
-            "cases": list_cases(db, user, site_id=site_id, kind="problem")}
+    docs = (
+        db.query(Document)
+        .filter(Document.id.in_(site.data.get("doc_ids", [])), Document.tenant_id == personal_namespace(user.user_id))
+        .all()
+    )
+    return {
+        "id": site.id,
+        **site.data,
+        **site_summaries(db, user, [site])[site.id],
+        "documents": [
+            {"id": d.id, "title": d.title, "chunk_count": d.chunk_count, "active_version_id": d.active_version_id}
+            for d in docs
+        ],
+        "cases": list_cases(db, user, site_id=site_id, kind="problem"),
+    }
 
 
 def save_site(db, user, body, site=None):
@@ -96,6 +143,16 @@ def save_site(db, user, body, site=None):
     site = site or WebsiteProfile(tenant_id=user.tenant_id, user_id=user.user_id)
     site.data = data
     db.add(site)
+    db.flush()
+    record_event(
+        db,
+        user.tenant_id,
+        user.user_id,
+        "site",
+        site.id,
+        "site_saved",
+        {"name": site.data.get("name"), "actor": user.username},
+    )
     db.commit()
     return {"id": site.id, **site.data}
 
@@ -111,11 +168,24 @@ def update_site(site_id: str, body: SiteIn, user: AuthUser = Depends(get_current
 
 
 @router.delete("/sites/{site_id}")
-def delete_site(site_id: str, delete_records: bool = False, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def delete_site(
+    site_id: str,
+    delete_records: bool = False,
+    user: AuthUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     site = owned_site(db, user, site_id)
-    records = db.query(SupportCase).join(ChatSession, ChatSession.id == SupportCase.session_id).filter(
-        SupportCase.site_id == site_id, SupportCase.tenant_id == user.tenant_id, SupportCase.user_id == user.user_id,
-        ChatSession.deleted_at.is_(None)).all()
+    records = (
+        db.query(SupportCase)
+        .join(ChatSession, ChatSession.id == SupportCase.session_id)
+        .filter(
+            SupportCase.site_id == site_id,
+            SupportCase.tenant_id == user.tenant_id,
+            SupportCase.user_id == user.user_id,
+            ChatSession.deleted_at.is_(None),
+        )
+        .all()
+    )
     if delete_records and records:
         chat_service.delete_sessions(db, user.tenant_id, user.user_id, [c.session_id for c in records])
     for case in records:
@@ -129,19 +199,45 @@ def delete_site(site_id: str, delete_records: bool = False, user: AuthUser = Dep
 def create_case(body: CaseIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     site = owned_site(db, user, body.site_id) if body.site_id else None
     session = chat_service.create_session(db, user.tenant_id, user.user_id, redact(body.title)["text"])
-    case = SupportCase(session_id=session.id, tenant_id=user.tenant_id, user_id=user.user_id,
-                       site_id=site.id if site else None,
-                       data={"profile": site.data if site else {}, "evidence": [], "revision": 0, "kind": body.kind,
-                             "problem": {key: redact(getattr(body, key))["text"] for key in
-                                         ("symptom", "endpoint", "impact", "started_at", "recent_changes")}})
+    case = SupportCase(
+        session_id=session.id,
+        tenant_id=user.tenant_id,
+        user_id=user.user_id,
+        site_id=site.id if site else None,
+        data={
+            "profile": site.data if site else {},
+            "evidence": [],
+            "revision": 0,
+            "kind": body.kind,
+            "problem": {
+                key: redact(getattr(body, key))["text"]
+                for key in ("symptom", "endpoint", "impact", "started_at", "recent_changes")
+            },
+        },
+    )
     db.add(case)
+    record_event(
+        db,
+        user.tenant_id,
+        user.user_id,
+        "case",
+        session.id,
+        "case_created",
+        {"title": session.title, "kind": body.kind, "actor": user.username},
+    )
     db.commit()
     return case_dict(case)
 
 
 @router.get("/cases")
-def cases(site_id: str | None = None, kind: str | None = None, status: str | None = None, archived: bool | None = None,
-          user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def cases(
+    site_id: str | None = None,
+    kind: str | None = None,
+    status: str | None = None,
+    archived: bool | None = None,
+    user: AuthUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     return list_cases(db, user, site_id, kind, status, archived)
 
 
@@ -155,13 +251,28 @@ class ProblemIn(BaseModel):
 
 
 @router.put("/cases/{session_id}/problem")
-def update_problem(session_id: str, body: ProblemIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def update_problem(
+    session_id: str, body: ProblemIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)
+):
     case = owned_case(db, user, session_id)
     assert_editable(case)
     if body.title is not None:
         session = chat_service.get_session(db, user.tenant_id, session_id, user.user_id)
         session.title = redact(body.title)["text"]
-    case.data = {**case.data, "kind": "problem", "problem": {k: redact(v)["text"] for k, v in body.model_dump(exclude={"title"}).items()}}
+    case.data = {
+        **case.data,
+        "kind": "problem",
+        "problem": {k: redact(v)["text"] for k, v in body.model_dump(exclude={"title"}).items()},
+    }
+    record_event(
+        db,
+        user.tenant_id,
+        user.user_id,
+        "case",
+        session_id,
+        "problem_updated",
+        {"problem": case.data.get("problem"), "actor": user.username},
+    )
     db.commit()
     return case_dict(case)
 
@@ -173,7 +284,9 @@ class StatusIn(BaseModel):
 
 
 @router.post("/cases/{session_id}/status")
-def change_status(session_id: str, body: StatusIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def change_status(
+    session_id: str, body: StatusIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)
+):
     case = owned_case(db, user, session_id)
     if body.status == "reopen":
         reopen(case)
@@ -189,6 +302,15 @@ def change_status(session_id: str, body: StatusIn, user: AuthUser = Depends(get_
     case.data = {**case.data, "status_note": redact(body.note)["text"]}
     if body.status == "user_resolved":
         case.data = {**case.data, "solution": redact(body.note)["text"], "user_confirmed_resolved": True}
+    record_event(
+        db,
+        user.tenant_id,
+        user.user_id,
+        "case",
+        session_id,
+        "status_changed",
+        {"status": case.status, "note": case.data.get("status_note"), "actor": user.username},
+    )
     db.commit()
     return case_dict(case)
 
@@ -212,7 +334,9 @@ def preview(body: EvidenceIn, user: AuthUser = Depends(get_current_user)):
 
 
 @router.post("/cases/{session_id}/evidence")
-def submit_evidence(session_id: str, body: EvidenceIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def submit_evidence(
+    session_id: str, body: EvidenceIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)
+):
     case = owned_case(db, user, session_id)
     assert_editable(case)
     evidence = case.data.get("evidence", [])
@@ -230,6 +354,15 @@ def submit_evidence(session_id: str, body: EvidenceIn, user: AuthUser = Depends(
         item["plan_revision"] = plan["revision"]
     case.data = {**case.data, "kind": "problem", "evidence": [*evidence, item]}
     case.status = "evidence_submitted"
+    record_event(
+        db,
+        user.tenant_id,
+        user.user_id,
+        "case",
+        session_id,
+        "evidence_submitted",
+        {"evidence_id": item["id"], "label": item["label"], "kind": item["kind"]},
+    )
     db.commit()
     return item
 
@@ -244,12 +377,30 @@ def confirm_plan(session_id: str, user: AuthUser = Depends(get_current_user), db
     revision = case.data["revision"]
     # 重复确认同一方案不重置证据基线。
     if case.data.get("plan", {}).get("revision") != revision:
-        case.data = {**case.data, "plan": {"revision": revision, "steps": report["steps"],
-                                           "evidence_ids": [e["id"] for e in case.data.get("evidence", [])],
-                                           "checks": [{"status": "pending", "note": ""} for _ in report["steps"]]}}
+        case.data = {
+            **case.data,
+            "plan": {
+                "revision": revision,
+                "steps": report["steps"],
+                "evidence_ids": [e["id"] for e in case.data.get("evidence", [])],
+                "checks": [{"status": "pending", "note": ""} for _ in report["steps"]],
+            },
+        }
         case.status = "awaiting_results"
+        record_event(
+            db,
+            user.tenant_id,
+            user.user_id,
+            "case",
+            session_id,
+            "plan_confirmed",
+            {"revision": revision, "actor": user.username},
+        )
         db.commit()
-    return {"status": case.status, "message": "已记录方案确认。请在自己的网站环境操作，再提交新的检查结果；本平台未执行任何操作。"}
+    return {
+        "status": case.status,
+        "message": "已记录方案确认。请在自己的网站环境操作，再提交新的检查结果；本平台未执行任何操作。",
+    }
 
 
 class StepIn(BaseModel):
@@ -259,7 +410,13 @@ class StepIn(BaseModel):
 
 
 @router.post("/cases/{session_id}/plan/steps/{step_index}")
-def update_step(session_id: str, step_index: int, body: StepIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def update_step(
+    session_id: str,
+    step_index: int,
+    body: StepIn,
+    user: AuthUser = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     case = owned_case(db, user, session_id)
     assert_editable(case)
     plan = dict(case.data.get("plan", {}))
@@ -271,6 +428,21 @@ def update_step(session_id: str, step_index: int, body: StepIn, user: AuthUser =
     checks[step_index] = {"status": body.status, "note": redact(body.note)["text"]}
     plan["checks"] = checks
     case.data = {**case.data, "plan": plan}
+    record_event(
+        db,
+        user.tenant_id,
+        user.user_id,
+        "case",
+        session_id,
+        "step_updated",
+        {
+            "revision": body.revision,
+            "step": step_index + 1,
+            "status": body.status,
+            "note": checks[step_index]["note"],
+            "actor": user.username,
+        },
+    )
     db.commit()
     return case_dict(case)
 
@@ -289,7 +461,40 @@ def save_case(session_id: str, body: SaveIn, user: AuthUser = Depends(get_curren
         raise HTTPException(400, "保存案例需要本人确认处理记录")
     if not case.data.get("report"):
         raise HTTPException(409, "请先完成一次排障分析")
-    case.data = {**case.data, "saved": True, "archived": True, "solution": redact(body.solution)["text"],
-                 "result_label": "用户确认的处理记录；恢复结论以报告中的证据范围为限"}
+    case.data = {
+        **case.data,
+        "saved": True,
+        "archived": True,
+        "solution": redact(body.solution)["text"],
+        "result_label": "用户确认的处理记录；恢复结论以报告中的证据范围为限",
+    }
+    record_event(
+        db,
+        user.tenant_id,
+        user.user_id,
+        "case",
+        session_id,
+        "case_archived",
+        {"solution": case.data.get("solution"), "actor": user.username},
+    )
     db.commit()
     return case_dict(case)
+
+
+@router.delete("/documents/{doc_id}")
+def delete_personal_document(doc_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    from app.container import get_container
+    from app.services import kb_service
+
+    doc = (
+        db.query(Document)
+        .filter_by(id=doc_id, tenant_id=personal_namespace(user.user_id), created_by=user.user_id, deleted_at=None)
+        .first()
+    )
+    if not doc:
+        raise HTTPException(404, "私人手册不存在")
+    try:
+        kb_service.delete_document(db, get_container(), doc)
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    return {"deleted": doc_id, "history_retained": True}

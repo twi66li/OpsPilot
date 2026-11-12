@@ -2,6 +2,7 @@
 
 同时返回各路原始结果，便于不同检索方案的离线对比评测。
 """
+
 import time
 from dataclasses import dataclass, field
 
@@ -32,20 +33,30 @@ class HybridRetriever:
         self.dense_top_k = getattr(settings, "dense_top_k", 5)
         self.bm25_top_k = getattr(settings, "bm25_top_k", 5)
 
-    def retrieve(self, db, tenant_id: str, query: str, mode: str = "hybrid", top_k: int | None = None, log: bool = True) -> RetrievalResult:
+    def retrieve(
+        self, db, tenant_id: str, query: str, mode: str = "hybrid", top_k: int | None = None, log: bool = True
+    ) -> RetrievalResult:
         top_k = top_k or self.top_k
         start = time.perf_counter()
         result = RetrievalResult(mode=mode)
-        active_versions = ({d.id: d.active_version_id for d in db.query(Document).filter_by(tenant_id=tenant_id).all()}
-                           if db is not None else None)
+        active_versions = (
+            {
+                d.id: d.active_version_id
+                for d in db.query(Document).filter_by(tenant_id=tenant_id, deleted_at=None).all()
+            }
+            if db is not None
+            else None
+        )
 
         if mode in ("dense", "hybrid"):
             query_vector = self.embedder.embed([query])[0]
-            result.dense_raw = self.vector_store.search(tenant_id, query_vector, top_k=max(top_k, self.dense_top_k),
-                                                        active_versions=active_versions)
+            result.dense_raw = self.vector_store.search(
+                tenant_id, query_vector, top_k=max(top_k, self.dense_top_k), active_versions=active_versions
+            )
         if mode in ("bm25", "hybrid"):
-            result.bm25_raw = self.bm25.search(tenant_id, query, top_k=max(top_k, self.bm25_top_k),
-                                              active_versions=active_versions)
+            result.bm25_raw = self.bm25.search(
+                tenant_id, query, top_k=max(top_k, self.bm25_top_k), active_versions=active_versions
+            )
 
         if mode == "dense":
             result.hits = result.dense_raw[:top_k]
@@ -70,7 +81,7 @@ class HybridRetriever:
                     hit.extra["matched_text"] = hit.text
                     # 大代码/表格父块只提供命中附近的有界窗口，原文仍可按引用回查。
                     start = max(0, parent.text.find(hit.text.split("\n", 1)[-1]) - 500)
-                    hit.text = parent.text[start:start + 2400]
+                    hit.text = parent.text[start : start + 2400]
 
         result.latency_ms = (time.perf_counter() - start) * 1000
 

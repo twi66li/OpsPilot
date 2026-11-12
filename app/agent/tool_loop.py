@@ -1,4 +1,5 @@
 """原生只读工具循环：参数由模型提出，权限、预算和执行由程序控制。"""
+
 import json
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -7,7 +8,7 @@ from contextvars import copy_context
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from app.services.budget import BudgetExceededError, BudgetLedgerError
-from app.services.run_service import emit, push_live, tool_deadline
+from app.services.run_service import RunCancelled, check_cancelled, emit, push_live, tool_deadline
 
 
 class _Args(BaseModel):
@@ -40,8 +41,15 @@ class LogArgs(MetricsArgs):
     error_code: str | None = Field(default=None, pattern=r"^(ERR|ERROR)[_-][A-Za-z0-9_-]{1,32}$")
 
 
-ARGUMENTS = {"search_runbook": SearchArgs, "query_service_metrics": MetricsArgs, "query_fault_history": HistoryArgs, "query_logs": LogArgs,
-             "delegate_retrieval": SearchArgs, "search_saved_cases": SearchArgs, "get_site_overview": _Args}
+ARGUMENTS = {
+    "search_runbook": SearchArgs,
+    "query_service_metrics": MetricsArgs,
+    "query_fault_history": HistoryArgs,
+    "query_logs": LogArgs,
+    "delegate_retrieval": SearchArgs,
+    "search_saved_cases": SearchArgs,
+    "get_site_overview": _Args,
+}
 DESCRIPTIONS = {
     "get_site_overview": "只读查询当前选中网站的实际背景、关联资料和本人问题概况；没有关联网站时返回no_data，不代表实时运行状态。",
     "search_saved_cases": "只读查询本人在同一网站确认保存的处理案例，作为历史参考，不代表本次根因。",
@@ -52,8 +60,12 @@ DESCRIPTIONS = {
     "delegate_retrieval": "委派检索子Agent查询本租户手册、整理引用与证据缺口。每次调查仅能委派一次；子Agent最多检索两次，top_k为每次检索候选数，最终最多5条引用。不能查询指标、日志或执行写操作。query须包含服务、错误与要验证的知识问题。",
 }
 TOOL_SCHEMAS = [
-    {"type": "function", "function": {"name": name, "description": DESCRIPTIONS[name], "parameters": args.model_json_schema()}}
-    for name, args in ARGUMENTS.items() if name in ("search_runbook", "query_service_metrics", "query_fault_history", "query_logs")
+    {
+        "type": "function",
+        "function": {"name": name, "description": DESCRIPTIONS[name], "parameters": args.model_json_schema()},
+    }
+    for name, args in ARGUMENTS.items()
+    if name in ("search_runbook", "query_service_metrics", "query_fault_history", "query_logs")
 ]
 SYSTEM = (
     "你是OpsPilot运维助手。自主选择必要的只读工具，总调用预算3次。"
@@ -76,37 +88,73 @@ SYSTEM = (
 
 def _timed_execute(execute, name, args, seconds):
     with tool_deadline(seconds):
-        return execute(name, args)
+        check_cancelled()
+        result = execute(name, args)
+        check_cancelled()
+        return result
 
 
-def run_tool_loop(question, api, execute, *, history=(), timeout=8.0, max_tool_calls=3,
-                  tool_names=None, system_prompt=None, tool_timeouts=None):
+def run_tool_loop(
+    question,
+    api,
+    execute,
+    *,
+    history=(),
+    timeout=8.0,
+    max_tool_calls=3,
+    tool_names=None,
+    system_prompt=None,
+    tool_timeouts=None,
+):
     names = tuple(tool_names) if tool_names is not None else tuple(t["function"]["name"] for t in TOOL_SCHEMAS)
-    schemas = [{"type": "function", "function": {"name": name, "description": DESCRIPTIONS[name],
-                "parameters": ARGUMENTS[name].model_json_schema()}} for name in names]
+    schemas = [
+        {
+            "type": "function",
+            "function": {
+                "name": name,
+                "description": DESCRIPTIONS[name],
+                "parameters": ARGUMENTS[name].model_json_schema(),
+            },
+        }
+        for name in names
+    ]
     prompt = system_prompt or SYSTEM
     if "delegate_retrieval" in names:
         prompt = prompt.replace("手册问题用search_runbook", "手册问题委派delegate_retrieval")
     prior = [{"role": m["role"], "content": m["content"]} for m in history[-6:]]
     if prior and prior[-1] == {"role": "user", "content": question}:
         prior.pop()
-    messages = [{"role": "system", "content": prompt.replace("预算3次", f"预算{max_tool_calls}次")}, *prior, {"role": "user", "content": question}]
+    messages = [
+        {"role": "system", "content": prompt.replace("预算3次", f"预算{max_tool_calls}次")},
+        *prior,
+        {"role": "user", "content": question},
+    ]
     emit("model_input", {"kind": "tool_chat", "messages": messages, "tools": schemas})
     events, signatures = [], set()
     used = executed = proposed = 0
 
     def finish(answer, reason):
-        data = {"answer": answer, "end_reason": reason, "tool_calls_used": used, "tool_calls_executed": executed,
-                "tool_calls_proposed": proposed, "tool_events": events, "messages": messages,
-                "usage_may_arrive_later": reason == "tool_timeout"}
+        data = {
+            "answer": answer,
+            "end_reason": reason,
+            "tool_calls_used": used,
+            "tool_calls_executed": executed,
+            "tool_calls_proposed": proposed,
+            "tool_events": events,
+            "messages": messages,
+            "usage_may_arrive_later": reason == "tool_timeout",
+        }
         emit("agent_end", {k: v for k, v in data.items() if k not in ("messages", "tool_events")})
         return data
 
     for _ in range(max_tool_calls + 1):  # 另留一轮只回答；模型回合数不等于工具次数。
+        check_cancelled()
         try:
             message = api.tool_turn(messages, schemas, allow_tools=used < max_tool_calls)
         except (BudgetExceededError, BudgetLedgerError):
             raise  # 预算停止/账本失败是基础设施停机信号，不伪装成一次普通模型失败
+        except RunCancelled:
+            raise
         except Exception as exc:
             return finish(f"模型调用失败（{type(exc).__name__}），当前证据不足，无法确认诊断结论。", "model_error")
         messages.append(message)
@@ -117,7 +165,9 @@ def run_tool_loop(question, api, execute, *, history=(), timeout=8.0, max_tool_c
             if used == max_tool_calls:
                 answer += f"\n\n工具调用已达{max_tool_calls}次上限；仅依据已取得证据回答，未验证的信息仍不确定。"
             return finish(answer, "answered")
-        if any(not isinstance(c.get("id"), str) or not c["id"] for c in calls) or len({c["id"] for c in calls}) != len(calls):
+        if any(not isinstance(c.get("id"), str) or not c["id"] for c in calls) or len({c["id"] for c in calls}) != len(
+            calls
+        ):
             return finish("模型返回的工具编号无效，未执行工具，证据不足。", "invalid_model_output")
         fatal = None
         for call in calls:
@@ -134,7 +184,11 @@ def run_tool_loop(question, api, execute, *, history=(), timeout=8.0, max_tool_c
                 try:
                     if name not in names:
                         raise ValueError("不在只读工具允许列表")
-                    args = ARGUMENTS[name].model_validate(json.loads(call["function"]["arguments"])).model_dump(exclude_none=True)
+                    args = (
+                        ARGUMENTS[name]
+                        .model_validate(json.loads(call["function"]["arguments"]))
+                        .model_dump(exclude_none=True)
+                    )
                     signature = (name, json.dumps(args, sort_keys=True, ensure_ascii=False))
                     if signature in signatures:
                         output = {"status": "repeated", "message": "重复相同调用没有新证据，停止执行"}
@@ -156,20 +210,35 @@ def run_tool_loop(question, api, execute, *, history=(), timeout=8.0, max_tool_c
                 except (ValidationError, json.JSONDecodeError, ValueError, KeyError, TypeError) as exc:
                     output = (
                         {"status": "error", "error_type": type(exc).__name__, "message": "工具执行失败，证据不足"}
-                        if did_execute else
-                        {"status": "invalid_arguments", "message": "工具名/参数无效，不能包含身份、写操作或额外字段；请按schema修正"}
+                        if did_execute
+                        else {
+                            "status": "invalid_arguments",
+                            "message": "工具名/参数无效，不能包含身份、写操作或额外字段；请按schema修正",
+                        }
                     )
                 except TimeoutError:
                     output = {"status": "timeout", "message": "只读工具超时，当前证据不足"}
                     fatal = "tool_timeout"
+                except RunCancelled:
+                    raise
                 except Exception as exc:
                     output = {"status": "error", "error_type": type(exc).__name__, "message": "工具执行失败，证据不足"}
-            event = {"name": name, "tool_call_id": call["id"], "args": args, "result": output,
-                     "executed": did_execute, "duration_ms": round((time.perf_counter() - started) * 1000, 2)}
+            event = {
+                "name": name,
+                "tool_call_id": call["id"],
+                "args": args,
+                "result": output,
+                "executed": did_execute,
+                "duration_ms": round((time.perf_counter() - started) * 1000, 2),
+            }
             events.append(event)
             emit("tool", event)
             push_live({"type": "tool", **event, "summary": output.get("summary", output.get("message", ""))})
-            tool_message = {"role": "tool", "tool_call_id": call["id"], "content": json.dumps(output, ensure_ascii=False)}
+            tool_message = {
+                "role": "tool",
+                "tool_call_id": call["id"],
+                "content": json.dumps(output, ensure_ascii=False),
+            }
             messages.append(tool_message)
             emit("tool_message", tool_message)
         if fatal:

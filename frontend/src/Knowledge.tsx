@@ -1,18 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, App, Button, Card, Empty, Input, Modal, Progress, Select, Space, Table, Tabs, Tag } from 'antd';
+import { Alert, App, Button, Card, Checkbox, Empty, Input, Modal, Pagination, Popconfirm, Progress, Select, Space, Table, Tabs, Tag } from 'antd';
 import { api, downloadFile, post } from './api';
-import type { Hit, KnowledgeDoc, Version } from './types';
+import type { Hit, KnowledgeDoc, PageData, Version } from './types';
 
-const statusText: Record<string, string> = {uploaded: '等待处理', parsing: '解析中', chunking: '切分中', indexing: '索引中', ready: '可检索', failed: '处理失败'};
-export default function Knowledge({onSource, canWrite, personal = false}: {onSource: (hit: Hit) => void; canWrite: boolean; personal?: boolean}) {
+const statusText: Record<string, string> = {queued: '排队中', uploaded: '等待处理', parsing: '解析中', chunking: '切分中', indexing: '索引中', ready: '可检索', failed: '处理失败'};
+export default function Knowledge({onSource, canWrite, personal = false, initialId, opened}: {initialId?:string; opened?:(id:string)=>void; onSource: (hit: Hit) => void; canWrite: boolean; personal?: boolean}) {
   const {message} = App.useApp();
   const [docs, setDocs] = useState<KnowledgeDoc[]>([]), [selected, setSelected] = useState<KnowledgeDoc | null>(null);
   const [versions, setVersions] = useState<Version[]>([]), [version, setVersion] = useState<Version | null>(null);
   const [versionId, setVersionId] = useState(''), [modal, setModal] = useState(false), [updating, setUpdating] = useState(false);
   const [file, setFile] = useState<File | null>(null), [parsed, setParsed] = useState<File | null>(null), [title, setTitle] = useState('');
   const [uploading, setUploading] = useState(false), [actionBusy, setActionBusy] = useState(false);
+  const [page,setPage]=useState(1),[total,setTotal]=useState(0),[query,setQuery]=useState(''),[checked,setChecked]=useState<string[]>([]);
   const listPath = personal ? '/api/support/private-documents' : '/api/kb/documents';
-  const refresh = useCallback(async () => setDocs(await api<KnowledgeDoc[]>(listPath)), [listPath]);
+  const refresh=useCallback(async()=>{if(personal){const r=await api<PageData<KnowledgeDoc>>(`/api/workspace/documents?page=${page}&page_size=10&q=${encodeURIComponent(query)}`);setDocs(r.items);setTotal(r.total);}else{const r=await api<KnowledgeDoc[]>(listPath);setDocs(r);setTotal(r.length);}},[listPath,personal,page,query]);
+  useEffect(()=>{if(initialId&&selected?.id!==initialId)api<KnowledgeDoc>(`/api/kb/documents/${initialId}`).then(setSelected).catch(e=>message.error(e.message));else if(!initialId)setSelected(null);},[initialId,message]);
+  async function remove(){if(!selected)return;setActionBusy(true);try{await api(`${personal?'/api/support':'/api/kb'}/documents/${selected.id}`,{method:'DELETE'});setSelected(null);setVersions([]);setVersion(null);opened?.('');await refresh();message.success('文档已移出检索，历史引用保留');}catch(e){message.error((e as Error).message);}finally{setActionBusy(false);}}
+  async function retryChecked(){setActionBusy(true);try{const r=await post<{items:{status:string}[]}>('/api/maintenance/documents/retry-failed',{ids:checked});message.info(`已排队${r.items.filter(i=>i.status==='queued').length}份；其余没有可重试的最新失败版本或正在处理。`);setChecked([]);await refresh();}catch(e){message.error((e as Error).message);}finally{setActionBusy(false);}}
   useEffect(() => {refresh().catch(e => message.error(e.message));}, [refresh, message]);
   useEffect(() => {
     let active = true; setVersion(null); setVersionId(''); setVersions([]);
@@ -69,12 +73,15 @@ export default function Knowledge({onSource, canWrite, personal = false}: {onSou
       <Space><Button onClick={() => refresh().catch(e => message.error(e.message))}>刷新</Button><Button type="primary" disabled={!canWrite} onClick={() => openUpload(false)}>上传文档</Button></Space>
     </div>
     <div className="knowledge-grid">
-      <Card title={`文档 · ${docs.length}`} className="document-list">
-        {docs.length ? docs.map(doc => <button className={`document-item ${selected?.id === doc.id ? 'selected' : ''}`} key={doc.id} onClick={() => setSelected(doc)}>
+      <Card title={`文档 · ${total}`} className="document-list">
+        {personal&&<><Input.Search aria-label="搜索私人手册" placeholder="搜索手册标题" onSearch={v=>{setQuery(v);setPage(1);}}/>
+        <Button className="section-gap" size="small" loading={actionBusy} disabled={!checked.length} onClick={retryChecked}>重试选中文档的最新失败版本</Button></>}
+        {docs.length ? docs.map(doc => <div key={doc.id}>{personal&&<Checkbox aria-label={`选择手册：${doc.title}`} checked={checked.includes(doc.id)} onChange={e=>setChecked(previous=>e.target.checked?[...previous,doc.id]:previous.filter(id=>id!==doc.id))}/>}<button className={`document-item ${selected?.id === doc.id ? 'selected' : ''}`} key={doc.id} onClick={() => {setSelected(doc);opened?.(doc.id);}}>
           <strong>{doc.title}</strong><span>{doc.source || '正文录入'}</span><small>{doc.chunk_count} 个有效片段</small>
-        </button>) : <Empty description="上传第一份运维手册" />}
+        </button></div>) : <Empty description="上传第一份运维手册" />}
+        {personal&&<Pagination simple current={page} total={total} pageSize={10} onChange={setPage}/>}
       </Card>
-      <Card title={selected?.title || '解析与切分预览'} extra={selected && <Button disabled={!canWrite} onClick={() => openUpload(true)}>上传新版本</Button>}>
+      <Card title={selected?.title || '解析与切分预览'} extra={selected && <Space><Button disabled={!canWrite} onClick={() => openUpload(true)}>上传新版本</Button><Popconfirm title="将文档移出新检索？" description="历史引用及原文件保留。正在入库的文档需先等待完成。" onConfirm={remove} okText="确认移除" cancelText="取消"><Button danger disabled={!canWrite} loading={actionBusy}>删除文档</Button></Popconfirm></Space>}>
         {!selected ? <Empty description="选择左侧文档查看详情" /> : !versions.length ? <Alert type="info" title="此文档通过正文接口录入。上传新版本后可查看页码、切分与版本历史。" /> : <>
           <Space wrap className="version-bar"><span>版本</span><Select aria-label="知识版本" value={versionId} onChange={setVersionId} style={{minWidth: 230}}
             options={versions.map(v => ({value: v.id, label: `v${v.number} · ${statusText[v.status] || v.status}${v.active ? ' · 当前生效' : ''}`}))} />
@@ -103,7 +110,7 @@ export default function Knowledge({onSource, canWrite, personal = false}: {onSou
       <div className="form-field"><label htmlFor="knowledge-title">文档标题（可选）</label><Input id="knowledge-title" value={title} onChange={e => setTitle(e.target.value)} maxLength={200} /></div>
       <div className="form-field"><label htmlFor="knowledge-file">原文件 · PDF / Markdown / TXT，最大10MB</label><input id="knowledge-file" type="file" accept=".pdf,.md,.txt" onChange={e => setFile(e.target.files?.[0] || null)} /></div>
       <div className="form-field"><label htmlFor="knowledge-parsed">MinerU content_list.json（复杂PDF可选）</label><input id="knowledge-parsed" type="file" accept=".json" onChange={e => setParsed(e.target.files?.[0] || null)} /></div>
-      <Alert type="info" title="普通PDF直接提取文本。扫描件或复杂表格请先在本机解析，再同时上传原PDF和MinerU结果。" />
+      <Alert type="info" title="普通PDF直接提取文本；复杂PDF可用项目的本地解析工具。" description="将PDF拖到scripts/parse-pdf.cmd，或执行python -m scripts.parse_pdf 路径。扫描件需要先安装MinerU；解析后将content_list.json与原PDF一起上传。" />
     </Modal>
   </div>;
 }

@@ -3,7 +3,22 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "scripts": {"dev": "vite --host 127.0.0.1", "build": "tsc --noEmit && vite build", "preview": "vite preview --host 127.0.0.1"},
-  "dependencies": {"antd": "^6.7.0", "react": "^19.3.1", "react-dom": "^19.3.1"},
-  "devDependencies": {"@types/react": "^19.2.0", "@types/react-dom": "^19.2.0", "typescript": "^5.9.3", "vite": "^8.3.7"}
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "dependencies": {
+    "antd": "^6.7.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.3.7"
+  }
 }

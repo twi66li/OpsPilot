@@ -22,6 +22,7 @@ export default function SiteEditor({open, site, close, saved}: {open: boolean; s
     <p>只填写已知环境，不需要服务器账号或监控接入。手册先在资料库上传，完成入库后可在这里关联。</p>
     <Form form={form} layout="vertical">
       <Form.Item name="name" label="网站名称" rules={[{required: true}]}><Input maxLength={80} /></Form.Item>
+      <Form.Item name="url" label="公开网址（可选，用于主动HTTP检查）" rules={[{type:'url',message:'请输入完整HTTP(S)网址'}]}><Input maxLength={1024} placeholder="https://example.com" /></Form.Item>
       <Form.Item name="framework" label="框架"><Input maxLength={120} placeholder="FastAPI / Django；不知道可留空" /></Form.Item>
       <Form.Item name="deployment" label="部署方式"><Input maxLength={120} placeholder="Docker Compose / Linux直接部署" /></Form.Item>
       <Form.Item name="database" label="数据库"><Input maxLength={120} placeholder="PostgreSQL / MySQL" /></Form.Item>

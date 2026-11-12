@@ -36,10 +36,10 @@ export async function downloadFile(path: string, name: string) {
   const link = document.createElement('a'); link.href = url; link.download = name; link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
-export async function streamChat(sessionId: string, message: string, onEvent: (event: AgentEvent) => void, signal: AbortSignal, workflow: Workflow = 'auto') {
+export async function streamChat(sessionId: string, message: string, onEvent: (event: AgentEvent) => void, signal: AbortSignal, workflow: Workflow = 'auto', requestId:string=crypto.randomUUID()) {
   const response = await checked(await fetch('/api/agent/chat/stream', {
     method: 'POST', headers: headers({'Content-Type': 'application/json'}),
-    body: JSON.stringify({session_id: sessionId, message, workflow}), signal,
+    body: JSON.stringify({session_id: sessionId, message, workflow, request_id:requestId}), signal,
   }));
   if (!response.body) throw new Error('浏览器不支持流式响应');
   const reader = response.body.getReader(), decoder = new TextDecoder();

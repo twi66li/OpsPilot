@@ -3,6 +3,7 @@
 发现规则：扫描 eval/night*/*/results.json（评测脚本落盘目录），不提供写接口，
 不做路径拼接（run 参数必须命中发现清单，防目录穿越）。
 """
+
 import json
 from pathlib import Path
 
@@ -73,8 +74,11 @@ def eval_runs(include_development: bool = False, user: AuthUser = Depends(requir
     """列出可查看的评测运行（历史基线 / 重排恢复批），供工作台切换。"""
     all_runs = list(_discover_runs().values())
     runs = [r for r in all_runs if include_development or r["category"] == "evaluation" and r["question_count"]]
-    return {"runs": runs, "default_run": _default_run(runs),
-            "development_count": sum(r["category"] == "development" for r in all_runs)}
+    return {
+        "runs": runs,
+        "default_run": _default_run(runs),
+        "development_count": sum(r["category"] == "development" for r in all_runs),
+    }
 
 
 @router.get("/results")
@@ -93,40 +97,50 @@ def eval_results(user: AuthUser = Depends(require_roles("admin")), run: str = ""
         rec = records["questions"][qid]
         s = by_id.get(qid, {})
         judges = records.get("judges", {}).get(qid, {})
-        questions.append({
-            "id": qid,
-            "split": rec.get("split") or s.get("split"),
-            "family": rec.get("family") or s.get("family"),
-            "window": rec.get("window") or s.get("window"),
-            "status": rec.get("status"),
-            "question": rec.get("question"),
-            "must_abstain": rec.get("must_abstain", False),
-            "rerank_active": rec.get("rerank_active", (rec.get("model_config") or {}).get("rerank")),
-            "strategy": rec.get("strategy"),
-            "range_stats": rec.get("range_stats"),
-            "range_coverage": rec.get("range_coverage"),
-            "model_config": rec.get("model_config"),
-            "required_points": rec.get("required_points") or s.get("required_points", []),
-            "gold_program": rec.get("gold_program") or s.get("gold_program"),
-            "gold_notes": rec.get("gold_notes") or s.get("gold_notes"),
-            "answer": rec.get("answer", ""),
-            "citations": rec.get("citations", []),
-            "evidence": rec.get("evidence", []),
-            # 判分 schema 兼容（P1-Q-REPORT）：quality 轮裁判为 factual 口径，映射到旧页面
-            # 读取的 answer_correct；原始 verdict 原样保留，缺判如实透出
-            "judges": {m: {"verdict": v.get("verdict"), "missing": v.get("missing", True),
-                           "answer_correct": (v.get("verdict") or {}).get("answer_correct",
-                                            (v.get("verdict") or {}).get("factual")),
-                           "usage": v.get("usage", {}), "note": v.get("note")} for m, v in judges.items()},
-            "usage": rec.get("usage", {}),
-            "error": rec.get("error") or (rec.get("attempts") or None),
-            "elapsed_s": rec.get("elapsed_s"),
-            "program_checks": rec.get("program_checks"),
-            "actual_models": rec.get("actual_models", []),
-            "end_reason": rec.get("end_reason"),
-            "tool_evidence": rec.get("tool_evidence", []),
-            "agent_usage": rec.get("agent_usage", {}),
-        })
+        questions.append(
+            {
+                "id": qid,
+                "split": rec.get("split") or s.get("split"),
+                "family": rec.get("family") or s.get("family"),
+                "window": rec.get("window") or s.get("window"),
+                "status": rec.get("status"),
+                "question": rec.get("question"),
+                "must_abstain": rec.get("must_abstain", False),
+                "rerank_active": rec.get("rerank_active", (rec.get("model_config") or {}).get("rerank")),
+                "strategy": rec.get("strategy"),
+                "range_stats": rec.get("range_stats"),
+                "range_coverage": rec.get("range_coverage"),
+                "model_config": rec.get("model_config"),
+                "required_points": rec.get("required_points") or s.get("required_points", []),
+                "gold_program": rec.get("gold_program") or s.get("gold_program"),
+                "gold_notes": rec.get("gold_notes") or s.get("gold_notes"),
+                "answer": rec.get("answer", ""),
+                "citations": rec.get("citations", []),
+                "evidence": rec.get("evidence", []),
+                # 判分 schema 兼容（P1-Q-REPORT）：quality 轮裁判为 factual 口径，映射到旧页面
+                # 读取的 answer_correct；原始 verdict 原样保留，缺判如实透出
+                "judges": {
+                    m: {
+                        "verdict": v.get("verdict"),
+                        "missing": v.get("missing", True),
+                        "answer_correct": (v.get("verdict") or {}).get(
+                            "answer_correct", (v.get("verdict") or {}).get("factual")
+                        ),
+                        "usage": v.get("usage", {}),
+                        "note": v.get("note"),
+                    }
+                    for m, v in judges.items()
+                },
+                "usage": rec.get("usage", {}),
+                "error": rec.get("error") or (rec.get("attempts") or None),
+                "elapsed_s": rec.get("elapsed_s"),
+                "program_checks": rec.get("program_checks"),
+                "actual_models": rec.get("actual_models", []),
+                "end_reason": rec.get("end_reason"),
+                "tool_evidence": rec.get("tool_evidence", []),
+                "agent_usage": rec.get("agent_usage", {}),
+            }
+        )
     return {
         "id": ctx["meta"]["id"],
         "namespace": records.get("namespace"),
@@ -146,3 +160,10 @@ def eval_results(user: AuthUser = Depends(require_roles("admin")), run: str = ""
         "questions": questions,
         "details": records if not questions else None,
     }
+
+
+@router.get("/compare")
+def compare(baseline: str, candidate: str, user: AuthUser = Depends(require_roles("admin"))):
+    from app.services.evaluation_compare import compare_reports
+
+    return compare_reports(eval_results(user, baseline), eval_results(user, candidate))

@@ -1,4 +1,5 @@
 """全局配置：全部通过环境变量 / .env 覆盖，默认值支持零依赖离线运行。"""
+
 from functools import lru_cache
 from typing import Literal
 
@@ -7,7 +8,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore", hide_input_in_errors=True
+    )
 
     app_name: str = "aiops-diagnosis-agent"
     app_env: Literal["development", "demo", "production"] = "development"
@@ -72,6 +75,7 @@ class Settings(BaseSettings):
     agent_mode: str = "rule"  # rule | native；离线测试保留规则链
     tool_timeout_seconds: float = 8.0
     max_tool_calls: int = 5
+    max_concurrent_runs: int = 1
     logs_url: str = "http://localhost:18081"
     remediation_enabled: bool = False
     mcp_enabled: bool = False

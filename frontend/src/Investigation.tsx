@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, App, Button, Card, Collapse, Empty, Input, Modal, Space, Tag, Timeline } from 'antd';
+import { Alert, App, Button, Card, Collapse, Empty, Input, Modal, Pagination, Space, Tag, Timeline } from 'antd';
 import { api, formatTime, post, streamChat } from './api';
 import ConversationList from './ConversationList';
-import type { AgentEvent, Approval, ChatMessage, Hit, Remediation, Run, Session } from './types';
+import type { AgentEvent, Approval, ChatMessage, Hit, Remediation, Run, Session, PageData } from './types';
 
 const labels: Record<string, string> = {route_intent: '识别调查目标', retrieve: '检索运维手册', grade: '核对证据', rewrite: '补充检索',
   call_tools: '查询观测数据', generate: '整理调查结论', native_tools: '收集证据与分析', prepare_approval: '准备审批草稿',
@@ -15,7 +15,7 @@ function toolHits(event: AgentEvent): Hit[] {
 }
 const mergeHits = (previous: Hit[], next: Hit[]) => [...new Map([...previous, ...next].map(hit => [hit.chunk_id, hit])).values()];
 
-export default function Investigation({onSource, canApprove}: {onSource: (hit: Hit) => void; canApprove: boolean}) {
+export default function Investigation({onSource, canApprove, initialId, opened}: {initialId?:string; opened?:(id:string)=>void; onSource: (hit: Hit) => void; canApprove: boolean}) {
   const {message} = App.useApp();
   const [sessions, setSessions] = useState<Session[]>([]), [sessionId, setSessionId] = useState('');
   const [messages, setMessages] = useState<ChatMessage[]>([]), [question, setQuestion] = useState(''), [busy, setBusy] = useState(false);
@@ -25,18 +25,20 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
   const [repairEnabled, setRepairEnabled] = useState(false), [repairOpen, setRepairOpen] = useState(false);
   const [repairReason, setRepairReason] = useState(''), [repairBusy, setRepairBusy] = useState(false);
   const controller = useRef<AbortController | null>(null), bottom = useRef<HTMLDivElement>(null);
-  const refresh = useCallback(async () => setSessions(await api<Session[]>('/api/sessions')), []);
+  const [page,setPage]=useState(1),[total,setTotal]=useState(0),[search,setSearch]=useState('');
+  const refresh=useCallback(async()=>{const r=await api<PageData<Session>>(`/api/workspace/sessions?page=${page}&page_size=10&q=${encodeURIComponent(search)}`);setSessions(r.items);setTotal(r.total);},[page,search]);
   useEffect(() => {refresh().catch(e => message.error(e.message)); return () => controller.current?.abort();}, [refresh, message]);
   useEffect(() => {api<{enabled: boolean}>('/api/remediations/actions').then(result => setRepairEnabled(result.enabled)).catch(() => setRepairEnabled(false));}, []);
   useEffect(() => {bottom.current?.scrollIntoView({behavior: 'smooth', block: 'nearest'});}, [messages]);
-  function fresh() {setSessionId(''); setMessages([]); setHits([]); setEvents([]); setApproval(null); setTrace(null); setRunId('');}
+  useEffect(()=>{if(initialId&&initialId!==sessionId)void selectSession(initialId);},[initialId]);
+  function fresh() {setSessionId(''); setMessages([]); setHits([]); setEvents([]); setApproval(null); setTrace(null); setRunId('');opened?.('');}
   async function selectSession(id: string) {
     setBusy(true); setTrace(null); setEvents([]); setHits([]); setRunId(''); setApproval(null);
     try {
       const [session, pending] = await Promise.all([
         api<Session & {messages: ChatMessage[]}>(`/api/sessions/${id}`), api<Approval>(`/api/agent/sessions/${id}/pending-approval`),
       ]);
-      setSessionId(id); setMessages(session.messages); setApproval(pending.pending ? pending : null);
+      setSessionId(id); opened?.(id); setMessages(session.messages); setApproval(pending.pending ? pending : null);
       const latestRun = [...session.messages].reverse().find(item => item.meta?.run_id)?.meta?.run_id;
       if (latestRun) {
         setRunId(latestRun);
@@ -56,7 +58,7 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
       let id = sessionId;
       if (!id) {
         const created = await post<Session>('/api/sessions', {title: text.slice(0, 40)});
-        id = created.id; setSessionId(id); await refresh();
+        id = created.id; setSessionId(id); opened?.(id); await refresh();
       }
       answerIndex = messages.length + 1;
       setMessages(previous => [...previous, {role: 'user', content: text}, {role: 'assistant', content: ''}]);
@@ -101,7 +103,9 @@ export default function Investigation({onSource, canApprove}: {onSource: (hit: H
   return <div className="demo-workspace"><Alert type="warning" title="故障演练 · 独立测试环境" description="这里调查平台自带的 order-service 测试服务，可以体验异常、审批和固定恢复动作。它没有接入你的网站；自己的报错请前往「我的网站排障」。" />
     <div className="investigation-grid">
     <aside className="session-panel"><div className="panel-heading"><strong>调查会话</strong><Button size="small" disabled={busy} onClick={fresh}>新建</Button></div>
+      <Input.Search aria-label="搜索演练会话" placeholder="搜索历史会话" onSearch={v=>{setSearch(v);setPage(1);}} />
       <ConversationList items={sessions.map(s=>({id:s.id,title:s.title,detail:formatTime(s.created_at)}))} current={sessionId} busy={busy} open={id=>void selectSession(id)} deleted={async ids=>{if(ids.includes(sessionId))fresh();await refresh();}} />
+      <Pagination simple current={page} total={total} pageSize={10} onChange={setPage} />
     </aside>
     <section className="chat-panel"><div className="panel-heading"><strong>故障调查</strong><Tag color={busy ? 'processing' : 'default'}>{busy ? '正在调查' : '就绪'}</Tag></div>
       <div className="chat-history">{!messages.length && <div className="chat-empty"><span className="eyebrow">连接池超时演练</span><h2>体验一次故障调查与恢复</h2><p>测试环境会模拟连接池等待超时，可能看到请求失败、延迟上升和 ERR_5003 日志。先调查证据，再申请关闭故障注入，经审批后观察请求验证结果；实际异常以工具查询为准。</p>

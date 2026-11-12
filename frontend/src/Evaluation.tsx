@@ -1,3 +1,5 @@
+import { useSearchParams } from 'react-router-dom';
+import EvaluationCompare from './EvaluationCompare';
 import { useEffect, useState } from 'react';
 import { Alert, Card, Checkbox, Collapse, Empty, Input, Select, Space, Spin, Table, Tag } from 'antd';
 import { api } from './api';
@@ -6,8 +8,9 @@ import type { EvalQuestion, EvalReport } from './types';
 type EvalRun = {id: string; label: string; category: string; question_count: number};
 
 export default function Evaluation() {
-  const [runs, setRuns] = useState<EvalRun[]>([]), [runId, setRunId] = useState(''), [report, setReport] = useState<(EvalReport & {details?: unknown}) | null>(null), [query, setQuery] = useState('');
-  const [development, setDevelopment] = useState(false), [developmentCount, setDevelopmentCount] = useState(0), [loading, setLoading] = useState(false), [error, setError] = useState('');
+  const [params,setParams]=useSearchParams();
+  const [runs, setRuns] = useState<EvalRun[]>([]), [runId, setRunId] = useState(params.get('run')||''), [report, setReport] = useState<(EvalReport & {details?: unknown}) | null>(null), [query, setQuery] = useState('');
+  const [development, setDevelopment] = useState(params.get('development')==='true'), [developmentCount, setDevelopmentCount] = useState(0), [loading, setLoading] = useState(false), [error, setError] = useState('');
   useEffect(() => {
     let active = true;
     setLoading(true); setError('');
@@ -26,11 +29,12 @@ export default function Evaluation() {
   return <div className="page-stack"><div className="page-title"><div><h2>评测记录</h2><p>查看已有案例的回答、证据、程序检查和模型用量。</p></div></div>
     <Alert type="warning" title="这些结果来自开发与修复案例，不代表独立根因准确率。缺少人工标注或裁判结论时，保留缺失状态。" />
     <Checkbox checked={development} onChange={e => setDevelopment(e.target.checked)}>显示开发 / 流程验收记录（{developmentCount}）</Checkbox>
-    <Space wrap><Select aria-label="评测运行" placeholder="选择评测运行" style={{minWidth: 360}} value={runId || undefined} onChange={setRunId} options={runs.map(item => ({value: item.id, label: `${item.label} · ${item.question_count}题 · ${item.id}`}))} />
+    <Space wrap><Select aria-label="评测运行" placeholder="选择评测运行" style={{minWidth: 360}} value={runId || undefined} onChange={value=>{setRunId(value);setParams({run:value,development:String(development)});}} options={runs.map(item => ({value: item.id, label: `${item.label} · ${item.question_count}题 · ${item.id}`}))} />
       <Input aria-label="筛选评测问题" value={query} onChange={e => setQuery(e.target.value)} placeholder="筛选问题或编号" allowClear /></Space>
     {error && <Alert type="error" title="评测记录加载失败" description={error} />}
     {loading && <Spin tip="正在读取评测记录"><div style={{height:40}} /></Spin>}
     {!loading && !error && !runs.length && <Empty description="尚无可展示的逐题评测。可勾选上方选项查看已有开发 / 流程验收记录。" />}
+    {!!runId&&<EvaluationCompare baseline={runId} runs={runs}/>}
     {report && <>
       <Card size="small"><Space wrap><Tag color="blue">{runs.find(r => r.id === runId)?.label}</Tag><strong>{report.questions.length} 条逐题记录</strong><span className="muted">展开问题可查看回答、依据和用量；这些历史样本不代表当前线上准确率。</span></Space></Card>
       {Object.keys(report.summary || {}).length > 0 && <Collapse items={[{key: 'summary', label: '运行汇总与统计口径', children: <pre>{JSON.stringify(report.summary, null, 2)}</pre>}]} />}

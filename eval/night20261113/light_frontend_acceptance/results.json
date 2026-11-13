@@ -1,0 +1,84 @@
+{
+  "at": "2026-11-13T05:37:40.081Z",
+  "base": "http://127.0.0.1:8000",
+  "mocked": false,
+  "checks": [
+    {
+      "name": "真实注册与普通用户导航权限"
+    },
+    {
+      "name": "真实网站/问题保存、首页台账、深链接与刷新标题"
+    },
+    {
+      "name": "真实日志上传、脱敏预览与持久保存、提交后标题保持"
+    },
+    {
+      "name": "真实模型咨询、流式正文、资料报告和会话持久化",
+      "elapsedSeconds": 7.66,
+      "draftVisible": true
+    },
+    {
+      "name": "停止按钮与服务端取消状态一致",
+      "runId": "b9547c7b350949f69835967669c748b7"
+    },
+    {
+      "name": "真实状态变化后，解决与归档分别禁用输入"
+    },
+    {
+      "name": "真实页面 390px 输入区、抽屉导航和宽度"
+    },
+    {
+      "name": "其余普通用户模块与懒加载资源连通"
+    },
+    {
+      "name": "真实登录、退出撤销与验收记录清理"
+    }
+  ],
+  "streams": [
+    {
+      "status": 200,
+      "bodyReadMs": 7275,
+      "types": [
+        "start",
+        "node_status",
+        "phase",
+        "answer_reset",
+        "tool_start",
+        "tool",
+        "token",
+        "answer",
+        "final",
+        "done"
+      ],
+      "runId": "05ee0c12767d437ba6fcf4ad2f048df0",
+      "endReason": "answered",
+      "tokenEvents": 28
+    },
+    {
+      "status": 200,
+      "aborted": true
+    }
+  ],
+  "errors": [],
+  "cleanup": [
+    {
+      "caseId": "8b87106fa77742a58d6eec08a73ddffa",
+      "removed": true
+    },
+    {
+      "caseId": "49e9589ae6984134b6f47e29f55d49df",
+      "removed": true
+    },
+    {
+      "siteId": "cb7f8034925e4dad9ba1b8375c4a0a31",
+      "removed": true
+    }
+  ],
+  "finished": "2026-11-13T05:38:00.308Z",
+  "kind": "workflow_acceptance",
+  "note": "真实本地后端与模型的一次流程验收；不是准确率评测或延迟SLA。tokenEvents是正文增量事件数，不是模型用量。",
+  "sourceSha256": {
+    "frontend/src/PersonalSupport.tsx": "09e95d3bede7b5f06d7f516617796a4aa63e12cd280038645d2b4d5c736210c7",
+    "frontend/dist/index.html": "dac362626f629b7af2a31acd661554d7a1c908874c992d1ae918fde63c564e2e"
+  }
+}

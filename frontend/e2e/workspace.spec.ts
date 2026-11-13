@@ -11,11 +11,11 @@ test('普通用户注册、问题深链接和日志预览',async({page})=>{
     Object.defineProperty(navigator,'clipboard',{value:undefined,configurable:true});
   });
   await page.goto('/home');
-  await page.getByRole('tab',{name:'注册普通账号'}).click();
+  await page.getByRole('tab',{name:'注册',exact:true}).click();
   await page.getByLabel('用户名',{exact:true}).fill(name);
   await page.getByLabel('密码',{exact:true}).fill('browser-pass-123');
   await page.getByLabel('确认密码',{exact:true}).fill('browser-pass-123');
-  await page.getByRole('button',{name:'注册并进入工作台'}).click();
+  await page.getByRole('button',{name:'注册',exact:true}).click();
   await expect(page.getByText('普通用户',{exact:true})).toBeVisible();
   await page.getByRole('menuitem',{name:'问题中心'}).click();
   await page.getByRole('button',{name:'新建问题'}).click();
@@ -24,7 +24,7 @@ test('普通用户注册、问题深链接和日志预览',async({page})=>{
   await page.getByRole('button',{name:'继续处理'}).first().click();
   await expect(page).toHaveURL(/\/issues\/[a-f0-9]+/);
   await page.reload();
-  await page.getByRole('button',{name:'不知道如何取日志？'}).click();
+  await page.getByRole('button',{name:'证据收集向导'}).click();
   await page.getByRole('combobox',{name:'实际部署方式'}).click();
   await page.getByText('Docker',{exact:true}).click();
   await page.getByRole('textbox',{name:'实际容器或服务名'}).fill('nginx');
@@ -38,7 +38,7 @@ test('普通用户注册、问题深链接和日志预览',async({page})=>{
   await expect(page.getByText('证据已保存',{exact:false})).toBeVisible();
   await page.getByLabel('网站排障问题').fill('请分析这个验收样例');
   const streamed=page.waitForRequest(request=>request.url().endsWith('/api/agent/chat/stream')&&request.method()==='POST');
-  await page.getByRole('button',{name:'发送给助手'}).click();
+  await page.getByRole('button',{name:'发送',exact:true}).click();
   expect((await streamed).postDataJSON().request_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   await expect(page.getByText('本次分析已完成',{exact:true})).toBeVisible({timeout:30000});
 });
@@ -51,7 +51,8 @@ test('390px导航和提问区可见',async({page,request},testInfo)=>{
   await page.goto('/support');
   const box=await page.getByLabel('网站排障问题').boundingBox();
   expect(box?.y).toBeLessThan(844);
-  for(const button of await page.locator('.quick-examples button').all()){if(await button.isVisible()){const bounds=await button.boundingBox();expect((bounds?.x||0)+(bounds?.width||0)).toBeLessThanOrEqual(390);}}
+  await expect(page.locator('.support-suggestions button')).toHaveCount(4);
+  for(const button of await page.locator('.support-suggestions button').all()){if(await button.isVisible()){const bounds=await button.boundingBox();expect((bounds?.x||0)+(bounds?.width||0)).toBeLessThanOrEqual(390);}}
   await page.screenshot({path:testInfo.outputPath('mobile-assistant.png'),animations:'disabled'});
   await page.getByRole('button',{name:'打开功能导航'}).click();
   await expect(page.getByRole('menuitem',{name:'我的网站'})).toBeInViewport({ratio:0.9});

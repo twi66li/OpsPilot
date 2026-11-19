@@ -34,6 +34,14 @@ React 工作台已接通登录、完整会话历史、调查过程、文件知�
 
 个人排障复用 LangGraph 与原生工具循环，只开放资料检索和本人案例检索；结构化报告通过校验后整份展示，等待期间推送工具进展。演练保留日志/指标 MCP、可选检索子 Agent 与审批修复，不会将测试数据带入个人排障。
 
+### 检索与会话正确性（2026-11-19）
+
+- 范围统计和原文补取只读取当前租户尚未移出检索的文档。移出的资料不再参与新一轮统计。
+- 同一会话的新提问保留对话历史，并重新初始化证据、引用和报告状态。工具重复命中同一片段时，回答沿用该片段原有的引用编号。
+- 工具遇到模型预算拒绝或预算账本异常时，当前调查停止后续模型调用。
+
+这批改动在隔离检出中通过了 47 项离线检查，覆盖上述回归、审批和检查点恢复。
+
 ## 维护工作台工程升级（2026-11-12）
 
 - 页面具有资源URL，例如 `/issues/问题ID`、`/websites/网站ID`、`/operations/审批ID`；刷新和前进后退保留位置。移动端使用抽屉导航，助手提问区优先显示。
@@ -62,7 +70,7 @@ docker compose -f compose.demo.yml up -d
 
 `/live`检查进程，`/ready`检查数据库、向量库、缓存和入库线程；镜像及云端Compose使用readiness。真实基础设施检查：`docker compose -f compose.local.yml exec -T api python -m integration.check_stack`，不调用模型供应商，只创建并清理本次随机测试资源。CI另设独立PostgreSQL/Qdrant/Redis与三条浏览器流程；浏览器流程要求`OPSPILOT_E2E_ISOLATED=1`，禁止直接针对生产运行。
 
-阿里云已部署业务工作台，包含API与React前端、PostgreSQL、Qdrant、Redis、演练服务和Prometheus；MySQL服务及客户端已卸载，原数据与备份保留。当前云端应用镜像为`opspilot:f75f501`，公网演示入口：[OpsPilot](http://47.107.106.89:8080)。PDF报告、生产Prometheus连接器、组织成员邀请/共享和从页面启动新评测继续后置。
+历史阿里云演示包含 API、React 前端、PostgreSQL、Qdrant、Redis、演练服务和 Prometheus。历次部署与验证见[完整演示与小型部署](#完整演示与小型部署)，访问地址和镜像以实际部署为准。PDF 报告、生产 Prometheus 连接器、组织成员邀请与共享，以及从页面启动新评测继续后置。
 
 ## 第一次使用
 
@@ -137,6 +145,7 @@ docker compose -f compose.local.yml --profile app --profile observability up -d 
 
 ```powershell
 .venv/Scripts/python -m pytest tests/test_knowledge_files.py tests/test_kb.py tests/test_rag.py -q
+.venv/Scripts/python -m pytest tests/test_logstats.py tests/test_t9_persistence.py tests/test_t10_tool_loop.py tests/test_approval.py -q
 .venv/Scripts/python -m ruff check app tests
 ```
 
@@ -171,9 +180,9 @@ ssh -N -L 18000:127.0.0.1:18000 your-server
 
 随后打开 `http://127.0.0.1:18000`。配置独立管理员密码、JWT密钥和数据库密码；原文件及预算账本放持久卷。演示按单API worker运行，预算账本是单实例限制，不能当作跨主机共享额度。云端默认关闭检索子Agent以减少耗时，用开关保留对照能力。公网域名与TLS入口可在需要分享演示时另行配置。
 
-公网IP演示使用`deploy/nginx/opspilot.conf`：宿主机Nginx监听8080，转发到回环地址18000，前端、认证、上传与SSE保持同源。入口为`http://47.107.106.89:8080`，可直接注册普通账号。安全组放行TCP 8080即可，数据服务不发布公网端口；上传上限25MiB，流式响应关闭代理缓冲，读写超时300秒。安装配置并通过`nginx -t`后reload。服务器`.env`中将实际Docker网关与`127.0.0.1,::1`加入`FORWARDED_ALLOW_IPS`，将实际公网Origin加入`CORS_ORIGINS`，重建API容器使配置生效；Nginx覆盖外部传入的转发IP头。
+历史演示使用 [Nginx 代理配置](deploy/nginx/opspilot.conf)。宿主机监听 8080，转发到回环地址 18000，前端、认证、上传与 SSE 保持同源。示例访问地址为 `http://<服务器地址>:8080`。数据服务保留在内网。代理上传上限为 25 MiB，流式响应关闭代理缓冲，读写超时 300 秒。安装配置后通过 `nginx -t` 再重载。将实际 Docker 网关与 `127.0.0.1,::1` 加入服务器的 `FORWARDED_ALLOW_IPS`，按部署设置 `CORS_ORIGINS`，重建 API 容器使配置生效。Nginx 覆盖外部传入的转发 IP 头。
 
-IP加HTTP入口兼容请求编号生成与用户点击复制；浏览器缺少`crypto.randomUUID`时使用`crypto.getRandomValues`生成v4编号，避免提问失败。HTTPS环境优先使用原生UUID与Clipboard接口。依据：[MDN randomUUID](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID)、[MDN getRandomValues](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues)、[Nginx代理缓冲](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffering)。当前HTTP入口用于演示，真实账号与私人资料应通过HTTPS访问。
+IP 加 HTTP 的演示入口兼容请求编号生成和用户点击复制。浏览器缺少 `crypto.randomUUID` 时，应用使用 `crypto.getRandomValues` 生成 v4 编号。真实账号与私人资料应通过 HTTPS 访问，浏览器此时优先使用原生 UUID 和 Clipboard 接口。[MDN randomUUID](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID) · [MDN getRandomValues](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues) · [Nginx 代理缓冲](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffering)
 
 公网入口版本`f75f501`的CI运行43186062411已通过，浏览器流程实际关闭原生UUID与Clipboard接口，验证命令复制、日志上传及请求编号生成。公网独立账号进一步验证注册登录、17个懒加载资源、上传脱敏、详情链接与真实模型SSE；一次咨询首事件0.203秒、总耗时7.328秒，收到49个正文增量事件。首事件不等于首个正文，该记录不是延迟SLA或准确率评测。真实客户端IP与伪造转发头处理已核对。部署时另备份并移走服务器原有的空Nginx服务覆盖文件，恢复发行版服务定义与reload；原80端口站点响应保持一致。公网验收记录在本机`data/public-ingress-smoke.json`，代理核对记录在云端`/opt/opspilot/releases/f75f501/proxy-ip-check.json`。
 

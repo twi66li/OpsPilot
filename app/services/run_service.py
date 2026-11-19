@@ -157,7 +157,7 @@ class RunRecorder:
             "retrieval_mode",
             "tool_timeout_seconds",
             "model_strict",
-            "qdrant_mode",
+            "vector_store_backend",
             "metrics_provider",
             "mcp_enabled",
             "retrieval_subagent_enabled",

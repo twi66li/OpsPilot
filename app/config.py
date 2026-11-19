@@ -29,8 +29,14 @@ class Settings(BaseSettings):
     admin_username: str = "admin"
     admin_password: str = "admin123"
 
-    # ---- Qdrant 向量库 ----
-    qdrant_mode: str = "memory"  # memory | local | remote
+    # ---- 向量库 ----
+    vector_store_backend: Literal["milvus", "memory"] = "milvus"
+    milvus_uri: str = "http://127.0.0.1:19531"
+    milvus_token: str = ""
+    milvus_db_name: str = "default"
+    milvus_collection: str = "opspilot_chunks"
+
+    # 旧向量迁移的源配置
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "kb_chunks"
 
@@ -103,8 +109,8 @@ class Settings(BaseSettings):
                 raise ValueError("生产环境 CORS_ORIGINS 必须指定明确来源")
             if self.database_url.startswith("sqlite"):
                 raise ValueError("生产环境 DATABASE_URL 必须使用持久化数据库")
-            if self.qdrant_mode != "remote":
-                raise ValueError("生产环境 QDRANT_MODE 必须为 remote")
+            if self.vector_store_backend != "milvus" or not self.milvus_uri.startswith(("http://", "https://")):
+                raise ValueError("生产环境需要 Milvus 服务，请配置 VECTOR_STORE_BACKEND=milvus 和 MILVUS_URI")
             if self.llm_provider == "mock" or self.embedding_provider == "mock":
                 raise ValueError("生产环境 LLM_PROVIDER 和 EMBEDDING_PROVIDER 不能使用 mock")
         return self

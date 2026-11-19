@@ -2,7 +2,7 @@
 
 面向个人开发者和小团队的网站维护工作台：集中管理网站环境、维护资料、异常问题和处理记录。智能助手按任务提供资料咨询、日志排查、操作结果核对与历史查询。用户通过上传资料和提交证据即可开始，个人网站的实际操作由用户执行。
 
-技术栈：Python / FastAPI / LangGraph / PostgreSQL 16 / Qdrant / BM25 + RRF + Rerank / Redis / MCP / React + TypeScript + Ant Design / Docker Compose。
+技术栈：Python / FastAPI / LangGraph / PostgreSQL 16 / Milvus / BM25 + RRF + Rerank / Redis / MCP / React + TypeScript + Ant Design / Docker Compose。
 
 ## 已实现
 
@@ -68,7 +68,7 @@ docker compose -f compose.demo.yml up -d
 
 重复初始化不会覆盖账号。只有显式运行`python -m scripts.init_admin --reset-password`才使用配置重设已有管理员密码并撤销登录。迁移会使旧版无登录会话的令牌失效，升级后需要重新登录。
 
-`/live`检查进程，`/ready`检查数据库、向量库、缓存和入库线程；镜像及云端Compose使用readiness。真实基础设施检查：`docker compose -f compose.local.yml exec -T api python -m integration.check_stack`，不调用模型供应商，只创建并清理本次随机测试资源。CI另设独立PostgreSQL/Qdrant/Redis与三条浏览器流程；浏览器流程要求`OPSPILOT_E2E_ISOLATED=1`，禁止直接针对生产运行。
+`/live` 检查进程，`/ready` 检查数据库、Milvus、缓存和入库线程。用 `docker compose -f compose.local.yml exec -T api python -m integration.check_stack` 检查真实依赖，只创建并清理本次随机测试资源，无需调用模型供应商。CI 使用同一 Compose 启动隔离的 PostgreSQL、Milvus 和 Redis，验证向量迁移和浏览器流程。浏览器流程要求 `OPSPILOT_E2E_ISOLATED=1`，仅在隔离环境运行。
 
 历史阿里云演示包含 API、React 前端、PostgreSQL、Qdrant、Redis、演练服务和 Prometheus。历次部署与验证见[完整演示与小型部署](#完整演示与小型部署)，访问地址和镜像以实际部署为准。PDF 报告、生产 Prometheus 连接器、组织成员邀请与共享，以及从页面启动新评测继续后置。
 
@@ -112,7 +112,7 @@ cd ..
 前端需要 Node 24；Docker 使用独立构建阶段，运行容器只托管静态产物。开发前端可在 `frontend` 执行 `npm run dev`，代理API至本机8000端口。
 默认管理员是 `admin / admin123`，云端部署前需修改管理员密码和 JWT 密钥。
 
-## PostgreSQL + Qdrant 本地联调
+## PostgreSQL + Milvus 本地联调
 
 ```powershell
 # 在 .env 中设置 POSTGRES_PASSWORD，并按 .env.example 配置真实模型。
@@ -121,8 +121,11 @@ docker compose -f compose.local.yml --profile app --profile observability up -d 
 
 启动时先初始化手册和历史故障，再启动API，避免两个模型进程同时持有同一预算账本。管理员按环境配置创建；额外固定演示账号仅在本机显式执行 `python -m scripts.seed --demo-users` 时创建。
 
-`compose.local.yml` 为当前主配置；`docker-compose.yml` 保留早期 MySQL 配置。
-业务数据库、Qdrant 与原文件均需持久化；原文件默认放在 `data/knowledge`。入库 worker 与模型预算账本共用 API 进程，当前部署使用单个 API worker。复杂 OCR 在本机或独立环境执行，2GB 演示服务器不部署 MinerU 模型。
+`compose.local.yml` 为当前主配置，`docker-compose.yml` 保留早期 MySQL 联调入口。两者与演示配置共用 Milvus 2.4.15 服务定义。业务数据库、Milvus 与原文件均需持久化。原文件默认放在 `data/knowledge`。入库 worker 与模型预算账本共用单个 API 进程。复杂 OCR 在本机或独立环境执行。
+
+使用宿主机运行 API 时，设置 `VECTOR_STORE_BACKEND=milvus` 和 `MILVUS_URI=http://127.0.0.1:19531` 连接本机 Compose 服务。离线开发可显式选择 `VECTOR_STORE_BACKEND=memory`。
+
+如果旧资料仍在 Qdrant，保持原 Embedding 模型和维度，在启动新 API 前暂停旧库入库并迁移现有向量和分块信息。迁移工具 `python -m scripts.migrate_milvus --help` 默认只盘点源数据，显式传 `--apply` 才写入目标集合。确认迁移校验通过后，将 `MILVUS_COLLECTION` 指向该集合。已迁移的资料可直接复用向量。历史评测脚本请使用对应记录的代码版本复现。
 
 ## 知识文件接口
 
@@ -170,7 +173,7 @@ docker compose -f compose.local.yml --profile app --profile observability up -d 
 
 2026-11-11的一次实际记录：调查83.1秒，首个正文增量63.2秒，模型与Embedding/Rerank合计13,148 tokens；引用命中上传手册，审批后3次测试请求由500恢复为200。记录位于 `eval/night20261111/demo_acceptance/results.json`。该耗时包含检索子Agent，不能作为延迟SLA。
 
-`compose.demo.yml` 使用本机构建的 `opspilot:20261112` 镜像，包含PostgreSQL、Redis、Qdrant、API、演练服务和Prometheus。上传镜像、配置与 `.env` 后执行：
+`compose.demo.yml` 包含 PostgreSQL、Redis、Milvus、API、演练服务和 Prometheus。部署前从当前代码构建镜像，例如 `docker build -t opspilot:milvus .`，在 `.env` 设置 `OPSPILOT_IMAGE=opspilot:milvus`。同步镜像、Compose、`deploy/milvus` 配置和 `.env` 后，按以下方式启动并连接。
 
 ```bash
 docker compose -f compose.demo.yml up -d --wait --wait-timeout 180
@@ -178,7 +181,7 @@ docker compose -f compose.demo.yml up -d --wait --wait-timeout 180
 ssh -N -L 18000:127.0.0.1:18000 your-server
 ```
 
-随后打开 `http://127.0.0.1:18000`。配置独立管理员密码、JWT密钥和数据库密码；原文件及预算账本放持久卷。演示按单API worker运行，预算账本是单实例限制，不能当作跨主机共享额度。云端默认关闭检索子Agent以减少耗时，用开关保留对照能力。公网域名与TLS入口可在需要分享演示时另行配置。
+随后打开 `http://127.0.0.1:18000`。配置独立管理员密码、JWT 密钥和数据库密码，原文件及预算账本放持久卷。演示使用单个 API worker，预算账本的限制只适用于当前实例。公网域名和证书准备好后可启用 [HTTPS 配置](deploy/nginx/opspilot-https.conf)。下列历史资源记录来自 Qdrant 版本，Milvus 配置的云端容量需实测。
 
 历史演示使用 [Nginx 代理配置](deploy/nginx/opspilot.conf)。宿主机监听 8080，转发到回环地址 18000，前端、认证、上传与 SSE 保持同源。示例访问地址为 `http://<服务器地址>:8080`。数据服务保留在内网。代理上传上限为 25 MiB，流式响应关闭代理缓冲，读写超时 300 秒。安装配置后通过 `nginx -t` 再重载。将实际 Docker 网关与 `127.0.0.1,::1` 加入服务器的 `FORWARDED_ALLOW_IPS`，按部署设置 `CORS_ORIGINS`，重建 API 容器使配置生效。Nginx 覆盖外部传入的转发 IP 头。
 

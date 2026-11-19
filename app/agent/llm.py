@@ -169,14 +169,19 @@ class OpenAIChatLLM(BaseLLM):
         return self._api.chat(system, user, output_cap=output_cap)
 
     @staticmethod
-    def _parse_json(text: str):
-        match = re.search(r"\{.*\}|\[.*\]", text, re.DOTALL)
-        if not match:
-            return None
-        try:
-            return json.loads(match.group(0))
-        except json.JSONDecodeError:
-            return None
+    def _parse_json(text: str) -> dict | None:
+        decoder = json.JSONDecoder()
+        openers = re.compile(r"[{\[]")
+        offset = 0
+        while match := openers.search(text, offset):
+            try:
+                value, offset = decoder.raw_decode(text, match.start())
+            except json.JSONDecodeError:
+                offset = match.end()
+                continue
+            if isinstance(value, dict):
+                return value
+        return None
 
     def is_sufficient(self, question: str, hits: list[dict]) -> bool:
         if not hits:

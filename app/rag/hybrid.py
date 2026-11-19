@@ -1,4 +1,4 @@
-"""混合检索门面：dense(Qdrant) + BM25 → RRF 融合 → 可选重排。
+"""混合检索门面：稠密召回 + BM25 → RRF 融合 → 可选重排。
 
 同时返回各路原始结果，便于不同检索方案的离线对比评测。
 """
@@ -80,8 +80,8 @@ class HybridRetriever:
                 if parent:
                     hit.extra["matched_text"] = hit.text
                     # 大代码/表格父块只提供命中附近的有界窗口，原文仍可按引用回查。
-                    start = max(0, parent.text.find(hit.text.split("\n", 1)[-1]) - 500)
-                    hit.text = parent.text[start : start + 2400]
+                    window_start = max(0, parent.text.find(hit.text.split("\n", 1)[-1]) - 500)
+                    hit.text = parent.text[window_start : window_start + 2400]
 
         result.latency_ms = (time.perf_counter() - start) * 1000
 

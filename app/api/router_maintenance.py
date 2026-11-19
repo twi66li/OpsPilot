@@ -5,10 +5,18 @@ from fastapi.responses import Response
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.api.router_kb import require_retrieval_allowance
 from app.auth.deps import AuthUser, get_current_user
 from app.db.base import get_db
 from app.db.models import ChatSession, SupportCase, WorkspaceEvent
-from app.services.maintenance_service import case_report, collection_guide, record_event, timeline
+from app.services.maintenance_service import (
+    case_report,
+    collection_guide,
+    event_at,
+    record_event,
+    sort_events,
+    timeline,
+)
 from app.services.support_service import owned_case, owned_site, redact
 
 router = APIRouter(prefix="/api/maintenance", tags=["maintenance"])
@@ -56,10 +64,10 @@ def case_timeline(case_id: str, user: AuthUser = Depends(get_current_user), db: 
                     "id": "legacy-" + e["id"],
                     "kind": "evidence_submitted",
                     "detail": {"evidence_id": e["id"], "label": e["label"]},
-                    "at": e.get("submitted_at", case.created_at.isoformat()),
+                    "at": event_at(e.get("submitted_at"), case.created_at),
                 }
             )
-    return {"events": sorted(events, key=lambda e: e["at"])}
+    return {"events": sort_events(events)}
 
 
 @router.get("/sites/{site_id}/timeline")
@@ -93,7 +101,7 @@ def site_timeline(site_id: str, user: AuthUser = Depends(get_current_user), db: 
                 "id": e.id,
                 "kind": e.kind,
                 "detail": e.detail,
-                "at": e.created_at.isoformat(),
+                "at": event_at(None, e.created_at),
                 "case_id": e.resource_id if e.resource_type == "case" else None,
             }
             for e in events
@@ -183,7 +191,7 @@ class RetrievalIn(BaseModel):
 
 
 @router.post("/retrieval-test")
-def retrieval_test(body: RetrievalIn, user: AuthUser = Depends(get_current_user)):
+def retrieval_test(body: RetrievalIn, user: AuthUser = Depends(require_retrieval_allowance)):
     from app.container import get_container
     from app.services.support_service import retrieve_for_case, validate_private_docs
 
@@ -370,14 +378,21 @@ def operation_detail(record_id: str, user: AuthUser = Depends(get_current_user),
     for key, value in data.items():
         if hasattr(value, "isoformat"):
             data[key] = value.isoformat()
-    run = (
-        db.query(AgentRun).filter_by(id=row.run_id, tenant_id=user.tenant_id).first()
-        if kind == "remediation"
-        else db.query(AgentRun)
-        .filter_by(session_id=row.session_id, tenant_id=user.tenant_id)
-        .order_by(AgentRun.created_at.desc())
-        .first()
+    runs = (
+        db.query(AgentRun)
+        .join(ChatSession, ChatSession.id == AgentRun.session_id)
+        .outerjoin(SupportCase, SupportCase.session_id == AgentRun.session_id)
+        .filter(
+            AgentRun.tenant_id == user.tenant_id,
+            ChatSession.tenant_id == user.tenant_id,
+            ChatSession.deleted_at.is_(None),
+            SupportCase.session_id.is_(None),
+        )
     )
+    if kind == "remediation":
+        run = runs.filter(AgentRun.id == row.run_id).first()
+    else:
+        run = runs.filter(AgentRun.session_id == row.session_id).order_by(AgentRun.created_at.desc()).first()
     # 这是组织审批入口，按本租户工程师权限读取对应演练调查，不开放个人排障记录。
     return {
         "kind": kind,

@@ -13,7 +13,7 @@ flowchart LR
     end
     API --> Services
     subgraph RAG[检索层]
-        VEC[Qdrant 向量检索]
+        VEC[Milvus 向量检索]
         BM25[BM25 关键词检索]
         FUSE[RRF 融合]
         RERANK[重排序 heuristic / Cross-Encoder]
@@ -28,22 +28,22 @@ flowchart LR
     end
     AGENT --> GRAPH
     subgraph INFRA[基础设施]
-        MYSQL[(MySQL)]
+        DB[(PostgreSQL)]
         REDIS[(Redis)]
-        QDRANTDB[(Qdrant)]
+        MILVUSDB[(Milvus)]
         LF[Langfuse 可选]
     end
-    Services --> MYSQL
-    VEC --> QDRANTDB
+    Services --> DB
+    VEC --> MILVUSDB
     Services --> REDIS
     GRAPH -.追踪.-> LF
 ```
 
 ## 2. 混合检索链路
 
-1. **分块入库**：Markdown 文档按标题切分 + 滑动窗口（500 字，80 重叠）→ 逐块向量化 → Qdrant upsert（payload 携带 `tenant_id/doc_id/doc_title/text`）→ BM25 增量索引。
+1. **分块入库**。Markdown 文档按标题切分后逐块向量化，写入 Milvus 并更新 BM25 索引。向量记录保留 `tenant_id`、`doc_id`、`version_id` 和引用所需的分块信息。
 2. **在线检索**（`HybridRetriever.retrieve`）：
-   - `dense`：查询向量化 → Qdrant `query_points` 带 `tenant_id` 过滤；
+   - `dense` 将查询向量化，在 Milvus 按 `tenant_id` 和有效版本过滤后检索。
    - `bm25`：jieba 分词 + ASCII 词元（保证 `ERR_5003`、`order-service` 整体命中）→ rank-bm25 打分（先词面预过滤再排序，规避小语料负 idf 问题）；
    - `hybrid`：两路各取 Top-K 后 **RRF 融合**：`score(d) = Σ 1/(k + rank_i(d))`；
    - 可选重排：`heuristic`（词面重合度，离线可用）或 `cross_encoder`（sentence-transformers，惰性加载，失败自动退化）。
@@ -72,18 +72,18 @@ flowchart LR
 
 **Checkpointer**：`MemorySaver`（thread_id = 会话 ID）。生产多 worker 部署时建议替换为持久化 checkpointer（`langgraph-checkpoint-postgres` 等）。
 
-## 4. 数据模型（MySQL / SQLite 兼容）
+## 4. 数据模型（PostgreSQL，兼容旧 MySQL 与离线 SQLite）
 
 | 表 | 说明 |
 | --- | --- |
 | tenants / users | 租户与用户（PBKDF2 密码哈希，role: admin/engineer/viewer） |
 | chat_sessions / messages | 聊天会话与消息（消息 meta 存引用、意图、工单 ID） |
-| documents | 知识库文档元数据与全文（向量在 Qdrant） |
+| documents | 知识库文档元数据与全文，向量存储在 Milvus |
 | fault_records | 历史故障记录（Agent 故障史工具的数据源） |
 | tickets / approval_requests | 工单与 LangGraph interrupt 审批单 |
 | retrieval_logs | 检索日志（模式/命中/得分/耗时） |
 
-**租户隔离**：业务查询全部强制 `tenant_id` 过滤；Qdrant 检索带 `Filter(key=tenant_id)`；BM25 按租户分桶。
+**租户隔离**。业务查询和 Milvus 检索按 `tenant_id` 过滤，BM25 按租户分桶。
 
 ## 5. SSE 事件协议
 
@@ -107,8 +107,8 @@ flowchart LR
 
 | 依赖 | 配置 | 失败行为 |
 | --- | --- | --- |
-| Qdrant | `QDRANT_MODE=memory`（默认） | 进程内向量库 + 启动时从 MySQL 回填 |
-| Qdrant | `remote` | 连接失败自动退化为进程内并告警日志 |
+| Milvus | `VECTOR_STORE_BACKEND=milvus`（默认） | 连接或集合不匹配时报告错误 |
+| 离线向量库 | `VECTOR_STORE_BACKEND=memory` | 显式使用进程内向量检索 |
 | Redis | `REDIS_URL` | 不可达自动退化为进程内缓存/计数器 |
 | LLM | `LLM_PROVIDER=mock` | 规则式回答（确定性，便于测试/验收）；openai 模式调用失败回退规则式 |
 | Embedding | `EMBEDDING_PROVIDER=mock` | 词面哈希向量（语义≈词面重合）；生产切换 OpenAI 兼容 API |

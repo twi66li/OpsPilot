@@ -1,4 +1,4 @@
-# 使用本机构建的镜像；API绑定回环地址，公网入口由deploy/nginx/opspilot.conf提供。
+# 使用本机构建的镜像；API 绑定回环地址，公网入口由宿主 Nginx 提供。
 name: opspilot-demo
 services:
   postgres:
@@ -21,23 +21,19 @@ services:
     command: redis-server --maxmemory 24mb --maxmemory-policy allkeys-lru
     mem_limit: 48m
     restart: unless-stopped
-  qdrant:
-    image: qdrant/qdrant:v1.12.4
-    environment:
-      QDRANT__STORAGE__ON_DISK_PAYLOAD: "true"
-    volumes: ["qdrant_data:/qdrant/storage"]
-    mem_limit: 256m
+  milvus:
+    extends: {file: deploy/milvus/compose.yml, service: milvus}
     restart: unless-stopped
   api:
-    image: ${OPSPILOT_IMAGE:-opspilot:20261112}
+    image: ${OPSPILOT_IMAGE:?请配置包含 Milvus 的应用镜像标签}
     env_file: .env
     environment:
       APP_ENV: production
       REGISTRATION_ENABLED: ${REGISTRATION_ENABLED:-false}
       DATABASE_URL: postgresql+psycopg://opspilot:${POSTGRES_PASSWORD}@postgres:5432/opspilot
       REDIS_URL: redis://redis:6379/0
-      QDRANT_MODE: remote
-      QDRANT_URL: http://qdrant:6333
+      VECTOR_STORE_BACKEND: milvus
+      MILVUS_URI: http://milvus:19530
       PROMETHEUS_URL: http://prometheus:9090
       LOGS_URL: http://metrics-demo:8081
       BUDGET_LEDGER_PATH: /app/data/model-budget-cloud.jsonl
@@ -49,7 +45,7 @@ services:
     depends_on:
       postgres: {condition: service_healthy}
       redis: {condition: service_started}
-      qdrant: {condition: service_started}
+      milvus: {condition: service_healthy}
       metrics-demo: {condition: service_started}
       prometheus: {condition: service_started}
     mem_limit: 512m
@@ -61,7 +57,7 @@ services:
       start_period: 60s
       retries: 12
   metrics-demo:
-    image: ${OPSPILOT_IMAGE:-opspilot:20261112}
+    image: ${OPSPILOT_IMAGE:?请配置包含 Milvus 的应用镜像标签}
     command: uvicorn scripts.metrics_demo:app --host 0.0.0.0 --port 8081
     mem_limit: 96m
     restart: unless-stopped
@@ -79,5 +75,5 @@ services:
     restart: unless-stopped
 volumes:
   postgres_data:
-  qdrant_data:
+  milvus_data:
   prometheus_data:

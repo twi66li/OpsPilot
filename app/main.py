@@ -95,10 +95,11 @@ def bootstrap() -> None:
             synchronize_session=False,
         )
         db.commit()
-        chunk_total = kb_service.warm_indexes(db, container)
+        kb_service.warm_indexes(db, container)
         from app.services.official_library import ensure_library
 
         ensure_library(db, container)
+        chunk_total = container.vector_store.count()
         logging.getLogger(__name__).info("启动完成：索引已就绪，共 %d 个分块", chunk_total)
 
 
@@ -110,7 +111,7 @@ def _build_container():
 
 app = FastAPI(
     title="AIOps 智能故障诊断 Agent",
-    description="混合检索（Qdrant + BM25 + RRF + 重排）× LangGraph 诊断工作流 × 租户隔离 × SSE 流式 × 人工审批",
+    description="混合检索（Milvus + BM25 + RRF + 重排）× LangGraph 诊断工作流 × 租户隔离 × SSE 流式 × 人工审批",
     version="1.0.0",
     lifespan=lifespan,
 )

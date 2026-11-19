@@ -12,7 +12,7 @@ jobs:
       DATABASE_URL: "sqlite:///:memory:"
       EMBEDDING_PROVIDER: mock
       LLM_PROVIDER: mock
-      QDRANT_MODE: memory
+      VECTOR_STORE_BACKEND: memory
       RERANK_ENABLED: "false"
       REDIS_URL: "redis://127.0.0.1:1/0"
     steps:
@@ -35,34 +35,18 @@ jobs:
         run: npm ci && npm run build
       - name: Lint
         # 历史冻结实验脚本保留原样，检查应用、测试与当前评测入口。
-        run: uv run ruff check app scripts tests eval/investigation_eval.py
+        run: uv run ruff check app scripts tests integration eval/investigation_eval.py
       - name: Run tests
         run: uv run pytest -q
 
   integration:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: opspilot_integration
-          POSTGRES_USER: opspilot
-          POSTGRES_PASSWORD: integration-only-password
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd "pg_isready -U opspilot -d opspilot_integration"
-          --health-interval 5s --health-timeout 3s --health-retries 20
-      redis:
-        image: redis:7-alpine
-        ports: ['6379:6379']
-      qdrant:
-        image: qdrant/qdrant:v1.12.4
-        ports: ['6333:6333']
     env:
-      DATABASE_URL: postgresql+psycopg://opspilot:integration-only-password@127.0.0.1:5432/opspilot_integration
-      QDRANT_MODE: remote
-      QDRANT_URL: http://127.0.0.1:6333
-      REDIS_URL: redis://127.0.0.1:6379/0
+      POSTGRES_PASSWORD: integration-only-password
+      DATABASE_URL: postgresql+psycopg://opspilot:integration-only-password@127.0.0.1:15432/opspilot
+      VECTOR_STORE_BACKEND: milvus
+      MILVUS_URI: http://127.0.0.1:19531
+      REDIS_URL: redis://127.0.0.1:16379/0
       EMBEDDING_PROVIDER: mock
       LLM_PROVIDER: mock
       MODEL_STRICT: 'false'
@@ -84,8 +68,12 @@ jobs:
           pip install uv==0.12.19
           uv sync --frozen
           cd frontend && npm ci && npm run build
+      - name: Start isolated infrastructure
+        run: docker compose -p opspilot-ci -f compose.local.yml up -d --wait --wait-timeout 180 postgres redis milvus
       - name: Verify real infrastructure
-        run: uv run python -m integration.check_stack
+        run: |
+          uv run python -m integration.check_stack
+          uv run python -m integration.check_milvus --uri "$MILVUS_URI" --collection opspilot_test_ci_migration
       - name: Start isolated browser-test application
         run: |
           uv run python -m scripts.seed
@@ -96,6 +84,9 @@ jobs:
         run: |
           npx playwright install --with-deps chromium
           npx playwright test
+      - name: Stop isolated infrastructure
+        if: always()
+        run: docker compose -p opspilot-ci -f compose.local.yml down --volumes
       - uses: actions/upload-artifact@v4
         if: always()
         with:

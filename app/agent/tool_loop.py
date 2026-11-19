@@ -219,7 +219,7 @@ def run_tool_loop(
                 except TimeoutError:
                     output = {"status": "timeout", "message": "只读工具超时，当前证据不足"}
                     fatal = "tool_timeout"
-                except RunCancelled:
+                except (BudgetExceededError, BudgetLedgerError, RunCancelled):
                     raise
                 except Exception as exc:
                     output = {"status": "error", "error_type": type(exc).__name__, "message": "工具执行失败，证据不足"}

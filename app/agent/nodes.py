@@ -77,19 +77,20 @@ class DiagnosisNodes:
             tool_names=tool_names, tool_timeouts={"delegate_retrieval": self.container.settings.retrieval_subagent_timeout_seconds},
         )
         answer, citations, hits = result["answer"], [], []
-        citations_indexed = []
+        citations_by_id = {}
         events = []
         for event in result["tool_events"]:
             output = event["result"]
             if event["name"] in ("search_runbook", "delegate_retrieval"):
                 hits.extend(output.get("hits", []))
                 for hit in output.get("hits", []):
-                    citations_indexed.append(hit["doc_title"])
+                    citations_by_id.setdefault(hit["citation_id"], hit["doc_title"])
                     if hit["doc_title"] not in citations:
                         citations.append(hit["doc_title"])
             if event["name"] == "query_service_metrics" and "source" in output:
                 answer += "\n\n指标证据：\n" + output["summary"]
             events.append({"type": "tool", **event, "summary": output.get("summary", output.get("message", "")), "anomalies": output.get("anomalies", [])})
+        citations_indexed = [citations_by_id[number] for number in sorted(citations_by_id)]
         payload = {"answer": answer, "citations": citations, "citations_indexed": citations_indexed, "hits": hits,
                    "docs_sufficient": None, "end_reason": result["end_reason"],
                    "tool_events": result["tool_events"], "events": events + [{"type": "answer", "answer": answer, "citations": citations, "citations_indexed": citations_indexed}]}
@@ -135,6 +136,18 @@ class DiagnosisNodes:
             "tool_events": [],
             "fault_records": [],
             "metrics": {},
+            "answer": "",
+            "hits": [],
+            "citations": [],
+            "citations_indexed": [],
+            "used_evidence": None,
+            "range_assembly": None,
+            "range_coverage": None,
+            "range_stats": None,
+            "generation_policy": None,
+            "ticket_draft": None,
+            "support_report": None,
+            "events": [],
             "end_reason": "answered",
         }
 

@@ -3,8 +3,13 @@ import copy
 import json
 import time
 from threading import Event
+from types import SimpleNamespace
 
+import pytest
+
+from app.agent.nodes import DiagnosisNodes
 from app.agent.tool_loop import run_tool_loop
+from app.services.budget import BudgetExceededError, BudgetLedgerError
 from tests.conftest import new_session, register
 
 
@@ -31,6 +36,46 @@ def test_real_protocol_ids_and_tool_result_are_passed_back():
     last = api.requests[-1]["messages"][-1]
     assert last["role"] == "tool" and last["tool_call_id"] == "call-1"
     assert "检查慢SQL" in last["content"]
+
+
+def test_native_citations_keep_ids_across_repeated_hits(monkeypatch):
+    container = SimpleNamespace(
+        llm=SimpleNamespace(_api=None),
+        settings=SimpleNamespace(
+            retrieval_subagent_enabled=False, tool_timeout_seconds=8,
+            max_tool_calls=3, retrieval_subagent_timeout_seconds=8,
+        ),
+    )
+    first = {"citation_id": 1, "doc_title": "手册甲"}
+    second = {"citation_id": 2, "doc_title": "手册乙"}
+    third = {"citation_id": 3, "doc_title": "手册丙"}
+    simulated_run = {
+        "answer": "见资料 [3]", "end_reason": "answered",
+        "tool_events": [
+            {"name": "search_runbook", "result": {"hits": [first, second]}},
+            {"name": "search_runbook", "result": {"hits": [first, third]}},
+        ],
+    }
+    monkeypatch.setattr("app.agent.tool_loop.run_tool_loop", lambda *args, **kwargs: simulated_run)
+
+    result = DiagnosisNodes(container).native_tools({"question": "如何排查", "tenant_id": "test", "user_id": "test"})
+
+    assert result["citations_indexed"] == ["手册甲", "手册乙", "手册丙"]
+
+
+@pytest.mark.parametrize("error_type", [BudgetExceededError, BudgetLedgerError])
+def test_tool_budget_failure_stops_before_the_next_model_turn(error_type):
+    api = ScriptedAPI(
+        {"tool_calls": [tool("search_runbook", {"query": "连接池"})]},
+        {"content": "不得继续请求模型"},
+    )
+
+    def blocked(*_):
+        raise error_type("测试预算拒绝")
+
+    with pytest.raises(error_type, match="测试预算拒绝"):
+        run_tool_loop("如何排查", api, blocked)
+    assert len(api.requests) == 1
 
 
 def test_tenant_override_and_write_tool_are_never_executed():

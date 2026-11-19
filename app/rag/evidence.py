@@ -122,7 +122,8 @@ def tenant_docs(db, tenant_id: str) -> list[tuple[str, str]]:
     """读取租户全部文档 (标题, 正文)。统计与范围组装共用的定向补取来源（免 embedding/rerank）。"""
     from app.db.models import Document
 
-    return [(d.title, d.content or "") for d in db.query(Document).filter(Document.tenant_id == tenant_id).all()]
+    docs = db.query(Document).filter(Document.tenant_id == tenant_id, Document.deleted_at.is_(None)).all()
+    return [(d.title, d.content or "") for d in docs]
 
 
 def assemble_evidence(hits: list[dict], question: str, db=None, tenant_id: str = "",

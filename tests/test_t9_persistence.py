@@ -38,6 +38,33 @@ def _start(c, client, headers):
 AUTH = AuthUser(user_id="test", username="admin", tenant_id="default", role="admin")
 
 
+def test_new_turn_does_not_reuse_evidence_from_previous_checkpoint(monkeypatch):
+    nodes = DiagnosisNodes(None)
+    prior_outputs = {
+        "citations": ["旧来源"], "citations_indexed": ["旧来源"], "hits": [{"chunk_id": "old"}],
+        "used_evidence": [{"n": 1}], "range_assembly": {"targets": 1}, "range_coverage": {"targets": 1},
+        "range_stats": {"total_lines": 1}, "generation_policy": "llm", "ticket_draft": {"title": "旧工单"},
+        "support_report": {"summary": "旧报告"},
+    }
+
+    def personal_support(state):
+        if state["question"] == "第一轮":
+            return {"answer": "第一轮回答", **prior_outputs}
+        return {"answer": "第二轮回答"}
+
+    monkeypatch.setattr(nodes, "personal_support", personal_support)
+    graph = build_graph(nodes)
+    config = {"configurable": {"thread_id": "same-session"}}
+    first = graph.invoke({"question": "第一轮", "support_context": {}}, config)
+    assert first["range_stats"] == {"total_lines": 1}
+
+    history = [{"role": "assistant", "content": first["answer"]}]
+    second = graph.invoke({"question": "第二轮", "support_context": {}, "history": history}, config)
+    assert second["answer"] == "第二轮回答" and second["history"] == history
+    for field in prior_outputs:
+        assert not second.get(field), field
+
+
 @pytest.mark.parametrize("approved", [True, False])
 def test_reopen_checkpoint_then_decide_and_retry(tmp_path, client, admin_headers, approved):
     path = tmp_path / "checkpoints.sqlite3"

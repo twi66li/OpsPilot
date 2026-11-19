@@ -99,6 +99,30 @@ def test_sample_b_missing_targets_reported_not_counted_as_full():
     assert sub["count"] == 6 and sub["line_numbers"] == list(range(200, 206))
 
 
+def test_range_statistics_exclude_soft_deleted_documents():
+    from datetime import datetime
+
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import Session
+
+    from app.db.models import Document, Tenant
+
+    engine = create_engine("sqlite:///:memory:")
+    Tenant.__table__.create(engine)
+    Document.__table__.create(engine)
+    with Session(engine) as db:
+        db.add(Tenant(id="range-test", name="范围统计测试"))
+        db.add_all([
+            Document(tenant_id="range-test", title=DOC_TITLE, content="\n".join(DOC_LINES.splitlines()[:-1]) + "\n"),
+            Document(tenant_id="range-test", title=DOC_TITLE, content=DOC_LINES, deleted_at=datetime(2026, 11, 19)),
+        ])
+        db.commit()
+        stats = compute_range_stats(Q_COUNT, [], db=db, tenant_id="range-test")
+        assert stats["missing_lines"] == [110]
+        assert stats["total_lines"] == 10
+    engine.dispose()
+
+
 def test_mode_condition_is_unsupported_not_guessed():
     # 无归一化要求的"出现最多"：按消息正文逐字精确分组是确定性口径（P1-QUALITY-20261102 扩展）
     conditions, unsupported, wants = parse_conditions(Q_MODE)

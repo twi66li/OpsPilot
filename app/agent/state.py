@@ -34,18 +34,18 @@ class DiagState(TypedDict, total=False):
 
     # 输出
     answer: str
-    generation_policy: str  # llm | log_only_evidence_boundary（原始日志不外推根因/运行状态）
+    generation_policy: str | None  # llm | log_only_evidence_boundary（原始日志不外推根因/运行状态）
     citations: list[str]
     # [n]→第 n 条证据文档（与生成器编号同源，重复文档保留各自编号）；
     # 生成器实际收到的编号证据与范围组装元数据；必须声明在状态中，
     # 否则 LangGraph 会丢弃节点返回的未声明字段，最终响应拿不到映射（终审 P1-CITATIONS）。
     citations_indexed: list[str]
-    used_evidence: list[dict]
-    range_assembly: dict
+    used_evidence: list[dict] | None
+    range_assembly: dict | None
     # 显式行范围的覆盖情况与确定性统计（P1-ARAG-20261102）：
     # 覆盖参与 grade 充足性决策；统计由程序计算，模型只做解释。
-    range_coverage: dict
-    range_stats: dict
+    range_coverage: dict | None
+    range_stats: dict | None
     ticket_draft: dict | None
     approval: dict | None
     approval_id: str | None

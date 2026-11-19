@@ -40,7 +40,7 @@ jobs:
         run: uv run pytest -q
 
   integration:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       POSTGRES_PASSWORD: integration-only-password
       DATABASE_URL: postgresql+psycopg://opspilot:integration-only-password@127.0.0.1:15432/opspilot
@@ -81,9 +81,10 @@ jobs:
           uv run python -m integration.wait_ready
       - name: Browser journeys
         working-directory: frontend
+        timeout-minutes: 5
         run: |
-          npx playwright install --with-deps chromium
-          npx playwright test
+          google-chrome --version
+          npx --no-install playwright test
       - name: Stop isolated infrastructure
         if: always()
         run: docker compose -p opspilot-ci -f compose.local.yml down --volumes

@@ -64,6 +64,9 @@ class PageQuery(BaseModel):
     case_kind: str | None = None
     archived: bool | None = None
     severity: str | None = None
+    environment: str | None = Field(default=None, max_length=30)
+    group: str | None = Field(default=None, max_length=80)
+    owner: str | None = Field(default=None, max_length=80)
 
 
 def read_page(kind, params, user, db):
@@ -121,12 +124,18 @@ def read_page(kind, params, user, db):
             return case_item(*row)
     elif kind == "sites":
         query = db.query(WebsiteProfile).filter_by(tenant_id=user.tenant_id, user_id=user.user_id, deleted_at=None)
+        if params.environment:
+            query = query.filter(func.coalesce(WebsiteProfile.data["environment"].as_string(), "unknown") == params.environment)
+        for key in ("group", "owner"):
+            value = getattr(params, key)
+            if value:
+                query = query.filter(WebsiteProfile.data[key].as_string().icontains(value, autoescape=True))
         if params.q:
             query = query.filter(
                 or_(
                     *[
                         WebsiteProfile.data[key].as_string().icontains(params.q, autoescape=True)
-                        for key in ("name", "url", "framework", "deployment", "database", "versions", "notes")
+                        for key in ("name", "url", "framework", "deployment", "database", "versions", "notes", "group", "owner")
                     ]
                 )
             )

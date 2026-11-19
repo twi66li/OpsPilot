@@ -71,7 +71,9 @@ class DiagnosisNodes:
         delegated = self.container.settings.retrieval_subagent_enabled
         tool_names = ("delegate_retrieval" if delegated else "search_runbook", "query_service_metrics", "query_logs", "query_fault_history")
         result = run_tool_loop(
-            state["question"], self.container.llm._api, make_tool_executor(self.container, state["tenant_id"], state["user_id"]),
+            state["question"], self.container.llm._api, make_tool_executor(
+                self.container, state["tenant_id"], state["user_id"], evaluation_time=state.get("evaluation_time"),
+            ),
             history=state.get("history", []), timeout=self.container.settings.tool_timeout_seconds,
             max_tool_calls=self.container.settings.max_tool_calls,
             tool_names=tool_names, tool_timeouts={"delegate_retrieval": self.container.settings.retrieval_subagent_timeout_seconds},
@@ -339,7 +341,9 @@ class DiagnosisNodes:
     # ---- 工具调用 ----
     def call_tools(self, state):
         with self.container.db_session() as db:
-            tool_events, fault_records, metrics = run_diagnostic_tools(db, state["tenant_id"], state["question"])
+            tool_events, fault_records, metrics = run_diagnostic_tools(
+                db, state["tenant_id"], state["question"], evaluation_time=state.get("evaluation_time"),
+            )
         events = [{"type": "tool", **event} for event in tool_events]
         with self.tracer.span("tools", count=len(tool_events)) as span:
             span.metadata["tools"] = [e["name"] for e in tool_events]

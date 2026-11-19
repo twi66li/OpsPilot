@@ -5,6 +5,7 @@ import { App as AntApp, ConfigProvider } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import App from './App';
 import './styles.css';
+import './workbench-v3.css';
 
 const opsTheme = {
   token: {
@@ -12,7 +13,7 @@ const opsTheme = {
     colorInfoBg: '#e3eff6', colorInfoBorder: '#b5d3e5', colorSuccessBg: '#e5f3ea', colorSuccessBorder: '#bddfc9',
     colorWarningBg: '#fbf0dc', colorWarningBorder: '#ecd3a3', colorErrorBg: '#fbe8e6', colorErrorBorder: '#efbdb8',
     colorBgBase: '#ffffff', colorBgLayout: '#f3f5f3', colorBgContainer: '#ffffff', colorBgElevated: '#ffffff',
-    colorText: '#16252b', colorTextSecondary: '#4d6067', colorTextTertiary: '#66777d',
+    colorText: '#16252b', colorTextSecondary: '#4d6067', colorTextTertiary: '#5b6b71',
     colorBorder: '#c3ccc8', colorBorderSecondary: '#dde3e0',
     borderRadius: 6, controlHeight: 32, fontSize: 14,
     fontFamily: '"Segoe UI Variable Text", "Segoe UI", "Microsoft YaHei UI", "Microsoft YaHei", sans-serif',
@@ -29,6 +30,6 @@ const opsTheme = {
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode><ConfigProvider locale={zhCN} theme={opsTheme} button={{autoInsertSpace:false}}>
-    <AntApp><BrowserRouter><App /></BrowserRouter></AntApp>
+    <AntApp message={{ top: 68 }}><BrowserRouter><App /></BrowserRouter></AntApp>
   </ConfigProvider></React.StrictMode>,
 );

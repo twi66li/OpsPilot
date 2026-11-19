@@ -26,6 +26,7 @@ class ChatIn(BaseModel):
     session_id: str
     message: str = Field(min_length=1)
     workflow: Literal["auto", "consult", "diagnose", "review", "history"] = "auto"
+    background: bool = False
 
 
 class DecisionIn(BaseModel):

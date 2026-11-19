@@ -14,8 +14,7 @@ def live():
     return {"status":"ok", "app":get_settings().app_name}
 
 
-@router.get("/ready")
-def ready():
+def readiness_checks():
     from app.services.ingestion_service import worker_ready
 
     checks = {}
@@ -33,5 +32,11 @@ def ready():
     except Exception:
         checks["dependencies"] = "unavailable"
     checks["ingestion_worker"] = "ok" if worker_ready() else "unavailable"
+    return checks
+
+
+@router.get("/ready")
+def ready():
+    checks = readiness_checks()
     healthy = "unavailable" not in checks.values()
     return JSONResponse({"status":"ready" if healthy else "not_ready", "checks":checks}, status_code=200 if healthy else 503)

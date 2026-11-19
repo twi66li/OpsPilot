@@ -25,7 +25,12 @@ async function checked(response: Response) {
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const requestHeaders = headers(init.headers);
   if (init.body && !(init.body instanceof FormData)) requestHeaders.set('Content-Type', 'application/json');
-  return (await checked(await fetch(path, { ...init, headers: requestHeaders }))).json();
+  const result:T = await (await checked(await fetch(path, { ...init, headers: requestHeaders }))).json();
+  const method=(init.method||'GET').toUpperCase();
+  if(path.startsWith('/api/') && !['GET','HEAD'].includes(method) && !/preview|collection-guide|retrieval-test/.test(path)) {
+    window.dispatchEvent(new Event('opspilot:workspace-changed'));
+  }
+  return result;
 }
 export const post = <T>(path: string, body?: unknown) => api<T>(path, {method: 'POST', body: body === undefined ? undefined : JSON.stringify(body)});
 export async function fileBlob(path: string) {
@@ -55,11 +60,9 @@ export async function copyText(text: string): Promise<void> {
   try { if (!document.execCommand('copy')) throw new Error('请手动选中并复制'); }
   finally { input.remove(); if (previous instanceof HTMLElement) previous.focus({preventScroll:true}); }
 }
-export async function streamChat(sessionId: string, message: string, onEvent: (event: AgentEvent) => void, signal: AbortSignal, workflow: Workflow = 'auto', requestId:string=newRequestId()) {
-  const response = await checked(await fetch('/api/agent/chat/stream', {
-    method: 'POST', headers: headers({'Content-Type': 'application/json'}),
-    body: JSON.stringify({session_id: sessionId, message, workflow, request_id:requestId}), signal,
-  }));
+class StreamDisconnected extends Error {}
+
+async function readChatEvents(response: Response, onEvent: (event: AgentEvent, id: number) => void) {
   if (!response.body) throw new Error('浏览器不支持流式响应');
   const reader = response.body.getReader(), decoder = new TextDecoder();
   let buffer = '', completed = false;
@@ -74,10 +77,42 @@ export async function streamChat(sessionId: string, message: string, onEvent: (e
         if (!data) continue;
         const event: AgentEvent = JSON.parse(data);
         if (event.type === 'done' || event.type === 'error') completed = true;
-        onEvent(event);
+        const id = Number(frame.split('\n').find(line => line.startsWith('id:'))?.slice(3) || 0);
+        onEvent(event, id);
       }
       if (done) break;
     }
-    if (!completed) throw new Error('连接已中断，可重新打开会话查看已保存的结果');
+    if (!completed) throw new StreamDisconnected('连接已中断，可重新打开会话查看后台运行');
   } finally { reader.releaseLock(); }
+}
+
+async function connectChat(start: RequestInit | null, onEvent: (event: AgentEvent) => void, signal: AbortSignal, runId = '') {
+  let after = 0;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const url = runId ? '/api/agent/runs/' + runId + '/events?after=' + after : '/api/agent/chat/stream';
+      const response = await checked(await fetch(url, {...(!runId && start ? start : {}), signal,
+        headers: headers(!runId && start ? {'Content-Type': 'application/json'} : undefined)}));
+      await readChatEvents(response, (event, id) => {
+        if (event.type === 'connected' && event.run_id) runId = event.run_id;
+        if (id) after = id;
+        onEvent(event);
+      });
+      return;
+    } catch (error) {
+      if (signal.aborted || attempt === 2 || !(error instanceof StreamDisconnected || error instanceof TypeError)) throw error;
+      if (runId) onEvent({type:'reconnecting', run_id:runId});
+      await new Promise(resolve => setTimeout(resolve, 500 * (attempt + 1)));
+    }
+  }
+}
+
+export function streamChat(sessionId: string, message: string, onEvent: (event: AgentEvent) => void, signal: AbortSignal, workflow: Workflow = 'auto', requestId = newRequestId()) {
+  return connectChat({method:'POST', body:JSON.stringify({
+    session_id:sessionId, message, workflow, request_id:requestId, background:true,
+  })}, onEvent, signal);
+}
+
+export function followChat(runId: string, onEvent: (event: AgentEvent) => void, signal: AbortSignal) {
+  return connectChat(null, onEvent, signal, runId);
 }

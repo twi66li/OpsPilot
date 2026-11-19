@@ -135,10 +135,11 @@ def metrics_summary(result):
     return evidence
 
 
-def make_tool_executor(container, tenant_id, user_id=None):
+def make_tool_executor(container, tenant_id, user_id=None, *, evaluation_time=None):
     """tenant_id 来自服务端认证上下文，模型参数无法覆盖它。"""
     citation_ids = {}
-    evaluation_time = round(time.time(), 3)
+    if evaluation_time is None:
+        evaluation_time = round(time.time(), 3)
     delegated = False
 
     def retrieve(args):
@@ -188,7 +189,7 @@ def make_tool_executor(container, tenant_id, user_id=None):
     return execute
 
 
-def run_diagnostic_tools(db: Session, tenant_id: str, question: str) -> tuple[list[dict], list[dict], dict]:
+def run_diagnostic_tools(db: Session, tenant_id: str, question: str, *, evaluation_time=None) -> tuple[list[dict], list[dict], dict]:
     """执行工具链：返回 (tool_events, fault_records, metrics)。
 
     tool_events 记录每次调用的名称/参数/耗时/关键发现，随 SSE 推送并写入 Langfuse。
@@ -213,7 +214,8 @@ def run_diagnostic_tools(db: Session, tenant_id: str, question: str) -> tuple[li
     ):
         for service in entities["services"][:2]:
             start = time.perf_counter()
-            result = query_service_metrics(service, window_minutes, tenant_id=tenant_id)
+            time_scope = {"evaluation_time": evaluation_time} if evaluation_time is not None else {}
+            result = query_service_metrics(service, window_minutes, tenant_id=tenant_id, **time_scope)
             metrics_all[service] = result
             evidence = metrics_summary(result)
             tool_events.append(

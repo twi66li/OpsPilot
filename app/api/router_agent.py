@@ -1,6 +1,6 @@
 """Agent 接口：SSE 流式诊断 / 非流式诊断 / 工单审批 / 工具清单。"""
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -10,11 +10,12 @@ from app.auth.deps import AuthUser, get_current_user, require_roles
 from app.container import get_container
 from app.db.base import get_db
 from app.db.models import SupportCase
-from app.services import agent_service, chat_service
+from app.services import agent_service, background_runs, chat_service
 from app.services.cache import check_rate_limit
 from app.services.case_service import assert_editable
 
 router = APIRouter(prefix="/api/agent", tags=["agent"])
+_SSE_HEADERS = {"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"}
 
 
 def _check_session_and_ratelimit(user: AuthUser, db: Session, session_id: str, question: str):
@@ -60,7 +61,21 @@ def chat_stream(body: ChatIn, user: AuthUser = Depends(get_current_user), db: Se
     """SSE 流式诊断：推送节点状态、检索命中、工具事件、回答与审批请求。"""
     container = _check_session_and_ratelimit(user, db, body.session_id, body.message)
     existing = existing_request(db, body, user)
-    if existing:
+    if body.background and (existing is None or existing.data.get("background")):
+        if existing is None:
+            try:
+                run_id = background_runs.enqueue(container, user, body)
+            except HTTPException as exc:
+                # 断线重试可能先于原请求提交返回。同一请求只订阅已经创建的运行。
+                db.rollback()
+                existing = existing_request(db, body, user) if exc.status_code == 409 else None
+                if existing is None or not existing.data.get("background"):
+                    raise
+                run_id = existing.id
+        else:
+            run_id = existing.id
+        generator = background_runs.subscribe(run_id, user.tenant_id, user.user_id)
+    elif existing:
         import json
 
         data = {
@@ -84,8 +99,20 @@ def chat_stream(body: ChatIn, user: AuthUser = Depends(get_current_user), db: Se
     return StreamingResponse(
         generator,
         media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
+        headers=_SSE_HEADERS,
     )
+
+
+@router.get("/runs/{run_id}/events")
+def run_events(run_id: str, after: int = Query(default=0, ge=0),
+               user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    from app.services.run_service import get_run
+
+    run = get_run(db, user.tenant_id, run_id, user.user_id)
+    if run is None or not run.data.get("background"):
+        raise HTTPException(404, "找不到可订阅的运行")
+    return StreamingResponse(background_runs.subscribe(run_id, user.tenant_id, user.user_id, after),
+                             media_type="text/event-stream", headers=_SSE_HEADERS)
 
 
 @router.get("/sessions/{session_id}/pending-approval")

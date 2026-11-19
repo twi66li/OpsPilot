@@ -141,7 +141,7 @@ class RunRecorder:
         self.cancel_signal = _cancel_signals.setdefault(run_id, threading.Event())
 
     @classmethod
-    def start(cls, container, tenant_id, session_id, question, request_id=None, workflow="auto"):
+    def start(cls, container, tenant_id, session_id, question, request_id=None, workflow="auto", *, background=False):
         from app.db.base import SessionLocal
         from app.db.models import AgentRun
 
@@ -202,6 +202,7 @@ class RunRecorder:
                     data={
                         "question": question,
                         "workflow": workflow,
+                        **({"background": True} if background else {}),
                         "config": {k: getattr(settings, k, None) for k in config_keys},
                         "source_sha256": {p: hashlib.sha256((root / p).read_bytes()).hexdigest() for p in sources},
                         "backends": {
@@ -287,7 +288,8 @@ def get_run(db, tenant_id, run_id, user_id):
 def serialize_run(db, run):
     from app.db.models import AgentRunEvent
 
-    events = db.query(AgentRunEvent).filter_by(run_id=run.id, tenant_id=run.tenant_id).order_by(AgentRunEvent.id).all()
+    events = (db.query(AgentRunEvent).filter_by(run_id=run.id, tenant_id=run.tenant_id)
+              .filter(AgentRunEvent.kind != "stream").order_by(AgentRunEvent.id).all())
     return {
         "run_id": run.id,
         "session_id": run.session_id,
@@ -296,7 +298,7 @@ def serialize_run(db, run):
         "created_at": run.created_at.isoformat(),
         "updated_at": run.updated_at.isoformat(),
         "data": {
-            **run.data,
+            **{key: value for key, value in run.data.items() if key != "background_input"},
             "events": [
                 *run.data.get("events", []),
                 *[{"id": e.id, "at": e.created_at.isoformat(), "kind": e.kind, "detail": e.detail} for e in events],

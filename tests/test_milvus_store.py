@@ -4,7 +4,9 @@ from unittest.mock import Mock
 
 import pytest
 
+from app.config import Settings
 from app.rag.milvus_store import MilvusVectorStore, _literal, _scope
+from app.rag.vector_store import get_vector_store
 
 
 @pytest.fixture
@@ -56,9 +58,23 @@ def test_scroll_closes_iterator_on_failure(store):
     assert store.client.query_iterator.call_args.kwargs["filter"] == 'tenant_id == "alice"'
 
 
+def test_milvus_factory_never_falls_back_to_memory(monkeypatch):
+    monkeypatch.setattr("app.rag.milvus_store.MilvusVectorStore", Mock(side_effect=ConnectionError("unavailable")))
+    with pytest.raises(ConnectionError):
+        get_vector_store(Settings(_env_file=None, vector_store_backend="milvus", model_strict=False))
+
+
 def test_failed_vector_query_makes_readiness_fail(client, monkeypatch):
     from app.container import get_container
 
     monkeypatch.setattr(get_container().vector_store, "health", Mock(side_effect=ConnectionError("unavailable")))
     assert client.get("/ready").status_code == 503
     assert client.get("/live").status_code == 200
+
+
+def test_production_milvus_does_not_require_unused_qdrant():
+    settings = Settings(_env_file=None, app_env="production", jwt_secret="x" * 40,
+                        admin_password="long-unique-password", database_url="postgresql+psycopg://db/opspilot",
+                        vector_store_backend="milvus", milvus_uri="http://milvus:19530",
+                        llm_provider="openai", embedding_provider="openai")
+    assert settings.vector_store_backend == "milvus"

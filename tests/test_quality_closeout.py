@@ -56,6 +56,27 @@ def test_provider_quota_switch_keeps_other_errors(monkeypatch, code, status, swi
         assert attempted == ["primary"]
 
 
+def test_chat_switches_when_retry_returns_quota_exhaustion(monkeypatch):
+    monkeypatch.setenv("CHAT_MODEL_CANDIDATES", '["backup"]')
+    api = ChatAPI.__new__(ChatAPI)
+    api.model, api.calls = "primary", []
+    attempted = []
+
+    def recorded(model, *args, **kwargs):
+        attempted.append(model)
+        if model == "backup":
+            return "backup answer"
+        status = 503 if len(attempted) == 1 else 403
+        code = "service_unavailable" if status == 503 else "insufficient_quota"
+        response = httpx.Response(status, request=httpx.Request("POST", "http://recorded"))
+        raise APIStatusError(code, response=response, body={"code": code})
+
+    api._chat_once = recorded
+    assert api.chat("system", "question") == "backup answer"
+    assert attempted == ["primary", "primary", "backup"]
+    assert api.calls[-1]["to"] == "backup"
+
+
 def test_missing_window_gold_matches_its_own_source():
     run = Path(__file__).resolve().parents[1] / "eval/night20261102q"
     for frozen in (run / "scenarios_frozen.json", run / "quality_run/scenarios_frozen.json"):

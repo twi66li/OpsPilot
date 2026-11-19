@@ -6,12 +6,13 @@ from datetime import datetime, timezone
 
 from app.db.models import ChatSession, DocumentVersion, SupportCase, WorkspaceEvent
 from app.services.case_service import case_status, is_archived
+from app.services.scenario_rules import BY_COLLECTION_KEY
 
 
 def _utc_event_time(value):
     if isinstance(value, str):
         try:
-            value = datetime.fromisoformat(value)
+            value = datetime.fromisoformat(value.replace("Z", "+00:00"))
         except ValueError:
             return None
     if not isinstance(value, datetime):
@@ -24,14 +25,39 @@ def event_at(occurred_at, recorded_at):
     return stamp.isoformat().replace("+00:00", "Z")
 
 
+def event_dict(row):
+    return {
+        "id": row.id,
+        "kind": row.kind,
+        "detail": row.detail,
+        "at": event_at(row.detail.get("occurred_at") if row.kind == "site_change" else None, row.created_at),
+        "recorded_at": event_at(None, row.created_at),
+        "case_id": row.resource_id if row.resource_type == "case" else row.detail.get("case_id"),
+    }
+
+
 def sort_events(events):
     def timestamp(event):
         return (
-            _utc_event_time(event.get("at")) or _utc_event_time(event.get("recorded_at"))
+            _utc_event_time(event.get("at"))
+            or _utc_event_time(event.get("recorded_at"))
             or datetime.max.replace(tzinfo=timezone.utc)
         )
 
     return sorted(events, key=timestamp)
+
+
+def recent_site_changes(db, tenant_id, user_id, site_id):
+    if not site_id:
+        return []
+    rows = (
+        db.query(WorkspaceEvent)
+        .filter_by(tenant_id=tenant_id, user_id=user_id, resource_type="site", resource_id=site_id, kind="site_change")
+        .order_by(WorkspaceEvent.id.desc())
+        .limit(200)
+        .all()
+    )
+    return sort_events([event_dict(row) for row in rows])[-10:]
 
 
 def record_event(db, tenant_id, user_id, resource_type, resource_id, kind, detail):
@@ -103,6 +129,8 @@ def site_summaries(db, user, sites):
 
 
 def collection_guide(scenario, deployment, target):
+    if scenario not in BY_COLLECTION_KEY:
+        raise ValueError("未知异常场景")
     if target and not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.@-]{0,99}", target):
         raise ValueError("容器或服务名只能包含字母、数字、点、下划线、@和短横线")
     if deployment == "unknown":
@@ -159,11 +187,7 @@ def collection_guide(scenario, deployment, target):
             },
         ]
     )
-    explanation = {
-        "nginx": "重点保留失败接口、502/504和upstream错误；再核对上游应用日志。",
-        "pool": "重点保留连接池异常全文、应用进程数、连接池配置和错误时间；不要只凭超时认定数据库连接已耗尽。",
-        "container": "重点保留ExitCode、OOMKilled、Error、FinishedAt及退出前日志。",
-    }[scenario]
+    explanation = BY_COLLECTION_KEY[scenario]["collection_notes"]
     return [
         {**c, "scenario_notes": explanation, "risk": "只读采集；平台不会执行命令。提交结果前请脱敏。"} for c in commands
     ]
@@ -176,7 +200,7 @@ def timeline(db, user, resource_type, resource_id):
         .order_by(WorkspaceEvent.id)
         .all()
     )
-    return [{"id": r.id, "kind": r.kind, "detail": r.detail, "at": event_at(None, r.created_at)} for r in records]
+    return [event_dict(r) for r in records]
 
 
 def case_report(case, title, events):
@@ -191,6 +215,8 @@ def case_report(case, title, events):
         "user_resolved": "用户确认解决",
     }
     event_labels = {
+        "site_change": "网站变更（手工记录）",
+        "evidence_observed": "日志样本时间",
         "case_created": "登记问题",
         "problem_updated": "补充问题信息",
         "status_changed": "更新处理状态",
@@ -201,6 +227,9 @@ def case_report(case, title, events):
         "comment": "补充说明",
         "metadata_changed": "更新分类",
         "case_archived": "归档记录",
+        "handoff_assigned": "交接给成员复核",
+        "handoff_reviewed": "提交复核意见",
+        "handoff_revoked": "撤回交接",
     }
     lines = [
         f"# {title}",
@@ -215,6 +244,9 @@ def case_report(case, title, events):
     for key, label in (
         ("name", "网站"),
         ("url", "网址"),
+        ("environment", "运行环境"),
+        ("group", "业务分组"),
+        ("owner", "负责人"),
         ("framework", "框架"),
         ("deployment", "部署方式"),
         ("database", "数据库"),
@@ -287,7 +319,7 @@ def case_report(case, title, events):
     for event in events:
         detail = event["detail"]
         description = " · ".join(
-            str(detail[key]) for key in ("actor", "label", "text", "note", "solution", "severity") if detail.get(key)
+            str(detail[key]) for key in ("actor", "title", "version", "label", "text", "note", "rollback", "solution", "severity") if detail.get(key)
         )
         if detail.get("status"):
             description += " · " + state_labels.get(detail["status"], detail["status"])

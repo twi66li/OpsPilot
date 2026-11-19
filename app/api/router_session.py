@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.schemas import SessionIn
 from app.auth.deps import AuthUser, get_current_user
 from app.db.async_session import get_async_db
-from app.db.models import Message, SupportCase
-from app.services import chat_service
+from app.db.models import AgentRun, Message, SupportCase
+from app.services import background_runs, chat_service
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
@@ -50,10 +50,15 @@ async def get_session(session_id: str, user: AuthUser = Depends(get_current_user
     session = await db.run_sync(chat_service.get_session, user.tenant_id, session_id, user.user_id)
     if not session:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "会话不存在")
+    active_run = await db.scalar(select(AgentRun.id).where(
+        AgentRun.session_id == session_id, AgentRun.tenant_id == user.tenant_id,
+        AgentRun.status.in_(background_runs.ACTIVE), AgentRun.data["background"].as_boolean().is_(True),
+    ))
     messages = (await db.scalars(select(Message).where(Message.session_id == session_id).order_by(Message.id.asc()))).all()
     return {
         "id": session.id,
         "title": session.title,
+        "active_run_id": active_run,
         "messages": [
             {"role": m.role, "content": m.content, "meta": m.meta, "created_at": m.created_at.isoformat()} for m in messages
         ],

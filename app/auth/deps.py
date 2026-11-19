@@ -1,7 +1,7 @@
 """FastAPI 依赖：当前用户解析与角色权限检查。"""
 from dataclasses import dataclass
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,9 +21,11 @@ class AuthUser:
     tenant_id: str
     role: str
     session_id: str = ""
+    is_guest: bool = False
 
 
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
     db: AsyncSession = Depends(get_async_db),
 ) -> AuthUser:
@@ -39,7 +41,17 @@ async def get_current_user(
     session = await db.get(LoginSession, payload.get("jti", ""))
     if payload.get("token_use") != "access" or not session or session.user_id != user.id or session.revoked_at or session.expires_at <= _now():
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "登录已失效，请重新登录")
-    return AuthUser(user_id=user.id, username=user.username, tenant_id=user.tenant_id, role=user.role, session_id=session.id)
+    from app.config import get_settings
+    from app.services.visitor_service import is_visitor
+
+    guest = is_visitor(user)
+    if guest:
+        if not get_settings().visitor_enabled and request.url.path != "/auth/logout":
+            raise HTTPException(403, "访客体验已关闭")
+        if request.method not in ("GET", "HEAD") and request.url.path != "/auth/logout":
+            raise HTTPException(403, "访客账号为只读体验，请使用自己的账号进行修改或发起分析")
+    return AuthUser(user_id=user.id, username=user.username, tenant_id=user.tenant_id,
+                    role="viewer" if guest else user.role, session_id=session.id, is_guest=guest)
 
 
 def require_roles(*roles: str):

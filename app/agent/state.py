@@ -11,6 +11,7 @@ class DiagState(TypedDict, total=False):
     username: str
     history: list[dict]
     run_id: str
+    evaluation_time: float | None
     end_reason: str
     support_context: dict | None
     support_report: dict | None

@@ -8,10 +8,18 @@ from sqlalchemy.orm import Session
 
 from app.auth.deps import AuthUser, get_current_user
 from app.db.base import get_db
-from app.db.models import ChatSession, Document, SupportCase, WebsiteProfile, _now
+from app.db.models import CaseHandoff, ChatSession, Document, SupportCase, WebsiteMonitor, WebsiteProfile, _now
 from app.services import chat_service
-from app.services.case_service import CASE_STATUSES, assert_editable, case_status, is_archived, list_cases, reopen
-from app.services.evidence_checks import analyze_samples
+from app.services.case_service import (
+    CASE_STATUSES,
+    assert_editable,
+    case_status,
+    create_case_record,
+    is_archived,
+    list_cases,
+    reopen,
+)
+from app.services.evidence_checks import analyze_samples, summarize_evidence
 from app.services.knowledge_access import personal_namespace
 from app.services.maintenance_service import record_event, site_summaries
 from app.services.official_library import BY_ID, SCENARIOS, catalog
@@ -19,26 +27,42 @@ from app.services.support_service import (
     CaseIn,
     EvidenceIn,
     SiteIn,
+    ground_recovery_claims,
     new_evidence,
     owned_case,
     owned_site,
     redact,
     validate_private_docs,
 )
+from app.services.website_monitor import monitor_info
 
 router = APIRouter(prefix="/api/support", tags=["personal-support"])
 
 
 def case_dict(case):
+    sample_checks = analyze_samples(case.data)
+    verification = sample_checks["verification"]
+    report = case.data.get("report")
+    if report and report.get("workflow", "diagnose") in ("diagnose", "review"):
+        report = ground_recovery_claims(
+            {**report, "observations": [dict(item) for item in report.get("observations", [])]},
+            verification, report.get("workflow", "diagnose"),
+            model_claim=report.get("verification", {}).get("verdict") == "sample_recovered",
+        )
+    status = case_status(case)
+    if status == "sample_recovered" and verification["verdict"] != "sample_recovered":
+        status = "awaiting_results" if case.data.get("plan") else "investigating"
     return {
         **case.data,
+        "report": report,
+        "evidence": [{**item, "summary": summarize_evidence(item)} for item in case.data.get("evidence", [])],
         "id": case.session_id,
         "site_id": case.site_id,
-        "status": case_status(case),
+        "status": status,
         "archived": is_archived(case),
         "saved": is_archived(case),
         "kind": case.data.get("kind", "problem"),
-        "sample_checks": analyze_samples(case.data),
+        "sample_checks": sample_checks,
         "severity": case.severity,
         "labels": case.labels,
         "updated_at": case.updated_at.isoformat(),
@@ -125,6 +149,7 @@ def site_detail(site_id: str, user: AuthUser = Depends(get_current_user), db: Se
     return {
         "id": site.id,
         **site.data,
+        "http_monitor": monitor_info(db.get(WebsiteMonitor, site.id)),
         **site_summaries(db, user, [site])[site.id],
         "documents": [
             {"id": d.id, "title": d.title, "chunk_count": d.chunk_count, "active_version_id": d.active_version_id}
@@ -136,9 +161,13 @@ def site_detail(site_id: str, user: AuthUser = Depends(get_current_user), db: Se
 
 def save_site(db, user, body, site=None):
     validate_private_docs(db, user, body.doc_ids)
-    data = {key: redact(value)["text"] if isinstance(value, str) else value for key, value in body.model_dump().items()}
+    data = {key: redact(value)["text"] if isinstance(value, str) else value
+            for key, value in body.model_dump(exclude_unset=site is not None).items()}
+    if "dependencies" in data:
+        data["dependencies"] = [{key: redact(value)["text"] for key, value in relation.items()}
+                                for relation in data["dependencies"]]
     site = site or WebsiteProfile(tenant_id=user.tenant_id, user_id=user.user_id)
-    site.data = data
+    site.data = {**(site.data or {}), **data}
     db.add(site)
     db.flush()
     record_event(
@@ -195,32 +224,13 @@ def delete_site(
 @router.post("/cases")
 def create_case(body: CaseIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     site = owned_site(db, user, body.site_id) if body.site_id else None
-    session = chat_service.create_session(db, user.tenant_id, user.user_id, redact(body.title)["text"])
-    case = SupportCase(
-        session_id=session.id,
-        tenant_id=user.tenant_id,
-        user_id=user.user_id,
-        site_id=site.id if site else None,
-        data={
-            "profile": site.data if site else {},
-            "evidence": [],
-            "revision": 0,
-            "kind": body.kind,
-            "problem": {
-                key: redact(getattr(body, key))["text"]
-                for key in ("symptom", "endpoint", "impact", "started_at", "recent_changes")
-            },
-        },
-    )
-    db.add(case)
-    record_event(
-        db,
-        user.tenant_id,
-        user.user_id,
-        "case",
-        session.id,
-        "case_created",
-        {"title": session.title, "kind": body.kind, "actor": user.username},
+    problem = {
+        key: redact(getattr(body, key))["text"]
+        for key in ("symptom", "endpoint", "impact", "started_at", "recent_changes")
+    }
+    case = create_case_record(
+        db, user.tenant_id, user.user_id, redact(body.title)["text"], problem,
+        actor=user.username, site=site, kind=body.kind,
     )
     db.commit()
     return case_dict(case)
@@ -314,7 +324,14 @@ def change_status(
 
 @router.get("/cases/{session_id}")
 def get_case(session_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
-    return case_dict(owned_case(db, user, session_id))
+    case = owned_case(db, user, session_id)
+    result = case_dict(case)
+    handoff = db.get(CaseHandoff, session_id)
+    if handoff:
+        result["handoff"] = {
+            key: handoff.data.get(key) for key in ("recipient", "note", "shared_at", "review_note", "reviewed_at")
+        } | {"status": handoff.status}
+    return result
 
 
 @router.delete("/cases/{session_id}")
@@ -327,7 +344,8 @@ def delete_case(session_id: str, user: AuthUser = Depends(get_current_user), db:
 
 @router.post("/evidence/preview")
 def preview(body: EvidenceIn, user: AuthUser = Depends(get_current_user)):
-    return redact(body.text)
+    result = redact(body.text)
+    return {**result, "summary": summarize_evidence({"id": "preview", "kind": body.kind, "text": result["text"], "endpoint": body.endpoint})}
 
 
 @router.post("/cases/{session_id}/evidence")

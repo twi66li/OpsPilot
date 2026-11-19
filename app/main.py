@@ -39,7 +39,8 @@ configure_logging()
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    from app.container import reset_container
+    from app.container import get_container, reset_container
+    from app.services import background_runs, website_monitor
 
     try:
         init_db()
@@ -47,18 +48,22 @@ async def lifespan(_: FastAPI):
         from app.services.ingestion_service import start_worker
 
         start_worker()
+        background_runs.start_worker(get_container())
+        website_monitor.start_worker()
         yield
     finally:
         from app.db.async_session import close_async_db
         from app.services.ingestion_service import stop_worker
 
+        website_monitor.stop_worker()
+        background_runs.stop_worker()
         stop_worker()
         await close_async_db()
         reset_container()
 
 
 def bootstrap() -> None:
-    """初始化默认租户、管理员账号，并基于 MySQL 全量文档重建 BM25 索引。"""
+    """初始化默认租户和管理员，并根据当前数据库中的文档重建 BM25 索引。"""
     settings = get_settings()
     with SessionLocal() as db:
         existing_admin = db.query(User).filter_by(username=settings.admin_username).first()
@@ -85,7 +90,10 @@ def bootstrap() -> None:
             db.commit()
         from app.db.models import AgentRun
 
-        db.query(AgentRun).filter(AgentRun.status.in_(["running", "cancel_requested"])).update(
+        db.query(AgentRun).filter(
+            AgentRun.status.in_(["running", "cancel_requested"]),
+            AgentRun.data["background"].as_boolean().is_not(True),
+        ).update(
             {"status": "interrupted"}, synchronize_session=False
         )
         db.commit()
@@ -99,6 +107,10 @@ def bootstrap() -> None:
         from app.services.official_library import ensure_library
 
         ensure_library(db, container)
+        if settings.visitor_enabled:
+            from app.services.visitor_service import ensure_visitor
+
+            ensure_visitor(db)
         chunk_total = container.vector_store.count()
         logging.getLogger(__name__).info("启动完成：索引已就绪，共 %d 个分块", chunk_total)
 

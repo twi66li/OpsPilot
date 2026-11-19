@@ -34,6 +34,24 @@ def assert_editable(case):
         raise HTTPException(409, "问题已由用户确认解决，请重新打开后继续排查")
 
 
+def create_case_record(db, tenant_id, user_id, title, problem, *, actor, site=None, kind="problem", evidence=()):
+    from app.services.maintenance_service import record_event
+
+    session = ChatSession(tenant_id=tenant_id, user_id=user_id, title=title[:200])
+    db.add(session)
+    db.flush()
+    case = SupportCase(
+        session_id=session.id, tenant_id=tenant_id, user_id=user_id, site_id=site.id if site else None,
+        status="evidence_submitted" if evidence else "investigating",
+        data={"profile": site.data if site else {}, "evidence": list(evidence),
+              "revision": 0, "kind": kind, "problem": problem},
+    )
+    db.add(case)
+    record_event(db, tenant_id, user_id, "case", session.id, "case_created",
+                 {"title": session.title, "kind": kind, "actor": actor})
+    return case
+
+
 def list_cases(db, user, site_id=None, kind=None, status=None, archived=None):
     query = (
         db.query(SupportCase, ChatSession)

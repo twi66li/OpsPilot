@@ -5,10 +5,10 @@ from pathlib import Path
 
 from app.db.models import Document, Tenant
 from app.services.kb_service import ingest_document
+from app.services.scenario_rules import SCENARIOS
 
 OFFICIAL_TENANT = "__opspilot_official__"
 CATALOG = json.loads((Path(__file__).resolve().parents[1] / "knowledge" / "official.json").read_text(encoding="utf-8"))
-SCENARIOS = json.loads((Path(__file__).resolve().parents[1] / "knowledge" / "scenarios.json").read_text(encoding="utf-8"))
 for guide in SCENARIOS:
     item = next(item for item in CATALOG if "official-" + item["id"] == guide["doc_id"])
     sections = [f"\n\n## 场景指南：{guide['title']}", guide["description"], "常见现象：" + "；".join(guide["symptoms"])]

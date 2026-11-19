@@ -45,6 +45,26 @@ def test_recovery_requires_new_post_plan_evidence():
     assert validated["observations"] == [] and validated["references"] == []
 
 
+def test_repeated_request_cannot_pass_recovery_and_model_claim_is_replaced():
+    line = "2026-11-12T10:10:00+08:00 GET /orders HTTP 200 request_id=same"
+    context = {
+        "plan": {"revision": 1, "evidence_ids": ["E1"]},
+        "evidence": [
+            {"id": "E1", "kind": "initial", "text": "2026-11-12T10:00:00+08:00 GET /orders HTTP 502"},
+            {"id": "E2", "kind": "check_result", "plan_revision": 1, "text": "\n".join([line, line])},
+            {"id": "E3", "kind": "check_result", "plan_revision": 1, "text": line + " duration=50ms"},
+        ],
+    }
+    data = report("E1")
+    data["summary"] = data["observations"][0]["meaning"] = "该服务已经恢复"
+    data.pop("verification")
+    validated = validate_report(SupportReport.model_validate(data), context, [])
+    assert validated["verification"]["verdict"] == "improved"
+    assert "1次成功样本" in validated["summary"]
+    assert "已恢复" not in validated["observations"][0]["meaning"]
+    assert validated["observations"][0]["quote"].endswith("HTTP 502")
+
+
 def test_personal_handbook_is_private_even_with_same_tenant(client, admin_headers, monkeypatch, tmp_path):
     viewer = admin_create_user(client, admin_headers, "personal-viewer", "view123456", "viewer")
     container = get_container()

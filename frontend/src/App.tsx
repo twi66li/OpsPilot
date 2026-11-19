@@ -1,7 +1,7 @@
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
-import { Alert, App as AntApp, Button, Drawer, Dropdown, Grid, Layout, Menu, Space, Spin, Tag } from 'antd';
-import { CommentOutlined, LockOutlined, LogoutOutlined, MenuOutlined, UserOutlined } from '@ant-design/icons';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { Alert, App as AntApp, Button, Drawer, Dropdown, Layout, Menu, Space, Spin } from 'antd';
+import { BookOutlined, CommentOutlined, DashboardOutlined, ExperimentOutlined, FileSearchOutlined, GlobalOutlined, LockOutlined, LogoutOutlined, MenuFoldOutlined, MenuOutlined, MenuUnfoldOutlined, SearchOutlined, SafetyCertificateOutlined, UnorderedListOutlined, UserOutlined } from '@ant-design/icons';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api, post, savedAuth, saveAuth } from './api';
 import type { Auth, Hit, SupportEntry } from './types';
 import SourceDrawer from './SourceDrawer';
@@ -9,6 +9,8 @@ import Home from './Home';
 import AuthPanel from './AuthPanel';
 import PasswordDialog from './PasswordDialog';
 import TodoCenter from './TodoCenter';
+import Capabilities from './Capabilities';
+import CommandPalette from './CommandPalette';
 
 const Investigation = lazy(() => import('./Investigation'));
 const Operations = lazy(() => import('./Operations'));
@@ -22,9 +24,14 @@ const pages = {home:'维护工作台',websites:'我的网站',issues:'问题中�
 type Page = keyof typeof pages;
 
 export default function App() {
-  const {message} = AntApp.useApp(), navigate = useNavigate(), location = useLocation(), screens = Grid.useBreakpoint();
+  const {message} = AntApp.useApp(), navigate = useNavigate(), location = useLocation();
   const [auth,setAuth] = useState<Auth|null>(savedAuth), [source,setSource] = useState<Hit|null>(null);
   const [healthy,setHealthy] = useState<boolean|null>(null), [drawer,setDrawer] = useState(false), [passwordOpen,setPasswordOpen] = useState(false);
+  const [sideEntry,setSideEntry]=useState<SupportEntry|null>(null),[capabilitiesOpen,setCapabilitiesOpen]=useState(false);
+  const [searchOpen,setSearchOpen]=useState(false),[windowWidth,setWindowWidth]=useState(window.innerWidth),[resourceTitle,setResourceTitle]=useState<{id:string;name:string}|null>(null);
+  const siteTitle=useCallback((id:string,name:string)=>setResourceTitle({id,name}),[]);
+  const [navCollapsed,setNavCollapsed]=useState(()=>{try{return localStorage.getItem('opspilot.nav-collapsed')==='true';}catch{return false;}});
+  const mobile=windowWidth<=700,collapsed=!mobile&&(windowWidth<=1000||navCollapsed);
   const parts = location.pathname.split('/').filter(Boolean), page:Page = parts[0] in pages ? parts[0] as Page : 'home', resourceId = parts[1];
   const supportEntry = useMemo<SupportEntry>(()=>{
     const params = new URLSearchParams(location.search);
@@ -32,41 +39,55 @@ export default function App() {
   },[resourceId,location.search]);
   const canWrite = !!auth && ['admin','engineer'].includes(auth.role);
   const canReadEvaluation = auth?.role === 'admin' && auth.tenant_id === 'default';
+  useEffect(()=>{const resize=()=>setWindowWidth(window.innerWidth);window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize);},[]);
+  useEffect(()=>{try{localStorage.setItem('opspilot.nav-collapsed',String(navCollapsed));}catch{/* 浏览器禁用存储时仍可在本次使用中折叠。 */}},[navCollapsed]);
+  useEffect(()=>{if(mobile)setDrawer(false);},[mobile]);
+  useEffect(()=>{const key=(event:KeyboardEvent)=>{if(auth&&(event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();setSearchOpen(value=>!value);}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[auth]);
   const allowed = (key:Page) => (key !== 'evaluation' || canReadEvaluation) && (key !== 'operations' || canWrite);
-  const group = (key:string,label:string,keys:Page[]) => ({key,type:'group' as const,className:`nav-group nav-${key}`,label:<span className="nav-group-label">{label}</span>,children:keys.filter(allowed).map(key=>({key,label:pages[key]}))});
+  const icons={home:<DashboardOutlined/>,websites:<GlobalOutlined/>,issues:<UnorderedListOutlined/>,support:<CommentOutlined/>,knowledge:<BookOutlined/>,investigation:<ExperimentOutlined/>,operations:<SafetyCertificateOutlined/>,evaluation:<FileSearchOutlined/>};
+  const group = (key:string,label:string,keys:Page[]) => ({key,type:'group' as const,className:`nav-group nav-${key}`,label:<span className="nav-group-label">{label}</span>,children:keys.filter(allowed).map(key=>({key,label:pages[key],icon:icons[key]}))});
   const menuItems = [group('overview','概览',['home']),group('maintenance','网站维护',['websites','issues']),group('resources','资料与演练',['knowledge','investigation']),group('management','管理与质量',['operations','evaluation'])].filter(item=>item.children.length);
   function setPage(target:Page) {navigate('/'+target);setDrawer(false);}
   function assist(entry:SupportEntry) {
     const params = new URLSearchParams();if(entry.siteId)params.set('site',entry.siteId);if(entry.workflow)params.set('workflow',entry.workflow);if(entry.question)params.set('question',entry.question);
     navigate('/support'+(entry.caseId?'/'+entry.caseId:'')+(params.size?'?'+params:''));
   }
-  function clearAuth() {saveAuth(null);setAuth(null);setSource(null);setPasswordOpen(false);}
+  function askHere(entry?:SupportEntry){setSideEntry(entry||{...(page==='websites'&&resourceId?{siteId:resourceId}:page==='issues'&&resourceId?{caseId:resourceId}:{}),workflow:'consult'});}
+  useEffect(()=>{setSideEntry(null);},[location.pathname,location.search]);
+  function clearAuth() {saveAuth(null);setAuth(null);setSource(null);setPasswordOpen(false);setSideEntry(null);setCapabilitiesOpen(false);setSearchOpen(false);setResourceTitle(null);}
   async function logout() {try{await post('/auth/logout');clearAuth();}catch(e){message.error((e as Error).message);}}
   useEffect(()=>{
-    const unauthorized=()=>{saveAuth(null);setAuth(null);setSource(null);};window.addEventListener('opspilot:unauthorized',unauthorized);
+    const unauthorized=()=>{saveAuth(null);setAuth(null);setSource(null);setSideEntry(null);setCapabilitiesOpen(false);setSearchOpen(false);setResourceTitle(null);};window.addEventListener('opspilot:unauthorized',unauthorized);
     api('/ready').then(()=>setHealthy(true)).catch(()=>setHealthy(false));if(savedAuth())api('/auth/me').catch(()=>unauthorized());
     return ()=>window.removeEventListener('opspilot:unauthorized',unauthorized);
   },[]);
   if(!auth)return <AuthPanel signedIn={setAuth}/>;
-  const navigation=<><div className="brand"><span className="brand-symbol" aria-hidden="true"/><span>OpsPilot</span></div>
-    <Button type="primary" aria-label="智能维护助手" className={`assistant-entry ${page==='support'?'selected':''}`} aria-current={page==='support'?'page':undefined} icon={<CommentOutlined aria-hidden="true"/>} onClick={()=>setPage('support')}>智能维护助手</Button>
-    <Menu mode="inline" selectedKeys={[page]} onClick={({key})=>setPage(key as Page)} items={menuItems}/></>;
+  const roleLabel=auth.is_guest?'访客 · 只读':{admin:'管理员',engineer:'工程师',viewer:'普通用户'}[auth.role]||auth.role;
+  const navigation=<><div className="brand" title="OpsPilot"><span className="brand-symbol" aria-hidden="true"/><span>OpsPilot</span></div>
+    <Button type="primary" aria-label="智能维护助手" title="智能维护助手" className={`assistant-entry ${page==='support'?'selected':''}`} aria-current={page==='support'?'page':undefined} icon={<CommentOutlined aria-hidden="true"/>} onClick={()=>setPage('support')}>{collapsed?null:'智能维护助手'}</Button>
+    <Menu mode="inline" inlineCollapsed={collapsed} selectedKeys={page==='support'?[]:[page]} onClick={({key})=>setPage(key as Page)} items={menuItems}/></>;
   return <Layout className="app-layout">
-    {screens.lg&&<Layout.Sider width={216} className="main-sidebar">{navigation}<div className={`sidebar-foot ${healthy===false?'unhealthy':''}`}><span className="status-dot" />{healthy===false?'服务依赖异常':healthy?'服务已就绪':'正在连接服务'}</div></Layout.Sider>}
+    {!mobile&&<Layout.Sider width={216} collapsedWidth={64} collapsed={collapsed} className="main-sidebar">{navigation}<div className="sidebar-controls"><button className={`capability-trigger ${healthy===false?'unhealthy':''}`} onClick={()=>setCapabilitiesOpen(true)} aria-label="查看能力状态" title="查看能力与连接状态"><span className="status-dot"/><span>{healthy===false?'服务依赖异常':healthy?'服务已就绪':'正在连接服务'}</span></button><Button type="text" aria-label={collapsed?'展开导航':'折叠导航'} title={collapsed?'展开导航':'折叠导航'} icon={collapsed?<MenuUnfoldOutlined/>:<MenuFoldOutlined/>} disabled={windowWidth<=1000} onClick={()=>setNavCollapsed(value=>!value)}/></div></Layout.Sider>}
     <Drawer className="navigation-drawer" open={drawer} onClose={()=>setDrawer(false)} placement="left" title="功能导航" size={280} styles={{body:{padding:0,background:'#ffffff'}}}>{navigation}</Drawer>
-    <Layout><Layout.Header className="app-header"><Space size="middle">{!screens.lg&&<Button type="text" className="navigation-trigger" aria-label="打开功能导航" icon={<MenuOutlined />} onClick={()=>setDrawer(true)} />}<strong className="header-page-title">{pages[page]}</strong></Space>
-      <Space className="app-header-actions" size="small"><TodoCenter/><Tag className="role-tag">{{admin:'管理员',engineer:'工程师',viewer:'普通用户'}[auth.role]||auth.role}</Tag><Dropdown menu={{items:[{key:'password',icon:<LockOutlined/>,label:'修改密码'},{type:'divider'},{key:'logout',icon:<LogoutOutlined/>,label:'退出登录'}],onClick:({key})=>key==='logout'?void logout():setPasswordOpen(true)}}><Button type="text" className="account-button" icon={<UserOutlined />}><span className="account-name">{auth.username}</span></Button></Dropdown></Space>
-    </Layout.Header><Layout.Content className={`app-content ${page==='investigation'?'chat-content':''} ${page==='support'||(page==='issues'&&resourceId)?'support-content':''}`}>
+    <Layout><Layout.Header className="app-header"><Space size="middle">{mobile&&<Button type="text" className="navigation-trigger" aria-label="打开功能导航" icon={<MenuOutlined />} onClick={()=>setDrawer(true)} />}{page==='websites'&&resourceId?<nav className="page-breadcrumb" aria-label="面包屑"><Link to="/websites">我的网站</Link><span aria-hidden="true">/</span><strong aria-current="page">{resourceTitle?.id===resourceId?resourceTitle.name:'网站详情'}</strong></nav>:<strong className="header-page-title">{pages[page]}</strong>}</Space>
+      <Button className="global-search-trigger" aria-label="全局搜索" icon={<SearchOutlined/>} onClick={()=>setSearchOpen(true)}><span>搜索网站、问题、资料</span><kbd>Ctrl K</kbd></Button>
+      <Space className="app-header-actions" size="small"><Button className="ask-current-page" aria-label="询问当前页面" title="在旁边询问当前页面" type="text" icon={<CommentOutlined/>} disabled={page==='support'||(page==='issues'&&!!resourceId)} onClick={()=>askHere()}/><TodoCenter canWrite={canWrite}/><Dropdown trigger={['click']} menu={{items:[{key:'identity',label:<span className="account-identity">{auth.username} · {roleLabel}</span>,disabled:true},{type:'divider' as const},{key:'capabilities',label:'查看能力状态'},...(!auth.is_guest?[{key:'password',icon:<LockOutlined/>,label:'修改密码'},{type:'divider' as const}]:[]),{key:'logout',icon:<LogoutOutlined/>,label:'退出登录'}],onClick:({key})=>key==='capabilities'?setCapabilitiesOpen(true):key==='logout'?void logout():key==='password'?setPasswordOpen(true):undefined}}><Button aria-label={`账号：${auth.username}`} title={`${auth.username} · ${roleLabel}`} type="text" className="account-button" icon={<UserOutlined aria-hidden="true"/>}><span className="account-name">{auth.username}</span></Button></Dropdown></Space>
+    </Layout.Header>{auth.is_guest&&<Alert className="visitor-banner" type="info" title="访客只读体验 · 当前是独立教学示例，不是你的真实网站数据" action={<Button size="small" onClick={()=>void logout()}>退出访客</Button>}/>}<Layout.Content className={`app-content ${page==='investigation'?'chat-content':''} ${page==='support'||(page==='issues'&&resourceId)?'support-content':''}`}>
       <Suspense fallback={<div className="page-loading"><Spin tip="正在加载工作区" /></div>}>
         {page==='home'&&<Home navigate={path=>navigate(path)} canWrite={canWrite}/>}
-        {page==='websites'&&<Websites assist={assist} knowledge={()=>setPage('knowledge')} initialId={resourceId} opened={id=>navigate('/websites/'+id)}/>}
-        {page==='issues'&&(resourceId?<PersonalSupport entry={supportEntry} onSource={setSource} onKnowledge={()=>setPage('knowledge')} onIssues={()=>setPage('issues')} opened={id=>navigate('/issues/'+id)}/>:<Issues assist={entry=>navigate('/issues/'+entry.caseId)}/>)}
-        {page==='support'&&<PersonalSupport entry={supportEntry} onSource={setSource} onKnowledge={()=>setPage('knowledge')} onIssues={()=>setPage('issues')} opened={id=>navigate('/support/'+id)}/>}
-        {page==='investigation'&&<Investigation onSource={setSource} canApprove={canWrite} initialId={resourceId} opened={id=>navigate('/investigation/'+id)}/>}
-        {page==='knowledge'&&<OfficialLibrary onSource={setSource}/>}
+        {page==='websites'&&<Websites onTitle={siteTitle} assist={assist} ask={askHere} knowledge={()=>setPage('knowledge')} initialId={resourceId} opened={id=>navigate('/websites/'+id)}/>}
+        {page==='issues'&&(resourceId?<PersonalSupport issueDetail entry={supportEntry} onSource={setSource} onKnowledge={()=>setPage('knowledge')} onIssues={()=>setPage('issues')} opened={id=>{if(id!==resourceId)navigate('/issues/'+id);}}/>:<Issues assist={entry=>navigate('/issues/'+entry.caseId)}/>)}
+        {page==='support'&&<PersonalSupport entry={supportEntry} onSource={setSource} onKnowledge={()=>setPage('knowledge')} onIssues={()=>setPage('issues')} opened={id=>{if(id!==resourceId)navigate('/support/'+id);}}/>}
+        {page==='investigation'&&<Investigation onSource={setSource} canApprove={canWrite} initialId={resourceId} initialRunId={new URLSearchParams(location.search).get('run')||undefined} opened={id=>{if(id!==resourceId)navigate('/investigation/'+id);}}/>}
+        {page==='knowledge'&&<OfficialLibrary onSource={setSource} assist={assist}/>}
         {page==='operations'&&(canWrite?<Operations canApprove={canWrite}/>:<Alert type="warning" title="此模块需要工程师或管理员权限"/>)}
         {page==='evaluation'&&(canReadEvaluation?<Evaluation/>:<Alert type="warning" title="评测记录仅平台管理员可查看"/>)}
       </Suspense>
-    </Layout.Content></Layout><SourceDrawer hit={source} close={()=>setSource(null)}/><PasswordDialog open={passwordOpen} close={()=>setPasswordOpen(false)} changed={clearAuth}/>
+    </Layout.Content></Layout><SourceDrawer hit={source} close={()=>setSource(null)} ask={hit=>{setSource(null);askHere({...sideEntry,workflow:'consult',question:`请解释资料「${hit.doc_title}」${hit.applicable_version?`（适用版本：${hit.applicable_version}）`:''}中的检查方法、适用条件和证据要求；不要把手册当作本次故障现场证据。`});}}/><PasswordDialog open={passwordOpen} close={()=>setPasswordOpen(false)} changed={clearAuth}/>
+    <Capabilities open={capabilitiesOpen} close={()=>setCapabilitiesOpen(false)} navigate={url=>navigate(url)}/>
+    <CommandPalette key={auth.tenant_id+':'+auth.username} open={searchOpen} close={()=>setSearchOpen(false)} navigate={navigate} onSource={setSource} guest={!!auth.is_guest} canApprove={canWrite} admin={canReadEvaluation}/>
+    <Drawer className="side-assistant" open={!!sideEntry} onClose={()=>setSideEntry(null)} title="随页维护助手" width={Math.min(1000, windowWidth)} destroyOnHidden>
+      {sideEntry&&<Suspense fallback={<Spin/>}><PersonalSupport entry={sideEntry} onSource={setSource} onKnowledge={()=>setPage('knowledge')} onIssues={()=>setPage('issues')} opened={id=>setSideEntry(previous=>previous===sideEntry&&previous.caseId!==(id||undefined)?{...previous,caseId:id||undefined,question:undefined}:previous)}/></Suspense>}
+    </Drawer>
   </Layout>;
 }

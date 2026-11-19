@@ -126,6 +126,10 @@ class QdrantVectorStore:
         if not self.client.collection_exists(collection):
             self.client.create_collection(collection, vectors_config=VectorParams(size=dim, distance=Distance.COSINE))
 
+    def health(self) -> str:
+        self.client.get_collection(self.collection)
+        return "ok"
+
     def upsert(self, tenant_id: str, chunks: list[dict], vectors: list[list[float]]) -> None:
         from qdrant_client.models import PointStruct
 

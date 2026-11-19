@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     app_name: str = "aiops-diagnosis-agent"
     app_env: Literal["development", "demo", "production"] = "development"
     registration_enabled: bool = False
+    visitor_enabled: bool = False
     cors_origins: list[str] = []
     auth_rate_limit_per_minute: int = 30
 

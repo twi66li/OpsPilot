@@ -35,6 +35,7 @@ class TokenResponse(BaseModel):
     role: str
     tenant_id: str
     username: str
+    is_guest: bool = False
 
 
 def auth_limit(request: Request, username: str = ""):
@@ -54,16 +55,23 @@ def auth_limit(request: Request, username: str = ""):
 
 
 async def issue_token(db, user):
+    from app.services.visitor_service import is_visitor
+
     session = LoginSession(user_id=user.id, expires_at=_now() + timedelta(minutes=get_settings().access_token_expire_minutes))
     db.add(session)
     await db.commit()
-    token = create_access_token(user.id, user.username, user.tenant_id, user.role, session_id=session.id)
-    return TokenResponse(access_token=token, role=user.role, tenant_id=user.tenant_id, username=user.username)
+    guest = is_visitor(user)
+    role = "viewer" if guest else user.role
+    token = create_access_token(user.id, user.username, user.tenant_id, role, session_id=session.id)
+    return TokenResponse(access_token=token, role=role, tenant_id=user.tenant_id, username=user.username, is_guest=guest)
 
 
 @router.get("/options")
 def options():
-    return {"registration_enabled":get_settings().registration_enabled}
+    from app.services.visitor_service import VISITOR_PASSWORD, VISITOR_USERNAME
+
+    return {"registration_enabled":get_settings().registration_enabled,
+            "visitor": {"username": VISITOR_USERNAME, "password": VISITOR_PASSWORD} if get_settings().visitor_enabled else None}
 
 
 @router.post("/register", response_model=TokenResponse)
@@ -96,6 +104,10 @@ async def login(body: LoginRequest, request: Request, db: AsyncSession = Depends
     user = await db.scalar(select(User).where(User.username == body.username))
     if not user or not await run_in_threadpool(verify_password, body.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "用户名或密码错误")
+    from app.services.visitor_service import is_visitor
+
+    if is_visitor(user) and not get_settings().visitor_enabled:
+        raise HTTPException(403, "访客体验已关闭")
     return await issue_token(db, user)
 
 
@@ -126,4 +138,4 @@ async def change_password(body: PasswordIn, user: AuthUser = Depends(get_current
 
 @router.get("/me")
 async def me(user: AuthUser = Depends(get_current_user)):
-    return {"user_id": user.user_id, "username": user.username, "tenant_id": user.tenant_id, "role": user.role}
+    return {"user_id": user.user_id, "username": user.username, "tenant_id": user.tenant_id, "role": user.role, "is_guest": user.is_guest}

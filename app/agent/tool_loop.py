@@ -41,6 +41,12 @@ class LogArgs(MetricsArgs):
     error_code: str | None = Field(default=None, pattern=r"^(ERR|ERROR)[_-][A-Za-z0-9_-]{1,32}$")
 
 
+class EvidenceLineArgs(_Args):
+    evidence_id: str = Field(min_length=1, max_length=64)
+    line_start: int = Field(ge=1)
+    line_end: int = Field(ge=1)
+
+
 ARGUMENTS = {
     "search_runbook": SearchArgs,
     "query_service_metrics": MetricsArgs,
@@ -49,8 +55,10 @@ ARGUMENTS = {
     "delegate_retrieval": SearchArgs,
     "search_saved_cases": SearchArgs,
     "get_site_overview": _Args,
+    "read_evidence_lines": EvidenceLineArgs,
 }
 DESCRIPTIONS = {
+    "read_evidence_lines": "只读查看本次已提交证据的原文。传入证据编号和实际起止行号，每次最多12行。",
     "get_site_overview": "只读查询当前选中网站的实际背景、关联资料和本人问题概况；没有关联网站时返回no_data，不代表实时运行状态。",
     "search_saved_cases": "只读查询本人在同一网站确认保存的处理案例，作为历史参考，不代表本次根因。",
     "search_runbook": "只读检索运维手册/SOP。query应包含问题关键术语；返回带编号的依据，不代表当前实时状态。",

@@ -194,57 +194,39 @@ class ChatAPI:
         check_cancelled()
         models = _available_chat_models(self.model, getattr(self, "_quota_exhausted", ()))
         i = 0
+        retried = False
         while True:
             model = models[i]
             try:
                 return self._chat_once(model, system, user, json_mode=json_mode, output_cap=output_cap)
-            except BudgetExceededError as exc:
-                if _is_per_model_budget_refusal(exc) and i + 1 < len(models):
-                    self.calls.append(
-                        {
-                            "model": model,
-                            "kind": "chat",
-                            "status": "model_switch",
-                            "to": models[i + 1],
-                            "reason": str(exc)[:220],
-                        }
-                    )
-                    logger.warning("模型 %s 分模型预留不足，按候选链切换至 %s", model, models[i + 1])
-                    i += 1
-                    continue
-                raise
             except Exception as exc:
-                if _is_provider_quota_exhausted(exc) and i + 1 < len(models):
-                    self._quota_exhausted = {*getattr(self, "_quota_exhausted", ()), model}
+                if retried:
                     self.calls.append(
-                        {
-                            "model": model,
-                            "kind": "chat",
-                            "status": "model_switch",
-                            "to": models[i + 1],
-                            "reason": "AllocationQuota.FreeTierOnly",
-                        }
+                        {"model": model, "kind": "chat", "status": "transient_retry_failed", "error": str(exc)[:220]}
                     )
-                    i += 1
-                    continue
-                if _is_provider_transient(exc):
+                has_backup = i + 1 < len(models)
+                if isinstance(exc, BudgetExceededError):
+                    if not has_backup or not _is_per_model_budget_refusal(exc):
+                        raise
+                    reason = str(exc)[:220]
+                    logger.warning("模型 %s 分模型预留不足，按候选链切换至 %s", model, models[i + 1])
+                elif has_backup and _is_provider_quota_exhausted(exc):
+                    self._quota_exhausted = {*getattr(self, "_quota_exhausted", ()), model}
+                    reason = _provider_error_code(exc) or "AllocationQuota.FreeTierOnly"
+                elif not retried and _is_provider_transient(exc):
                     self.calls.append(
                         {"model": model, "kind": "chat", "status": "transient_retry", "error": str(exc)[:220]}
                     )
                     logger.warning("模型 %s 供应商暂时性错误（%s），同模型额外重试一次", model, type(exc).__name__)
-                    try:
-                        return self._chat_once(model, system, user, json_mode=json_mode, output_cap=output_cap)
-                    except Exception as exc2:
-                        self.calls.append(
-                            {
-                                "model": model,
-                                "kind": "chat",
-                                "status": "transient_retry_failed",
-                                "error": str(exc2)[:220],
-                            }
-                        )
-                        raise
-                raise
+                    retried = True
+                    continue
+                else:
+                    raise
+                self.calls.append(
+                    {"model": model, "kind": "chat", "status": "model_switch", "to": models[i + 1], "reason": reason}
+                )
+                i += 1
+                retried = False
 
     def _chat_once(
         self, model: str, system: str, user: str, *, json_mode: bool = False, output_cap: int = _CHAT_OUTPUT_CAP

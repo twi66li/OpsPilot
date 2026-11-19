@@ -70,7 +70,9 @@ flowchart LR
 - 客户端通过 `GET /api/agent/sessions/{id}/pending-approval` 查询待审批单；
 - 审批人调用 `POST /api/agent/approvals/{id}/decide`：服务端以 `Command(resume={"approved":..., "decided_by":...})` 恢复图执行 → approval_gate 重放时 `interrupt()` 直接返回审批决定 → create_ticket 落库并闭环。
 
-**Checkpointer**：`MemorySaver`（thread_id = 会话 ID）。生产多 worker 部署时建议替换为持久化 checkpointer（`langgraph-checkpoint-postgres` 等）。
+**检查点**以会话 ID 为线程标识。PostgreSQL 使用持久化 `PostgresSaver`，本地可通过 `CHECKPOINT_PATH` 使用 SQLite 检查点，离线测试使用内存检查点。
+
+工作台发起调查时，将请求和进展存入 `agent_runs` 与 `agent_run_events`。当前部署在单 API 实例内用后台线程执行，浏览器的 SSE 连接负责接收事件。断线后同一运行可按事件游标补读。服务重启时，启动流程重新接收尚在运行的后台任务，并从已提交的节点恢复。中断时尚未提交检查点的节点可能重跑。内存检查点模式可重新执行任务，但重启后只能从任务起点开始。
 
 ## 4. 数据模型（PostgreSQL，兼容旧 MySQL 与离线 SQLite）
 
@@ -87,7 +89,7 @@ flowchart LR
 
 ## 5. SSE 事件协议
 
-`POST /api/agent/chat/stream` 以 `text/event-stream` 推送，每行 `data: {json}`：
+`POST /api/agent/chat/stream` 以 `text/event-stream` 推送，用空行分隔事件。工作台发送 `background: true` 启用后台运行，先接收带运行编号的 `connected` 事件，再接收带事件编号的增量。刷新后可从会话详情的 `active_run_id` 找到后台运行，并用 `GET /api/agent/runs/{run_id}/events?after={事件编号}` 重连。未启用该字段的调用沿用请求内流式执行。
 
 | type | 载荷 | 说明 |
 | --- | --- | --- |
@@ -114,7 +116,14 @@ flowchart LR
 | Embedding | `EMBEDDING_PROVIDER=mock` | 词面哈希向量（语义≈词面重合）；生产切换 OpenAI 兼容 API |
 | Langfuse | 未配置 Key | 追踪退化为本地日志，不影响业务 |
 
-## 7. 可观测性（Langfuse）
+## 7. 个人网站维护
+
+- 用户为登记的公开网址开启定时 GET 巡检，间隔为 5、15、30 或 60 分钟。后台线程从数据库读取到期任务，连续三次异常响应或超时生成带证据的问题，同一轮异常只创建一条。收到正常响应后结束本轮巡检异常，问题结局由维护者确认。
+- 个人诊断先读取日志摘要与代表行，再按证据编号和行号定向补读。报告保存调查范围、候选原因的正反证据和缺失信息。`python -m eval.support_evidence_eval` 使用固定样本比较全文与摘要方案的引用、复测判定、本地处理耗时和估算输入 Token。
+- 问题所有者可把证据快照交接给同租户成员。接手者在问题中心复核快照并反馈意见，所有者可撤回或重新交接。
+- 首页各区域独立加载，最新动态按当前账户全部网站的事件时间排序。
+
+## 8. 可观测性（Langfuse）
 
 `services/observability.py` 提供 `Tracer.span(name, **meta)`，覆盖：
 

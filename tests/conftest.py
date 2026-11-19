@@ -20,6 +20,7 @@ os.environ["MCP_ENABLED"] = "false"
 os.environ["RETRIEVAL_SUBAGENT_ENABLED"] = "false"
 os.environ["AUTH_RATE_LIMIT_PER_MINUTE"] = "10000"
 os.environ["REGISTRATION_ENABLED"] = "true"
+os.environ["VISITOR_ENABLED"] = "true"
 
 import pytest
 from fastapi.testclient import TestClient

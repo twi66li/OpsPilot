@@ -16,7 +16,9 @@ test('普通用户注册、问题深链接和日志预览',async({page})=>{
   await page.getByLabel('密码',{exact:true}).fill('browser-pass-123');
   await page.getByLabel('确认密码',{exact:true}).fill('browser-pass-123');
   await page.getByRole('button',{name:'注册',exact:true}).click();
-  await expect(page.getByText('普通用户',{exact:true})).toBeVisible();
+  await page.getByRole('button',{name:'账号：'+name,exact:true}).click();
+  await expect(page.locator('.account-identity')).toContainText('普通用户');
+  await page.keyboard.press('Escape');
   await page.getByRole('menuitem',{name:'问题中心'}).click();
   await page.getByRole('button',{name:'新建问题'}).click();
   await page.getByLabel('问题标题').fill('浏览器验收样例');
@@ -40,7 +42,14 @@ test('普通用户注册、问题深链接和日志预览',async({page})=>{
   const streamed=page.waitForRequest(request=>request.url().endsWith('/api/agent/chat/stream')&&request.method()==='POST');
   await page.getByRole('button',{name:'发送',exact:true}).click();
   expect((await streamed).postDataJSON().request_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
-  await expect(page.getByText('本次分析已完成',{exact:true})).toBeVisible({timeout:30000});
+  if(process.env.OPSPILOT_TEST_OFFLINE==='1') {
+    // 隔离离线环境会明确拒绝真实诊断；验证错误状态，不能把它当成成功。
+    await expect(page.getByText('当前为离线模型模式。请配置真实聊天模型后开始排障；文档和背景仍可准备。',{exact:true})).toBeVisible({timeout:30000});
+    await expect(page.getByText('本次分析未完成，已有证据保留',{exact:true})).toBeVisible();
+    await expect(page.getByText('本次分析已完成',{exact:true})).toHaveCount(0);
+  } else {
+    await expect(page.getByText('本次分析已完成',{exact:true})).toBeVisible({timeout:30000});
+  }
 });
 
 test('390px导航和提问区可见',async({page,request},testInfo)=>{

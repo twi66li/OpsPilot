@@ -6,6 +6,7 @@ import { api } from './api';
 import type { EvalQuestion, EvalReport } from './types';
 
 type EvalRun = {id: string; label: string; category: string; question_count: number};
+const evalStatusText: Record<string, string> = {answered: '已回答', abstained: '已拒答', error: '执行异常', model_error: '模型错误', timeout: '超时', tool_timeout: '工具超时', budget_exhausted: '预算耗尽', ok: '通过', passed: '通过', failed: '未通过'};
 
 export default function Evaluation() {
   const [params,setParams]=useSearchParams();
@@ -26,10 +27,10 @@ export default function Evaluation() {
     return () => {active = false;};
   }, [runId]);
   const questions = report?.questions.filter(item => `${item.id} ${item.question}`.toLowerCase().includes(query.toLowerCase())) || [];
-  return <div className="page-stack"><div className="page-title"><div><h2>评测记录</h2><p>查看已有案例的回答、证据、程序检查和模型用量。</p></div></div>
+  return <div className="page-stack"><div className="page-title"><h2>评测记录</h2></div>
     <Alert type="warning" title="这些结果来自开发与修复案例，不代表独立根因准确率。缺少人工标注或裁判结论时，保留缺失状态。" />
     <Checkbox checked={development} onChange={e => setDevelopment(e.target.checked)}>显示开发 / 流程验收记录（{developmentCount}）</Checkbox>
-    <Space wrap><Select aria-label="评测运行" placeholder="选择评测运行" style={{minWidth: 360}} value={runId || undefined} onChange={value=>{setRunId(value);setParams({run:value,development:String(development)});}} options={runs.map(item => ({value: item.id, label: `${item.label} · ${item.question_count}题 · ${item.id}`}))} />
+    <Space wrap><Select aria-label="评测运行" placeholder="选择评测运行" style={{minWidth: 320}} value={runId || undefined} onChange={value=>{setRunId(value);setParams({run:value,development:String(development)});}} options={runs.map(item => ({value: item.id, title: item.id, label: `${item.label} · ${item.question_count}题`}))} />
       <Input aria-label="筛选评测问题" value={query} onChange={e => setQuery(e.target.value)} placeholder="筛选问题或编号" allowClear /></Space>
     {error && <Alert type="error" title="评测记录加载失败" description={error} />}
     {loading && <Spin tip="正在读取评测记录"><div style={{height:40}} /></Spin>}
@@ -41,7 +42,7 @@ export default function Evaluation() {
       {!report.questions.length ? <><Alert type="info" title="这是一份流程验收记录，没有逐题评测明细。" description="它用于检查功能流程，不参与逐题评测对比。可展开查看原始验收结果。" /><Collapse items={[{key:'details',label:'原始流程验收记录',children:<pre>{JSON.stringify(report.details, null, 2)}</pre>}]} /></> :
       <Card><Table<EvalQuestion> rowKey="id" dataSource={questions} pagination={{pageSize: 10}} columns={[
         {title: '编号', dataIndex: 'id', width: 130}, {title: '问题', dataIndex: 'question'},
-        {title: '状态', dataIndex: 'status', render: value => <Tag>{value || '未记录'}</Tag>},
+        {title: '状态', dataIndex: 'status', render: value => <Tag>{evalStatusText[String(value || '')] || value || '未记录'}</Tag>},
         {title: '耗时', dataIndex: 'elapsed_s', render: value => typeof value === 'number' ? `${value.toFixed(1)}s` : '未记录'},
       ]} expandable={{expandedRowRender: item => <div className="page-stack"><pre className="source-text">{item.answer || '尚无回答'}</pre><Collapse items={[
         {key: 'checks', label: '程序检查与裁判结果', children: <pre>{JSON.stringify({program_checks: item.program_checks, judges: item.judges}, null, 2)}</pre>},

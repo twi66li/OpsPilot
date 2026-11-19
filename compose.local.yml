@@ -52,7 +52,7 @@ services:
     volumes: ["./data:/app/data", "./eval:/app/eval:ro"]
     depends_on:
       postgres: {condition: service_healthy}
-      redis: {condition: service_started}
+      redis: {condition: service_healthy}
       milvus: {condition: service_healthy}
     mem_limit: 384m
   metrics-demo:

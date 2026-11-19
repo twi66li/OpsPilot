@@ -9,7 +9,7 @@ from urllib.parse import urlsplit
 import httpx
 
 
-def probe_url(url):
+def validate_probe_url(url):
     parsed = urlsplit(url)
     if (
         parsed.scheme not in ("http", "https")
@@ -26,6 +26,17 @@ def probe_url(url):
     if port not in (80, 443):
         raise ValueError("当前只支持80和443端口")
     host = parsed.hostname.encode("idna").decode("ascii")
+    try:
+        literal = ipaddress.ip_address(host)
+    except ValueError:
+        literal = None
+    if literal is not None and (not literal.is_global or literal.is_multicast):
+        raise ValueError("只能检查公开网络地址")
+    return host, port
+
+
+def probe_url(url):
+    host, port = validate_probe_url(url)
     addresses = {item[4][0] for item in socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)}
     if not addresses or any(
         not ipaddress.ip_address(ip).is_global or ipaddress.ip_address(ip).is_multicast for ip in addresses
@@ -60,8 +71,8 @@ def probe_url(url):
                 if response.is_redirect:
                     result["note"] = "地址返回跳转，平台未继续访问跳转目标"
     except httpx.HTTPError as exc:
-        result.update(
-            state="unknown", error_type=type(exc).__name__, note="本次请求未完成，请检查网络和TLS；不能据此确认网站故障"
-        )
+        result.update(state="unknown", error_type=type(exc).__name__,
+                      timed_out=isinstance(exc, (httpx.ConnectTimeout, httpx.ReadTimeout)),
+                      note="本次请求未完成，请检查网络和TLS；不能据此确认网站故障")
     result["elapsed_ms"] = round((time.perf_counter() - started) * 1000, 1)
     return result

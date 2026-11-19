@@ -1,7 +1,7 @@
 """数据模型：租户/用户/会话/消息/文档元数据/故障记录/工单/审批单。
 
 约定：所有业务表都带 tenant_id，查询层强制租户过滤；
-向量数据（文档分块）存储在 Qdrant，payload 中同样携带 tenant_id。
+向量数据存储在 Milvus，分块信息同样携带 tenant_id。
 """
 
 import uuid
@@ -77,7 +77,7 @@ class Message(Base):
 
 
 class Document(Base):
-    """知识库文档（元数据与全文存 MySQL，分块向量存 Qdrant）。"""
+    """知识库文档及检索索引所需的元数据。"""
 
     __tablename__ = "documents"
 

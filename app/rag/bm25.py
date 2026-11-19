@@ -50,13 +50,13 @@ class BM25Retriever:
                active_versions: dict | None = None) -> list[RetrievedChunk]:
         with self._lock:
             index = self._index.get(tenant_id)
-            chunks = self._chunks.get(tenant_id, {})
+            chunk_list = list(self._chunks.get(tenant_id, {}).values())
             tokens = self._tokens.get(tenant_id, [])
-        if index is None or not chunks:
+        if index is None or not chunk_list:
             return []
-        chunk_list = list(chunks.values())
-        q_tokens = set(tokenize(query))
-        scores = index.get_scores(tokenize(query))
+        query_tokens = tokenize(query)
+        q_tokens = set(query_tokens)
+        scores = index.get_scores(query_tokens)
         # 先做词面预过滤：小语料下 rank-bm25 的 idf 为负，未命中文档反而得 0 分会排到前面，
         # 因此仅对与查询共享至少一个词元的文档按 BM25 得分排序。
         candidates = [
@@ -82,4 +82,5 @@ class BM25Retriever:
         ]
 
     def count(self, tenant_id: str) -> int:
-        return len(self._chunks.get(tenant_id, {}))
+        with self._lock:
+            return len(self._chunks.get(tenant_id, {}))

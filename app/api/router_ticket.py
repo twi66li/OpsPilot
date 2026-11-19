@@ -15,7 +15,7 @@ router = APIRouter(tags=["ops"])
 
 
 @router.get("/api/tickets")
-async def list_tickets(user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
+async def list_tickets(user: AuthUser = Depends(require_roles("admin", "engineer")), db: AsyncSession = Depends(get_async_db)):
     tickets = await db.run_sync(ticket_service.list_tickets, user.tenant_id)
     return [
         {
@@ -33,7 +33,7 @@ async def list_tickets(user: AuthUser = Depends(get_current_user), db: AsyncSess
 
 
 @router.get("/api/tickets/{ticket_id}")
-async def get_ticket(ticket_id: str, user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
+async def get_ticket(ticket_id: str, user: AuthUser = Depends(require_roles("admin", "engineer")), db: AsyncSession = Depends(get_async_db)):
     from app.db.models import Ticket
 
     ticket = await db.scalar(select(Ticket).where(Ticket.id == ticket_id, Ticket.tenant_id == user.tenant_id))

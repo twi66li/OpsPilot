@@ -31,7 +31,8 @@ export default function App() {
     return {caseId:resourceId,siteId:params.get('site') || undefined,workflow:(params.get('workflow') || 'auto') as SupportEntry['workflow'],question:params.get('question') || undefined};
   },[resourceId,location.search]);
   const canWrite = !!auth && ['admin','engineer'].includes(auth.role);
-  const allowed = (key:Page) => (key !== 'evaluation' || auth?.role === 'admin') && (key !== 'operations' || canWrite);
+  const canReadEvaluation = auth?.role === 'admin' && auth.tenant_id === 'default';
+  const allowed = (key:Page) => (key !== 'evaluation' || canReadEvaluation) && (key !== 'operations' || canWrite);
   const group = (key:string,label:string,keys:Page[]) => ({key,type:'group' as const,className:`nav-group nav-${key}`,label:<span className="nav-group-label">{label}</span>,children:keys.filter(allowed).map(key=>({key,label:pages[key]}))});
   const menuItems = [group('overview','概览',['home']),group('maintenance','网站维护',['websites','issues']),group('resources','资料与演练',['knowledge','investigation']),group('management','管理与质量',['operations','evaluation'])].filter(item=>item.children.length);
   function setPage(target:Page) {navigate('/'+target);setDrawer(false);}
@@ -64,7 +65,7 @@ export default function App() {
         {page==='investigation'&&<Investigation onSource={setSource} canApprove={canWrite} initialId={resourceId} opened={id=>navigate('/investigation/'+id)}/>}
         {page==='knowledge'&&<OfficialLibrary onSource={setSource}/>}
         {page==='operations'&&(canWrite?<Operations canApprove={canWrite}/>:<Alert type="warning" title="此模块需要工程师或管理员权限"/>)}
-        {page==='evaluation'&&(auth.role==='admin'?<Evaluation/>:<Alert type="warning" title="评测记录仅管理员可查看"/>)}
+        {page==='evaluation'&&(canReadEvaluation?<Evaluation/>:<Alert type="warning" title="评测记录仅平台管理员可查看"/>)}
       </Suspense>
     </Layout.Content></Layout><SourceDrawer hit={source} close={()=>setSource(null)}/><PasswordDialog open={passwordOpen} close={()=>setPasswordOpen(false)} changed={clearAuth}/>
   </Layout>;

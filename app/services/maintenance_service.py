@@ -2,9 +2,36 @@
 
 import re
 import shlex
+from datetime import datetime, timezone
 
 from app.db.models import ChatSession, DocumentVersion, SupportCase, WorkspaceEvent
 from app.services.case_service import case_status, is_archived
+
+
+def _utc_event_time(value):
+    if isinstance(value, str):
+        try:
+            value = datetime.fromisoformat(value)
+        except ValueError:
+            return None
+    if not isinstance(value, datetime):
+        return None
+    return value.astimezone(timezone.utc) if value.tzinfo else value.replace(tzinfo=timezone.utc)
+
+
+def event_at(occurred_at, recorded_at):
+    stamp = _utc_event_time(occurred_at) or _utc_event_time(recorded_at)
+    return stamp.isoformat().replace("+00:00", "Z")
+
+
+def sort_events(events):
+    def timestamp(event):
+        return (
+            _utc_event_time(event.get("at")) or _utc_event_time(event.get("recorded_at"))
+            or datetime.max.replace(tzinfo=timezone.utc)
+        )
+
+    return sorted(events, key=timestamp)
 
 
 def record_event(db, tenant_id, user_id, resource_type, resource_id, kind, detail):
@@ -149,7 +176,7 @@ def timeline(db, user, resource_type, resource_id):
         .order_by(WorkspaceEvent.id)
         .all()
     )
-    return [{"id": r.id, "kind": r.kind, "detail": r.detail, "at": r.created_at.isoformat()} for r in records]
+    return [{"id": r.id, "kind": r.kind, "detail": r.detail, "at": event_at(None, r.created_at)} for r in records]
 
 
 def case_report(case, title, events):

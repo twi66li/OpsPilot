@@ -1,6 +1,7 @@
 """T7 接线测试：真实模型/存储链路的装配语义（全部 Mock/假端点，不打真实 API）。"""
 import os
 import tempfile
+from unittest.mock import Mock
 
 import pytest
 
@@ -16,9 +17,8 @@ _BUDGET_DIR = tempfile.mkdtemp(prefix="t7_wiring_budget_")
 def _settings(**kw) -> Settings:
     base = dict(
         database_url="sqlite:///:memory:",
-        qdrant_mode="remote",
-        qdrant_url="http://127.0.0.1:1",
-        qdrant_collection="kb_qwen37_1024_v2",
+        vector_store_backend="milvus",
+        milvus_uri="http://127.0.0.1:1",
         embedding_provider="mock",
         embedding_dim=1024,
         llm_provider="mock",
@@ -37,13 +37,15 @@ def _settings(**kw) -> Settings:
     return Settings(**base)
 
 
-def test_strict_vector_store_does_not_fall_back():
-    with pytest.raises(Exception):  # 连接不可达时 strict 必须暴露，不得退化为进程内
-        get_vector_store(_settings())
+@pytest.mark.parametrize("strict", [True, False])
+def test_milvus_connection_failure_does_not_fall_back(monkeypatch, strict):
+    monkeypatch.setattr("app.rag.milvus_store.MilvusVectorStore", Mock(side_effect=ConnectionError("unavailable")))
+    with pytest.raises(ConnectionError):
+        get_vector_store(_settings(model_strict=strict))
 
 
-def test_non_strict_vector_store_falls_back_to_memory():
-    store = get_vector_store(_settings(model_strict=False))
+def test_explicit_offline_vector_store_uses_memory():
+    store = get_vector_store(_settings(vector_store_backend="memory"))
     assert isinstance(store, InMemoryVectorStore)
 
 
@@ -110,13 +112,14 @@ def test_compose_carries_t7_passthrough():
     env = doc["services"]["api"]["environment"]
     text = "\n".join(f"{k}: {v}" for k, v in env.items())
     for token in (
-        "kb_qwen37_1024_v2",
+        "opspilot_legacy_chunks",
         "qwen3.7-text-embedding-flash",
         "qwen3.7-text-rerank",
         "MODEL_STRICT",
         "dashscope.aliyuncs.com",
     ):
         assert token in text, token
-    assert env["QDRANT_COLLECTION"].endswith("kb_qwen37_1024_v2}")
+    assert env["VECTOR_STORE_BACKEND"] == "milvus"
+    assert env["MILVUS_COLLECTION"].endswith("opspilot_legacy_chunks}")
     assert env["EMBEDDING_DIM"].endswith("1024}")
     assert env["CHAT_MODEL"] == "${CHAT_MODEL:-qwen3.8-max}"

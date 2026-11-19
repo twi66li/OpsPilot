@@ -1,14 +1,6 @@
-"""向量库抽象：Qdrant（生产）与进程内实现（开发/测试离线退化）。
-
-统一接口，检索时强制 tenant 过滤：
-  - Qdrant: Filter(key=tenant_id)
-  - 内存版: 按 tenant 分桶
-"""
-import logging
+"""向量存储接口、离线内存实现及 Qdrant 迁移来源。"""
 import uuid
 from dataclasses import dataclass, field
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -44,11 +36,14 @@ def cosine(a: list[float], b: list[float]) -> float:
 
 
 class InMemoryVectorStore:
-    """纯 Python 余弦检索，接口与 Qdrant 版一致，用于离线测试。"""
+    """纯 Python 余弦检索，用于离线开发和测试。"""
 
     def __init__(self, dim: int = 256):
         self.dim = dim
         self._points: dict[str, dict] = {}  # point_id -> {vector, payload}
+
+    def health(self) -> str:
+        return "memory"
 
     def upsert(self, tenant_id: str, chunks: list[dict], vectors: list[list[float]]) -> None:
         for chunk, vec in zip(chunks, vectors):
@@ -115,7 +110,7 @@ def _point_id(chunk_id: str) -> str:
 
 
 class QdrantVectorStore:
-    """Qdrant 封装：memory（进程内）/ local（磁盘）/ remote（独立服务）。"""
+    """旧 Qdrant 资料与迁移对照用的适配器。"""
 
     def __init__(self, mode: str = "memory", url: str = "http://localhost:6333", collection: str = "kb_chunks", dim: int = 256):
         from qdrant_client import QdrantClient
@@ -222,14 +217,14 @@ def _location(payload):
 
 
 def get_vector_store(settings):
-    if settings.qdrant_mode == "memory":
+    if settings.vector_store_backend == "memory":
         return InMemoryVectorStore(dim=settings.embedding_dim)
-    try:
-        return QdrantVectorStore(
-            mode=settings.qdrant_mode, url=settings.qdrant_url, collection=settings.qdrant_collection, dim=settings.embedding_dim
-        )
-    except Exception as exc:
-        if getattr(settings, "model_strict", False):
-            raise  # T7：真实模式下连接失败必须暴露，不得退化为进程内实现冒充真实后端
-        logger.warning("Qdrant 连接失败(%s)，退化为进程内向量库", exc)
-        return InMemoryVectorStore(dim=settings.embedding_dim)
+    from app.rag.milvus_store import MilvusVectorStore
+
+    return MilvusVectorStore(
+        uri=settings.milvus_uri,
+        collection=settings.milvus_collection,
+        dim=settings.embedding_dim,
+        token=settings.milvus_token,
+        db_name=settings.milvus_db_name,
+    )

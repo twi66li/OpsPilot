@@ -69,8 +69,14 @@ def _default_run(runs: list[dict]) -> str:
     return candidates[0]["id"] if candidates else ""
 
 
+async def require_evaluation_access(user: AuthUser = Depends(require_roles("admin"))) -> AuthUser:
+    if user.tenant_id != "default":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "需要平台管理员权限")
+    return user
+
+
 @router.get("/runs")
-def eval_runs(include_development: bool = False, user: AuthUser = Depends(require_roles("admin"))):
+def eval_runs(include_development: bool = False, user: AuthUser = Depends(require_evaluation_access)):
     """列出可查看的评测运行（历史基线 / 重排恢复批），供工作台切换。"""
     all_runs = list(_discover_runs().values())
     runs = [r for r in all_runs if include_development or r["category"] == "evaluation" and r["question_count"]]
@@ -82,7 +88,7 @@ def eval_runs(include_development: bool = False, user: AuthUser = Depends(requir
 
 
 @router.get("/results")
-def eval_results(user: AuthUser = Depends(require_roles("admin")), run: str = ""):
+def eval_results(user: AuthUser = Depends(require_evaluation_access), run: str = ""):
     """返回指定运行的结果：总体完成数、逐题输入/编号证据/答案/双裁判判分/失败/用量。
 
     数据来源为评测脚本落盘的 results.json 与 scenarios_frozen.json（只读）。缺省返回
@@ -163,7 +169,7 @@ def eval_results(user: AuthUser = Depends(require_roles("admin")), run: str = ""
 
 
 @router.get("/compare")
-def compare(baseline: str, candidate: str, user: AuthUser = Depends(require_roles("admin"))):
+def compare(baseline: str, candidate: str, user: AuthUser = Depends(require_evaluation_access)):
     from app.services.evaluation_compare import compare_reports
 
     return compare_reports(eval_results(user, baseline), eval_results(user, candidate))

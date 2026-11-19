@@ -458,8 +458,8 @@ def main():
         return complete_saved_tool_scoring(args.output, args.dataset, api_key, base_url)
     os.environ.update(DATABASE_URL="sqlite:///:memory:", OPENAI_API_KEY=api_key, OPENAI_BASE_URL=base_url,
         EMBEDDING_PROVIDER="openai", EMBEDDING_MODEL="qwen3.7-text-embedding-flash", EMBEDDING_DIM="1024",
-        LLM_PROVIDER="openai", CHAT_MODEL=args.chat_model, MODEL_STRICT="true", QDRANT_MODE="memory",
-        MILVUS_MODE="memory", RERANK_ENABLED="false", REDIS_URL="redis://127.0.0.1:1/0",
+        LLM_PROVIDER="openai", CHAT_MODEL=args.chat_model, MODEL_STRICT="true", VECTOR_STORE_BACKEND="memory",
+        RERANK_ENABLED="false", REDIS_URL="redis://127.0.0.1:1/0",
         LANGFUSE_PUBLIC_KEY="", LANGFUSE_SECRET_KEY="")
     args.output.mkdir(parents=True, exist_ok=args.resume)
     manifest = json.loads((args.dataset / "manifest.json").read_text(encoding="utf-8"))
@@ -489,7 +489,7 @@ def main():
         "chat_model": args.chat_model, "judge_model": args.judge_model,
         "embedding_model": "qwen3.7-text-embedding-flash", "embedding_dim": 1024,
         "rerank_model": "qwen3.7-text-rerank", "candidate_chunks": 8, "context_documents": 5,
-        "vector_backend": "Qdrant SDK embedded memory" if is_ops else "in-process exact cosine; Milvus service not exercised",
+        "vector_backend": "in-process exact cosine; Milvus service not exercised",
         "database": "isolated in-memory SQLite", "query_vectors": "one fresh request per question, then identical cached vectors across modes",
         "selection": "dev judge answer correctness, then dev Recall@5/MRR, then simpler mode; test does not tune configuration",
         "generation_scope": "RAG component on retrieval/abstain questions; actual application graph and approval HTTP API on behavior questions",
@@ -498,7 +498,8 @@ def main():
         "completion_status": "running", "credential_saved": False}
     if args.resume:
         previous = json.loads((args.output / "run_manifest.json").read_text(encoding="utf-8"))
-        for field in ("dataset_manifest_sha256", "chat_model", "judge_model", "embedding_model", "embedding_dim", "smoke"):
+        for field in ("dataset_manifest_sha256", "chat_model", "judge_model", "embedding_model", "embedding_dim", "smoke",
+                      "vector_backend"):
             if previous[field] != run[field]:
                 raise ValueError(f"续跑配置发生变化：{field}")
         save(args.output / f"run_manifest.before_resume_{uuid.uuid4().hex[:8]}.json", previous)
@@ -512,10 +513,6 @@ def main():
         provider = OpenAIEmbedding(api_key, base_url, "qwen3.7-text-embedding-flash", 1024)
         container.embedder = EvaluationEmbeddings(provider, args.output / "embeddings.json")
         container.retriever.embedder = container.embedder
-        if is_ops:
-            from app.rag.vector_store import QdrantVectorStore
-            container.vector_store = QdrantVectorStore(mode="memory", collection="eval_v1", dim=1024)
-            container.retriever.vector_store = container.vector_store
         with SessionLocal() as db:
             for doc in manifest["documents"]:
                 content = (args.dataset / doc["file"]).read_text(encoding="utf-8")

@@ -9,8 +9,8 @@ const now='2026-11-13T04:00:00Z';
 const record:PersonalCase={id:'design-case',title:'结算接口返回 502',status:'investigating',kind:'problem',created_at:now,updated_at:now,site_id:'design-site',site_name:'个人网站',severity:'P1',problem:{endpoint:'/orders'},evidence:[]};
 const history:ChatMessage[]=[{role:'user',content:'结算接口返回 502，下一步怎么检查？'},{role:'assistant',content:'先核对同一时间的上游日志。'}];
 
-async function fixture(page:Page,{signedIn=true,role='viewer',item=record,messages=history}:{signedIn?:boolean;role?:string;item?:PersonalCase;messages?:ChatMessage[]}={}) {
-  const auth={access_token:'design-fixture',username:'design_user',role,tenant_id:'design'};
+async function fixture(page:Page,{signedIn=true,role='viewer',tenantId='design',item=record,messages=history}:{signedIn?:boolean;role?:string;tenantId?:string;item?:PersonalCase;messages?:ChatMessage[]}={}) {
+  const auth={access_token:'design-fixture',username:'design_user',role,tenant_id:tenantId};
   if(signedIn)await page.addInitScript(value=>sessionStorage.setItem('opspilot.auth',JSON.stringify(value)),auth);
   await page.route('**/*',async route=>{
     const req=route.request(),path=new URL(req.url()).pathname;
@@ -87,16 +87,23 @@ for(const width of [1440,1024,390]) {
   });
 }
 
-for(const role of ['viewer','engineer','admin']) {
-  test(`${role} 导航权限`,async({page})=>{
-    await page.setViewportSize({width:1440,height:900});await fixture(page,{role});await page.goto('/home');
+for(const {role,tenantId} of [
+  {role:'viewer',tenantId:'design'}, {role:'engineer',tenantId:'design'},
+  {role:'admin',tenantId:'design'}, {role:'admin',tenantId:'default'},
+]) {
+  test(`${role} (${tenantId}) 导航权限`,async({page})=>{
+    await page.setViewportSize({width:1440,height:900});await fixture(page,{role,tenantId});await page.goto('/home');
     await expect(page.getByRole('menuitem',{name:'我的网站'})).toBeVisible();
     await expect(page.getByRole('button',{name:'智能维护助手',exact:true})).toHaveCount(1);
     await expect(page.getByRole('menuitem',{name:'智能维护助手'})).toHaveCount(0);
     await expect(page.getByRole('menuitem',{name:'审批与工单'})).toHaveCount(role==='viewer'?0:1);
-    await expect(page.getByRole('menuitem',{name:'评测记录'})).toHaveCount(role==='admin'?1:0);
+    await expect(page.getByRole('menuitem',{name:'评测记录'})).toHaveCount(role==='admin'&&tenantId==='default'?1:0);
     await expect(page.getByText('管理与质量',{exact:true})).toHaveCount(role==='viewer'?0:1);
     await expect(page.getByText('服务已就绪',{exact:true})).toBeVisible();
+    if(role==='admin'&&tenantId!=='default'){
+      await page.goto('/evaluation');
+      await expect(page.getByText('评测记录仅平台管理员可查看',{exact:true})).toBeVisible();
+    }
   });
 }
 

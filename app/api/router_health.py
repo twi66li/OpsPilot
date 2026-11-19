@@ -27,10 +27,7 @@ def ready():
         checks["database"] = "unavailable"
     try:
         container = get_container()
-        client = getattr(container.vector_store, "client", None)
-        if client:
-            client.get_collection(container.settings.qdrant_collection)
-        checks["vector_store"] = "ok" if client else "memory"
+        checks["vector_store"] = container.vector_store.health()
         redis = getattr(container.cache, "client", None)
         checks["cache"] = "ok" if redis and redis.ping() else "memory"
     except Exception:

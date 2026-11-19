@@ -19,7 +19,7 @@ def test_production_rejects_defaults():
         jwt_secret="x" * 40,
         admin_password="long-unique-password",
         database_url="postgresql+psycopg://opspilot:password@postgres:5432/opspilot",
-        qdrant_mode="remote",
+        vector_store_backend="milvus",
         llm_provider="openai",
         embedding_provider="openai",
         registration_enabled=False,
@@ -31,7 +31,8 @@ def test_production_rejects_defaults():
     ("field", "value"),
     [
         ("database_url", "sqlite:///./data/app.db"),
-        ("qdrant_mode", "memory"),
+        ("vector_store_backend", "memory"),
+        ("milvus_uri", "./data/milvus.db"),
         ("llm_provider", "mock"),
         ("embedding_provider", "mock"),
     ],
@@ -39,7 +40,7 @@ def test_production_rejects_defaults():
 def test_production_rejects_temporary_dependencies(field, value):
     overrides = {
         "database_url": "postgresql+psycopg://opspilot:password@postgres:5432/opspilot",
-        "qdrant_mode": "remote",
+        "vector_store_backend": "milvus",
         "llm_provider": "openai",
         "embedding_provider": "openai",
         field: value,

@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.auth.deps import AuthUser, get_current_user
 from app.db.base import get_db
-from app.db.models import ChatSession, Document, SupportCase, Tenant, WebsiteProfile, _now
+from app.db.models import ChatSession, Document, SupportCase, WebsiteProfile, _now
 from app.services import chat_service
 from app.services.case_service import CASE_STATUSES, assert_editable, case_status, is_archived, list_cases, reopen
 from app.services.evidence_checks import analyze_samples
@@ -101,13 +101,10 @@ def upload_personal(
     user: AuthUser = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    from app.api.router_kb import upload_document
+    from app.api.router_kb import store_upload
 
     namespace = personal_namespace(user.user_id)
-    if not db.get(Tenant, namespace):
-        db.add(Tenant(id=namespace, name="个人网站手册"))
-        db.commit()
-    return upload_document(file, title, doc_id, parsed_file, replace(user, tenant_id=namespace), db)
+    return store_upload(file, title, doc_id, parsed_file, replace(user, tenant_id=namespace), db)
 
 
 @router.get("/sites")

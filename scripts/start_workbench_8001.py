@@ -30,9 +30,9 @@ _order = _json.loads(Path("D:/agent-hub/run-20261102-quality/budget.json").read_
 os.environ["CHAT_MODEL_CANDIDATES"] = _json.dumps([m for m in _order if m != os.environ.get("CHAT_MODEL")])
 
 os.environ["DATABASE_URL"] = "mysql+pymysql://aiops:aiops123@127.0.0.1:13306/aiops?charset=utf8mb4"
-os.environ["QDRANT_MODE"] = "remote"
-os.environ["QDRANT_URL"] = "http://127.0.0.1:6333"
-os.environ["QDRANT_COLLECTION"] = "kb_qwen37_1024_v2"
+os.environ["VECTOR_STORE_BACKEND"] = "milvus"
+os.environ.setdefault("MILVUS_URI", "http://127.0.0.1:19530")
+os.environ.setdefault("MILVUS_COLLECTION", "opspilot_legacy_chunks")
 os.environ["EMBEDDING_PROVIDER"] = "openai"
 os.environ["EMBEDDING_DIM"] = "1024"
 os.environ["EMBEDDING_MODEL"] = "qwen3.7-text-embedding-flash"

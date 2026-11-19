@@ -15,12 +15,22 @@ from app.auth.deps import AuthUser, get_current_user, require_roles
 from app.container import get_container
 from app.db.async_session import get_async_db
 from app.db.base import get_db
-from app.db.models import Document, DocumentChunk, DocumentParent, DocumentVersion
+from app.db.models import Document, DocumentChunk, DocumentParent, DocumentVersion, Tenant, User
 from app.services import kb_service
+from app.services.cache import check_rate_limit
 from app.services.ingestion_service import enqueue
 from app.services.knowledge_access import personal_namespace, readable_namespaces
 
 router = APIRouter(prefix="/api/kb", tags=["knowledge-base"])
+UPLOADS_PER_MINUTE = 10
+RETRIEVALS_PER_MINUTE = 30
+FILE_VERSIONS_PER_NAMESPACE = 50
+
+
+def require_retrieval_allowance(user: AuthUser = Depends(get_current_user)) -> AuthUser:
+    if not check_rate_limit(get_container().cache, f"kb-retrieval:{user.user_id}", RETRIEVALS_PER_MINUTE):
+        raise HTTPException(429, "资料检索过于频繁，请一分钟后重试")
+    return user
 
 
 def _version_dict(version, doc):
@@ -62,6 +72,13 @@ def upload_document(
     user: AuthUser = Depends(require_roles("admin", "engineer")),
     db: Session = Depends(get_db),
 ):
+    return store_upload(file, title, doc_id, parsed_file, user, db)
+
+
+def store_upload(file: UploadFile, title: str, doc_id: str, parsed_file: UploadFile | None, user: AuthUser, db: Session):
+    container = get_container()
+    if not check_rate_limit(container.cache, f"kb-upload:{user.user_id}", UPLOADS_PER_MINUTE):
+        raise HTTPException(429, "资料上传过于频繁，请一分钟后重试")
     filename = Path((file.filename or "").replace("\\", "/")).name
     if len(filename) > 200 or Path(filename).suffix.lower() not in (".pdf", ".md", ".txt"):
         raise HTTPException(400, "请上传PDF、Markdown或TXT文件，文件名不超过200字符")
@@ -76,12 +93,26 @@ def upload_document(
         raise HTTPException(400, "标题不超过200字符")
     digest = hashlib.sha256(data).hexdigest()
     input_hash = hashlib.sha256(data + b"\0" + parsed_data).hexdigest()
+    namespace = db.query(Tenant.id).filter_by(id=user.tenant_id).with_for_update().first()
+    if namespace is None and user.tenant_id == personal_namespace(user.user_id):
+        # 首次并发上传时锁住用户行，串行创建个人资料空间。
+        db.query(User.id).filter_by(id=user.user_id).with_for_update().one()
+        namespace = db.query(Tenant.id).filter_by(id=user.tenant_id).with_for_update().first()
+        if namespace is None:
+            namespace = Tenant(id=user.tenant_id, name="个人网站手册")
+            db.add(namespace)
+            db.flush()
+    if namespace is None:
+        raise HTTPException(404, "资料空间不存在")
     existing = db.query(DocumentVersion).filter_by(tenant_id=user.tenant_id, content_hash=digest).all()
     for version in existing:
         if db.get(Document, version.doc_id).deleted_at is not None:
             continue
         if (not doc_id or version.doc_id == doc_id) and version.index_config.get("input_hash") == input_hash:
             return {**_version_dict(version, db.get(Document, version.doc_id)), "duplicate": True}
+    # 已移出检索的版本仍占用原文件存储，计入上限。
+    if db.query(DocumentVersion).filter_by(tenant_id=user.tenant_id).count() >= FILE_VERSIONS_PER_NAMESPACE:
+        raise HTTPException(409, "资料空间已达到上传版本上限")
     if doc_id:
         doc = (
             db.query(Document).filter_by(id=doc_id, tenant_id=user.tenant_id, deleted_at=None).with_for_update().first()
@@ -101,7 +132,7 @@ def upload_document(
         db.flush()
     number = (db.query(func.max(DocumentVersion.number)).filter_by(doc_id=doc.id).scalar() or 0) + 1
     version_id = uuid.uuid4().hex
-    folder = Path(get_container().settings.kb_storage_path).resolve() / user.tenant_id / version_id
+    folder = Path(container.settings.kb_storage_path).resolve() / user.tenant_id / version_id
     folder.mkdir(parents=True, exist_ok=True)
     original = folder / ("original" + Path(filename).suffix.lower())
     original.write_bytes(data)
@@ -124,7 +155,7 @@ def upload_document(
     db.add(version)
     db.commit()
     response = _version_dict(version, doc)
-    enqueue(version.id, get_container())
+    enqueue(version.id, container)
     return response
 
 
@@ -307,7 +338,7 @@ def delete_document(
 
 
 @router.post("/search")
-def search(body: SearchIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def search(body: SearchIn, user: AuthUser = Depends(require_retrieval_allowance), db: Session = Depends(get_db)):
     """检索接口：mode=dense|bm25|hybrid 可对比不同检索方案。"""
     if body.mode not in ("dense", "bm25", "hybrid"):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "mode 必须是 dense/bm25/hybrid")

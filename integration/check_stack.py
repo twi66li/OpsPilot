@@ -1,8 +1,11 @@
 """真实基础设施最小集成；不调用模型供应商，只清理本次生成的测试资源。"""
 
 import uuid
+from pathlib import Path
 
 import psycopg
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 from langgraph.checkpoint.base import empty_checkpoint
 from langgraph.checkpoint.postgres import PostgresSaver
 from psycopg.rows import dict_row
@@ -10,18 +13,20 @@ from sqlalchemy import text
 
 from app.config import get_settings
 from app.db.base import engine, init_db
-from app.rag.vector_store import QdrantVectorStore
+from app.rag.vector_store import get_vector_store
 from app.services.cache import RedisCache
 
 
 def main():
     settings = get_settings()
-    if not settings.database_url.startswith("postgresql") or settings.qdrant_mode != "remote":
-        raise RuntimeError("集成检查必须显式连接PostgreSQL、远端Qdrant及Redis")
+    if not settings.database_url.startswith("postgresql") or settings.vector_store_backend != "milvus":
+        raise RuntimeError("集成检查必须连接 PostgreSQL、Milvus 和 Redis")
     init_db()
+    config_path = Path(__file__).resolve().parents[1] / "alembic.ini"
+    expected_head = ScriptDirectory.from_config(Config(str(config_path))).get_current_head()
     token = uuid.uuid4().hex
     with engine.connect() as conn:
-        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "0003"
+        assert expected_head is not None and conn.scalar(text("SELECT version_num FROM alembic_version")) == expected_head
         conn.execute(
             text("INSERT INTO tenants (id,name,created_at) VALUES (:id,'integration',CURRENT_TIMESTAMP)"), {"id": token}
         )
@@ -41,15 +46,18 @@ def main():
             assert saver.get_tuple(saved).checkpoint["channel_values"]["marker"] == token
         finally:
             saver.delete_thread(thread_id)
-    collection = "integration_" + token
-    store = QdrantVectorStore(mode="remote", url=settings.qdrant_url, collection=collection, dim=4)
+    collection = "opspilot_test_" + token
+    store = get_vector_store(settings.model_copy(update={"milvus_collection": collection, "embedding_dim": 4}))
     try:
         store.upsert("tenant-a", [{"chunk_id": "a", "doc_id": "a", "doc_title": "A", "text": "owned"}], [[1, 0, 0, 0]])
         store.upsert("tenant-b", [{"chunk_id": "b", "doc_id": "b", "doc_title": "B", "text": "other"}], [[1, 0, 0, 0]])
         found = store.search("tenant-a", [1, 0, 0, 0])
         assert len(found) == 1 and found[0].doc_id == "a"
     finally:
-        store.client.delete_collection(collection)
+        try:
+            store.client.drop_collection(collection_name=collection)
+        finally:
+            store.client.close()
     cache = RedisCache(settings.redis_url)
     key = "integration:" + token
     try:

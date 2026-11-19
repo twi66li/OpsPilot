@@ -14,7 +14,7 @@ from app.auth.deps import AuthUser, get_current_user, require_roles
 from app.config import get_settings
 from app.db.async_session import get_async_db
 from app.db.base import get_db
-from app.db.models import RemediationRequest
+from app.db.models import RemediationRequest, SupportCase
 from app.services import remediation_service, run_service
 
 router = APIRouter(prefix="/api/remediations", tags=["remediation"])
@@ -53,7 +53,7 @@ async def actions(user: AuthUser = Depends(get_current_user)):
 
 
 @router.get("")
-async def list_requests(user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
+async def list_requests(user: AuthUser = Depends(require_roles("admin", "engineer")), db: AsyncSession = Depends(get_async_db)):
     rows = (await db.scalars(select(RemediationRequest).filter_by(tenant_id=user.tenant_id).order_by(
         RemediationRequest.created_at.desc()).limit(100))).all()
     return [_serialize(row) for row in rows]
@@ -64,7 +64,7 @@ def create_request(body: RemediationIn, user: AuthUser = Depends(require_roles("
                    db: Session = Depends(get_db)):
     _require_enabled(user)
     run = run_service.get_run(db, user.tenant_id, body.run_id, user.user_id)
-    if run is None:
+    if run is None or db.get(SupportCase, run.session_id) is not None:
         raise HTTPException(404, "调查记录不存在")
     if run.status == "running":
         raise HTTPException(409, "请等待调查完成，再提出修复申请")

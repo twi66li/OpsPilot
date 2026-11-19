@@ -1,3 +1,4 @@
+# 早期 MySQL 联调入口。新部署使用 compose.local.yml 或 compose.demo.yml。
 services:
   mysql:
     image: mysql:8.0
@@ -28,13 +29,9 @@ services:
       timeout: 3s
       retries: 20
 
-  qdrant:
-    image: qdrant/qdrant:v1.12.4
-    ports:
-      - "6333:6333"
-      - "6334:6334"
-    volumes:
-      - qdrant_data:/qdrant/storage
+  milvus:
+    extends: {file: deploy/milvus/compose.yml, service: milvus}
+    ports: ["127.0.0.1:19530:19530"]
 
   api:
     build: .
@@ -43,9 +40,9 @@ services:
     environment:
       DATABASE_URL: mysql+pymysql://aiops:aiops123@mysql:3306/aiops?charset=utf8mb4
       REDIS_URL: redis://redis:6379/0
-      QDRANT_MODE: remote
-      QDRANT_URL: http://qdrant:6333
-      QDRANT_COLLECTION: ${QDRANT_COLLECTION:-kb_qwen37_1024_v2}
+      VECTOR_STORE_BACKEND: milvus
+      MILVUS_URI: http://milvus:19530
+      MILVUS_COLLECTION: ${MILVUS_COLLECTION:-opspilot_legacy_chunks}
       EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-mock}
       EMBEDDING_DIM: ${EMBEDDING_DIM:-1024}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-qwen3.7-text-embedding-flash}
@@ -72,8 +69,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      qdrant:
-        condition: service_started
+      milvus:
+        condition: service_healthy
     command: >
       sh -c "python -m scripts.seed &&
              uvicorn app.main:app --host 0.0.0.0 --port 8000"
@@ -97,6 +94,6 @@ services:
 volumes:
   mysql_data:
   redis_data:
-  qdrant_data:
+  milvus_data:
   prometheus_data:
   checkpoints_data:

@@ -230,12 +230,15 @@ def chat_stream(
 
 
 def _background_input(db, run, tenant_id, session_id, input_state):
-    db.add(Message(tenant_id=tenant_id, session_id=session_id, role="user",
-                   content=input_state["question"], meta={"run_id": run.id}))
-    db.flush()
-    input_state["history"] = chat_service.get_history(db, session_id, limit=6)
-    run.data = {**run.data, "background_input": input_state}
-    db.commit()
+    from app.services.run_service import _write_lock
+
+    with _write_lock:
+        prior = chat_service.get_history(db, session_id, limit=5)
+        input_state["history"] = prior + [{"role": "user", "content": input_state["question"]}]
+        db.add(Message(tenant_id=tenant_id, session_id=session_id, role="user",
+                       content=input_state["question"], meta={"run_id": run.id}))
+        run.data = {**run.data, "background_input": input_state}
+        db.commit()
     return input_state
 
 

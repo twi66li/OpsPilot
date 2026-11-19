@@ -119,8 +119,8 @@
   .support-answer { padding:16px; }
 }
 @media(min-width:701px) and (max-width:1000px) { .navigation-trigger { display:none; } }
-.login-mobile-brand { display:none; padding:20px 24px 0; }
-.login-mobile-brand .login-brand { margin:0; font-size:18px; }
+.login-mobile-brand { display:none; width:min(100%,380px); }
+.login-mobile-brand-mark { display:flex; align-items:center; gap:10px; margin:0; font-size:18px; font-weight:700; color:var(--text); }
 .login-mobile-brand p { margin:4px 0 0; font-size:13px; color:var(--text-2); }
 .info-inline-label { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--text-2); }
 .home-next.idle { background:var(--panel); border-color:var(--line); border-left:3px solid var(--border); padding:14px 18px; }
@@ -136,7 +136,7 @@
 @media(max-width:720px) { .home-cards { grid-template-columns:1fr; } }
 @media(max-width:700px) {
   .login-mobile-brand { display:block; }
-  .auth-screen .login-page { padding:28px 20px; } .login-story { display:none; } .login-card { width:min(100%,380px); }
+  .auth-screen .login-page { flex-direction:column; justify-content:center; align-items:center; padding:24px 20px; gap:16px; } .login-story { display:none; } .login-card { width:min(100%,380px); }
   .auth-tabs { padding-inline:24px; } .auth-body { padding-inline:24px; }
   .app-header { padding:0 12px; gap:8px; } .app-header > .ant-space:first-child { flex-shrink:0; gap:8px!important; }
   .app-header .header-page-title { display:none; } .global-search-trigger { flex:0 0 36px; padding:0; justify-content:center; } .global-search-trigger > span:not(.ant-btn-icon),.global-search-trigger kbd { display:none; }

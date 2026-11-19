@@ -56,7 +56,7 @@ for(const width of [1440,1024,390]){
   await expect(page.locator('.home-cards .ant-card-head-title')).toContainText('订单网站 '+width);
   if(width>=1024)await page.getByRole('button',{name:'查看能力状态',exact:true}).click();
   else{await page.locator('.account-button').click();await page.getByRole('menuitem',{name:'查看能力状态',exact:true}).click();}
-  await expect(page.locator('.capability-panel')).toContainText(/离线模式.*尚未自动采集个人网站.*模型请求未完成/s);
+  await expect(page.locator('.capability-panel')).toContainText(/离线模式.*(?:手动提交|定时 HTTP 巡检).*模型请求未完成/s);
   await page.screenshot({path:info.outputPath('capabilities.png'),fullPage:true,animations:'disabled'});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
  });

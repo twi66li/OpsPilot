@@ -598,10 +598,11 @@ test('首页待办重试入库成功后及时消失，普通用户无审批按�
 test('首页数据加载失败可重试，空态不伪造任务',async({page})=>{
   await fixture(page);let failed=true;
   await page.route('**/api/maintenance/todos',r=>r.fulfill(failed?{status:503,json:{detail:'临时不可用'}}:{json:{items:[]}}));
-  await page.goto('/home');await expect(page.getByText('工作台数据加载失败',{exact:true})).toBeVisible();
-  failed=false;await page.getByRole('button',{name:'重新加载',exact:true}).click();
+  await page.goto('/home');await expect(page.getByText('待办加载失败',{exact:true})).toBeVisible();
+  await expect(page.locator('.home-next')).toContainText('待办暂时无法更新');
+  failed=false;await page.locator('.home-todo-panel').getByRole('button',{name:'重试',exact:true}).click();
   await expect(page.locator('.home-next')).toContainText('当前没有待处理事项');
-  await expect(page.getByText('工作台数据加载失败',{exact:true})).toHaveCount(0);
+  await expect(page.getByText('待办加载失败',{exact:true})).toHaveCount(0);
 });
 
 test('场景与官方指南带上下文进入助手且不自动发送',async({page})=>{

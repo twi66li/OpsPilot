@@ -394,6 +394,7 @@ def test_eval_judge_retry_is_capped_at_one_extra_attempt(tmp_path):
 # ---- 门控启用与单写者缓存 ----
 
 def test_guard_requires_positive_limit_and_model_grants(tmp_path, monkeypatch):
+    monkeypatch.delenv("BUDGET_MODEL_LIMITS", raising=False)
     reset_budget_guard()
     monkeypatch.setattr("app.config.get_settings",
                         lambda: _settings(tmp_path, limit=0))

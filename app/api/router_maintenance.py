@@ -134,6 +134,8 @@ def case_timeline(case_id: str, user: AuthUser = Depends(get_current_user), db: 
 def observed_events(case):
     events = []
     for evidence in case.data.get("evidence", []):
+        if not evidence.get("text"):
+            continue
         span = summarize_evidence(evidence)["time_range"]
         if span:
             events.append({"id": f'observed-{case.session_id}-{evidence["id"]}', "kind": "evidence_observed",

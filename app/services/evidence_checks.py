@@ -26,7 +26,7 @@ def parse_time(value):
 
 def measure(evidence):
     requests, errors, states = [], [], []
-    for number, line in enumerate(evidence["text"].splitlines(), 1):
+    for number, line in enumerate((evidence.get("text") or "").splitlines(), 1):
         timestamp = _TIME.search(line)
         at = timestamp[0] if timestamp else ""
         nginx_time = _NGINX_TIME.search(line)
@@ -55,7 +55,7 @@ def measure(evidence):
                     states.append({"line": number, **{k: state[k] for k in ("Status", "ExitCode", "OOMKilled", "Running") if k in state}})
             except (ValueError, TypeError):
                 pass
-    return {"evidence_id": evidence["id"], "kind": evidence["kind"], "request_count": len(requests),
+    return {"evidence_id": evidence["id"], "kind": evidence.get("kind", "initial"), "request_count": len(requests),
             "failed_requests": sum(r["status"] >= 400 for r in requests), "requests": requests,
             "pool_error_lines": errors, "container_states": states}
 

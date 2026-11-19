@@ -124,5 +124,5 @@ def test_migration_adopts_old_database_without_resetting_data(tmp_path):
         command.upgrade(config, "head")
         assert conn.scalar(text("SELECT name FROM tenants WHERE id='kept'")) == "existing"
         assert "login_sessions" in inspect(conn).get_table_names()
-        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "0003"
+        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "0004"
         command.upgrade(config, "head")

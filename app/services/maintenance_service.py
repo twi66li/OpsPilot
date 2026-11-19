@@ -26,11 +26,13 @@ def event_at(occurred_at, recorded_at):
 
 
 def event_dict(row):
+    occurred = row.detail.get("occurred_at") if row.kind == "site_change" else None
+    at = occurred if (isinstance(occurred, str) and _utc_event_time(occurred) is not None) else event_at(None, row.created_at)
     return {
         "id": row.id,
         "kind": row.kind,
         "detail": row.detail,
-        "at": event_at(row.detail.get("occurred_at") if row.kind == "site_change" else None, row.created_at),
+        "at": at,
         "recorded_at": event_at(None, row.created_at),
         "case_id": row.resource_id if row.resource_type == "case" else row.detail.get("case_id"),
     }

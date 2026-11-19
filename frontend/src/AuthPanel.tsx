@@ -22,8 +22,8 @@ export default function AuthPanel({signedIn}: {signedIn: (auth: Auth) => void}) 
   }
   return <div className="auth-screen">{visitor&&<NoticeBanner>可先以访客浏览示例网站与排障记录；自己的数据请使用个人账号。</NoticeBanner>}
     <div className="login-page"><section className="login-story"><div className="login-brand"><span className="brand-symbol" aria-hidden="true"/>OpsPilot</div><h1>网站出了问题，<br />陪你一步步排查。</h1><ol className="login-flow"><li>粘贴报错</li><li>查阅官方资料</li><li>补充检查结果</li></ol></section>
+    <div className="login-mobile-brand"><div className="login-mobile-brand-mark"><span className="brand-symbol" aria-hidden="true"/>OpsPilot</div><p>网站维护与日志排查工作台</p></div>
     <Card className={`login-card ${visitor?'has-visitor':''}`}>
-      <div className="login-mobile-brand"><div className="login-brand"><span className="brand-symbol" aria-hidden="true"/>OpsPilot</div><p>网站维护与日志排查工作台</p></div>
       <div className="auth-tabs"><Tabs activeKey={mode} onChange={setMode} items={[{key:'login',label:'登录'},...(registration?[{key:'register',label:'注册'}]:[])]} />
         <InfoTip label={registration?'注册说明':'账号获取说明'}>{registration?'普通账号可管理自己的网站、手册、问题和维护对话。每次注册创建独立私人空间，不会加入其他组织。':'当前部署关闭自助注册，请联系部署者获取账号。'}</InfoTip></div>
       <Form className="auth-body" key={mode} layout="vertical" onFinish={submit} requiredMark={false}>

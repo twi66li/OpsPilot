@@ -23,8 +23,7 @@ for(const width of [1440,1024,390]){
     await page.getByRole('button',{name:'查看记录',exact:true}).first().click();
     await expect(page.getByLabel('网站排障问题')).toBeDisabled();
     await expect(page.getByRole('button',{name:'添加日志',exact:true})).toBeDisabled();
-    if(width>760)await expect(page.getByRole('button',{name:'新对话',exact:true})).toBeDisabled();
-    else await expect(page.locator('.support-conversations')).toBeHidden();
+    await expect(page.locator('.support-conversations')).toBeHidden();
     await expect(page.getByRole('button',{name:'删除选中（0）',exact:true})).toHaveCount(0);
     await page.getByRole('button',{name:'证据与资料 · 1',exact:true}).click();
     await page.locator('.ant-drawer-open').getByRole('button',{name:/教学样例日志/}).click();

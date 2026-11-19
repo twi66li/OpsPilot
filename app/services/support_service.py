@@ -276,7 +276,8 @@ def retrieve_for_case(container, tenant_id, user_id, context, query, top_k):
             active = {d.id: d.active_version_id for d in docs}
             routes.append(container.vector_store.search(scope, vector, top_k=8, active_versions=active))
             routes.append(container.bm25.search(scope, query, top_k=8, active_versions=active))
-    candidates = rrf_fuse(routes, k=60, top_k=8)
+    candidate_k = max(top_k * 3, 15) if container.reranker else max(top_k, 8)
+    candidates = rrf_fuse(routes, k=60, top_k=candidate_k)
     hits = container.reranker.rerank(query, candidates, top_k=top_k) if container.reranker else candidates[:top_k]
     output = []
     for hit in hits:
@@ -383,7 +384,7 @@ def render_report(report):
 
 
 def run_personal(container, state):
-    context, numbers, hits = state["support_context"], {}, []
+    context, numbers, hits, full_hits = state["support_context"], {}, [], {}
     if state.get("run_id"):
         with container.db_session() as db:
             case = db.get(SupportCase, state["session_id"])
@@ -447,9 +448,12 @@ def run_personal(container, state):
             found = retrieve_for_case(container, state["tenant_id"], state["user_id"], context, **args)
             for hit in found:
                 hit["citation_id"] = numbers.setdefault(hit["chunk_id"], len(numbers) + 1)
+                full_hits[hit["chunk_id"]] = hit
+            # 返回给模型的工具观察剥离大段 parent_text，节省 token；完整引用供前端抽屉按需查看
+            slim_hits = [{k: v for k, v in hit.items() if k != "parent_text"} for hit in found]
             return {
                 "status": "ok" if found else "no_data",
-                "hits": found,
+                "hits": slim_hits,
                 "summary": f"检索到{len(found)}条资料；知识仅供排查参考",
             }
         if name == "search_saved_cases":
@@ -501,15 +505,12 @@ def run_personal(container, state):
         ]} if evidence else {},
         "evidence": summaries,
     }
-    tools = {
-        "consult": ("search_runbook", "get_site_overview"),
-        "history": ("search_saved_cases",),
-        "diagnose": ("search_runbook", "search_saved_cases", "get_site_overview"),
-        "review": ("search_runbook",),
-    }
-    available_tools = tools.get(workflow, ())
+    from app.agent.skills import effective_tools
+
+    runtime_allowed = ["search_runbook", "search_saved_cases", "get_site_overview"]
     if any(item["line_count"] > len(visible[item["id"]]) for item in summaries):
-        available_tools += ("read_evidence_lines",)
+        runtime_allowed.append("read_evidence_lines")
+    available_tools = () if workflow == "welcome" else effective_tools(workflow, runtime_allowed=runtime_allowed)
     workflow_prompt = {
         "consult": "本轮只做维护知识咨询。查询适用资料或网站背景，解释问题即可。最终JSON只需summary和references，不生成故障、检查方案、日志结论或恢复判断。无关问题简短说明服务范围。",
         "history": "本轮只查询本人同一网站的历史记录。必须调用search_saved_cases；明确是否已由用户确认解决、是否仅归档。无记录时如实说明，不能编造案例。最终JSON只需summary和references。",
@@ -552,7 +553,11 @@ def run_personal(container, state):
                 timeout=max(30, container.settings.tool_timeout_seconds),
             )
     events = [{"type": "tool", **e, "summary": e["result"].get("summary", "检索结束")} for e in result["tool_events"]]
-    hits = list({h["chunk_id"]: h for e in result["tool_events"] for h in e["result"].get("hits", [])}.values())
+    hits = (
+        list(full_hits.values())
+        if full_hits
+        else list({h["chunk_id"]: h for e in result["tool_events"] for h in e["result"].get("hits", [])}.values())
+    )
     try:
         if result["end_reason"] != "answered":
             raise ValueError("模型未完成")
@@ -615,9 +620,10 @@ def run_personal(container, state):
             .one()
         )
         revision = case.data.get("revision", 0) + 1
+        slim_history_hits = [{k: v for k, v in h.items() if k != "parent_text"} for h in hits]
         history = [
-            *case.data.get("reports", []),
-            {"revision": revision, "report": report, "hits": hits, "run_id": state.get("run_id")},
+            *case.data.get("reports", [])[-19:],
+            {"revision": revision, "report": report, "hits": slim_history_hits, "run_id": state.get("run_id")},
         ]
         related = [
             entry

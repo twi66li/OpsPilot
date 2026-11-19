@@ -133,13 +133,17 @@ def upload_personal(
 
 @router.get("/sites")
 def sites(user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    from app.services.webhook_service import public_site_data
+
     rows = db.query(WebsiteProfile).filter_by(tenant_id=user.tenant_id, user_id=user.user_id, deleted_at=None).all()
     summaries = site_summaries(db, user, rows)
-    return [{"id": site.id, **site.data, **summaries[site.id]} for site in rows]
+    return [{"id": site.id, **public_site_data(site.data), **summaries[site.id]} for site in rows]
 
 
 @router.get("/sites/{site_id}")
 def site_detail(site_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    from app.services.webhook_service import public_site_data
+
     site = owned_site(db, user, site_id)
     docs = (
         db.query(Document)
@@ -148,7 +152,7 @@ def site_detail(site_id: str, user: AuthUser = Depends(get_current_user), db: Se
     )
     return {
         "id": site.id,
-        **site.data,
+        **public_site_data(site.data),
         "http_monitor": monitor_info(db.get(WebsiteMonitor, site.id)),
         **site_summaries(db, user, [site])[site.id],
         "documents": [

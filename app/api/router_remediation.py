@@ -31,11 +31,36 @@ class DecisionIn(BaseModel):
     comment: str = Field(default="", max_length=600)
 
 
-def _serialize(row):
-    return {"id": row.id, "run_id": row.run_id, "action": row.action, "action_label": remediation_service.ACTION_LABEL,
-            "service": row.service, "reason": row.reason, "status": row.status, "requested_by": row.requested_by,
-            "decided_by": row.decided_by, "comment": row.comment, "result": row.result,
-            "created_at": row.created_at.isoformat(), "decided_at": row.decided_at.isoformat() if row.decided_at else None}
+def _serialize(row, user: AuthUser | None = None):
+    from app.services.preflight import evaluate_remediation_preflight
+
+    settings = get_settings()
+    preflight = evaluate_remediation_preflight(
+        row.action,
+        service=row.service,
+        tenant_id=row.tenant_id,
+        requested_by=row.requested_by,
+        approver_username=user.username if user else "",
+        approver_role=user.role if user else "",
+        remediation_enabled=settings.remediation_enabled,
+        strict_four_eyes=settings.strict_four_eyes,
+    )
+    return {
+        "id": row.id,
+        "run_id": row.run_id,
+        "action": row.action,
+        "action_label": remediation_service.ACTION_LABEL,
+        "service": row.service,
+        "reason": row.reason,
+        "status": row.status,
+        "requested_by": row.requested_by,
+        "decided_by": row.decided_by,
+        "comment": row.comment,
+        "result": row.result,
+        "preflight": preflight,
+        "created_at": row.created_at.isoformat(),
+        "decided_at": row.decided_at.isoformat() if row.decided_at else None,
+    }
 
 
 def _require_enabled(user):
@@ -56,7 +81,7 @@ async def actions(user: AuthUser = Depends(get_current_user)):
 async def list_requests(user: AuthUser = Depends(require_roles("admin", "engineer")), db: AsyncSession = Depends(get_async_db)):
     rows = (await db.scalars(select(RemediationRequest).filter_by(tenant_id=user.tenant_id).order_by(
         RemediationRequest.created_at.desc()).limit(100))).all()
-    return [_serialize(row) for row in rows]
+    return [_serialize(row, user) for row in rows]
 
 
 @router.post("", status_code=201)
@@ -89,7 +114,22 @@ def decide(request_id: str, body: DecisionIn, user: AuthUser = Depends(require_r
     if row.status != "pending":
         if row.approved != body.approved:
             raise HTTPException(409, "审批决定已确定，不能修改")
-        return _serialize(row)
+        return _serialize(row, user)
+    from app.services.preflight import evaluate_remediation_preflight
+
+    settings = get_settings()
+    preflight = evaluate_remediation_preflight(
+        row.action,
+        service=row.service,
+        tenant_id=row.tenant_id,
+        requested_by=row.requested_by,
+        approver_username=user.username,
+        approver_role=user.role,
+        remediation_enabled=settings.remediation_enabled,
+        strict_four_eyes=settings.strict_four_eyes,
+    )
+    if body.approved and not preflight["passed"]:
+        raise HTTPException(403, preflight["summary"])
     changed = db.execute(update(RemediationRequest).where(RemediationRequest.id == request_id,
                         RemediationRequest.status == "pending").values(
                             approved=body.approved, status="running" if body.approved else "rejected",
@@ -99,10 +139,11 @@ def decide(request_id: str, body: DecisionIn, user: AuthUser = Depends(require_r
     if changed != 1:
         if row.approved != body.approved:
             raise HTTPException(409, "审批已由其他请求处理")
-        return _serialize(row)
+        return _serialize(row, user)
     if not body.approved:
-        return _serialize(row)
+        return _serialize(row, user)
     result = {"environment": "test", "source": "actual_test_requests", "probe_count_each": 3,
+              "preflight": preflight,
               "verification_scope": "短请求探针，不代表长期SLO；关闭演练注入不等同于生产故障根因修复"}
     try:
         succeeded = remediation_service.execute_demo_reset(get_settings().logs_url, result)

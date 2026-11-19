@@ -1,6 +1,6 @@
 from typing import Literal
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, Header, HTTPException, Request, UploadFile
 from fastapi.responses import Response
 from pydantic import AwareDatetime, BaseModel, Field
 from sqlalchemy import case as sql_case
@@ -208,7 +208,7 @@ def recent_activity(user: AuthUser = Depends(get_current_user), db: Session = De
     events = db.query(WorkspaceEvent).filter(
         WorkspaceEvent.tenant_id == user.tenant_id, WorkspaceEvent.user_id == user.user_id,
         WorkspaceEvent.resource_type == "site", WorkspaceEvent.resource_id.in_(sites),
-        WorkspaceEvent.kind.in_(("site_change", "http_incident", "http_probe_normal")),
+        WorkspaceEvent.kind.in_(("site_change", "http_incident", "http_probe_normal", "webhook_alert")),
     ).all()
     activity = [
         {**event_dict(event), "siteId": event.resource_id, "siteName": sites[event.resource_id]}
@@ -292,10 +292,74 @@ def http_check(site_id: str, user: AuthUser = Depends(get_current_user), db: Ses
         result = probe_url(site.data["url"])
     except (ValueError, OSError) as exc:
         raise HTTPException(400, "无法探测该地址：请确认公开HTTP(S)网址、端口与DNS；禁止访问内网") from exc
-    site.data = {**site.data, "health_check": result}
+    history_point = {
+        "collected_at": result.get("collected_at"),
+        "elapsed_ms": result.get("elapsed_ms"),
+        "http_status": result.get("http_status"),
+        "state": result.get("state", "unknown"),
+        "timed_out": bool(result.get("timed_out")),
+        "source_kind": "read_only_http",
+    }
+    probe_history = [*site.data.get("probe_history", []), history_point][-20:]
+    site.data = {**site.data, "health_check": result, "probe_history": probe_history}
     record_event(db, user.tenant_id, user.user_id, "site", site_id, "http_probe", result)
     db.commit()
     return result
+
+
+@router.post("/sites/{site_id}/webhook-token")
+def rotate_site_webhook_token(
+    site_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    from app.services.webhook_service import rotate_token
+
+    site = owned_site(db, user, site_id)
+    return rotate_token(db, site)
+
+
+@router.delete("/sites/{site_id}/webhook-token")
+def revoke_site_webhook_token(
+    site_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)
+):
+    from app.services.webhook_service import revoke_token
+
+    site = owned_site(db, user, site_id)
+    return revoke_token(db, site)
+
+
+@router.post("/sites/{site_id}/webhook")
+async def receive_site_webhook(
+    site_id: str,
+    request: Request,
+    x_opspilot_webhook_token: str | None = Header(default=None),
+    authorization: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+):
+    """低门槛外部告警接收入口（支持 Alertmanager / Uptime Kuma / 通用 JSON）。"""
+    import json
+
+    from app.container import get_container
+    from app.services.cache import check_rate_limit
+    from app.services.webhook_service import ingest_webhook_alert, verify_token
+
+    site = db.query(WebsiteProfile).filter_by(id=site_id, deleted_at=None).first()
+    token = x_opspilot_webhook_token or ""
+    if not token and authorization and authorization.lower().startswith("bearer "):
+        token = authorization[7:].strip()
+    if site is None or not verify_token(site, token):
+        raise HTTPException(401, "Webhook 令牌无效或未启用")
+    if not check_rate_limit(get_container().cache, "site-webhook:" + site.id, 20):
+        raise HTTPException(429, "该站点告警接收过于频繁，请一分钟后重试")
+    raw = await request.body()
+    if len(raw) > 65536:
+        raise HTTPException(413, "告警载荷过大，最大支持 64KB")
+    try:
+        payload = json.loads(raw.decode("utf-8-sig")) if raw else {}
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise HTTPException(400, "告警载荷必须是合法的 UTF-8 JSON 对象") from exc
+    if not isinstance(payload, dict) or not payload:
+        raise HTTPException(400, "告警载荷必须是非空 JSON 对象")
+    return ingest_webhook_alert(db, site, payload)
 
 
 class HttpMonitorIn(BaseModel):
@@ -641,11 +705,36 @@ def operation_detail(record_id: str, user: AuthUser = Depends(get_current_user),
         run = runs.filter(AgentRun.id == row.run_id).first()
     else:
         run = runs.filter(AgentRun.session_id == row.session_id).order_by(AgentRun.created_at.desc()).first()
+    from app.config import get_settings
+    from app.services.preflight import evaluate_remediation_preflight, evaluate_ticket_preflight
+
+    settings = get_settings()
+    preflight = None
+    if kind == "remediation":
+        preflight = evaluate_remediation_preflight(
+            row.action,
+            service=row.service,
+            tenant_id=row.tenant_id,
+            requested_by=row.requested_by,
+            approver_username=user.username,
+            approver_role=user.role,
+            remediation_enabled=settings.remediation_enabled,
+            strict_four_eyes=settings.strict_four_eyes,
+        )
+    elif kind == "ticket_approval":
+        preflight = evaluate_ticket_preflight(
+            row.ticket_draft,
+            requested_by=row.requested_by,
+            approver_username=user.username,
+            approver_role=user.role,
+            strict_four_eyes=settings.strict_four_eyes,
+        )
     # 这是组织审批入口，按本租户工程师权限读取对应演练调查，不开放个人排障记录。
     return {
         "kind": kind,
         "record": data,
         "run": serialize_run(db, run) if run else None,
+        "preflight": preflight,
         "impact": "仅关闭order-service测试故障注入；不操作用户网站或生产环境"
         if kind == "remediation"
         else "仅创建或查看跟进工单；不执行修复命令",

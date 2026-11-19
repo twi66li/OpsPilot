@@ -197,9 +197,33 @@ def read_page(kind, params, user, db):
                 if hasattr(value, "isoformat"):
                     data[key] = value.isoformat()
             if kind == "approvals":
+                from app.config import get_settings
+                from app.services.preflight import evaluate_ticket_preflight
+
                 data["approval_id"] = row.id
+                data["preflight"] = evaluate_ticket_preflight(
+                    row.ticket_draft,
+                    requested_by=row.requested_by,
+                    approver_username=user.username,
+                    approver_role=user.role,
+                    strict_four_eyes=get_settings().strict_four_eyes,
+                )
             if kind == "remediations":
+                from app.config import get_settings
+                from app.services.preflight import evaluate_remediation_preflight
+
+                settings = get_settings()
                 data["action_label"] = "关闭演练故障注入"
+                data["preflight"] = evaluate_remediation_preflight(
+                    row.action,
+                    service=row.service,
+                    tenant_id=row.tenant_id,
+                    requested_by=row.requested_by,
+                    approver_username=user.username,
+                    approver_role=user.role,
+                    remediation_enabled=settings.remediation_enabled,
+                    strict_four_eyes=settings.strict_four_eyes,
+                )
             return data
     else:
         raise HTTPException(404, "列表不存在")
@@ -207,11 +231,12 @@ def read_page(kind, params, user, db):
     rows = query.offset((params.page - 1) * params.page_size).limit(params.page_size).all()
     if kind == "sites":
         from app.services.maintenance_service import site_summaries
+        from app.services.webhook_service import public_site_data
 
         summaries = site_summaries(db, user, rows)
 
         def serialize(row):
-            return {"id": row.id, **row.data, **summaries[row.id]}
+            return {"id": row.id, **public_site_data(row.data), **summaries[row.id]}
 
     return {
         "items": [serialize(row) for row in rows],

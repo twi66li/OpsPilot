@@ -1,8 +1,9 @@
 """RRF（Reciprocal Rank Fusion）多路检索融合。"""
+from copy import copy
 
 
 def rrf_fuse(result_lists: list[list], k: int = 60, top_k: int = 5) -> list:
-    """输入多路已排序的检索结果，输出 RRF 融合后的 Top-K。
+    """输入多路已排序的检索结果，输出 RRF 融合后的 Top-K（不原地修改输入分块分数）。
 
     score(d) = Σ 1 / (k + rank_i(d))
     """
@@ -14,7 +15,9 @@ def rrf_fuse(result_lists: list[list], k: int = 60, top_k: int = 5) -> list:
     ranked = sorted(fused.values(), key=lambda e: e["score"], reverse=True)[:top_k]
     out = []
     for entry in ranked:
-        chunk = entry["chunk"]
-        chunk.score = entry["score"]
-        out.append(chunk)
+        cloned = copy(entry["chunk"])
+        if hasattr(cloned, "extra") and isinstance(cloned.extra, dict):
+            cloned.extra = dict(cloned.extra)
+        cloned.score = entry["score"]
+        out.append(cloned)
     return out

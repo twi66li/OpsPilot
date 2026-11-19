@@ -1,9 +1,18 @@
 """重排序：heuristic（离线词面重合，默认）与 Cross-Encoder（可选，需安装 sentence-transformers）。"""
 import logging
+from copy import copy
 
 from app.rag.embeddings import tokenize
 
 logger = logging.getLogger(__name__)
+
+
+def _clone_scored(chunk, score: float):
+    cloned = copy(chunk)
+    if hasattr(cloned, "extra") and isinstance(cloned.extra, dict):
+        cloned.extra = dict(cloned.extra)
+    cloned.score = score
+    return cloned
 
 
 class HeuristicReranker:
@@ -16,8 +25,7 @@ class HeuristicReranker:
             c_tokens = set(tokenize(chunk.text))
             overlap = len(q_tokens & c_tokens)
             score = overlap / (len(q_tokens) + 1e-6) + 0.1 * overlap
-            chunk.score = round(score, 4)
-            scored.append(chunk)
+            scored.append(_clone_scored(chunk, round(score, 4)))
         scored.sort(key=lambda c: c.score, reverse=True)
         return scored[:top_k]
 
@@ -35,10 +43,9 @@ class CrossEncoderReranker:
             return []
         pairs = [[query, c.text] for c in chunks]
         scores = self.model.predict(pairs)
-        for chunk, score in zip(chunks, scores):
-            chunk.score = float(score)
-        chunks.sort(key=lambda c: c.score, reverse=True)
-        return chunks[:top_k]
+        scored = [_clone_scored(chunk, float(score)) for chunk, score in zip(chunks, scores)]
+        scored.sort(key=lambda c: c.score, reverse=True)
+        return scored[:top_k]
 
 
 class DashScopeReranker:

@@ -8,6 +8,7 @@ import SiteEditor from './SiteEditor';
 import MaintenanceTimeline from './MaintenanceTimeline';
 import SiteDependencies, { siteEnvironments } from './SiteDependencies';
 import InfoTip from './InfoTip';
+import ProbeTrendChart from './ProbeTrendChart';
 
 type Detail = Site & {documents: KnowledgeDoc[]; cases: PersonalCase[]};
 const tabKeys = ['overview', 'issues', 'manuals', 'history'];
@@ -21,6 +22,7 @@ export default function Websites({assist, ask, knowledge, initialId, opened,onTi
   const [page,setPage]=useState(1),[total,setTotal]=useState(0),[search,setSearch]=useState('');
   const [environment,setEnvironment]=useState<string>(),[group,setGroup]=useState(''),[owner,setOwner]=useState('');
   const [deleting, setDeleting] = useState<Site | null>(null), [deleteRecords, setDeleteRecords] = useState(false);
+  const [freshToken, setFreshToken] = useState<{siteId:string;token:string;endpoint:string}|null>(null);
   const currentId = useRef(initialId), request = useRef(0);
   currentId.current = initialId;
   const tab = params.get('tab') || 'overview', activeTab = tabKeys.includes(tab) ? tab : 'overview';
@@ -75,9 +77,28 @@ export default function Websites({assist, ask, knowledge, initialId, opened,onTi
       message.success(enabled?'定时巡检已开启':'定时巡检已暂停');
     } catch(error) {message.error((error as Error).message);} finally {setBusy(false);}
   }
+  async function rotateWebhook(site: Detail) {
+    setBusy(true);
+    try {
+      const res = await post<{token:string;endpoint:string}>(`/api/maintenance/sites/${site.id}/webhook-token`);
+      setFreshToken({siteId:site.id,token:res.token,endpoint:res.endpoint});
+      if (currentId.current === site.id) await loadSite(site.id);
+      message.success('已生成新的 Webhook 令牌（仅本次明文展示）');
+    } catch(error) {message.error((error as Error).message);} finally {setBusy(false);}
+  }
+  async function revokeWebhook(site: Detail) {
+    setBusy(true);
+    try {
+      await api(`/api/maintenance/sites/${site.id}/webhook-token`, {method:'DELETE'});
+      setFreshToken(null);
+      if (currentId.current === site.id) await loadSite(site.id);
+      message.success('已停用该网站的 Webhook 告警接入');
+    } catch(error) {message.error((error as Error).message);} finally {setBusy(false);}
+  }
   const site = detail?.id === initialId ? detail : null;
   const monitor = site?.http_monitor;
   const lastProbe = monitor?.last_result;
+  const probePoints = [...(site?.probe_history || []), ...(monitor?.probe_history || [])];
   const problems = site?.cases || [];
   const unarchived = problems.filter(c => !c.archived);
   const awaiting = unarchived.filter(c => c.status === 'awaiting_results');
@@ -139,6 +160,15 @@ export default function Websites({assist, ask, knowledge, initialId, opened,onTi
                 ? 'HTTP '+lastProbe.http_status : lastProbe.timed_out?'请求超时':'未取得有效响应'}
                 {' · 连续异常 '+(monitor?.consecutive_failures || 0)+' 次'}</p>}
               {monitor?.case_id&&<Button onClick={()=>navigate('/issues/'+monitor.case_id)}>查看巡检发现的问题</Button>}
+              <ProbeTrendChart points={probePoints} />
+            </Card>
+            <Card title={<>外部告警 Webhook 接入 <InfoTip label="Webhook接入说明">兼容 Alertmanager、Uptime Kuma 与通用 JSON 告警；平台自动脱敏并聚合到问题记录，不执行自动写修复。</InfoTip></>} extra={<Space>
+              <Button size="small" loading={busy} disabled={guest} onClick={()=>void rotateWebhook(site)}>{site.webhook?.enabled?'轮换令牌':'生成接入令牌'}</Button>
+              {site.webhook?.enabled&&<Button size="small" danger loading={busy} disabled={guest} onClick={()=>void revokeWebhook(site)}>停用</Button>}
+            </Space>}>
+              <p className="muted">接收地址：<code>{`${window.location.origin}/api/maintenance/sites/${site.id}/webhook`}</code></p>
+              {site.webhook?.enabled ? <Space wrap><Tag color="green">已启用</Tag><span>令牌前缀：{site.webhook.token_prefix}…</span><span>已接收 {site.webhook.received_count || 0} 条告警</span>{site.webhook.last_received_at&&<span>最近接收：{formatTime(site.webhook.last_received_at)}</span>}</Space> : <p>尚未启用 Webhook 告警接入；生成令牌后即可将外部监控告警推送到本网站。</p>}
+              {freshToken&&freshToken.siteId===site.id&&<Alert style={{marginTop:10}} type="info" title="请立即复制保存令牌（关闭或刷新后不再明文显示）" description={<Space orientation="vertical" size={6} style={{width:'100%'}}><code>{freshToken.token}</code><Button size="small" onClick={()=>copyText(`curl -X POST "${window.location.origin}${freshToken.endpoint}" -H "Content-Type: application/json" -H "X-OpsPilot-Webhook-Token: ${freshToken.token}" -d '{"title":"示例 502 告警","severity":"P1","endpoint":"/orders","summary":"上游响应超时"}'`).then(()=>message.success('已复制 Webhook 测试命令')).catch(()=>message.error('复制失败'))}>复制 curl 测试命令</Button></Space>} />}
             </Card>
             <Space wrap><Button onClick={() => assist({siteId:site.id,workflow:'consult'})}>咨询维护知识</Button><Button onClick={() => assist({siteId:site.id,workflow:'history',question:'请查询这个网站以前保存的处理案例，说明哪些问题已确认解决，哪些只是归档。'})}>询问历史处理</Button></Space>
           </div>},

@@ -3,10 +3,22 @@
 import ipaddress
 import socket
 import time
+from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import TimeoutError as FuturesTimeoutError
 from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
 import httpx
+
+_DNS_POOL = ThreadPoolExecutor(max_workers=2, thread_name_prefix="opspilot-dns")
+
+
+def _resolve_host(host: str, port: int, timeout: float = 3.0) -> set[str]:
+    future = _DNS_POOL.submit(socket.getaddrinfo, host, port, type=socket.SOCK_STREAM)
+    try:
+        return {item[4][0] for item in future.result(timeout=timeout)}
+    except FuturesTimeoutError as exc:
+        raise ValueError("域名解析超时，请稍后重试或检查 DNS 配置") from exc
 
 
 def validate_probe_url(url):
@@ -37,7 +49,7 @@ def validate_probe_url(url):
 
 def probe_url(url):
     host, port = validate_probe_url(url)
-    addresses = {item[4][0] for item in socket.getaddrinfo(host, port, type=socket.SOCK_STREAM)}
+    addresses = _resolve_host(host, port)
     if not addresses or any(
         not ipaddress.ip_address(ip).is_global or ipaddress.ip_address(ip).is_multicast for ip in addresses
     ):

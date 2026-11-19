@@ -108,8 +108,12 @@ def parse_file(original_path: str, filename: str, parsed_path: str = "") -> tupl
         if len(reader.pages) > 100:
             raise ValueError("演示环境最多解析100页，请在本机解析后提交MinerU结果")
         pages = []
+        extracted_chars = 0
         for number, page in enumerate(reader.pages, 1):
             text = (page.extract_text() or "").strip()
+            extracted_chars += len(text)
+            if extracted_chars > 500_000:
+                raise ValueError("提取正文超过50万字符，请拆分文档")
             pages.append({"page": number, "text": text})
             if not text:
                 warnings.append(f"第{number}页没有可提取文本，可能需要OCR")

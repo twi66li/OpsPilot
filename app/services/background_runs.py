@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 
@@ -17,7 +18,19 @@ from app.services.support_service import redact
 
 logger = logging.getLogger(__name__)
 _worker = None
+_waiter_lock = threading.Lock()
+_waiters: dict[str, set[tuple[asyncio.AbstractEventLoop, asyncio.Event]]] = {}
 ACTIVE = ("running", "cancel_requested")
+
+
+def _notify(run_id: str) -> None:
+    with _waiter_lock:
+        targets = list(_waiters.get(run_id, ()))
+    for loop, event in targets:
+        try:
+            loop.call_soon_threadsafe(event.set)
+        except RuntimeError:
+            pass
 
 
 def start_worker(container):
@@ -92,11 +105,13 @@ def execute(container, run_id):
                             continue
                     if tokens is not None:
                         recorder.add("stream", tokens)
+                        _notify(run_id)
                         tokens = None
                         flushed_at = time.monotonic()
                     # 终态和完整回答直接从 AgentRun 读取。
                     if event["type"] not in ("token", "error", "final", "done"):
                         recorder.add("stream", event)
+                        _notify(run_id)
             finally:
                 stream.close()
     except RunCancelled:
@@ -106,6 +121,8 @@ def execute(container, run_id):
         logger.error("background_run_failed run_id=%s error_type=%s", run_id, type(exc).__name__)
         if not recorder.finished:
             recorder.finish({"status": "failed", "error_type": type(exc).__name__})
+    finally:
+        _notify(run_id)
 
 
 def read_events(run_id, tenant_id, user_id, after):
@@ -131,18 +148,35 @@ def read_events(run_id, tenant_id, user_id, after):
 async def subscribe(run_id, tenant_id, user_id, after=0):
     yield agent_service._sse({"type": "connected", "run_id": run_id})
     last_activity = time.monotonic()
-    while True:
-        rows, terminal = await run_in_threadpool(read_events, run_id, tenant_id, user_id, after)
-        for after, event in rows:
-            yield f"id: {after}\n" + agent_service._sse(event)
-        if terminal:
-            yield agent_service._sse(terminal)
-            yield agent_service._sse({"type": "done"})
-            return
-        if rows:
-            last_activity = time.monotonic()
-        elif time.monotonic() - last_activity > 10:
-            yield ": keep-alive\n\n"
-            last_activity = time.monotonic()
-        if len(rows) < 100:
-            await asyncio.sleep(0.35)
+    loop = asyncio.get_running_loop()
+    wake = asyncio.Event()
+    entry = (loop, wake)
+    with _waiter_lock:
+        _waiters.setdefault(run_id, set()).add(entry)
+    try:
+        while True:
+            wake.clear()
+            rows, terminal = await run_in_threadpool(read_events, run_id, tenant_id, user_id, after)
+            for after, event in rows:
+                yield f"id: {after}\n" + agent_service._sse(event)
+            if terminal:
+                yield agent_service._sse(terminal)
+                yield agent_service._sse({"type": "done"})
+                return
+            if rows:
+                last_activity = time.monotonic()
+            elif time.monotonic() - last_activity > 10:
+                yield ": keep-alive\n\n"
+                last_activity = time.monotonic()
+            if len(rows) < 100:
+                try:
+                    await asyncio.wait_for(wake.wait(), timeout=0.35)
+                except asyncio.TimeoutError:
+                    pass
+    finally:
+        with _waiter_lock:
+            group = _waiters.get(run_id)
+            if group is not None:
+                group.discard(entry)
+                if not group:
+                    _waiters.pop(run_id, None)

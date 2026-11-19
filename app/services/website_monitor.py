@@ -25,12 +25,13 @@ def probe_target(site):
 
 def monitor_info(monitor):
     if not monitor:
-        return {"enabled": False, "interval_minutes": 15, "failure_threshold": FAILURE_THRESHOLD}
+        return {"enabled": False, "interval_minutes": 15, "failure_threshold": FAILURE_THRESHOLD, "probe_history": []}
     return {
         "enabled": monitor.enabled, "interval_minutes": monitor.interval_minutes,
         "next_check_at": monitor.next_check_at.isoformat() + "Z" if monitor.enabled else None,
         "failure_threshold": FAILURE_THRESHOLD, "consecutive_failures": len(monitor.data.get("failures", [])),
         "last_result": monitor.data.get("last_result"), "case_id": monitor.data.get("case_id"),
+        "probe_history": list(monitor.data.get("probe_history", []))[-20:],
     }
 
 
@@ -89,7 +90,16 @@ def save_result(db, site, monitor, target, result):
             record_event(db, site.tenant_id, site.user_id, "site", site.id, "http_probe_normal",
                          {"title": "巡检收到正常响应，问题仍可人工复核", "case_id": case_id})
             case_id = None
-    monitor.data = {**data, "last_result": result, "failures": failures, "case_id": case_id}
+    history_point = {
+        "collected_at": result.get("collected_at"),
+        "elapsed_ms": result.get("elapsed_ms"),
+        "http_status": result.get("http_status"),
+        "state": result.get("state", "unknown"),
+        "timed_out": bool(result.get("timed_out")),
+        "source_kind": "scheduled_http_probe",
+    }
+    probe_history = [*data.get("probe_history", []), history_point][-20:]
+    monitor.data = {**data, "last_result": result, "failures": failures, "case_id": case_id, "probe_history": probe_history}
     monitor.next_check_at = _now() + timedelta(minutes=monitor.interval_minutes)
     db.commit()
 

@@ -14,21 +14,27 @@ class InMemoryCache:
         self._lock = threading.Lock()
 
     def get(self, key: str) -> str | None:
-        item = self._data.get(key)
-        if not item:
-            return None
-        value, expire_at = item
-        if expire_at and time.time() > expire_at:
-            self._data.pop(key, None)
-            return None
-        return value
+        with self._lock:
+            item = self._data.get(key)
+            if not item:
+                return None
+            value, expire_at = item
+            if expire_at and time.time() > expire_at:
+                self._data.pop(key, None)
+                return None
+            return value
 
     def set(self, key: str, value: str, ttl: int = 300) -> None:
         with self._lock:
             if ttl <= 0:  # 与 Redis 语义对齐：ttl=0 立即删除
                 self._data.pop(key, None)
                 return
-            self._data[key] = (value, time.time() + ttl)
+            now = time.time()
+            if len(self._data) >= 2048:
+                expired = [k for k, (_, exp) in self._data.items() if exp and now > exp]
+                for k in expired:
+                    self._data.pop(k, None)
+            self._data[key] = (value, now + ttl)
 
     def incr_with_ttl(self, key: str, ttl: int) -> int:
         with self._lock:
@@ -45,13 +51,18 @@ class RedisCache:
     def __init__(self, url: str):
         import redis
 
-        self.client = redis.Redis.from_url(url, decode_responses=True, socket_connect_timeout=2)
+        self.client = redis.Redis.from_url(
+            url, decode_responses=True, socket_connect_timeout=2, socket_timeout=2
+        )
         self.client.ping()
 
     def get(self, key: str) -> str | None:
         return self.client.get(key)
 
     def set(self, key: str, value: str, ttl: int = 300) -> None:
+        if ttl <= 0:
+            self.client.delete(key)
+            return
         self.client.set(key, value, ex=ttl)
 
     def incr_with_ttl(self, key: str, ttl: int) -> int:

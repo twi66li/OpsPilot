@@ -51,10 +51,10 @@ def get_container() -> Container:
         vector_store = get_vector_store(settings)
         bm25 = BM25Retriever()
         reranker = get_reranker(settings)
-        retriever = HybridRetriever(vector_store, bm25, embedder, reranker, settings)
+        cache = get_cache()
+        retriever = HybridRetriever(vector_store, bm25, embedder, reranker, settings, cache=cache)
         llm = get_llm(settings)
         tracer = get_tracer()
-        cache = get_cache()
         nodes = DiagnosisNodes(None)
         connection = None
         checkpointer = None

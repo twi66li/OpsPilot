@@ -374,7 +374,18 @@ def decide_approval(container, db: Session, auth, approval_id: str, approved: bo
         target = "approved" if approved else "rejected"
         if req.status not in ("pending", target):
             raise HTTPException(status_code=409, detail="审批决定已确定，不能改为相反决定")
+        from app.services.preflight import evaluate_ticket_preflight
+
+        preflight = evaluate_ticket_preflight(
+            req.ticket_draft,
+            requested_by=req.requested_by,
+            approver_username=auth.username,
+            approver_role=auth.role,
+            strict_four_eyes=getattr(container.settings, "strict_four_eyes", False),
+        )
         if req.status == "pending":
+            if approved and not preflight["passed"]:
+                raise HTTPException(status_code=403, detail=preflight["summary"])
             if not snapshot.next:
                 raise HTTPException(status_code=409, detail="该流程没有等待审批的节点")
             changed = db.execute(
@@ -413,6 +424,7 @@ def decide_approval(container, db: Session, auth, approval_id: str, approved: bo
             "approval_status": req.status,
             "ticket_id": ticket.id if ticket else values.get("ticket_id"),
             "answer": values.get("answer", ""),
+            "preflight": preflight,
             "events": events,
         }
         if values.get("run_id"):

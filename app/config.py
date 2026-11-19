@@ -72,6 +72,7 @@ class Settings(BaseSettings):
     # ---- Redis ----
     redis_url: str = "redis://localhost:6379/0"
     rate_limit_per_minute: int = 60
+    retrieval_cache_ttl: int = 120
 
     # ---- 测试服务监控 ----
     metrics_provider: str = "mock"  # 离线测试显式 Mock；Compose 使用 prometheus
@@ -85,6 +86,7 @@ class Settings(BaseSettings):
     max_concurrent_runs: int = 1
     logs_url: str = "http://localhost:18081"
     remediation_enabled: bool = False
+    strict_four_eyes: bool = False  # 生产/企业可开启：禁止同一账号自提自批工单或演练修复
     mcp_enabled: bool = False
     retrieval_subagent_enabled: bool = False
     retrieval_subagent_timeout_seconds: float = 120.0

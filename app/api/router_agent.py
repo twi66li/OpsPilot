@@ -142,7 +142,9 @@ def decide(
 @router.get("/approvals")
 def list_approvals(user: AuthUser = Depends(require_roles("admin", "engineer")), db: Session = Depends(get_db)):
     from app.db.models import ApprovalRequest
+    from app.services.preflight import evaluate_ticket_preflight
 
+    strict = get_container().settings.strict_four_eyes
     pending = (
         db.query(ApprovalRequest)
         .filter_by(tenant_id=user.tenant_id, status="pending")
@@ -157,9 +159,23 @@ def list_approvals(user: AuthUser = Depends(require_roles("admin", "engineer")),
             "ticket_draft": item.ticket_draft,
             "requested_by": item.requested_by,
             "created_at": item.created_at.isoformat(),
+            "preflight": evaluate_ticket_preflight(
+                item.ticket_draft,
+                requested_by=item.requested_by,
+                approver_username=user.username,
+                approver_role=user.role,
+                strict_four_eyes=strict,
+            ),
         }
         for item in pending
     ]
+
+
+@router.get("/skills")
+def skills(user: AuthUser = Depends(get_current_user)):
+    from app.agent.skills import list_skills
+
+    return list_skills()
 
 
 @router.get("/tools")

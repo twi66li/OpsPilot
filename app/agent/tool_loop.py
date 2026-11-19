@@ -94,12 +94,25 @@ SYSTEM = (
 )
 
 
+# 共享有界只读线程池：避免每次工具调用反复创建销毁线程池，并支持单轮多只读工具并发执行。
+_READ_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="opspilot-read")
+
+
 def _timed_execute(execute, name, args, seconds):
     with tool_deadline(seconds):
         check_cancelled()
         result = execute(name, args)
         check_cancelled()
         return result
+
+
+def _validation_fields(exc: ValidationError) -> list[str]:
+    fields = []
+    for err in exc.errors()[:5]:
+        loc = ".".join(str(part) for part in err.get("loc", ()))
+        err_type = err.get("type", "invalid")
+        fields.append(f"{loc}:{err_type}" if loc else str(err_type))
+    return fields
 
 
 def run_tool_loop(
@@ -178,15 +191,16 @@ def run_tool_loop(
         ):
             return finish("模型返回的工具编号无效，未执行工具，证据不足。", "invalid_model_output")
         fatal = None
+        planned = []
+        # 阶段 1：顺序完成预算扣减、参数校验与重复去重，并将本轮合法只读调用并发提交。
         for call in calls:
             proposed += 1
             name, args = call.get("function", {}).get("name", ""), {}
             started = time.perf_counter()
-            did_execute = False
             if fatal:
-                output = {"status": "skipped", "message": "前一调用已终止本轮执行"}
+                planned.append((call, name, args, started, False, None, None, {"status": "skipped", "message": "前一调用已终止本轮执行"}))
             elif used >= max_tool_calls:
-                output = {"status": "budget_exhausted", "message": f"工具调用预算{max_tool_calls}次已用完"}
+                planned.append((call, name, args, started, False, None, None, {"status": "budget_exhausted", "message": f"工具调用预算{max_tool_calls}次已用完"}))
             else:
                 used += 1
                 try:
@@ -199,38 +213,65 @@ def run_tool_loop(
                     )
                     signature = (name, json.dumps(args, sort_keys=True, ensure_ascii=False))
                     if signature in signatures:
-                        output = {"status": "repeated", "message": "重复相同调用没有新证据，停止执行"}
                         fatal = "repeated_no_progress"
+                        planned.append((call, name, args, started, False, None, None, {"status": "repeated", "message": "重复相同调用没有新证据，停止执行"}))
                     else:
                         signatures.add(signature)
                         push_live({"type": "tool_start", "name": name, "args": args, "tool_call_id": call["id"]})
-                        pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="opspilot-read")
                         call_timeout = (tool_timeouts or {}).get(name, timeout)
-                        future = pool.submit(copy_context().run, _timed_execute, execute, name, args, call_timeout)
+                        # 超时只停止等待，不能强杀已运行线程；工具因此仅限只读，真实网络请求另受同一 deadline 约束。
+                        future = _READ_POOL.submit(copy_context().run, _timed_execute, execute, name, args, call_timeout)
                         executed += 1
-                        did_execute = True
-                        try:
-                            output = future.result(timeout=call_timeout)
-                        finally:
-                            # 超时只停止等待，cancel_futures不能取消已运行线程；工具因此仅限只读。
-                            # 真实网络请求另受同一deadline约束；后台可能仍在收尾，迟到usage追加原run。
-                            pool.shutdown(wait=False, cancel_futures=True)
-                except (ValidationError, json.JSONDecodeError, ValueError, KeyError, TypeError) as exc:
-                    output = (
-                        {"status": "error", "error_type": type(exc).__name__, "message": "工具执行失败，证据不足"}
-                        if did_execute
-                        else {
-                            "status": "invalid_arguments",
-                            "message": "工具名/参数无效，不能包含身份、写操作或额外字段；请按schema修正",
-                        }
+                        planned.append((call, name, args, started, True, future, call_timeout, None))
+                except ValidationError as exc:
+                    planned.append(
+                        (
+                            call,
+                            name,
+                            args,
+                            started,
+                            False,
+                            None,
+                            None,
+                            {
+                                "status": "invalid_arguments",
+                                "invalid_fields": _validation_fields(exc),
+                                "message": "工具名/参数无效，不能包含身份、写操作或额外字段；请按schema修正",
+                            },
+                        )
                     )
+                except (json.JSONDecodeError, ValueError, KeyError, TypeError):
+                    planned.append(
+                        (
+                            call,
+                            name,
+                            args,
+                            started,
+                            False,
+                            None,
+                            None,
+                            {
+                                "status": "invalid_arguments",
+                                "message": "工具名/参数无效，不能包含身份、写操作或额外字段；请按schema修正",
+                            },
+                        )
+                    )
+
+        # 阶段 2：按原始 calls 顺序回收并发执行结果，保证事件流与 tool_call_id 严格对齐。
+        for call, name, args, started, did_execute, future, call_timeout, preset_output in planned:
+            if future is not None:
+                try:
+                    remaining = max(0.001, call_timeout - (time.perf_counter() - started))
+                    output = future.result(timeout=remaining)
                 except TimeoutError:
                     output = {"status": "timeout", "message": "只读工具超时，当前证据不足"}
-                    fatal = "tool_timeout"
+                    fatal = fatal or "tool_timeout"
                 except (BudgetExceededError, BudgetLedgerError, RunCancelled):
                     raise
                 except Exception as exc:
                     output = {"status": "error", "error_type": type(exc).__name__, "message": "工具执行失败，证据不足"}
+            else:
+                output = preset_output
             event = {
                 "name": name,
                 "tool_call_id": call["id"],

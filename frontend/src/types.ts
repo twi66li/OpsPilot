@@ -46,12 +46,20 @@ export interface Site {
   environment?:string; group?:string; owner?:string;
   dependencies?:{source:string;target:string;note?:string}[];
   http_monitor?: HttpMonitor;
+  probe_history?: ProbePoint[];
+  webhook?: {enabled:boolean; token_prefix?:string; created_at?:string; received_count?:number; last_received_at?:string};
+}
+export interface ProbePoint {
+  collected_at:string; elapsed_ms?:number|null; http_status?:number; state:string; timed_out?:boolean; source_kind?:string;
 }
 export interface HttpMonitor {
   enabled:boolean; interval_minutes:number; failure_threshold:number; consecutive_failures?:number;
   next_check_at?:string|null; case_id?:string|null;
-  last_result?:{state:string;http_status?:number;timed_out?:boolean;collected_at:string;note?:string}|null;
+  last_result?:{state:string;http_status?:number;timed_out?:boolean;collected_at:string;note?:string;elapsed_ms?:number}|null;
+  probe_history?: ProbePoint[];
 }
+export interface PreflightCheck { key:string; label:string; status:'pass'|'warn'|'fail'; detail:string }
+export interface PreflightResult { passed:boolean; risk_level:string; target:string; rollback_hint:string; summary:string; checks:PreflightCheck[] }
 export type Workflow = 'auto' | 'consult' | 'diagnose' | 'review' | 'history';
 export interface SupportEntry {caseId?: string; siteId?: string; workflow?: Workflow; question?: string}
 export interface SubmittedEvidence { id: string; label: string; kind: 'initial' | 'check_result'; text: string; collected_at: string; submitted_at: string; endpoint?: string; step_index?: number; plan_revision?: number; summary?: EvidenceSummaryData; source_kind?:string }

@@ -7,8 +7,8 @@ from pydantic import BaseModel, Field
 
 class DocumentIn(BaseModel):
     title: str = Field(min_length=1, max_length=200)
-    content: str = Field(min_length=1)
-    source: str = ""
+    content: str = Field(min_length=1, max_length=500_000)
+    source: str = Field(default="", max_length=256)
 
 
 class SearchIn(BaseModel):
@@ -18,27 +18,27 @@ class SearchIn(BaseModel):
 
 
 class SessionIn(BaseModel):
-    title: str = "新会话"
+    title: str = Field(default="新会话", min_length=1, max_length=200)
 
 
 class ChatIn(BaseModel):
     request_id: str | None = Field(default=None, min_length=8, max_length=80)
-    session_id: str
-    message: str = Field(min_length=1)
+    session_id: str = Field(min_length=1, max_length=64)
+    message: str = Field(min_length=1, max_length=8000)
     workflow: Literal["auto", "consult", "diagnose", "review", "history"] = "auto"
     background: bool = False
 
 
 class DecisionIn(BaseModel):
     approved: bool
-    comment: str = ""
+    comment: str = Field(default="", max_length=600)
 
 
 class FaultIn(BaseModel):
-    service: str
-    title: str
-    error_code: str = ""
-    symptom: str = ""
-    root_cause: str = ""
-    resolution: str = ""
-    severity: str = "P2"
+    service: str = Field(min_length=1, max_length=64)
+    title: str = Field(min_length=1, max_length=200)
+    error_code: str = Field(default="", max_length=64)
+    symptom: str = Field(default="", max_length=2000)
+    root_cause: str = Field(default="", max_length=2000)
+    resolution: str = Field(default="", max_length=4000)
+    severity: str = Field(default="P2", max_length=8)

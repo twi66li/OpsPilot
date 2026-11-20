@@ -279,8 +279,6 @@ small, .muted { color: var(--text-3); font-size: 12px; }
 .visitor-login small { display:block; margin-top:10px; line-height:1.6; }
 .visitor-login p { margin:12px 0; overflow-wrap:anywhere; }
 .visitor-login code { font-family:var(--mono); }
-.visitor-banner { flex-shrink:0; border-radius:0; }
-.visitor-banner .ant-alert-title { font-size:13px; }
 @media(max-width:860px) {
   .login-page { flex-direction:column; gap:24px; padding:32px 20px; }
   .login-story, .login-card { width:min(100%,420px); }

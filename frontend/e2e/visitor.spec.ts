@@ -11,8 +11,8 @@ for(const width of [1440,1024,390]){
       await page.getByLabel('密码',{exact:true}).fill(account.password);
       await page.getByRole('button',{name:'登录',exact:true}).click();
     }else await page.getByRole('button',{name:'访客直接进入',exact:true}).click();
-    await expect(page.locator('.visitor-banner')).toContainText('独立教学示例');
     await expect(page.locator('.home-next')).toContainText('示例：结算接口返回 502');
+    await expect(page.getByText('访客只读体验 · 当前是独立教学示例，不是你的真实网站数据',{exact:true})).toHaveCount(0);
     await expect(page.locator('.home-next .ant-btn')).toHaveText('查看记录');
     await page.screenshot({path:info.outputPath('visitor-home.png'),fullPage:true});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
@@ -38,7 +38,12 @@ for(const width of [1440,1024,390]){
     await page.goto('/knowledge?tab=retrieval');
     await page.getByLabel('检索测试问题').fill('QueuePool 超时');
     await expect(page.getByRole('button',{name:'测试检索',exact:true})).toBeDisabled();
-    await page.getByRole('button',{name:'退出访客',exact:true}).click();
+    await page.goto('/investigation');
+    await expect(page.getByRole('heading',{name:'体验一次故障调查与恢复',exact:true})).toBeVisible();
+    await expect(page.getByText('故障演练 · 独立测试环境，未接入你的网站',{exact:true})).toHaveCount(0);
+    await expect(page.getByRole('button',{name:/^账号：/})).toBeVisible();
+    await page.getByRole('button',{name:/^账号：/}).click();
+    await page.getByRole('menuitem',{name:/退出访客$/}).click();
     await expect(page.getByRole('button',{name:'访客直接进入',exact:true})).toBeVisible();
   });
 }

@@ -8,13 +8,15 @@ import TodoAction, { isActiveTodo } from './TodoAction';
 import InfoTip from './InfoTip';
 
 type Activity={id:string|number;kind:string;at:string;case_id?:string;detail:{title?:string;label?:string};siteId:string;siteName:string};
+type SkillItem={name:string;label:string};
 type Section = 'cases'|'sites'|'todos'|'approvals'|'activity';
-const activityLabels: Record<string,string> = {site_change:'网站变更',evidence_observed:'样本时间',http_incident:'巡检异常',http_probe_normal:'巡检响应正常'};
+const activityLabels: Record<string,string> = {site_change:'网站变更',evidence_observed:'样本时间',http_incident:'巡检异常',http_probe_normal:'巡检响应正常',webhook_alert:'Webhook 告警'};
 
 export default function Home({navigate,canWrite}: {navigate:(path:string)=>void;canWrite:boolean}) {
   const [cases,setCases]=useState<PageData<PersonalCase>|null>(null),[sites,setSites]=useState<PageData<Site>|null>(null);
   const [todos,setTodos]=useState<MaintenanceTodo[]|null>(null),[approvals,setApprovals]=useState<number|null>(null);
   const [activity,setActivity]=useState<Activity[]>([]),[onboarding,setOnboarding]=useState(true);
+  const [skills,setSkills]=useState<SkillItem[]>([]);
   const [errors,setErrors]=useState<Partial<Record<Section,string>>>({});
   const versions=useRef<Partial<Record<Section,number>>>({});
   const guest=!!savedAuth()?.is_guest;
@@ -42,6 +44,7 @@ export default function Home({navigate,canWrite}: {navigate:(path:string)=>void;
   },[canWrite]);
   useEffect(()=>{
     const load=()=>void refresh();load();
+    api<SkillItem[]>('/api/agent/skills').then(list=>{if(Array.isArray(list))setSkills(list);}).catch(()=>{});
     window.addEventListener('opspilot:workspace-changed',load);window.addEventListener('focus',load);
     return()=>{window.removeEventListener('opspilot:workspace-changed',load);window.removeEventListener('focus',load);};
   },[refresh]);
@@ -49,15 +52,40 @@ export default function Home({navigate,canWrite}: {navigate:(path:string)=>void;
     <Alert type="warning" title={label+'加载失败'} action={<Button size="small" onClick={()=>void refresh(section)}>重试</Button>}/>;
   const activeTodos=(todos || []).filter(isActiveTodo).filter(item=>item.kind!=='approval'||canWrite).sort((a,b)=>(a.priority??50)-(b.priority??50));
   const next=activeTodos[0],recent=(todos || []).filter(item=>!isActiveTodo(item));
+  const siteItems = sites?.items || [];
+  const webhookCount = siteItems.filter(s=>s.webhook?.enabled).length;
+  const highPriorityCases = (cases?.items || []).filter(c=>c.severity==='P0'||c.severity==='P1').length;
   const quick=guest?[['浏览网站','/websites',<GlobalOutlined/>],['查看示例问题','/issues',<UnorderedListOutlined/>],['维护资料库','/knowledge',<BookOutlined/>],['故障演练','/investigation',<ExperimentOutlined/>]]:[['登记网站','/websites?create=1',<GlobalOutlined/>],['上传手册','/knowledge?tab=private&upload=1',<BookOutlined/>],['提交日志','/support?workflow=diagnose',<UploadOutlined/>],['故障演练','/investigation',<ExperimentOutlined/>]];
   return <div className="page-stack home-page">
     <div className="page-title"><h2>维护工作台</h2><Button aria-label={guest?'浏览示例问题':'记录新问题'} type="primary" icon={guest?<ArrowRightOutlined aria-hidden/>:<PlusOutlined aria-hidden/>} onClick={()=>navigate(guest?'/issues':'/issues?create=1')}>{guest?'浏览示例问题':'记录新问题'}</Button></div>
     {errorNotice('sites','网站')}
+    <section className="home-kpi-grid" aria-label="态势概览">
+      <button type="button" className="home-kpi-card" onClick={()=>navigate('/websites')}>
+        <div className="home-kpi-top"><span>纳管网站</span>{webhookCount>0&&<Tag color="cyan">Webhook {webhookCount}</Tag>}</div>
+        <strong className="home-kpi-val">{sites?sites.total:'—'}</strong>
+      </button>
+      <button type="button" className="home-kpi-card kpi-alert" onClick={()=>navigate('/issues')}>
+        <div className="home-kpi-top"><span>未归档问题</span>{highPriorityCases>0&&<Tag color="red">高优 {highPriorityCases}</Tag>}</div>
+        <strong className="home-kpi-val">{cases?cases.total:'—'}</strong>
+      </button>
+      <button type="button" className="home-kpi-card kpi-warn" onClick={()=>navigate(canWrite&&approvals?'/operations':'/issues')}>
+        <div className="home-kpi-top"><span>待办事项</span>{canWrite&&approvals!==null&&approvals>0&&<Tag color="gold">待审批 {approvals}</Tag>}</div>
+        <strong className="home-kpi-val">{todos?activeTodos.length:'—'}</strong>
+      </button>
+      <button type="button" className="home-kpi-card" onClick={()=>navigate('/knowledge')}>
+        <div className="home-kpi-top"><span>近期动态</span>{activity.length>0&&<Tag>{activityLabels[activity[0].kind]||'更新'}</Tag>}</div>
+        <strong className="home-kpi-val">{activity.length}</strong>
+      </button>
+    </section>
     <section className={`home-next${next?'':' idle'}`} aria-label="下一件事">
       <div className="home-next-copy"><h3>接下来，先处理这一件</h3><strong className="home-next-title">{next?next.title:errors.todos?'待办暂时无法更新':!todos?'正在整理待办':'当前没有待处理事项'}</strong>
         {next&&<div className="home-next-meta"><Tag color="processing">{next.state}</Tag>{next.severity&&<SeverityTag value={next.severity}/>}</div>}
       </div><div className="home-next-action">{next?<TodoAction primary item={next} canWrite={canWrite} navigate={navigate} changed={()=>{setTodos(previous=>previous?.filter(item=>item.id!==next.id) || []);void refresh('todos');}}/>:<Button onClick={()=>navigate('/websites')}>管理我的网站</Button>}</div>
     </section>
+    {skills.length>0&&<section className="home-skill-strip" aria-label="声明式 Skill">
+      <strong>声明式 Skill</strong>
+      <div className="home-skill-pills">{skills.map(item=><span className="home-skill-pill" key={item.name}><code>{item.name}</code>{item.label}</span>)}</div>
+    </section>}
     <div className="home-shortcuts" aria-label="快捷入口">{quick.map(([label,url,icon])=><Button key={String(label)} aria-label={String(label)} icon={icon} onClick={()=>navigate(String(url))}>{label}</Button>)}</div>
     {!guest&&sites?.total===0&&!errors.sites&&onboarding&&<section className="onboarding" aria-label="开始使用"><strong>开始使用</strong><Button type="link" onClick={()=>navigate('/websites?create=1')}>1 登记网站</Button><Button type="link" onClick={()=>navigate('/knowledge?tab=private&upload=1')}>2 上传手册（选填）</Button><Button type="link" onClick={()=>navigate('/support?workflow=diagnose')}>3 提交第一份日志</Button><Button type="text" aria-label="收起引导" icon={<CloseOutlined/>} onClick={()=>setOnboarding(false)}/></section>}
     <div className="home-ledger-grid">
@@ -78,6 +106,12 @@ export default function Home({navigate,canWrite}: {navigate:(path:string)=>void;
             :todos&&<p className="home-todo-empty">暂无待办</p>}
           {canWrite&&<>{errorNotice('approvals','审批')}{approvals!==null&&<Button type="link" onClick={()=>navigate('/operations')}>待审批 {approvals}</Button>}</>}
         </section>
+        {siteItems.length>0&&<section className="home-sites-panel"><div className="home-section-heading"><h3>纳管网站</h3><Button type="link" size="small" onClick={()=>navigate('/websites')}>管理</Button></div>
+          {siteItems.slice(0,3).map(s=><button key={s.id} className="home-site-row" onClick={()=>navigate('/websites/'+s.id)}>
+            <span className="home-site-name"><i className={`site-pulse ${s.health_check?.state==='abnormal'?'err':''}`} aria-hidden="true"/>{s.name}</span>
+            <span className="mono home-site-meta">{s.health_check?.http_status?`HTTP ${s.health_check.http_status}`:`${s.open_count||0} 待处理`}</span>
+          </button>)}
+        </section>}
         {(activity.length>0||errors.activity)&&<section className="home-activity"><h3>最近动态 <InfoTip label="最近动态范围说明">按发生时间汇总当前账户所有网站的变更、巡检和样本时间。</InfoTip></h3>
           {errorNotice('activity','最近动态')}
           {activity.map(item=><button className="home-activity-item" key={item.siteId+':'+item.kind+':'+item.id} onClick={()=>navigate(item.case_id&&item.kind==='http_incident'?'/issues/'+item.case_id:'/websites/'+item.siteId+'?tab=history')}>

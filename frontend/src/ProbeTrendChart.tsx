@@ -1,14 +1,16 @@
+import { useId } from 'react';
 import { formatTime } from './api';
 import type { ProbePoint } from './types';
 
 function colorOf(point: ProbePoint) {
-  if (point.state === 'normal') return '#16a34a';
-  if (point.timed_out) return '#d97706';
-  if (point.state === 'abnormal') return '#dc2626';
-  return '#64748b';
+  if (point.state === 'normal') return 'var(--ok)';
+  if (point.timed_out) return 'var(--warn)';
+  if (point.state === 'abnormal') return 'var(--err)';
+  return 'var(--text-3)';
 }
 
 export default function ProbeTrendChart({ points }: { points: ProbePoint[] }) {
+  const gradId = useId();
   if (!points.length) return null;
   const recent = [...points]
     .sort((a, b) => (a.collected_at || '').localeCompare(b.collected_at || ''))
@@ -19,10 +21,10 @@ export default function ProbeTrendChart({ points }: { points: ProbePoint[] }) {
   const validLat = recent.map(p => p.elapsed_ms).filter((v): v is number => typeof v === 'number' && v >= 0);
   const avgMs = validLat.length ? Math.round(validLat.reduce((s, v) => s + v, 0) / validLat.length) : 0;
 
-  const width = 420;
-  const height = 110;
+  const width = 440;
+  const height = 124;
   const padX = 16;
-  const padY = 14;
+  const padY = 16;
   const spanX = width - padX * 2;
   const spanY = height - padY * 2;
   const coords = recent.map((p, idx) => {
@@ -32,25 +34,34 @@ export default function ProbeTrendChart({ points }: { points: ProbePoint[] }) {
     return { x: Number(x.toFixed(1)), y: Number(y.toFixed(1)), point: p };
   });
   const polyline = coords.map(c => `${c.x},${c.y}`).join(' ');
+  const baseLine = height - padY;
+  const areaPoints = coords.length > 1 ? `${coords[0].x},${baseLine} ${polyline} ${coords[coords.length - 1].x},${baseLine}` : '';
 
   return (
-    <div style={{ marginTop: 12 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, fontSize: 12, color: '#475569', marginBottom: 6 }}>
-        <span>最近 {recent.length} 次探测趋势（最高 {Math.round(maxMs)} ms · 平均 {avgMs} ms）</span>
+    <div className="probe-trend-wrap">
+      <div className="probe-trend-meta">
+        <span>最近 {recent.length} 次探测 · 峰值 {Math.round(maxMs)} ms · 平均 {avgMs} ms</span>
         <span>正常率 {Math.round((normalCount / recent.length) * 100)}%（{normalCount}/{recent.length}）</span>
       </div>
       <svg
         role="img"
         aria-label="网站 HTTP 探测耗时与状态趋势图"
         viewBox={`0 0 ${width} ${height}`}
-        style={{ width: '100%', maxWidth: 520, height: 110, background: '#f8fafc', borderRadius: 6, border: '1px solid #e2e8f0', display: 'block' }}
+        className="probe-trend-svg"
       >
-        <line x1={padX} y1={padY} x2={width - padX} y2={padY} stroke="#e2e8f0" strokeDasharray="3 3" />
-        <line x1={padX} y1={height / 2} x2={width - padX} y2={height / 2} stroke="#e2e8f0" strokeDasharray="3 3" />
-        <line x1={padX} y1={height - padY} x2={width - padX} y2={height - padY} stroke="#cbd5e1" />
-        {coords.length > 1 && <polyline fill="none" stroke="#2563eb" strokeWidth="2" points={polyline} />}
+        <defs>
+          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.28" />
+            <stop offset="100%" stopColor="var(--accent)" stopOpacity="0.02" />
+          </linearGradient>
+        </defs>
+        <line x1={padX} y1={padY} x2={width - padX} y2={padY} stroke="var(--line)" strokeDasharray="3 3" />
+        <line x1={padX} y1={height / 2} x2={width - padX} y2={height / 2} stroke="var(--line)" strokeDasharray="3 3" />
+        <line x1={padX} y1={baseLine} x2={width - padX} y2={baseLine} stroke="var(--line-strong)" />
+        {areaPoints && <polygon fill={`url(#${gradId})`} points={areaPoints} />}
+        {coords.length > 1 && <polyline fill="none" stroke="var(--accent)" strokeWidth="2.2" strokeLinejoin="round" points={polyline} />}
         {coords.map(({ x, y, point }, index) => (
-          <circle key={`${point.collected_at}-${index}`} cx={x} cy={y} r="4" fill={colorOf(point)} stroke="#fff" strokeWidth="1.5">
+          <circle key={`${point.collected_at}-${index}`} cx={x} cy={y} r="4" fill={colorOf(point)} stroke="var(--panel)" strokeWidth="1.5">
             <title>
               {`${formatTime(point.collected_at)} · ${point.http_status ? `HTTP ${point.http_status}` : point.timed_out ? '超时' : point.state} · ${typeof point.elapsed_ms === 'number' ? `${point.elapsed_ms} ms` : '耗时未知'}`}
             </title>

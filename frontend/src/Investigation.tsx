@@ -1,8 +1,8 @@
-import InfoTip from './InfoTip';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, App, Button, Card, Collapse, Descriptions, Empty, Input, Modal, Pagination, Space, Tag, Timeline } from 'antd';
 import { savedAuth, api, followChat, formatTime, post, streamChat } from './api';
 import ConversationList from './ConversationList';
+import DrillWalkthrough from './DrillWalkthrough';
 import StatusTag from './StatusTag';
 import type { AgentEvent, Approval, ChatMessage, Hit, Remediation, Run, Session, SessionHistory, PageData } from './types';
 
@@ -137,7 +137,8 @@ export default function Investigation({onSource, canApprove, initialId, initialR
   const lastEvent=events.at(-1), draft=approval?.ticket_draft;
   const elapsed=trace?.created_at&&trace.updated_at?(Date.parse(trace.updated_at)-Date.parse(trace.created_at))/1000:null;
   function retry(){setQuestion(trace?.data.question||[...messages].reverse().find(item=>item.role==='user')?.content||'');}
-  return <div className="demo-workspace"><Alert type="warning" title={<>故障演练 · 独立测试环境，未接入你的网站 <InfoTip label="演练范围说明">这里调查平台自带的 order-service 测试服务，体验异常、审批和固定恢复动作。自己的报错请前往智能维护助手。</InfoTip></>} />
+  return <div className="demo-workspace">
+    <DrillWalkthrough guest={guest} hasActiveChat={messages.length > 0} />
     <div className="investigation-grid">
     <aside className="session-panel"><div className="panel-heading"><strong>调查会话</strong><Button size="small" disabled={guest||busy} onClick={fresh}>新建</Button></div>
       <Input.Search aria-label="搜索演练会话" placeholder="搜索历史会话" onSearch={v=>{setSearch(v);setPage(1);}} />

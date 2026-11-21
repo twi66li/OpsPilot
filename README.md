@@ -4,77 +4,52 @@
 
 技术栈：Python / FastAPI / LangGraph / PostgreSQL 16 / Milvus / BM25 + RRF + Rerank / Redis / MCP / React + TypeScript + Ant Design / Docker Compose。
 
-## 已实现
+文档：[架构设计](docs/ARCHITECTURE.md) · [API](docs/API.md) · [评测](docs/EVAL.md) · [变更与验收记录](CHANGELOG.md)
 
-- 网站中心：网站列表与详情、环境编辑、关联资料、问题概况，以及咨询/排查/历史入口。
-- 问题中心：独立登记和编辑异常、接口、影响与近期变更，筛选状态，用户确认解决、归档、重新打开；归档与解决分别记录，兼容旧版saved数据。
-- 任务分流：知识咨询、异常排查、结果核对、历史查询和寒暄分别处理；咨询不自动创建故障，结果核对以程序统计为准。
-- 已确认计划的逐项检查记录、方案版本校验和步骤证据关联；检查完成不自动表示恢复。
-- 程序化提交样本核对：支持ISO带时区与Nginx常见访问日志时间、原接口匹配、HTTP状态/耗时/请求数、明确连接池异常行与容器State。空日志、其他接口成功、旧样本、重定向和仅running均不会直接通过恢复核对。
-- 数据库连接异常、Nginx 502/504、Docker退出/重启三类场景指南，包括症状、只读检查、正常/异常分支、修改风险与回退和明确标注的教学样例。
+## 核心闭环
 
-- 登录后从首页选择个人排障、资料咨询或独立故障演练；三者有明确的用途说明。
-- 内置六类中文排障指南，覆盖 Python / SQLAlchemy、Docker、Nginx、PostgreSQL，保留官方链接、适用版本、核对日期和内容指纹；资料为平台整理，不冒充官方原文。
-- 网站背景可选并保留会话快照；个人手册使用独立存储命名空间，只检索当前网站选中的手册。
-- 当前日志作为会话证据，提交前支持脱敏预览；检查报告区分日志事实、待验证原因、缺失信息与1–3条具体检查步骤。
-- 确认方案 → 用户自行操作 → 提交新结果 → 样本范围内核对；只点击完成或提供旧日志不会标记恢复。
-- 用户确认后保存案例，在本人同一网站的问题中检索复用；历次报告和当次资料版本可回查。
-
-- 原生 Function Calling 调查循环：工具白名单、参数校验、超时、调用次数与模型预算限制。
-- 真实 MCP Client/Server 协议封装只读日志和指标查询；可选的独立检索子 Agent。
-- JWT 多租户权限、个人会话、PostgreSQL 检查点、审批后恢复与幂等建单。
-- PDF / Markdown / TXT 上传，持久化入库任务、进度、失败重试与文件去重。
-- 普通文本 PDF 逐页提取；复杂 PDF 可同时上传原文件及本机 MinerU 的 `content_list.json`。
-- 结构化父子块、页码及来源回查、有效知识版本切换；失败和历史版本在召回前过滤。
-- SSE 节点事件、调查 trace、模型用量与轻量评测接口。
-
-React 工作台已接通登录、完整会话历史、调查过程、文件知识库、引用回查、审批工单与已有评测记录。认证、会话、工单与知识元数据查询使用 AsyncSession（PostgreSQL 使用 asyncpg）；同步图、检索API和入库任务由线程隔离。SSE 支持真实模型正文增量与即时工具进展，检索子Agent的中间答案不作为主回答输出。受控演练修复已接入：申请与审批后执行固定的测试故障注入关闭动作，保留执行前后实际请求验证。普通 PDF 文本提取不包含 OCR，也不保证恢复复杂表格布局。
-
-2026-11-13，浅色主题、首页问题台账和客服式助手布局已在本地完整 Docker 应用中完成真实联调，包含认证、证据脱敏保存、模型流式/停止及问题详情刷新。页面固定数据检查与真实后端验收分别记录，见[本地改版验收](docs/OPSPILOT_LOCAL_ACCEPTANCE_20261113.md)。这轮界面改版尚未发布云端。
-
-个人排障复用 LangGraph 与原生工具循环，只开放资料检索和本人案例检索；结构化报告通过校验后整份展示，等待期间推送工具进展。演练保留日志/指标 MCP、可选检索子 Agent 与审批修复，不会将测试数据带入个人排障。
-
-### 检索与会话正确性（2026-11-19）
-
-- 范围统计和原文补取只读取当前租户尚未移出检索的文档。移出的资料不再参与新一轮统计。
-- 同一会话的新提问保留对话历史，并重新初始化证据、引用和报告状态。工具重复命中同一片段时，回答沿用该片段原有的引用编号。
-- 工具遇到模型预算拒绝或预算账本异常时，当前调查停止后续模型调用。
-
-这批改动在隔离检出中通过了 47 项离线检查，覆盖上述回归、审批和检查点恢复。
-
-## 维护工作台工程升级（2026-11-12）
-
-- 页面具有资源URL，例如 `/issues/问题ID`、`/websites/网站ID`、`/operations/审批ID`；刷新和前进后退保留位置。移动端使用抽屉导航，助手提问区优先显示。
-- 助手显示执行阶段、开始及更新时间，支持停止与同一请求重连。普通咨询显示回答草稿；诊断报告校验后展示。停止不会保证供应商已发出的请求零用量，已有证据及上一份有效报告保留。
-- 运行使用请求编号去重、每会话单运行约束和追加事件表；默认 `MAX_CONCURRENT_RUNS=1`。排队入库任务可在重启后恢复；执行中被中断的解析和修复需要显式核对或重试。当前仍按单API worker部署。
-- 网站提供最近检查提交时间、资料任务概况和主动单次HTTP检查；HTTP仅访问公开80/443端口，固定已验证IP并禁止跳转。结果具有时间和范围，不能代表实时监控或整体恢复。
-- 助手提供Docker/systemd只读证据收集向导和日志文件脱敏预览。问题支持严重度、标签、个人补充记录、维护时间线和Markdown报告导出。
-- 资料库提供有效版本检索测试、选中文档的失败任务重试及文档移出检索。历史引用与原文件保留。`scripts/parse-pdf.cmd`支持拖入PDF；扫描件需要本机MinerU兼容的Content List格式，未安装时只能提取普通文本。
-- 审批详情集中展示依据、固定动作、影响、操作人和验证；评测支持共同问题对比、程序检查回退与失败分类。对比只针对共有输入，不能用作独立准确率。
-- `/api/workspace/{cases,sites,sessions,documents,approvals,tickets,remediations}` 使用 `items/total/page/page_size` 协议，支持服务端搜索；旧列表接口继续兼容已有验收脚本。
-
-### 安全与数据库升级
-
-`APP_ENV=production`拒绝默认/弱JWT密钥与管理员密码；同源默认不开放CORS。`REGISTRATION_ENABLED`控制注册入口，演示部署默认关闭，需自助注册时显式开启。登录具有独立限流；JWT带服务端登录会话，退出和修改密码撤销旧登录。MCP使用限定用途的短期令牌。
-
-数据库由Alembic升级，`uv run python -m scripts.migrate`可显式执行。迁移基线兼容既有完整业务表，不为缺失的必填业务字段猜测数据。升级前备份；基线和审计迁移不自动删表回退，需审阅迁移或恢复备份。新镜像以UID/GID 10001运行，Linux宿主的`data`持久目录需要授予该用户读写权限。
-
-生产首次部署先配置独立密钥和至少12字符管理员密码，并准备持久目录，再运行：
-
-```bash
-docker compose -f compose.demo.yml run --rm api python -m scripts.init_admin
-docker compose -f compose.demo.yml up -d
+```mermaid
+flowchart LR
+    A[登记网站与手册] --> B[提交脱敏日志]
+    B --> C[证据化诊断报告]
+    C --> D[确认方案并自行操作]
+    D --> E[提交新结果]
+    E --> F[程序样本核对]
+    F --> G[确认结局 / 归档复用]
 ```
 
-重复初始化不会覆盖账号。只有显式运行`python -m scripts.init_admin --reset-password`才使用配置重设已有管理员密码并撤销登录。迁移会使旧版无登录会话的令牌失效，升级后需要重新登录。
+- **证据优先**：报告区分日志事实、待验证原因、缺失信息与1–3条具体检查步骤；引用可回查到资料页码和日志行。
+- **恢复以数据为准**：只点击完成、提供旧日志、空日志、其他接口成功、重定向或仅 running 都不会通过恢复核对；程序核对支持 ISO 带时区与 Nginx 访问日志时间、原接口匹配、HTTP 状态/耗时/请求数、连接池异常行与容器 State。
+- **样本核对与用户确认分开记录**：检查完成不自动表示恢复，解决与归档分别记录。
 
-`/live` 检查进程，`/ready` 检查数据库、Milvus、缓存和入库线程。用 `docker compose -f compose.local.yml exec -T api python -m integration.check_stack` 检查真实依赖，只创建并清理本次随机测试资源，无需调用模型供应商。CI 使用同一 Compose 启动隔离的 PostgreSQL、Milvus 和 Redis，验证向量迁移和浏览器流程。浏览器流程要求 `OPSPILOT_E2E_ISOLATED=1`，仅在隔离环境运行。
+## 功能
 
-历史阿里云演示包含 API、React 前端、PostgreSQL、Qdrant、Redis、演练服务和 Prometheus。历次部署与验证见[完整演示与小型部署](#完整演示与小型部署)，访问地址和镜像以实际部署为准。PDF 报告、生产 Prometheus 连接器、组织成员邀请与共享，以及从页面启动新评测继续后置。
+**维护工作台**
+
+- 网站中心：环境编辑、关联资料、问题概况、主动单次 HTTP 检查与定时巡检（仅公开 80/443，固定已验证 IP、禁止跳转）。
+- 问题中心：登记异常、接口、影响与近期变更；严重度、标签、补充记录、维护时间线、Markdown 报告导出、同租户交接。
+- 任务分流：知识咨询、异常排查、结果核对、历史查询和寒暄分别处理；咨询不自动创建故障。
+- 场景指南：数据库连接异常、Nginx 502/504、Docker 退出/重启；内置六类中文排障指南（Python / SQLAlchemy、Docker、Nginx、PostgreSQL），保留官方链接、适用版本、核对日期和内容指纹。
+- Docker/systemd 只读证据收集向导，日志提交前脱敏预览。
+
+**智能助手与检索**
+
+- LangGraph 工作流 + 原生 Function Calling 调查循环：工具白名单、参数校验、超时、调用次数与模型预算限制。
+- 混合检索：Milvus 向量 + BM25（jieba）+ RRF 融合 + 可选 Rerank；结构化父子块、页码回查、有效知识版本切换。
+- PDF / Markdown / TXT 上传，持久化入库任务、进度、失败重试与文件去重；复杂 PDF 可附带本机 MinerU 的 `content_list.json`。
+- SSE 推送节点事件、工具进展和正文增量；支持停止、断线按事件游标重连。
+
+**组织与演练（附加能力）**
+
+- JWT 多租户权限（admin / engineer / viewer）、服务端登录会话、登录限流。
+- 独立故障演练：真实 MCP Client/Server 封装只读日志与指标、可选检索子 Agent、PostgreSQL 检查点、审批后恢复与幂等建单、受控修复。
+- 评测：历史基线、共同问题对比与失败分类（不代表线上准确率）。
+
+普通 PDF 文本提取不包含 OCR，也不保证恢复复杂表格布局。
 
 ## 第一次使用
 
-首次访问可在登录页注册普通账号，注册后直接进入独立私人空间。普通用户可以使用网站、手册、问题和维护对话；工程师另有演练审批权限，管理员另可管理组织账号及查看评测。公开注册不会授予管理员权限，也不能加入已有组织。本机登录页提示默认演示管理员，外部访问请注册或使用部署者分配的账号。
+首次访问可在登录页注册普通账号，注册后直接进入独立私人空间。普通用户可以使用网站、手册、问题和维护对话；工程师另有演练审批权限，管理员另可管理组织账号及查看评测。公开注册不会授予管理员权限，也不能加入已有组织。
 
 1. 从“我的网站”登记环境，或直接打开“智能维护助手”咨询。自己的PDF/MD/TXT手册在“维护资料库 → 我的网站手册”上传，入库后可关联。
 2. 有异常时在“问题中心”独立创建记录，填写异常、接口、影响和变更；再打开助手，提交脱敏日志。基础知识咨询可以保持为普通对话。
@@ -83,16 +58,6 @@ docker compose -f compose.demo.yml up -d
 5. 在问题中心确认实际结局或归档。未解决的问题也可归档，后续重新打开保留证据；同一网站的历史查询可直接打开处理记录。
 
 网站支持删除，默认保留问题及环境快照，也可勾选同时删除关联问题和维护对话。问题中心、个人助手和演练会话支持勾选批量删除。这里的删除指移出工作区并阻断常规访问；原记录保留在数据库以关联审批、工单及执行审计，未执行的审批会取消，上传手册不受影响。
-
-评测记录默认打开43条明细的历史基线，默认列表展示历史基线、重排恢复、质量改进三个已整理批次；开发及流程验收记录需要显式勾选展示。无逐题明细的记录会展示用途说明和原始验收结果，不显示空白评测表。这些历史记录不代表当前线上准确率。
-
-`app/knowledge/scenarios.json` 保存三类场景素材，相关内容会一起进入已有官方来源索引。`uv run python -m scripts.workspace_acceptance` 使用已配置的真实模型，按网站登记、咨询、排查、程序核对、状态管理和历史查询验收一次；它提交的是明确标记的样例，不是生产恢复评测。个人验收脚本默认注册独立私人账号；演练验收使用专用工程师账号，均不再写入管理员的会话或网站。需要继续已有验收时，显式设置原账号的 `ACCEPTANCE_USERNAME` / `ACCEPTANCE_PASSWORD`。
-
-2026-11-12，维护业务流程已在本机完成一次真实模型验收，四类任务合计38.11秒，咨询分离、网站与问题关联、检查标记不代表恢复、程序样本比较、解决与归档分离和同网站历史复用六项检查通过。记录为 `eval/night20261112/maintenance_workspace/results.json`；25项相关离线检查与前端生产构建通过。该业务版本随后已同步云端；此后的界面更新另行验证。
-
-个人排障入口为 `/api/support`。内置指南在 `app/knowledge/official.json`；运行 `uv run python -m scripts.collect_official_sources` 可采集固定官方页面的核对快照到被 Git 忽略的 `data/official_sources`。下载成功不会自动发布新知识，需核对内容和适用版本后更新整理语料。复杂扫描 PDF 继续沿用本机 MinerU 解析产物导入流程。
-
-2026-11-12，本机真实模型样例闭环已通过，两轮分析合计37.25秒，核对结果明确限定为提交样本。成功记录和遇到的问题见 `eval/night20261112/personal_support/results.json`。个人资料检索需串行调用Embedding和Rerank，等待上限至少30秒。供应商 `insufficient_quota` 可触发已授权的候选轮换，普通鉴权错误不会轮换；模型总预算仍然生效。下方2026-11-11的云端记录属于较早演练版本；2026-11-12已更新为业务工作台。
 
 ## 本机运行
 
@@ -121,11 +86,38 @@ docker compose -f compose.local.yml --profile app --profile observability up -d 
 
 启动时先初始化手册和历史故障，再启动API，避免两个模型进程同时持有同一预算账本。管理员按环境配置创建；额外固定演示账号仅在本机显式执行 `python -m scripts.seed --demo-users` 时创建。
 
-`compose.local.yml` 为当前主配置，`docker-compose.yml` 保留早期 MySQL 联调入口。两者与演示配置共用 Milvus 2.4.15 服务定义。业务数据库、Milvus 与原文件均需持久化。原文件默认放在 `data/knowledge`。入库 worker 与模型预算账本共用单个 API 进程。复杂 OCR 在本机或独立环境执行。
+`docker-compose.yml` 引用 `compose.local.yml`，本地联调统一使用 PostgreSQL 与 Milvus 2.4.15。启动完整工作台时启用 `app` 和 `observability` profiles。业务数据库、Milvus 与原文件均需持久化，原文件默认放在 `data/knowledge`。
+
+> [!IMPORTANT]
+> BM25 索引、入库 worker 与模型预算账本都在 API 进程内，当前只支持**单 API 实例 / 单 worker** 部署。复杂 OCR 在本机或独立环境执行。
 
 使用宿主机运行 API 时，设置 `VECTOR_STORE_BACKEND=milvus` 和 `MILVUS_URI=http://127.0.0.1:19531` 连接本机 Compose 服务。离线开发可显式选择 `VECTOR_STORE_BACKEND=memory`。
 
-如果旧资料仍在 Qdrant，保持原 Embedding 模型和维度，在启动新 API 前暂停旧库入库并迁移现有向量和分块信息。迁移工具 `python -m scripts.migrate_milvus --help` 默认只盘点源数据，显式传 `--apply` 才写入目标集合。确认迁移校验通过后，将 `MILVUS_COLLECTION` 指向该集合。已迁移的资料可直接复用向量。历史评测脚本请使用对应记录的代码版本复现。
+如果旧资料仍在 Qdrant，保持原 Embedding 模型和维度，在启动新 API 前暂停旧库入库并迁移现有向量和分块信息。迁移工具 `python -m scripts.migrate_milvus --help` 默认只盘点源数据，显式传 `--apply` 才写入目标集合。确认迁移校验通过后，将 `MILVUS_COLLECTION` 指向该集合。
+
+`/live` 检查进程，`/ready` 检查数据库、Milvus、缓存和入库线程。用 `docker compose -f compose.local.yml exec -T api python -m integration.check_stack` 检查真实依赖，只创建并清理本次随机测试资源，无需调用模型供应商。
+
+## 生产部署
+
+**安全**：`APP_ENV=production` 拒绝默认/弱 JWT 密钥与管理员密码；同源默认不开放 CORS。`REGISTRATION_ENABLED` 控制注册入口，演示部署默认关闭。JWT 带服务端登录会话，退出和修改密码撤销旧登录。MCP 使用限定用途的短期令牌。
+
+**数据库**：由 Alembic 升级，`uv run python -m scripts.migrate` 可显式执行。升级前备份；基线和审计迁移不自动删表回退。新镜像以 UID/GID 10001 运行，Linux 宿主的 `data` 持久目录需要授予该用户读写权限。迁移会使旧版无登录会话的令牌失效，升级后需要重新登录。
+
+首次部署先配置独立密钥和至少12字符管理员密码，并准备持久目录：
+
+```bash
+docker build -t opspilot:milvus .          # .env 中设置 OPSPILOT_IMAGE=opspilot:milvus
+docker compose -f compose.demo.yml run --rm api python -m scripts.init_admin
+docker compose -f compose.demo.yml up -d --wait --wait-timeout 180
+# 本机建立访问隧道后打开 http://127.0.0.1:18000
+ssh -N -L 18000:127.0.0.1:18000 your-server
+```
+
+重复初始化不会覆盖账号；`python -m scripts.init_admin --reset-password` 才会重设已有管理员密码并撤销登录。`compose.demo.yml` 包含 PostgreSQL、Redis、Milvus、API、演练服务和 Prometheus。
+
+**反向代理**：[Nginx 代理配置](deploy/nginx/opspilot.conf) 宿主机监听 8080，转发到回环地址 18000，前端、认证、上传与 SSE 保持同源；上传上限 25 MiB，流式响应关闭代理缓冲，读写超时 300 秒。将实际 Docker 网关与 `127.0.0.1,::1` 加入 `FORWARDED_ALLOW_IPS`，按部署设置 `CORS_ORIGINS`。公网域名和证书准备好后启用 [HTTPS 配置](deploy/nginx/opspilot-https.conf)；真实账号与私人资料应通过 HTTPS 访问（HTTP 下浏览器缺少 `crypto.randomUUID` 时应用回退到 `crypto.getRandomValues`）。
+
+评测文件通过 `./eval:/app/eval:ro` 挂载。账户密码、API 密钥和 SSH 隧道信息保存在本机被忽略的 `data/cloud-deploy`，不要提交到仓库。
 
 ## 知识文件接口
 
@@ -144,15 +136,7 @@ docker compose -f compose.local.yml --profile app --profile observability up -d 
 
 文件上限10MB，直接解析的 PDF 上限100页；纯文本按 UTF-8 读取。入库状态为 `uploaded → parsing → chunking → indexing → ready`，错误进入 `failed`；重启中断的任务标记失败后可重试。历史原文件保留用于溯源。
 
-## 开发检查
-
-```powershell
-.venv/Scripts/python -m pytest tests/test_knowledge_files.py tests/test_kb.py tests/test_rag.py -q
-.venv/Scripts/python -m pytest tests/test_logstats.py tests/test_t9_persistence.py tests/test_t10_tool_loop.py tests/test_approval.py -q
-.venv/Scripts/python -m ruff check app tests
-```
-
-模型额度、`.env`、原文数据和本地运行日志不要提交到 GitHub。已有评测是开发案例记录，不能据此宣称独立根因准确率。
+个人排障入口为 `/api/support`。内置指南在 `app/knowledge/official.json`，场景素材在 `app/knowledge/scenarios.json`；运行 `uv run python -m scripts.collect_official_sources` 可采集固定官方页面的核对快照到被 Git 忽略的 `data/official_sources`，下载成功不会自动发布新知识。
 
 ## 受控演练修复
 
@@ -167,32 +151,19 @@ docker compose -f compose.local.yml --profile app --profile observability up -d 
 
 运行状态在执行前持久化；服务重启时未完成的执行标为interrupted，需重新调查核对，不自动重放。演练控制服务只应绑定本机或容器内网。
 
-## 完整演示与小型部署
+## 开发检查
 
-`uv run python -m scripts.demo_acceptance` 串起真实PDF、来源回查、真实模型流式调查和审批修复。它使用已配置的模型额度，并保存一条工作台可读的验收记录；不是批量评测或独立准确率测试。
-
-2026-11-11的一次实际记录：调查83.1秒，首个正文增量63.2秒，模型与Embedding/Rerank合计13,148 tokens；引用命中上传手册，审批后3次测试请求由500恢复为200。记录位于 `eval/night20261111/demo_acceptance/results.json`。该耗时包含检索子Agent，不能作为延迟SLA。
-
-`compose.demo.yml` 包含 PostgreSQL、Redis、Milvus、API、演练服务和 Prometheus。部署前从当前代码构建镜像，例如 `docker build -t opspilot:milvus .`，在 `.env` 设置 `OPSPILOT_IMAGE=opspilot:milvus`。同步镜像、Compose、`deploy/milvus` 配置和 `.env` 后，按以下方式启动并连接。
-
-```bash
-docker compose -f compose.demo.yml up -d --wait --wait-timeout 180
-# 本机建立访问隧道：
-ssh -N -L 18000:127.0.0.1:18000 your-server
+```powershell
+.venv/Scripts/python -m pytest tests/test_knowledge_files.py tests/test_kb.py tests/test_rag.py -q
+.venv/Scripts/python -m pytest tests/test_logstats.py tests/test_checkpoint_persistence.py tests/test_tool_loop.py tests/test_approval.py -q
+.venv/Scripts/python -m ruff check app tests
 ```
 
-随后打开 `http://127.0.0.1:18000`。配置独立管理员密码、JWT 密钥和数据库密码，原文件及预算账本放持久卷。演示使用单个 API worker，预算账本的限制只适用于当前实例。公网域名和证书准备好后可启用 [HTTPS 配置](deploy/nginx/opspilot-https.conf)。下列历史资源记录来自 Qdrant 版本，Milvus 配置的云端容量需实测。
+验收脚本（使用已配置的真实模型额度，不是批量评测或独立准确率测试）：
 
-历史演示使用 [Nginx 代理配置](deploy/nginx/opspilot.conf)。宿主机监听 8080，转发到回环地址 18000，前端、认证、上传与 SSE 保持同源。示例访问地址为 `http://<服务器地址>:8080`。数据服务保留在内网。代理上传上限为 25 MiB，流式响应关闭代理缓冲，读写超时 300 秒。安装配置后通过 `nginx -t` 再重载。将实际 Docker 网关与 `127.0.0.1,::1` 加入服务器的 `FORWARDED_ALLOW_IPS`，按部署设置 `CORS_ORIGINS`，重建 API 容器使配置生效。Nginx 覆盖外部传入的转发 IP 头。
+- `uv run python -m scripts.workspace_acceptance`：按网站登记、咨询、排查、程序核对、状态管理和历史查询验收一次；默认注册独立私人账号，继续已有验收时设置 `ACCEPTANCE_USERNAME` / `ACCEPTANCE_PASSWORD`。
+- `uv run python -m scripts.demo_acceptance`：串起真实PDF、来源回查、真实模型流式调查和审批修复。
 
-IP 加 HTTP 的演示入口兼容请求编号生成和用户点击复制。浏览器缺少 `crypto.randomUUID` 时，应用使用 `crypto.getRandomValues` 生成 v4 编号。真实账号与私人资料应通过 HTTPS 访问，浏览器此时优先使用原生 UUID 和 Clipboard 接口。[MDN randomUUID](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/randomUUID) · [MDN getRandomValues](https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues) · [Nginx 代理缓冲](https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffering)
+CI 使用同一 Compose 启动隔离的 PostgreSQL、Milvus 和 Redis，验证向量迁移和浏览器流程。浏览器流程要求 `OPSPILOT_E2E_ISOLATED=1`，仅在隔离环境运行。
 
-公网入口版本`f75f501`的CI运行43186062411已通过，浏览器流程实际关闭原生UUID与Clipboard接口，验证命令复制、日志上传及请求编号生成。公网独立账号进一步验证注册登录、17个懒加载资源、上传脱敏、详情链接与真实模型SSE；一次咨询首事件0.203秒、总耗时7.328秒，收到49个正文增量事件。首事件不等于首个正文，该记录不是延迟SLA或准确率评测。真实客户端IP与伪造转发头处理已核对。部署时另备份并移走服务器原有的空Nginx服务覆盖文件，恢复发行版服务定义与reload；原80端口站点响应保持一致。公网验收记录在本机`data/public-ingress-smoke.json`，代理核对记录在云端`/opt/opspilot/releases/f75f501/proxy-ip-check.json`。
-
-2026-11-11，云端通过一次真实闭环：54.25秒完成调查，指标和日志工具返回ok，审批后测试请求从500恢复为200。该次调查调用8,059 tokens。验收后六容器内存快照约431.6MiB，不含宿主系统和Docker，也不是总峰值或并发能力。成功记录和首次8秒工具超时记录均保留在 `eval/night20261111`；演示配置的工具上限现为30秒，并通过健康检查等待API就绪。
-
-2026-11-12，云端先更新为应用镜像`opspilot:5a4f207`，数据库迁移至0003；API使用非root用户，内存上限512MiB，保持单worker与串行调查。独立账号已验证私人PDF入库、唯一手册标记检索与流式引用、日志脱敏和退出撤销；主Agent通过真实MCP协议查询演练日志和Prometheus指标。六容器验收后合计约483MiB，整机可用内存约657MiB；这是轻载快照。记录保存在云端`/opt/opspilot/data/cloud-deploy-smoke-5a4f207.json`和`cloud-native-mcp-5a4f207.json`，并非独立准确率或压力测试。
-
-同日后续界面、页面懒加载和生产校验更新`a832352`已先在本地Docker运行，再同步云端。修正npm锁文件和隔离浏览器测试的注册开关；本机14项相关检查、生产构建和工作台接口验收通过，GitHub CI运行43178643657通过264项后端检查与3条浏览器流程。云端进一步验证新首页、17个懒加载资源、注册、分页搜索、详情链接、权限及退出撤销；保留旧镜像、数据库与配置备份。本轮没有重复真实模型评测。部署后轻载快照：六容器约456MiB，整机可用679MiB，磁盘余量约27.9GiB；记录在云端`/opt/opspilot/releases/a832352/deployment-smoke.json`。
-
-评测文件通过 `./eval:/app/eval:ro` 持久化挂载。`eval/reports/cloud_runtime_20261111.json` 保存资源快照；账户密码、API密钥和SSH隧道信息保存在本机被忽略的 `data/cloud-deploy`，不要提交到仓库。
+模型额度、`.env`、原文数据和本地运行日志不要提交到 GitHub。已有评测是开发案例记录，不能据此宣称独立根因准确率。

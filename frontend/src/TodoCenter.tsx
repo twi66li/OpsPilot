@@ -10,7 +10,7 @@ export default function TodoCenter({canWrite=false}:{canWrite?:boolean}){
   const {message}=App.useApp(),navigate=useNavigate(),[open,setOpen]=useState(false),[items,setItems]=useState<MaintenanceTodo[]>([]);
   const refresh=useCallback(()=>api<{items:MaintenanceTodo[]}>('/api/maintenance/todos').then(r=>setItems(r.items)),[]);
   useEffect(()=>{
-    const load=()=>void refresh().catch(()=>{});load();
+    const load=()=>{if(!document.hidden)void refresh().catch(()=>{});};load();
     const timer=setInterval(load,60000);
     window.addEventListener('opspilot:workspace-changed',load);window.addEventListener('focus',load);
     return()=>{clearInterval(timer);window.removeEventListener('opspilot:workspace-changed',load);window.removeEventListener('focus',load);};

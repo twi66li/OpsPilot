@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -6,6 +8,7 @@ from app.config import get_settings
 from app.container import get_container
 from app.db.base import engine
 
+logger = logging.getLogger(__name__)
 router = APIRouter(tags=["health"])
 
 
@@ -22,14 +25,16 @@ def readiness_checks():
         with engine.connect() as connection:
             connection.execute(text("SELECT 1"))
         checks["database"] = "ok"
-    except Exception:
+    except Exception as exc:
+        logger.warning("readiness_database_failed error_type=%s", type(exc).__name__)
         checks["database"] = "unavailable"
     try:
         container = get_container()
         checks["vector_store"] = container.vector_store.health()
         redis = getattr(container.cache, "client", None)
         checks["cache"] = "ok" if redis and redis.ping() else "memory"
-    except Exception:
+    except Exception as exc:
+        logger.warning("readiness_dependencies_failed error_type=%s", type(exc).__name__)
         checks["dependencies"] = "unavailable"
     checks["ingestion_worker"] = "ok" if worker_ready() else "unavailable"
     return checks

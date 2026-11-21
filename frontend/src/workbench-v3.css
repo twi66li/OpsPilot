@@ -253,6 +253,11 @@
 }
 .auth-topbar-notice { display: flex; align-items: center; gap: 9px; font-size: 13px; color: var(--text-2); }
 .auth-notice-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+.notice-close-btn {
+  display: inline-grid; place-items: center; width: 22px; height: 22px; padding: 0;
+  border: 0; border-radius: 6px; background: transparent; color: var(--text-3); font-size: 11px;
+}
+.notice-close-btn:hover, .notice-close-btn:focus-visible { background: var(--raised); color: var(--text); }
 .auth-screen .login-page { position: relative; z-index: 1; background: transparent; gap: clamp(52px, 8vw, 128px); }
 .login-story .headline-accent { color: var(--accent); }
 .login-flow li { justify-content: space-between; align-items: center; }

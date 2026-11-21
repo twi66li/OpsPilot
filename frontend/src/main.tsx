@@ -4,6 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { App as AntApp, ConfigProvider, theme as antdTheme } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import App from './App';
+import { isChunkLoadError } from './ErrorBoundary';
 import { ThemeProvider, useThemeMode } from './themeMode';
 import './styles.css';
 import './workbench-v3.css';
@@ -88,6 +89,20 @@ function RootApp() {
     </ConfigProvider>
   );
 }
+
+// 一个标签页对同一版本入口只自动刷新一次，后续失败交给页面错误边界。
+window.addEventListener('vite:preloadError', event => {
+  if (!isChunkLoadError((event as Event & {payload?: unknown}).payload)) return;
+  const key = `opspilot.preload-reload:${import.meta.url}`;
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+  } catch {
+    return; // 存储不可用时交给错误边界，避免重复刷新。
+  }
+  event.preventDefault();
+  window.location.reload();
+});
 
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

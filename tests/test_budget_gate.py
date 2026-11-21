@@ -1,4 +1,4 @@
-"""T18：统一入口预算门控——账本持久/恢复/fail-closed/halt/分模型授权/单写者与发送前拒绝的 Mock 证明。"""
+"""统一入口预算门控——账本持久/恢复/fail-closed/halt/分模型授权/单写者与发送前拒绝的 Mock 证明。"""
 import json
 from types import SimpleNamespace
 

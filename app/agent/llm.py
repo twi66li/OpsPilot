@@ -90,7 +90,8 @@ class MockLLM(BaseLLM):
             entities = extract_entities(question)
             service = (entities["services"] or ["unknown-service"])[0]
             error_code = entities["error_codes"][0] if entities["error_codes"] else ""
-        except Exception:
+        except Exception as exc:
+            logger.warning("draft_ticket_extract_entities_failed error_type=%s", type(exc).__name__)
             service, error_code = "unknown-service", ""
         severity = "P1" if re.search(r"宕机|不可用|大面积|全部失败|P1", question, re.IGNORECASE) else "P2"
         return {

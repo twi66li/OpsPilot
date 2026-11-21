@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 
 from app.db.models import ChatSession, DocumentVersion, SupportCase, WorkspaceEvent
 from app.services.case_service import case_status, is_archived
+from app.services.evidence_checks import summarize_evidence
 from app.services.scenario_rules import BY_COLLECTION_KEY
 
 
@@ -337,3 +338,18 @@ def case_report(case, title, events):
         ]
     )
     return "\n".join(lines)
+
+
+def observed_events(case):
+    events = []
+    for evidence in case.data.get("evidence", []):
+        if not evidence.get("text"):
+            continue
+        span = summarize_evidence(evidence)["time_range"]
+        if span:
+            events.append({"id": f'observed-{case.session_id}-{evidence["id"]}', "kind": "evidence_observed",
+                           "case_id": case.session_id, "at": span["from"],
+                           "detail": {"label": evidence["label"], "evidence_id": evidence["id"], "until": span["until"],
+                                      "note": "定时 HTTP 巡检采样时间" if evidence.get("source_kind") == "scheduled_http_probe"
+                                      else "已提交日志的样本时间"}})
+    return events

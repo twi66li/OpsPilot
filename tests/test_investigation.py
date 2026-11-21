@@ -54,7 +54,7 @@ def test_metrics_and_logs_share_one_investigation_window(monkeypatch):
 
 def test_four_step_investigation_can_refine_log_query():
     from app.agent.tool_loop import run_tool_loop
-    from tests.test_t10_tool_loop import ScriptedAPI, tool
+    from tests.test_tool_loop import ScriptedAPI, tool
 
     calls = [tool("query_service_metrics", {"service": "order-service"}, "metrics"),
              tool("query_logs", {"service": "order-service"}, "logs"),

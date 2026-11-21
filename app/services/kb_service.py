@@ -76,12 +76,12 @@ def rebuild_bm25_from_db(db: Session, container) -> int:
 
 
 def warm_indexes(db: Session, container) -> int:
-    """启动/评测前重建索引：BM25 全量重建；向量库为空时从 MySQL 回填向量。
+    """启动/评测前重建索引：BM25 全量重建；向量库为空时从业务数据库回填向量。
 
-    BM25 分块一律取自向量库已有 payload（与稠密检索同源同界）。此前从 MySQL 重新
+    BM25 分块一律取自向量库已有 payload（与稠密检索同源同界）。此前从业务数据库重新
     分块（默认 500 字符）会与入库时分块（如 n31real 语料的 2000 字符）漂移：
     两路 chunk 边界不一致，混合检索把同内容不同边界的块当作不同证据融合。
-    向量库为空时仍按 MySQL 默认分块回填（重新 embedding），回填后两路自动同源。
+    向量库为空时仍按数据库默认分块回填（重新 embedding），回填后两路自动同源。
     """
     from collections import defaultdict
 

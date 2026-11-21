@@ -1,4 +1,4 @@
-"""T8：Prometheus 协议边界为假端点测试，真实采集另做 Compose 集成。"""
+"""Prometheus 协议边界为假端点测试，真实采集另做 Compose 集成。"""
 from datetime import datetime
 
 import httpx

@@ -17,8 +17,8 @@ _deadline = ContextVar("tool_deadline", default=None)
 _agent = ContextVar("agent_name", default="main")
 _live = ContextVar("live_events", default=False)
 _answer = ContextVar("answer_stream", default=False)
-# shortcut: 单API进程串行合并JSON事件；多实例时升级为数据库原子追加。
-_write_lock = threading.Lock()
+# shortcut: 单 API 进程协调运行记录写入和事件回放，多实例时升级为数据库原子追加。
+_write_lock = threading.RLock()
 _cancel_signals = {}
 
 

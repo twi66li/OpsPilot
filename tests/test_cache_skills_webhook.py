@@ -1,4 +1,4 @@
-"""T51-T53 升级定向回归测试：版本化检索缓存、宽召回重排、并发只读工具循环、Skill/Preflight 治理、Webhook 告警接入与探测历史。"""
+"""定向回归测试：版本化检索缓存、宽召回重排、并发只读工具循环、Skill/Preflight 治理、Webhook 告警接入与探测历史。"""
 
 import json
 import threading

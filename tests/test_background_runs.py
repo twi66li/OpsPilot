@@ -6,6 +6,7 @@ from langgraph.graph import END, START, StateGraph
 
 from app.agent.state import DiagState
 from app.container import get_container
+from app.db.models import Message
 from app.services import agent_service, background_runs
 from app.services.run_service import RunRecorder
 from tests.conftest import new_session
@@ -14,6 +15,21 @@ from tests.conftest import new_session
 def read_frames(response):
     assert response.status_code == 200, response.text
     return [json.loads(line.removeprefix("data: ")) for line in response.text.splitlines() if line.startswith("data: ")]
+
+
+def test_readiness_cannot_roll_back_a_pending_message(client, admin_headers):
+    session_id = new_session(client, admin_headers)
+    container = get_container()
+    with container.db_session() as db:
+        message = Message(tenant_id="default", session_id=session_id, role="user", content="并发检查")
+        db.add(message)
+        db.flush()
+        message_id = message.id
+        assert client.get("/ready").json()["checks"]["database"] == "ok"
+        db.commit()
+
+    with container.db_session() as db:
+        assert db.get(Message, message_id) is not None
 
 
 def test_background_run_replays_events_with_cursor_and_reuses_request(client, admin_headers):

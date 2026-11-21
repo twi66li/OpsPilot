@@ -15,7 +15,15 @@ from app.agent.tools import TOOL_REGISTRY
 from app.db.models import AgentRun, ApprovalRequest, Message, Ticket
 from app.services import chat_service, ticket_service
 from app.services.budget import BudgetExceededError
-from app.services.run_service import RunCancelled, RunRecorder, capture_run, check_cancelled, current_run, live_events
+from app.services.run_service import (
+    RunCancelled,
+    RunRecorder,
+    _write_lock,
+    capture_run,
+    check_cancelled,
+    current_run,
+    live_events,
+)
 from app.services.support_service import context_for_session, redact
 
 logger = logging.getLogger(__name__)
@@ -153,7 +161,7 @@ def _chat_once(container, db, tenant_id, user_id, username, session_id, question
     }
     events: list[dict] = []
     _emit_graph_events(container.graph, container.graph.stream(input_state, config, stream_mode="updates"), events)
-    # 图节点独立提交审批单；结束历史读取事务，避免 MySQL RR 快照看不到新审批。
+    # 图节点独立提交审批单，结束此前读取事务后再查询。
     db.rollback()
     result = _final_snapshot(container, config)
     _ensure_approval_event(container, db, config, tenant_id, session_id, events)
@@ -230,8 +238,6 @@ def chat_stream(
 
 
 def _background_input(db, run, tenant_id, session_id, input_state):
-    from app.services.run_service import _write_lock
-
     with _write_lock:
         prior = chat_service.get_history(db, session_id, limit=5)
         input_state["history"] = prior + [{"role": "user", "content": input_state["question"]}]
@@ -262,7 +268,7 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
             "support_report": None,
             "support_workflow": workflow,
         }
-        with container.db_session() as db:
+        with _write_lock, container.db_session() as db:
             if background:
                 run = db.get(AgentRun, run_id)
                 saved_input = run.data.get("background_input")
@@ -308,7 +314,7 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
                 }
             )
             return
-        with container.db_session() as db:
+        with _write_lock, container.db_session() as db:
             events: list[dict] = []
             if not approval_emitted:
                 _ensure_approval_event(container, db, config, tenant_id, session_id, events)
@@ -316,7 +322,7 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
             yield event_data(event)
         check_cancelled()
         result = _final_snapshot(container, config)
-        with container.db_session() as db:
+        with _write_lock, container.db_session() as db:
             approval = _pending_approval_payload(db, tenant_id, session_id)
             if approval:
                 result["approval"] = approval
@@ -359,7 +365,7 @@ def _pending_approval_payload(db: Session, tenant_id: str, session_id: str) -> d
 def decide_approval(container, db: Session, auth, approval_id: str, approved: bool, comment: str = "") -> dict:
     """先原子确认审批决定，再恢复图；重试使用既有决定与唯一工单。"""
     with _approval_lock:
-        # 身份查询可能已开启 MySQL 一致性读事务，锁内重新开始以免读到旧审批状态。
+        # 结束此前的身份查询事务，在锁内重新读取审批状态。
         db.rollback()
         req = db.get(ApprovalRequest, approval_id)
         if req is None or req.tenant_id != auth.tenant_id:

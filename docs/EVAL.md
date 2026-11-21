@@ -56,4 +56,4 @@ python -m eval.run_eval --rerank none                       # 关闭重排对照
 - `tools` span：工具调用清单与耗时 → 判断工具链路是否拖慢响应；
 - `generate` span：回答长度与 Token 用量 → 定位生成阶段成本。
 
-结合 `retrieval_logs` 表（MySQL）可离线统计每种模式的命中率分布，定位失败环节。
+结合 `retrieval_logs` 表可离线统计每种模式的命中率分布，定位失败环节。

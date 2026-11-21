@@ -3,6 +3,7 @@ import { App, Button, Card, Divider, Form, Input, Tabs } from 'antd';
 import { api, post, saveAuth } from './api';
 import type { Auth } from './types';
 import InfoTip from './InfoTip';
+import NoticeBanner from './NoticeBanner';
 import { BrandMark, ThemeToggleButton } from './themeMode';
 
 export default function AuthPanel({signedIn}: {signedIn: (auth: Auth) => void}) {
@@ -52,9 +53,7 @@ export default function AuthPanel({signedIn}: {signedIn: (auth: Auth) => void}) 
     </div>
 
     <div className="auth-topbar">
-      <div className="auth-topbar-notice">
-        {visitor && <><span className="auth-notice-dot" aria-hidden="true" /><span>可先以访客浏览示例网站与排障记录；自己的数据请使用个人账号。</span></>}
-      </div>
+      <div>{visitor && <NoticeBanner>可先以访客浏览示例网站与排障记录；自己的数据请使用个人账号。</NoticeBanner>}</div>
       <ThemeToggleButton />
     </div>
 

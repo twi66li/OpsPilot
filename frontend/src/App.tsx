@@ -11,6 +11,7 @@ import PasswordDialog from './PasswordDialog';
 import TodoCenter from './TodoCenter';
 import Capabilities from './Capabilities';
 import CommandPalette from './CommandPalette';
+import ErrorBoundary from './ErrorBoundary';
 import { BrandMark, ThemeToggleButton } from './themeMode';
 
 const Investigation = lazy(() => import('./Investigation'));
@@ -59,8 +60,18 @@ export default function App() {
   async function logout() {try{await post('/auth/logout');clearAuth();}catch(e){message.error((e as Error).message);}}
   useEffect(()=>{
     const unauthorized=()=>{saveAuth(null);setAuth(null);setSource(null);setSideEntry(null);setCapabilitiesOpen(false);setSearchOpen(false);setResourceTitle(null);};window.addEventListener('opspilot:unauthorized',unauthorized);
-    api('/ready').then(()=>setHealthy(true)).catch(()=>setHealthy(false));if(savedAuth())api('/auth/me').catch(()=>unauthorized());
-    return ()=>window.removeEventListener('opspilot:unauthorized',unauthorized);
+    let readinessCheck: AbortController | undefined;
+    const checkReady=()=>{
+      readinessCheck?.abort();
+      readinessCheck=new AbortController();
+      const {signal}=readinessCheck;
+      void api('/ready',{signal}).then(
+        ()=>{if(!signal.aborted)setHealthy(true);},
+        ()=>{if(!signal.aborted)setHealthy(false);},
+      );
+    };
+    checkReady();window.addEventListener('focus',checkReady);if(savedAuth())api('/auth/me').catch(()=>unauthorized());
+    return ()=>{readinessCheck?.abort();window.removeEventListener('opspilot:unauthorized',unauthorized);window.removeEventListener('focus',checkReady);};
   },[]);
   if(!auth)return <AuthPanel signedIn={setAuth}/>;
   const roleLabel=auth.is_guest?'访客 · 只读':{admin:'管理员',engineer:'工程师',viewer:'普通用户'}[auth.role]||auth.role;
@@ -74,7 +85,7 @@ export default function App() {
       <Button className="global-search-trigger" aria-label="全局搜索" icon={<SearchOutlined/>} onClick={()=>setSearchOpen(true)}><span>搜索网站、问题、资料</span><kbd>Ctrl K</kbd></Button>
       <Space className="app-header-actions" size="small"><ThemeToggleButton compact /><Button className="ask-current-page" aria-label="询问当前页面" title="在旁边询问当前页面" type="text" icon={<CommentOutlined/>} disabled={page==='support'||(page==='issues'&&!!resourceId)} onClick={()=>askHere()}/><TodoCenter canWrite={canWrite}/><Dropdown trigger={['click']} menu={{items:[{key:'identity',label:<span className="account-identity">{auth.username} · {roleLabel}</span>,disabled:true},{type:'divider' as const},{key:'capabilities',label:'查看能力状态'},...(!auth.is_guest?[{key:'password',icon:<LockOutlined/>,label:'修改密码'},{type:'divider' as const}]:[]),{key:'logout',icon:<LogoutOutlined/>,label:auth.is_guest?'退出访客':'退出登录'}],onClick:({key})=>key==='capabilities'?setCapabilitiesOpen(true):key==='logout'?void logout():key==='password'?setPasswordOpen(true):undefined}}><Button aria-label={`账号：${auth.username}`} title={`${auth.username} · ${roleLabel}`} type="text" className="account-button" icon={<UserOutlined aria-hidden="true"/>}><span className="account-name">{auth.username}</span></Button></Dropdown></Space>
     </Layout.Header><Layout.Content className={`app-content ${page==='investigation'?'chat-content':''} ${page==='support'||(page==='issues'&&resourceId)?'support-content':''}`}>
-      <Suspense fallback={<div className="page-loading"><Spin tip="正在加载工作区" /></div>}>
+      <ErrorBoundary resetKey={location.pathname}><Suspense fallback={<div className="page-loading"><Spin tip="正在加载工作区" /></div>}>
         {page==='home'&&<Home navigate={path=>navigate(path)} canWrite={canWrite}/>}
         {page==='websites'&&<Websites onTitle={siteTitle} assist={assist} ask={askHere} knowledge={()=>setPage('knowledge')} initialId={resourceId} opened={id=>navigate('/websites/'+id)}/>}
         {page==='issues'&&(resourceId?<PersonalSupport issueDetail entry={supportEntry} onSource={setSource} onKnowledge={()=>setPage('knowledge')} onIssues={()=>setPage('issues')} opened={id=>{if(id!==resourceId)navigate('/issues/'+id);}}/>:<Issues assist={entry=>navigate('/issues/'+entry.caseId)}/>)}
@@ -83,12 +94,12 @@ export default function App() {
         {page==='knowledge'&&<OfficialLibrary onSource={setSource} assist={assist}/>}
         {page==='operations'&&(canWrite?<Operations canApprove={canWrite}/>:<Alert type="warning" title="此模块需要工程师或管理员权限"/>)}
         {page==='evaluation'&&(canReadEvaluation?<Evaluation/>:<Alert type="warning" title="评测记录仅平台管理员可查看"/>)}
-      </Suspense>
+      </Suspense></ErrorBoundary>
     </Layout.Content></Layout><SourceDrawer hit={source} close={()=>setSource(null)} ask={hit=>{setSource(null);askHere({...sideEntry,workflow:'consult',question:`请解释资料「${hit.doc_title}」${hit.applicable_version?`（适用版本：${hit.applicable_version}）`:''}中的检查方法、适用条件和证据要求；不要把手册当作本次故障现场证据。`});}}/><PasswordDialog open={passwordOpen} close={()=>setPasswordOpen(false)} changed={clearAuth}/>
     <Capabilities open={capabilitiesOpen} close={()=>setCapabilitiesOpen(false)} navigate={url=>navigate(url)}/>
     <CommandPalette key={auth.tenant_id+':'+auth.username} open={searchOpen} close={()=>setSearchOpen(false)} navigate={navigate} onSource={setSource} guest={!!auth.is_guest} canApprove={canWrite} admin={canReadEvaluation}/>
     <Drawer className="side-assistant" open={!!sideEntry} onClose={()=>setSideEntry(null)} title="随页维护助手" width={Math.min(1000, windowWidth)} destroyOnHidden>
-      {sideEntry&&<Suspense fallback={<Spin/>}><PersonalSupport entry={sideEntry} onSource={setSource} onKnowledge={()=>setPage('knowledge')} onIssues={()=>setPage('issues')} opened={id=>setSideEntry(previous=>previous===sideEntry&&previous.caseId!==(id||undefined)?{...previous,caseId:id||undefined,question:undefined}:previous)}/></Suspense>}
+      {sideEntry&&<ErrorBoundary resetKey={sideEntry.caseId||''}><Suspense fallback={<Spin/>}><PersonalSupport entry={sideEntry} onSource={setSource} onKnowledge={()=>setPage('knowledge')} onIssues={()=>setPage('issues')} opened={id=>setSideEntry(previous=>previous===sideEntry&&previous.caseId!==(id||undefined)?{...previous,caseId:id||undefined,question:undefined}:previous)}/></Suspense></ErrorBoundary>}
     </Drawer>
   </Layout>;
 }

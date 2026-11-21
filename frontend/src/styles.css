@@ -28,63 +28,41 @@ small, .muted { color: var(--text-3); font-size: 12px; }
 .version-bar { margin-bottom: 12px; }
 .preserve-wrap { white-space: pre-wrap; }
 
-/* 应用框架 */
+/* 应用框架与导航 */
 .app-layout { height: 100dvh; min-height: 520px; }
 .app-layout > .ant-layout { min-width: 0; }
-.main-sidebar { position: relative; background: var(--panel) !important; }
-.main-sidebar > .ant-layout-sider-children > .ant-menu { max-height: none; overflow-y: auto; padding: 0 10px; }
-.main-sidebar .ant-menu { background: transparent; }
+.main-sidebar { position: relative; background: var(--panel) !important; border-right: 1px solid var(--line); }
+.main-sidebar, .navigation-drawer { --gc: var(--accent); }
+.main-sidebar > .ant-layout-sider-children { display: flex; flex-direction: column; }
+.main-sidebar .ant-menu, .navigation-drawer .ant-menu { flex: 1; min-height: 0; max-height: none; overflow-y: auto; background: transparent; border-inline-end: 0; padding: 0 10px; }
 .main-sidebar .ant-menu-item { margin-block: 4px; }
 .main-sidebar .ant-menu-item-selected { background: var(--accent-bg); }
-.brand { height: 80px; padding: 24px 20px; display: flex; gap: 12px; align-items: center; color: var(--sunken); font-size: 22px; font-weight: 650; overflow: hidden; white-space: nowrap; }
-.brand-symbol { width: 25px; height: 25px; border: 4px solid var(--text-3); border-radius: 50%; }
-.sidebar-label { padding: 0 22px 20px; color: var(--text-3); font-size: 11px; white-space: nowrap; overflow: hidden; }
-.nav-group-label { padding: 14px 14px 6px; color: var(--text-3); font-size: 10px; letter-spacing: 1px; line-height: 20px; }
-.sidebar-foot { position: absolute; bottom: 24px; width: 100%; padding: 0 24px; color: var(--line); font-size: 12px; line-height: 2.4; white-space: nowrap; overflow: hidden; }
-.status-dot { display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 100%; background: var(--text-3); }
-.app-header { height: 68px; padding: 0 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; line-height: 1.5; background: var(--panel); border-bottom: 1px solid var(--line); }
-.header-title { font-size: 14px; font-weight: 600; }
-.header-subtitle { margin-left: 18px; color: var(--text-3); font-size: 12px; font-weight: 400; }
+.brand { height: 64px; flex-shrink: 0; padding: 0 20px; display: flex; gap: 12px; align-items: center; color: var(--text); font-size: 18px; font-weight: 650; overflow: hidden; white-space: nowrap; }
+.assistant-entry { display: flex; align-items: center; justify-content: center; width: calc(100% - 24px); height: 38px; margin: 2px 12px 10px; box-shadow: none; }
+.assistant-entry.selected { outline: 1px solid var(--accent); outline-offset: 3px; }
+.nav-overview { --gc: #0e6a61; --group-bg: #e3f1ee; }
+.nav-maintenance { --gc: #2a6a8f; --group-bg: #e3eff6; }
+.nav-resources { --gc: #6d5a9c; --group-bg: #eeebf4; }
+.nav-management { --gc: #8f5f10; --group-bg: #f5eedf; }
+.nav-group .ant-menu-item-group-title { padding: 12px 10px 6px; }
+.nav-group-label { display: flex; align-items: center; gap: 8px; padding: 0; color: var(--text-2); font-size: 12px; letter-spacing: 0; line-height: 20px; }
+.nav-group-label::before { content: ''; width: 8px; height: 8px; border-radius: 2px; background: var(--gc); }
+.nav-group .ant-menu-item { height: 36px; margin: 2px 0; padding-inline-start: 14px !important; color: var(--text-2); line-height: 36px; border-radius: 5px; }
+.nav-group .ant-menu-item.ant-menu-item-selected { background: var(--group-bg); color: var(--gc); font-weight: 600; }
+.status-dot { display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 100%; background: var(--ok); }
+.app-header { height: 48px; min-height: 48px; padding: 0 24px; display: flex; align-items: center; justify-content: space-between; gap: 16px; line-height: 1.5; background: var(--bg); border-bottom: 1px solid var(--line); }
 .header-actions { display: flex; align-items: center; gap: 14px; }
-.user-menu { height: 38px; padding-inline: 8px; color: var(--text-2); }
-.user-avatar { width: 26px; height: 26px; display: inline-grid; place-items: center; margin-right: 7px; border-radius: 50%; background: var(--bg); color: var(--text-2); font-size: 12px; }
-.app-content { overflow: auto; padding: 28px clamp(20px, 2.2vw, 36px); background: var(--sunken); }
-.chat-content { padding: 0; overflow: hidden; }
+.header-page-title { font-size: 14px; }
+.app-header > .ant-space { min-width: 0; }
+.app-content { overflow: auto; padding: 24px; background: var(--bg); }
+.chat-content, .app-content.chat-content { padding: 0; overflow: hidden; }
 .page-stack { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 1600px; margin: 0 auto; }
 .page-title { min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-.page-title h2 { margin: 0 0 6px; color: var(--text); font-size: 25px; line-height: 1.35; letter-spacing: -.4px; }
+.page-title h2 { margin: 0 0 6px; color: var(--text); font-size: 20px; line-height: 1.35; letter-spacing: 0; }
 .page-title p { margin: 0; color: var(--text-3); font-size: 13px; }
 .page-stack > .ant-card, .support-main > .ant-card, .home-workspace > .ant-card { box-shadow: none; }
-
-/* 首页工作台 */
-.main-sidebar, .navigation-drawer { --gc:var(--accent); }
-.main-sidebar > .ant-layout-sider-children { display:flex; flex-direction:column; }
-.main-sidebar .ant-menu, .navigation-drawer .ant-menu { flex:1; min-height:0; overflow-y:auto; background:transparent; border-inline-end:0; padding:0 10px; }
-.main-sidebar { border-right:1px solid var(--line); }
-.brand { height:64px; flex-shrink:0; padding:0 20px; color:var(--text); font-size:18px; }
-.brand-symbol { display:inline-block; flex-shrink:0; width:23px; height:23px; border:3px solid var(--accent); }
-.assistant-entry { display:flex; align-items:center; justify-content:center; width:calc(100% - 24px); height:38px; margin:2px 12px 10px; box-shadow:none; }
-.assistant-entry.selected { outline:1px solid var(--accent); outline-offset:3px; }
-.nav-overview { --gc:#0e6a61; --group-bg:#e3f1ee; }
-.nav-maintenance { --gc:#2a6a8f; --group-bg:#e3eff6; }
-.nav-resources { --gc:#6d5a9c; --group-bg:#eeebf4; }
-.nav-management { --gc:#8f5f10; --group-bg:#f5eedf; }
-.nav-group .ant-menu-item-group-title { padding:12px 10px 6px; }
-.nav-group-label { display:flex; align-items:center; gap:8px; padding:0; color:var(--text-2); font-size:12px; letter-spacing:0; }
-.nav-group-label::before { content:''; width:8px; height:8px; border-radius:2px; background:var(--gc); }
-.nav-group .ant-menu-item { height:36px; margin:2px 0; padding-inline-start:14px !important; color:var(--text-2); line-height:36px; border-radius:5px; }
-.nav-group .ant-menu-item.ant-menu-item-selected { background:var(--group-bg); color:var(--gc); font-weight:600; }
-.sidebar-foot { position:static; margin-top:auto; padding:12px 20px; border-top:1px solid var(--line); color:var(--text-2); line-height:1.6; }
-.status-dot { background:var(--ok); }
-.sidebar-foot.unhealthy .status-dot { background:var(--err); }
-.app-header { height:48px; min-height:48px; padding:0 24px; background:var(--bg); border-bottom:1px solid var(--line); }
-.header-page-title { font-size:14px; }
-.app-header > .ant-space { min-width:0; }
-.app-content { padding:24px; background:var(--bg); }
-.app-content.chat-content { padding:0; }
-.page-title h2 { color:var(--text); font-size:20px; letter-spacing:0; }
-.home-page { max-width:1440px; }
-.eyebrow { color:var(--accent); font-size:11px; font-weight:600; letter-spacing:1.6px; }
+.home-page { max-width: 1440px; }
+.eyebrow { color: var(--accent); font-size: 11px; font-weight: 600; letter-spacing: 1.6px; }
 
 /* 列表、筛选与操作 */
 .filter-bar { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }

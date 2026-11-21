@@ -34,7 +34,9 @@ def test_parent_window_preserves_search_clock(monkeypatch):
     hit = SimpleNamespace(text="match", extra={"parent_id": "parent"})
     db = Mock()
     db.query.return_value.filter_by.return_value.all.return_value = []
-    db.query.return_value.filter_by.return_value.first.return_value.text = "x" * 800 + "match"
+    db.query.return_value.filter.return_value.all.return_value = [
+        SimpleNamespace(id="parent", text="x" * 800 + "match")
+    ]
     retriever = hybrid.HybridRetriever(None, Mock(search=Mock(return_value=[hit])), None)
     result = retriever.retrieve(db, "tenant", "match", mode="bm25", log=False)
     assert hit.extra["matched_text"] == "match" and len(hit.text) == 505

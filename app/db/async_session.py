@@ -12,7 +12,7 @@ def async_engine():
     global _engine
     if _engine is None:
         url = make_url(shared_database_url())
-        drivers = {"postgresql": "postgresql+asyncpg", "sqlite": "sqlite+aiosqlite", "mysql": "mysql+aiomysql"}
+        drivers = {"postgresql": "postgresql+asyncpg", "sqlite": "sqlite+aiosqlite"}
         backend = url.get_backend_name()
         options = {"pool_size": 3, "max_overflow": 2} if backend != "sqlite" else {"poolclass": NullPool}
         _engine = create_async_engine(url.set(drivername=drivers[backend]), pool_pre_ping=True, **options)

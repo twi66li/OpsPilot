@@ -13,7 +13,15 @@ from app.db.base import SessionLocal
 from app.db.models import AgentRun, AgentRunEvent, ChatSession, SupportCase, User
 from app.services import agent_service
 from app.services.case_service import assert_editable
-from app.services.run_service import RunCancelled, RunRecorder, capture_run, check_cancelled, get_run, live_events
+from app.services.run_service import (
+    RunCancelled,
+    RunRecorder,
+    _write_lock,
+    capture_run,
+    check_cancelled,
+    get_run,
+    live_events,
+)
 from app.services.support_service import redact
 
 logger = logging.getLogger(__name__)
@@ -126,7 +134,7 @@ def execute(container, run_id):
 
 
 def read_events(run_id, tenant_id, user_id, after):
-    with SessionLocal() as db:
+    with _write_lock, SessionLocal() as db:
         run = get_run(db, tenant_id, run_id, user_id)
         if run is None:
             return [], {"type": "error", "message": "运行记录不可访问", "run_id": run_id}

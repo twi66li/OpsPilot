@@ -27,7 +27,8 @@ class _Span:
         if tracer._client is not None:
             try:
                 self._lf_span = tracer._client.span(name=name, metadata=metadata)
-            except Exception:
+            except Exception as exc:
+                logger.debug("langfuse_span_start_failed error_type=%s", type(exc).__name__)
                 self._lf_span = None
 
     def end(self, output: dict | None = None):
@@ -35,8 +36,8 @@ class _Span:
         if self._lf_span is not None:
             try:
                 self._lf_span.end(output=output or {}, metadata={**self.metadata, "duration_ms": round(duration_ms, 2)})
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("langfuse_span_end_failed error_type=%s", type(exc).__name__)
         if self._tracer.verbose:
             logger.info("[trace] span=%s dur=%.1fms meta=%s", self.name, duration_ms, self.metadata)
 

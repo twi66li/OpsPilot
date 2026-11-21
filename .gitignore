@@ -21,3 +21,7 @@ frontend/dist/
 
 frontend/test-results/
 frontend/playwright-report/
+
+# 运行日志与临时打包
+*.log
+*.zip

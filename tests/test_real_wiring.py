@@ -1,6 +1,7 @@
-"""T7 接线测试：真实模型/存储链路的装配语义（全部 Mock/假端点，不打真实 API）。"""
+"""接线测试：真实模型/存储链路的装配语义（全部 Mock/假端点，不打真实 API）。"""
 import os
 import tempfile
+from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
@@ -105,21 +106,16 @@ def test_strict_embedding_requires_key():
         get_embedding_provider(_settings(embedding_provider="openai", openai_api_key="", model_strict=True))
 
 
-def test_compose_carries_t7_passthrough():
+def test_default_compose_uses_the_local_postgres_stack():
     import yaml
 
-    doc = yaml.safe_load(open("docker-compose.yml", encoding="utf-8"))
-    env = doc["services"]["api"]["environment"]
-    text = "\n".join(f"{k}: {v}" for k, v in env.items())
-    for token in (
-        "opspilot_legacy_chunks",
-        "qwen3.7-text-embedding-flash",
-        "qwen3.7-text-rerank",
-        "MODEL_STRICT",
-        "dashscope.aliyuncs.com",
-    ):
-        assert token in text, token
+    default = yaml.safe_load(Path("docker-compose.yml").read_text(encoding="utf-8"))
+    local = yaml.safe_load(Path("compose.local.yml").read_text(encoding="utf-8"))
+    assert default["include"] == ["compose.local.yml"]
+    assert default["name"] == local["name"]
+    assert "mysql" not in local["services"]
+    api = local["services"]["api"]
+    env = api["environment"]
+    assert api["env_file"] == ".env"
+    assert env["DATABASE_URL"].startswith("postgresql+psycopg://")
     assert env["VECTOR_STORE_BACKEND"] == "milvus"
-    assert env["MILVUS_COLLECTION"].endswith("opspilot_legacy_chunks}")
-    assert env["EMBEDDING_DIM"].endswith("1024}")
-    assert env["CHAT_MODEL"] == "${CHAT_MODEL:-qwen3.8-max}"

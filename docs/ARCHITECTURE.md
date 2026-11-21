@@ -21,10 +21,11 @@ flowchart LR
     KB --> VEC & BM25
     AGENT --> RAG
     subgraph GRAPH[LangGraph 诊断工作流]
-        RI[route_intent] --> RET[retrieve] --> GR[grade]
-        GR -->|不足| RW[rewrite] --> RET
-        GR -->|充足| TOOLS[call_tools] --> GEN[generate] --> AG[approval_gate]
-        AG -->|interrupt 审批| CT[create_ticket]
+        RI[route_intent] -->|personal| PS[personal_support]
+        RI -->|native| NT[native_tools] --> PA[prepare_approval]
+        RI -->|pure| PR[pure_range_answer]
+        RI -->|rule| RET[retrieve] --> GEN[... generate] --> PA
+        PA --> AG[approval_gate] -->|interrupt 审批| CT[create_ticket]
     end
     AGENT --> GRAPH
     subgraph INFRA[基础设施]
@@ -49,32 +50,58 @@ flowchart LR
    - 可选重排：`heuristic`（词面重合度，离线可用）或 `cross_encoder`（sentence-transformers，惰性加载，失败自动退化）。
 3. **检索日志**：每次检索写入 `retrieval_logs`（模式/命中/得分/耗时），供效果分析。
 
+> 部署约束：BM25 索引保存在 API 进程内存（`app/rag/bm25.py`），启动时由 `kb_service` 从向量库已有分块全量重建；入库 worker、预算账本同样是进程内状态。因此当前只支持**单 API 实例 / 单 worker**。多实例需先把关键词检索移出进程（如 Milvus 2.5+ 的 BM25 稀疏向量）。
+
 不同检索方案的效果对比由 `python -m eval.run_eval` 自动完成（见 docs/EVAL.md）。
 
 ## 3. LangGraph 诊断工作流
 
-| 节点 | 职责 | 出边 |
+图定义见 `app/agent/graph.py`，`route_intent` 之后由 `select_path` 分成四条路径：
+
+```mermaid
+flowchart TD
+    S([START]) --> RI[route_intent]
+    RI -->|"带 support_context"| PS[personal_support] --> E([END])
+    RI -->|"AGENT_MODE=native"| NT[native_tools]
+    RI -->|"rule 且纯范围统计"| PR[pure_range_answer] --> E
+    RI -->|"AGENT_MODE=rule"| RET[retrieve] --> GR[grade]
+    GR -->|"不足且 iteration<2"| RW[rewrite] --> RET
+    GR -->|"充足/已到上限/范围缺口"| CT[call_tools] --> GEN[generate] --> PA[prepare_approval]
+    NT -->|answered| PA
+    NT -->|"其他结束原因"| E
+    PA --> AG[approval_gate]
+    AG -->|"已有审批决定"| TK[create_ticket] --> E
+    AG -->|"非建单意图"| E
+```
+
+| 路径 | 入口条件 | 说明 |
 | --- | --- | --- |
-| route_intent | 规则识别“创建工单/诊断”意图，并重置上一轮残留状态 | retrieve |
-| retrieve | 混合检索（首轮用原问题，补充轮用改写查询） | grade |
-| grade | LLM 判断文档是否足以回答；iteration 自增 | 不足且 iteration<2 → rewrite；否则 call_tools |
-| rewrite | 查询改写（补充同义词/术语） | retrieve（最多补充 1 轮） |
-| call_tools | 抽取错误码/服务名 → 调用指标查询 + 故障史工具，产出 tool_events | generate |
-| generate | 生成带引用 `[n]` 的回答；建单意图时生成工单草稿 | approval_gate |
-| approval_gate | 建单意图时 `interrupt()` 暂停图，等待人工审批 | 审批后 → create_ticket；否则 END |
-| create_ticket | 按审批决定创建工单（落库）或标记拒绝 | END |
+| personal | state 带 `support_context`（个人排障） | `support_service.run_personal`：原生工具循环，只开放资料检索与本人案例检索 |
+| native | `AGENT_MODE=native` | `tool_loop.run_tool_loop`：Function Calling，工具为 `search_runbook`/`delegate_retrieval`、`query_service_metrics`、`query_logs`、`query_fault_history`；需真实模型 |
+| pure | `AGENT_MODE=rule` 且策略为 `range_stats_direct` | 纯日志行范围统计，由确定性代码直接回答 |
+| rule | `AGENT_MODE=rule` | 规则链：检索 → 相关性判断 →（最多补充 1 轮改写检索）→ 指标/故障史工具 → 生成带 `[n]` 引用的回答 |
+
+| 节点 | 职责 |
+| --- | --- |
+| route_intent | 规则识别意图与证据策略，并重置上一轮残留状态 |
+| retrieve / grade / rewrite | 混合检索、LLM 判断证据是否充足、查询改写 |
+| call_tools | 抽取错误码/服务名 → 调用指标查询 + 故障史工具 |
+| generate | 生成带引用的回答；建单意图时生成工单草稿 |
+| prepare_approval | 建单意图时幂等创建 `approval_requests` 记录 |
+| approval_gate | 建单意图时 `interrupt()` 暂停图，等待人工审批 |
+| create_ticket | 按审批决定创建工单（落库）或标记拒绝 |
 
 **人工审批（human-in-the-loop）**：
 
-- 首次到达 approval_gate：`get_or_create` 生成 `approval_requests` 记录（幂等，防止恢复重放时重复创建）→ `interrupt(payload)` 暂停整图；
+- 首次到达 prepare_approval：`get_or_create` 生成 `approval_requests` 记录（幂等，防止恢复重放时重复创建）；approval_gate 随后 `interrupt(payload)` 暂停整图；
 - 客户端通过 `GET /api/agent/sessions/{id}/pending-approval` 查询待审批单；
 - 审批人调用 `POST /api/agent/approvals/{id}/decide`：服务端以 `Command(resume={"approved":..., "decided_by":...})` 恢复图执行 → approval_gate 重放时 `interrupt()` 直接返回审批决定 → create_ticket 落库并闭环。
 
-**检查点**以会话 ID 为线程标识。PostgreSQL 使用持久化 `PostgresSaver`，本地可通过 `CHECKPOINT_PATH` 使用 SQLite 检查点，离线测试使用内存检查点。
+**检查点**以会话 ID 为线程标识。PostgreSQL 使用持久化 `PostgresSaver`（基于 `psycopg_pool` 连接池，后台运行线程与请求线程不共用单连接），本地可通过 `CHECKPOINT_PATH` 使用 SQLite 检查点，离线测试使用内存检查点。
 
 工作台发起调查时，将请求和进展存入 `agent_runs` 与 `agent_run_events`。当前部署在单 API 实例内用后台线程执行，浏览器的 SSE 连接负责接收事件。断线后同一运行可按事件游标补读。服务重启时，启动流程重新接收尚在运行的后台任务，并从已提交的节点恢复。中断时尚未提交检查点的节点可能重跑。内存检查点模式可重新执行任务，但重启后只能从任务起点开始。
 
-## 4. 数据模型（PostgreSQL，兼容旧 MySQL 与离线 SQLite）
+## 4. 数据模型（PostgreSQL 与离线 SQLite）
 
 | 表 | 说明 |
 | --- | --- |

@@ -1,9 +1,10 @@
-"""SQLAlchemy 引擎与会话管理。生产用 MySQL，测试/开发可退化为 SQLite。"""
+"""SQLAlchemy 引擎与会话管理。生产用 PostgreSQL，测试/开发可退化为 SQLite。"""
 import os
 from pathlib import Path
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.pool import QueuePool
 
 from app.config import get_settings
 
@@ -14,14 +15,14 @@ class Base(DeclarativeBase):
 
 def _make_engine(database_url: str):
     if database_url.startswith("sqlite"):
-        # 支持 sqlite:///:memory:（配合 StaticPool 让多线程共享同一内存库）
         if ":memory:" in database_url or "mode=memory" in database_url:
-            from sqlalchemy.pool import StaticPool
-
+            # 共享内存库允许独立连接，避免一个会话退出时回滚另一个会话的事务。
+            limits = {} if "cache=shared" in database_url else {"pool_size": 1, "max_overflow": 0}
             return create_engine(
                 database_url,
                 connect_args={"check_same_thread": False},
-                poolclass=StaticPool,
+                poolclass=QueuePool,
+                **limits,
             )
         db_path = database_url.replace("sqlite:///", "", 1)
         parent = Path(db_path).parent

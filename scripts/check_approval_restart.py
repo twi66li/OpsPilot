@@ -19,15 +19,15 @@ from dotenv import dotenv_values
 
 BASE = "http://127.0.0.1:8000"
 DOCKER = shutil.which("docker") or r"D:\Docker\resources\bin\docker.exe"
+COMPOSE = [DOCKER, "compose", "-f", "compose.local.yml", "--profile", "app"]
 PROBE = """
 import hashlib,json
-from pathlib import Path
 from sqlalchemy import inspect,text
 from app.config import get_settings
 from app.container import get_container
 from app.db.base import engine
 s=get_settings(); c=get_container()
-result={'checkpointer':type(c.graph.checkpointer).__name__,'checkpoint_path':s.checkpoint_path,'strict':s.model_strict,'llm':type(c.llm).__name__,'mysql':engine.dialect.name}
+result={'checkpointer':type(c.graph.checkpointer).__name__,'strict':s.model_strict,'llm':type(c.llm).__name__,'database':engine.dialect.name}
 with engine.connect() as db:
     if payload.get('before'):
         before=payload['before']
@@ -44,7 +44,6 @@ if payload.get('session_id'):
     state=c.graph.get_state({'configurable':{'thread_id':payload['session_id']}})
     result['graph_next']=state.next
     result['graph_approval_id']=state.values.get('approval_id')
-    result['checkpoint_file_bytes']=Path(s.checkpoint_path).stat().st_size
 print('T9_PROBE '+json.dumps(result,ensure_ascii=False))
 """
 
@@ -64,7 +63,7 @@ def main():
         (report / name).write_text(re.sub(r"sk-[A-Za-z0-9_-]+", "[REDACTED]", content), encoding="utf-8")
 
     def docker(*args, input=None):
-        result = subprocess.run([DOCKER, "compose", *args], input=input, capture_output=True, text=True, encoding="utf-8", timeout=60)
+        result = subprocess.run([*COMPOSE, *args], input=input, capture_output=True, text=True, encoding="utf-8", timeout=60)
         if result.returncode:
             raise RuntimeError(f"Docker command failed: {args[0]}: {result.stderr}")
         return result.stdout + result.stderr if args[0] == "logs" else result.stdout
@@ -74,15 +73,15 @@ def main():
         line = next(line for line in output.splitlines() if line.startswith("T9_PROBE "))
         result = json.loads(line[len("T9_PROBE "):])
         save(name, result)
-        assert result["checkpointer"] == "SqliteSaver" and result["strict"]
-        assert result["mysql"] == "mysql" and result["llm"] == "OpenAIChatLLM"
+        assert result["checkpointer"] == "PostgresSaver" and result["strict"]
+        assert result["database"] == "postgresql" and result["llm"] == "OpenAIChatLLM"
         return result
 
     with httpx.Client(timeout=90) as client:
         def ready():
             for _ in range(45):
                 try:
-                    if client.get(BASE + "/health", timeout=2).status_code == 200:
+                    if client.get(BASE + "/ready", timeout=2).status_code == 200:
                         return
                 except httpx.HTTPError:
                     pass
@@ -111,7 +110,7 @@ def main():
             assert before == after  # 同一容器的真实进程重启，命名卷继续保留。
             started_after = subprocess.check_output([DOCKER, "inspect", "--format", "{{.State.StartedAt}}", after], text=True).strip()
             assert started_before != started_after
-            save(name, {"container_id": after, "command": "docker compose restart api", "exit_code": 0, "output": output, "started_before": started_before, "started_after": started_after, "ready_at": datetime.now(timezone.utc).isoformat()})
+            save(name, {"container_id": after, "command": "docker compose -f compose.local.yml --profile app restart api", "exit_code": 0, "output": output, "started_before": started_before, "started_after": started_after, "ready_at": datetime.now(timezone.utc).isoformat()})
 
         def start_flow(title, message, headers):
             sid = call("POST", "/api/sessions", headers, {"title": title})["id"]
@@ -132,7 +131,6 @@ def main():
             sid, aid = start_flow("T9跨重启批准", "order-service 超时，请创建工单跟进处理。", admin)
             paused = probe("paused_checkpoint.json", {"session_id": sid})
             assert paused["graph_next"] == ["approval_gate"] and paused["graph_approval_id"] == aid
-            assert paused["checkpoint_file_bytes"] > 0
             call("POST", f"/api/agent/approvals/{aid}/decide", viewer, {"approved": True}, expected=403)
             call("POST", f"/api/agent/approvals/{aid}/decide", outsider, {"approved": True}, expected=404)
             call("GET", f"/api/sessions/{sid}", outsider, expected=404)
@@ -163,7 +161,7 @@ def main():
             call("POST", f"/api/agent/approvals/{aid_reject}/decide", admin, {"approved": True}, expected=409)
             final = probe("final_backend.json", {"approval_ids": [aid, aid_reject], "session_id": sid_reject})
             assert final["ticket_counts"] == {aid: 1, aid_reject: 0} and final["graph_next"] == []
-            summary.update(status="passed_pending_zcode_review", approved_approval=aid, rejected_approval=aid_reject, ticket_id=ticket_id, concurrent_requests=4, unique_ticket_count=1, rejected_ticket_count=0, real_api_restarts=2, cross_tenant_blocked=True, viewer_blocked=True, legacy_migration_preserved=migration.get("legacy_rows_unchanged"), scope="单API进程 + 文件型SqliteSaver + 实际MySQL/Redis/Qdrant及真实模型；非多实例部署或分布式原子事务")
+            summary.update(status="passed_pending_zcode_review", approved_approval=aid, rejected_approval=aid_reject, ticket_id=ticket_id, concurrent_requests=4, unique_ticket_count=1, rejected_ticket_count=0, real_api_restarts=2, cross_tenant_blocked=True, viewer_blocked=True, legacy_migration_preserved=migration.get("legacy_rows_unchanged"), scope="单 API 进程，使用 PostgreSQL 检查点、Redis、Milvus 与真实模型")
         except Exception as exc:
             summary.update(status="failed", error_type=type(exc).__name__, error=str(exc))
         finally:

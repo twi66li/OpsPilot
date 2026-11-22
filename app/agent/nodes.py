@@ -8,6 +8,15 @@ import logging
 import re
 
 from app.agent.llm import detect_intent
+from app.agent.retrieval_subgraph import (
+    grade_docs,
+    retrieve_docs,
+    rewrite_query,
+)
+from app.agent.retrieval_subgraph import (
+    route_after_grade as route_retrieval_after_grade,
+)
+from app.agent.state import reset_turn_state
 from app.agent.tools import DRILL_TOOLS, make_tool_executor, run_diagnostic_tools
 from app.services.observability import estimate_tokens, get_tracer
 from app.services.run_service import answer_stream
@@ -127,32 +136,11 @@ class DiagnosisNodes:
     # ---- 意图路由 ----
     def route_intent(self, state):
         intent = detect_intent(state["question"])
-        # 重置上一轮残留状态，保证同会话多次提问互不污染
+        # 重置上一轮残留状态（与 state.py 同源定义），保证同会话多次提问互不污染
         return {
+            **reset_turn_state(),
             "intent": intent,
             "strategy": self._evidence_strategy(state["question"], intent),
-            "rewritten_query": "",
-            "docs_sufficient": False,
-            "iteration": 0,
-            "approval": None,
-            "approval_id": None,
-            "ticket_id": None,
-            "tool_events": [],
-            "fault_records": [],
-            "metrics": {},
-            "answer": "",
-            "hits": [],
-            "citations": [],
-            "citations_indexed": [],
-            "used_evidence": None,
-            "range_assembly": None,
-            "range_coverage": None,
-            "range_stats": None,
-            "generation_policy": None,
-            "ticket_draft": None,
-            "support_report": None,
-            "events": [],
-            "end_reason": "answered",
         }
 
     # 证据路径策略（P1-QUALITY-20261102 必做A）：显式行范围 + 纯统计诉求先走
@@ -262,83 +250,18 @@ class DiagnosisNodes:
             lines.append("来源：知识库文档《" + "》《".join(titles) + "》（编号证据 [1] 为上述行范围的原文摘录）。")
         return "\n".join(lines)
 
-    # ---- 检索 ----
+    # ---- 检索-评估-改写闭环子图委托（实现归属 app/agent/retrieval_subgraph.py） ----
     def retrieve(self, state):
-        query = state.get("rewritten_query") or state["question"]
-        settings = self.container.settings
-        with self.container.db_session() as db, self.tracer.span("retrieval", mode=settings.retrieval_mode, tenant_id=state["tenant_id"]) as span:
-            result = self.container.retriever.retrieve(db, state["tenant_id"], query, mode=settings.retrieval_mode)
-            span.metadata["hits"] = len(result.hits)
-            span.metadata["reranked"] = result.reranked
-            span.metadata["latency_ms"] = round(result.latency_ms, 1)
-        hits = [h.to_dict() for h in result.hits]
-        event = {
-            "type": "retrieval",
-            "mode": result.mode,
-            "query": query,
-            "latency_ms": round(result.latency_ms, 1),
-            "reranked": result.reranked,
-            "hits": hits[:5],
-            "round": state.get("iteration", 0) + 1,
-            "strategy": state.get("strategy", "hybrid"),
-        }
-        if state.get("strategy") == "range_hybrid":
-            # 混合诉求组合的策略说明（P1-QUALITY-20261102 必做A）：统计已由程序在
-            # 权威文档上完成；检索仅为语义解释补充上下文
-            event["why_retrieval"] = ("显式行范围的统计已由程序在租户文档权威原文上完成（不消耗检索）；"
-                                      "本查询还包含语义解释诉求，混合检索用于补充相关上下文")
-        return {
-            "hits": hits,
-            "events": [event],
-        }
+        return retrieve_docs(self.container, self.tracer, state)
 
-    # ---- 相关性判断（决定是否补充检索） ----
     def grade(self, state):
-        sufficient = self.container.llm.is_sufficient(state["question"], state.get("hits", []))
-        iteration = state.get("iteration", 0) + 1
-        event = {"type": "grade", "docs_sufficient": sufficient, "iteration": iteration}
-        # "相关"与"足以回答"分开（P1-ARAG-20261102）：问题引用显式行范围时，
-        # 目标行覆盖必须实际参与充足性决策——有相关日志但缺目标行段不能判充足。
-        # 缺失/不完整行的定向补取走租户文档读取（确定性来源，免 embedding/rerank）；
-        # 文档亦无此行时无法靠再次检索补齐，带缺口进入生成并由回答如实说明。
-        range_coverage = None
-        from app.rag.evidence import _resolve_target_lines, parse_line_targets, tenant_docs
-
-        targets = parse_line_targets(state["question"])
-        if targets:
-            with self.container.db_session() as db:
-                docs = tenant_docs(db, state["tenant_id"])
-            found, incomplete = _resolve_target_lines(targets, state.get("hits", []), docs)
-            missing = [t for t in targets if t not in found]
-            range_coverage = {"targets": len(targets), "resolved": len(found),
-                              "missing": missing, "incomplete": incomplete,
-                              "sufficient": not missing and not incomplete}
-            if missing or incomplete:
-                sufficient = False
-                event["range_coverage"] = {**range_coverage, "decision": "insufficient_until_complete"}
-            else:
-                event["range_coverage"] = range_coverage
-        event["docs_sufficient"] = sufficient
-        return {"docs_sufficient": sufficient, "iteration": iteration,
-                "range_coverage": range_coverage, "events": [event]}
+        return grade_docs(self.container, state)
 
     def route_after_grade(self, state):
-        if state.get("iteration", 0) >= 2:
-            return "tools"
-        cov = state.get("range_coverage")
-        if cov and (cov.get("missing") or cov.get("incomplete")):
-            # 缺目标行段：定向补取已按文档读取完成且为确定性来源，再次整套检索
-            # 不会改变文档内容——带缺口进入生成，由回答如实说明，不做无目的补查
-            return "tools"
-        if state.get("docs_sufficient"):
-            return "tools"
-        return "rewrite"
+        return route_retrieval_after_grade(state)
 
-    # ---- 查询改写 → 补充检索 ----
     def rewrite(self, state):
-        with self.tracer.span("rewrite_query"):
-            rewritten = self.container.llm.rewrite_query(state["question"])
-        return {"rewritten_query": rewritten, "events": [{"type": "rewrite", "rewritten": rewritten}]}
+        return rewrite_query(self.container, self.tracer, state)
 
     # ---- 工具调用 ----
     def call_tools(self, state):
@@ -374,9 +297,10 @@ class DiagnosisNodes:
                 range_stats = compute_range_stats(
                     state["question"], state.get("hits", []), db=db, tenant_id=state["tenant_id"])
         with self.tracer.span("generate") as span:
+            tool_events = list(state.get("tool_events", []))
             if range_stats is not None:
                 stat_summary = self._stats_summary(range_stats)
-                state.setdefault("tool_events", []).append({
+                tool_events.append({
                     "name": "compute_log_stats", "status": "ok",
                     "args": {"ranges": range_stats.get("ranges"), "conditions": [
                         {"kind": c["kind"], "value": c["value"]} for c in range_stats.get("conditions", [])]},
@@ -389,7 +313,7 @@ class DiagnosisNodes:
                     for line in it["text"].splitlines() if line.strip()) for it in evidence_items)
             decision_question = re.search(r"根因|硬件|换件|宕机|中断|崩溃|运行状态", state["question"])
             extra_evidence = state.get("fault_records") or any(
-                e.get("name") != "compute_log_stats" for e in state.get("tool_events", []))
+                e.get("name") != "compute_log_stats" for e in tool_events)
             generation_policy = "llm"
             if range_stats and log_only and decision_question and not extra_evidence:
                 generation_policy = "log_only_evidence_boundary"
@@ -404,10 +328,10 @@ class DiagnosisNodes:
             else:
                 with answer_stream():
                     answer = self.container.llm.generate_answer(
-                        state["question"], state.get("hits", []), state.get("tool_events", []), state.get("fault_records", []), history,
+                        state["question"], state.get("hits", []), tool_events, state.get("fault_records", []), history,
                         evidence_items=evidence_items, range_stats=range_stats,
                     )
-            metric_evidence = [event["summary"] for event in state.get("tool_events", []) if event["name"] == "query_service_metrics"]
+            metric_evidence = [event["summary"] for event in tool_events if event["name"] == "query_service_metrics"]
             if metric_evidence:
                 answer += "\n\n指标证据：\n" + "\n".join(metric_evidence)
             span.metadata["answer_chars"] = len(answer)

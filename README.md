@@ -84,12 +84,16 @@ cd ..
 docker compose -f compose.local.yml --profile app --profile observability up -d --build
 ```
 
-启动时先初始化手册和历史故障，再启动API，避免两个模型进程同时持有同一预算账本。管理员按环境配置创建；额外固定演示账号仅在本机显式执行 `python -m scripts.seed --demo-users` 时创建。
+本地 Compose 启动前先初始化手册和历史故障。管理员按环境配置创建；额外固定演示账号仅在本机显式执行 `python -m scripts.seed --demo-users` 时创建。
 
 `docker-compose.yml` 引用 `compose.local.yml`，本地联调统一使用 PostgreSQL 与 Milvus 2.4.15。启动完整工作台时启用 `app` 和 `observability` profiles。业务数据库、Milvus 与原文件均需持久化，原文件默认放在 `data/knowledge`。
 
 > [!IMPORTANT]
-> BM25 索引、入库 worker 与模型预算账本都在 API 进程内，当前只支持**单 API 实例 / 单 worker** 部署。复杂 OCR 在本机或独立环境执行。
+> 默认使用单 API 进程。复杂 OCR 在本机或独立环境执行。
+
+双副本联调需在两个 API 进程上都设置 `MULTI_REPLICA_ENABLED=true` 和 `DB_REPLICA_BUDGET=2`。两个进程共享 PostgreSQL、Milvus collection、Redis、知识文件目录 `KB_STORAGE_PATH`、JWT 密钥及预算账本作用域。默认配额为每副本业务池 8 条、检查点池 4 条，两个副本合计 24 条，另外预留 6 条管理连接。跨副本恢复使用后台 SSE 调查和持久化事件游标。
+
+从 JSONL 预算账本升级 PostgreSQL 部署时，先用 `python -m scripts.migrate_budget_ledger --help` 核对迁移参数，确认原有用量与未结算预占导入后再启用数据库账本。单副本仍可显式使用 `BUDGET_LEDGER_BACKEND=jsonl`。
 
 使用宿主机运行 API 时，设置 `VECTOR_STORE_BACKEND=milvus` 和 `MILVUS_URI=http://127.0.0.1:19531` 连接本机 Compose 服务。离线开发可显式选择 `VECTOR_STORE_BACKEND=memory`。
 

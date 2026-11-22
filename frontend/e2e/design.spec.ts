@@ -792,3 +792,29 @@ test('演练调查示例使用当前配置的服务名',async({page})=>{
   await page.getByRole('button',{name:'填入调查示例'}).click();
   await expect(page.getByLabel('调查问题')).toHaveValue(/orders-drill-service/);
 });
+
+
+test('停止演练调查即时反馈并请求当前运行',async({page})=>{
+  await fixture(page,{role:'admin'});
+  await page.route('**/api/workspace/sessions?*',r=>r.fulfill({json:{items:[],total:0}}));
+  await page.route('**/api/sessions',r=>r.fulfill({json:{id:'t78-session',title:'演练调查'}}));
+  await page.route('**/api/remediations/actions',r=>r.fulfill({json:{enabled:false,service:'order-service'}}));
+  const cancel=page.waitForRequest(r=>r.url().endsWith('/api/agent/runs/design-run/cancel'));
+  await page.addInitScript(()=>{
+    const original=window.fetch;
+    window.fetch=async(input,init)=>{
+      if(String(input)!=='/api/agent/chat/stream')return original(input,init);
+      return new Response(new ReadableStream({start(controller){
+        const event={type:'connected',run_id:'design-run'};
+        controller.enqueue(new TextEncoder().encode('data: '+JSON.stringify(event)+'\n\n'));
+        init?.signal?.addEventListener('abort',()=>controller.close(),{once:true});
+      }}),{headers:{'Content-Type':'text/event-stream'}});
+    };
+  });
+  await page.goto('/investigation');
+  await page.getByLabel('调查问题').fill('检查演练连接池');
+  await page.getByRole('button',{name:'开始调查'}).click();
+  await page.getByRole('button',{name:'停止调查'}).click();
+  await expect(page.getByText('已请求停止',{exact:true})).toBeVisible({timeout:2000});
+  expect((await cancel).method()).toBe('POST');
+});

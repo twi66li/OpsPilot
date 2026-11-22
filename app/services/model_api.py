@@ -12,10 +12,19 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import urlsplit
 
 import httpx
-from openai import OpenAI
+from openai import AsyncOpenAI, OpenAI
 
 from app.services.budget import BudgetExceededError, BudgetLedgerError, get_budget_guard
-from app.services.run_service import check_cancelled, emit, live_model_stream, push_answer, push_live, tool_time_left
+from app.services.run_service import (
+    check_cancelled,
+    current_run,
+    emit,
+    live_model_stream,
+    push_answer,
+    push_live,
+    run_cancelable,
+    tool_time_left,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -196,11 +205,40 @@ class ChatAPI:
             raise BudgetLedgerError(
                 "真实对话模型入口未配置持久预算账本（BUDGET_LEDGER_BACKEND/BUDGET_LEDGER_PATH/BUDGET_TOKEN_LIMIT），拒绝启动"
             )
-        self.client = OpenAI(api_key=api_key, base_url=base_url or None, timeout=60, max_retries=0)
+        self._client_options = dict(api_key=api_key, base_url=base_url or None, timeout=60, max_retries=0)
+        self.client = OpenAI(**self._client_options)
         self.model = model
         self.is_dashscope = "aliyuncs.com" in (base_url or "")
         self.calls: list[dict] = []
         self._quota_exhausted = set()
+
+    def _completion(self, on_chunk=None, **params):
+        if on_chunk is not None:
+            params.update(stream=True, stream_options={"include_usage": True})
+
+        if getattr(current_run(), "cancel_signal", None) is None:
+            response = self.client.chat.completions.create(**params)
+            if on_chunk is None:
+                return response
+            with response as stream:
+                for chunk in stream:
+                    on_chunk(chunk)
+            return None
+
+        async def request():
+            options = dict(self._client_options)
+            if (remaining := tool_time_left()) is not None:
+                options["timeout"] = min(options["timeout"], remaining)
+            async with AsyncOpenAI(**options) as client:
+                response = await client.chat.completions.create(**params)
+                if on_chunk is None:
+                    return response
+                async with response as stream:
+                    async for chunk in stream:
+                        on_chunk(chunk)
+            return None
+
+        return run_cancelable(request)
 
     def _thinking_cap(self, model: str) -> int:
         # 可计费推理预留按模型配置（探针实测 2.4t-a95b 强制思考且 usage 返回 reasoning_tokens）
@@ -286,30 +324,24 @@ class ChatAPI:
             emit("model_input", {"kind": "chat", "model": model, "system": system, "user": user})
             check_cancelled()
             dispatched = True
-            with self.client.chat.completions.create(
-                model=model,
-                messages=messages,
-                temperature=0,
-                max_tokens=output_cap,
-                stream=True,
-                stream_options={"include_usage": True},
-                **params,
-            ) as stream:
-                for chunk in stream:
-                    check_cancelled()
-                    if chunk.usage:
-                        record["usage"] = chunk.usage.model_dump()
-                    if not chunk.choices:
-                        continue
-                    choice = chunk.choices[0]
-                    content = choice.delta.content
-                    if content:
-                        if record["first_token_ms"] is None:
-                            record["first_token_ms"] = (time.perf_counter() - started) * 1000
-                        text.append(content)
-                        if not json_mode:
-                            push_answer(content)
-                    finish = choice.finish_reason or finish
+            def consume(chunk):
+                nonlocal finish
+                if chunk.usage:
+                    record["usage"] = chunk.usage.model_dump()
+                check_cancelled()
+                if not chunk.choices:
+                    return
+                choice = chunk.choices[0]
+                content = choice.delta.content
+                if content:
+                    if record["first_token_ms"] is None:
+                        record["first_token_ms"] = (time.perf_counter() - started) * 1000
+                    text.append(content)
+                    if not json_mode:
+                        push_answer(content)
+                finish = choice.finish_reason or finish
+
+            self._completion(consume, model=model, messages=messages, temperature=0, max_tokens=output_cap, **params)
             if finish == "length" or not text:
                 raise ValueError("模型输出被截断或为空")
             record.update(status="ok", finish_reason=finish)
@@ -361,7 +393,7 @@ class ChatAPI:
                 result = self._stream_tool_turn(model, messages, tools, allow_tools, record, started)
                 record["status"] = "ok"
                 return result
-            response = self.client.chat.completions.create(
+            response = self._completion(
                 model=model,
                 messages=messages,
                 tools=tools,
@@ -409,42 +441,43 @@ class ChatAPI:
     def _stream_tool_turn(self, model, messages, tools, allow_tools, record, started):
         content, calls, finish = [], {}, None
         push_live({"type": "answer_reset"})
-        with self.client.chat.completions.create(
+        def consume(chunk):
+            nonlocal finish
+            if chunk.usage:
+                record["usage"] = chunk.usage.model_dump()
+            check_cancelled()
+            if not chunk.choices:
+                return
+            choice = chunk.choices[0]
+            finish = choice.finish_reason or finish
+            delta = choice.delta
+            if delta.content:
+                record.setdefault("first_token_ms", (time.perf_counter() - started) * 1000)
+                content.append(delta.content)
+                push_live({"type": "token", "delta": delta.content})
+            for update in delta.tool_calls or []:
+                call = calls.setdefault(
+                    update.index, {"id": "", "type": "function", "function": {"name": "", "arguments": ""}}
+                )
+                call["id"] += update.id or ""
+                if update.function:
+                    call["function"]["name"] += update.function.name or ""
+                    call["function"]["arguments"] += update.function.arguments or ""
+
+        self._completion(
+            consume,
             model=model,
             messages=messages,
             tools=tools,
             tool_choice="auto" if allow_tools else "none",
             temperature=0,
             max_tokens=_CHAT_OUTPUT_CAP,
-            stream=True,
-            stream_options={"include_usage": True},
             **(
                 {"extra_body": {"enable_thinking": False}}
                 if self.is_dashscope and model not in _THINKING_DISABLE_UNSUPPORTED
                 else {}
             ),
-        ) as stream:
-            for chunk in stream:
-                check_cancelled()
-                if chunk.usage:
-                    record["usage"] = chunk.usage.model_dump()
-                if not chunk.choices:
-                    continue
-                choice = chunk.choices[0]
-                finish = choice.finish_reason or finish
-                delta = choice.delta
-                if delta.content:
-                    record.setdefault("first_token_ms", (time.perf_counter() - started) * 1000)
-                    content.append(delta.content)
-                    push_live({"type": "token", "delta": delta.content})
-                for update in delta.tool_calls or []:
-                    call = calls.setdefault(
-                        update.index, {"id": "", "type": "function", "function": {"name": "", "arguments": ""}}
-                    )
-                    call["id"] += update.id or ""
-                    if update.function:
-                        call["function"]["name"] += update.function.name or ""
-                        call["function"]["arguments"] += update.function.arguments or ""
+        )
         if finish == "length" or not (content or calls):
             raise ValueError("模型工具调用输出为空或被截断")
         result = {"role": "assistant", "content": "".join(content)}
@@ -483,15 +516,19 @@ class RerankAPI:
             check_cancelled()
             remaining = tool_time_left()
             dispatched = True
-            response = self.client.post(
-                self.url,
-                **({"timeout": remaining} if remaining is not None else {}),
-                json={
-                    "model": self.model,
-                    "input": {"query": query, "documents": [c.text for c in chunks]},
-                    "parameters": {"top_n": min(top_k, len(chunks))},
-                },
-            )
+            payload = {
+                "model": self.model,
+                "input": {"query": query, "documents": [c.text for c in chunks]},
+                "parameters": {"top_n": min(top_k, len(chunks))},
+            }
+            if getattr(current_run(), "cancel_signal", None) is not None:
+                async def request():
+                    async with httpx.AsyncClient(headers=self.client.headers, timeout=min(60, remaining) if remaining else 60) as client:
+                        return await client.post(self.url, json=payload)
+
+                response = run_cancelable(request)
+            else:
+                response = self.client.post(self.url, json=payload, **({"timeout": remaining} if remaining is not None else {}))
             response.raise_for_status()
             body = response.json()
             rows = body["output"]["results"]

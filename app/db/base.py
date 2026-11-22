@@ -3,9 +3,10 @@
 import os
 import random
 import time
+from contextlib import contextmanager
 from pathlib import Path
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, text
 from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.pool import QueuePool
@@ -111,11 +112,36 @@ def get_db():
         db.close()
 
 
+@contextmanager
+def postgres_lock(key: str, *, blocking=True):
+    """持有 PostgreSQL 会话锁，在调用方多个事务之间协调副本。"""
+    if engine.dialect.name != "postgresql":
+        yield True
+        return
+    with engine.connect() as connection:
+        params = {"key": key}
+        while True:
+            acquired = connection.scalar(text("SELECT pg_try_advisory_lock(hashtextextended(:key, 0))"), params)
+            connection.commit()
+            if acquired or not blocking:
+                break
+            # 等待者要结束事务，以免阻塞持锁副本创建检查点并发索引。
+            time.sleep(0.1)
+        try:
+            yield acquired
+        finally:
+            if acquired:
+                connection.execute(text("SELECT pg_advisory_unlock(hashtextextended(:key, 0))"), params)
+                connection.commit()
+
+
 def init_db() -> None:
     from alembic import command
     from alembic.config import Config
 
     config = Config(str(Path(__file__).resolve().parents[2] / "alembic.ini"))
     with engine.begin() as connection:
+        if engine.dialect.name == "postgresql":
+            connection.execute(text("SELECT pg_advisory_xact_lock(hashtextextended('opspilot:migrations', 0))"))
         config.attributes["connection"] = connection
         command.upgrade(config, "head")

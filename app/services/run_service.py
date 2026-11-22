@@ -1,5 +1,6 @@
 """按 run_id 记录运行事件；上下文跟随执行线程，迟到的只读请求用量仍可追加。"""
 
+import asyncio
 import copy
 import hashlib
 import logging
@@ -109,8 +110,33 @@ def check_cancelled():
     check_lease()
     recorder = current_run()
     signal = getattr(recorder, "cancel_signal", None)
-    if signal and signal.is_set():
-        raise RunCancelled("用户已停止本次运行")
+    if signal is not None:
+        poll = getattr(recorder, "poll_cancel", None)
+        if not signal.is_set() and poll is not None:
+            poll()
+        if signal.is_set():
+            raise RunCancelled("用户已停止本次运行")
+
+
+def run_cancelable(operation):
+    """等待当前运行的异步网络操作，取消时等待它退出并关闭其响应。"""
+    async def wait():
+        check_cancelled()
+        task = asyncio.create_task(operation())
+        try:
+            while not task.done():
+                check_cancelled()
+                tool_time_left()
+                await asyncio.wait({task}, timeout=0.1)
+            result = task.result()
+            check_cancelled()
+            return result
+        finally:
+            if not task.done():
+                task.cancel()
+            await asyncio.gather(task, return_exceptions=True)
+
+    return asyncio.run(wait())
 
 
 def request_cancel(db, run):
@@ -121,10 +147,6 @@ def request_cancel(db, run):
 
     if run.status != "running":
         return run.status
-    signal = _cancel_signals.get(run.id)
-    if signal:
-        signal.set()
-
     def _apply():
         try:
             db.execute(
@@ -143,6 +165,9 @@ def request_cancel(db, run):
 
     run_with_sqlite_retry(_apply)
     db.refresh(run)
+    signal = _cancel_signals.get(run.id)
+    if signal is not None and run.status == "cancel_requested":
+        signal.set()
     return run.status
 
 
@@ -264,6 +289,24 @@ class RunRecorder:
         self._session_factory = session_factory
         self.lease_lost = threading.Event()
         self.cancel_signal = _cancel_signals.setdefault(run_id, threading.Event())
+        self._next_cancel_poll = 0.0
+
+    def poll_cancel(self):
+        now = time.monotonic()
+        if now < self._next_cancel_poll:
+            return
+        self._next_cancel_poll = now + 0.25
+        from sqlalchemy import select
+
+        from app.db.base import SessionLocal
+        from app.db.models import AgentRun
+
+        factory = self._session_factory or SessionLocal
+        with factory() as db:
+            if _dialect_name(db) == "postgresql":
+                status = db.scalar(select(AgentRun.status).where(AgentRun.id == self.id))
+                if status == "cancel_requested":
+                    self.cancel_signal.set()
 
     @property
     def has_lease(self) -> bool:
@@ -438,9 +481,12 @@ class RunRecorder:
                 row = lock_run_row(db, self.id, self.tenant_id)
                 if row is None:
                     raise LookupError(f"AgentRun 不存在: {self.id}")
+                now = _now()
                 if self.has_lease:
                     if (
-                        row.lease_owner != self.lease_owner
+                        row.lease_expires_at is None
+                        or row.lease_expires_at <= now
+                        or row.lease_owner != self.lease_owner
                         or row.lease_token != self.lease_token
                         or row.status not in _ACTIVE_RUN_STATUSES
                     ):
@@ -451,15 +497,20 @@ class RunRecorder:
                             f"actual=({row.lease_owner}, {row.lease_token}, status={row.status})"
                         )
                 assigned_seq = None
-                now = _now()
                 values = {"updated_at": now}
                 if event:
                     assigned_seq = (row.event_seq or 0) + 1
                     values["event_seq"] = assigned_seq
                 if result is not None:
                     data = copy.deepcopy(row.data)
-                    data["result"] = {**data.get("result", {}), **result}
                     cancelled = self.cancel_signal.is_set() or row.status == "cancel_requested"
+                    if cancelled:
+                        reason = result.get("end_reason") if result.get("status") == "cancelled" else None
+                        data["result"] = {"status": "cancelled", "end_reason": reason or "user_cancelled"}
+                    else:
+                        data["result"] = {**data.get("result", {}), **result}
+                    if cancelled and event and event["kind"] == "finished":
+                        event["detail"] = {"status": "cancelled"}
                     new_status = (
                         "cancelled"
                         if cancelled

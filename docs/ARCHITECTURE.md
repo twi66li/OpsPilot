@@ -50,7 +50,7 @@ flowchart LR
    - 可选重排：`heuristic`（词面重合度，离线可用）或 `cross_encoder`（sentence-transformers，惰性加载，失败自动退化）。
 3. **检索日志**：每次检索写入 `retrieval_logs`（模式/命中/得分/耗时），供效果分析。
 
-> 部署约束：BM25 索引保存在 API 进程内存（`app/rag/bm25.py`），启动时由 `kb_service` 从向量库已有分块全量重建；入库 worker、预算账本同样是进程内状态。因此当前只支持**单 API 实例 / 单 worker**。多实例需先把关键词检索移出进程（如 Milvus 2.5+ 的 BM25 稀疏向量）。
+> 默认单 API 进程。启用双副本后，两个进程共享 PostgreSQL 租约队列、检查点与预算账本。BM25 仍在进程内按 PostgreSQL 中的有效资料版本重建，两路检索使用同一 Milvus 分块。SSE 可在任一副本按持久化游标补读。
 
 不同检索方案的效果对比由 `python -m eval.run_eval` 自动完成（见 docs/EVAL.md）。
 

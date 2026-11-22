@@ -88,8 +88,9 @@ def get_cache(settings=None):
             _cache_instance = RedisCache(settings.redis_url)
             logger.info("Redis 缓存已连接")
         except Exception as exc:
-            if getattr(settings, "model_strict", False) or getattr(settings, "app_env", "development") == "production":
-                raise RuntimeError(f"model_strict 模式下 Redis 不可达: {exc}") from exc
+            if (getattr(settings, "model_strict", False) or getattr(settings, "multi_replica_enabled", False)
+                    or getattr(settings, "app_env", "development") == "production"):
+                raise RuntimeError("当前部署要求 Redis 可用") from exc
             logger.warning("Redis 不可达(%s)，使用进程内缓存", exc)
             _cache_instance = InMemoryCache()
     return _cache_instance

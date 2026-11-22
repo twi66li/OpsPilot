@@ -3,7 +3,7 @@
 import logging
 import time
 import uuid
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, nullcontext
 from pathlib import Path
 
 import structlog
@@ -29,7 +29,7 @@ from app.api import (
 from app.auth.router import router as auth_router
 from app.auth.security import hash_password, verify_password
 from app.config import get_settings
-from app.db.base import SessionLocal, init_db
+from app.db.base import SessionLocal, init_db, postgres_lock
 from app.db.models import RemediationRequest, Tenant, User
 from app.services import kb_service
 from app.services.logging_setup import configure_logging
@@ -44,7 +44,9 @@ async def lifespan(_: FastAPI):
 
     try:
         init_db()
-        bootstrap()
+        lock = postgres_lock("opspilot:bootstrap") if get_settings().multi_replica_enabled else nullcontext()
+        with lock:
+            bootstrap()
         from app.services.ingestion_service import start_worker
 
         start_worker()
@@ -88,19 +90,17 @@ def bootstrap() -> None:
             db.commit()
         from app.db.models import AgentRun
 
-        db.query(AgentRun).filter(
-            AgentRun.status.in_(["running", "cancel_requested"]),
-            AgentRun.data["background"].as_boolean().is_not(True),
-        ).update(
-            {"status": "interrupted"}, synchronize_session=False
-        )
+        if not settings.multi_replica_enabled:
+            db.query(AgentRun).filter(
+                AgentRun.status.in_(["running", "cancel_requested"]),
+                AgentRun.data["background"].as_boolean().is_not(True),
+            ).update({"status": "interrupted"}, synchronize_session=False)
+            db.query(RemediationRequest).filter_by(status="running").update(
+                {"status": "interrupted", "result": {"message": "服务重启中断了执行，外部最终状态需重新调查核对"}},
+                synchronize_session=False,
+            )
         db.commit()
         container = _build_container()
-        db.query(RemediationRequest).filter_by(status="running").update(
-            {"status": "interrupted", "result": {"message": "服务重启中断了执行，外部最终状态需重新调查核对"}},
-            synchronize_session=False,
-        )
-        db.commit()
         kb_service.warm_indexes(db, container)
         from app.services.official_library import ensure_library
 

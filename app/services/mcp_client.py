@@ -6,7 +6,7 @@ from pathlib import Path
 from mcp import Client, StdioServerParameters
 
 from app.auth.security import create_access_token
-from app.services.run_service import emit, tool_time_left
+from app.services.run_service import LeaseLostError, RunCancelled, emit, run_cancelable, tool_time_left
 
 OBSERVABILITY_TOOLS = {"query_logs", "query_service_metrics"}
 
@@ -45,10 +45,10 @@ def call_observability_tool(settings, user_id, tenant_id, name, args, evaluation
                 }}
 
     try:
-        result = asyncio.run(call())
+        result = run_cancelable(call)
         emit("mcp_call", {"name": name, "status": result.get("status"), **result["mcp"]})
         return result
-    except TimeoutError:
+    except (TimeoutError, LeaseLostError, RunCancelled):
         raise
     except Exception as exc:
         emit("mcp_call", {"name": name, "status": "unavailable", "error_type": type(exc).__name__})

@@ -27,6 +27,7 @@ export default function Investigation({onSource, canApprove, initialId, initialR
   const [runId, setRunId] = useState(''), [trace, setTrace] = useState<Run | null>(null);
   const [repairEnabled, setRepairEnabled] = useState(false), [repairOpen, setRepairOpen] = useState(false);
   const [drillService, setDrillService] = useState('');
+  const [cancelling, setCancelling] = useState(false);
   const [repairReason, setRepairReason] = useState(''), [repairBusy, setRepairBusy] = useState(false);
   const controller = useRef<AbortController | null>(null), bottom = useRef<HTMLDivElement>(null);
   const [page,setPage]=useState(1),[total,setTotal]=useState(0),[search,setSearch]=useState('');
@@ -41,7 +42,7 @@ export default function Investigation({onSource, canApprove, initialId, initialR
   }, []);
   useEffect(() => {bottom.current?.scrollIntoView({behavior: 'smooth', block: 'nearest'});}, [messages]);
   useEffect(()=>{if(initialId&&initialId!==sessionId)void selectSession(initialId);},[initialId]);
-  function fresh() {setSessionId(''); setMessages([]); setHits([]); setEvents([]); setApproval(null); setTrace(null); setRunId('');opened?.('');}
+  function fresh() {setSessionId(''); setMessages([]); setHits([]); setEvents([]); setApproval(null); setTrace(null); setRunId('');setCancelling(false);opened?.('');}
   function receiveRunEvent(event: AgentEvent, answerIndex: number) {
     if (event.run_id) setRunId(event.run_id);
     if (['tool', 'node_status', 'tool_start', 'tool_end', 'error', 'reconnecting', 'connected', 'resumed'].includes(event.type)) {
@@ -119,9 +120,20 @@ export default function Investigation({onSource, canApprove, initialId, initialR
     } finally {
       if(controller.current===subscription) {
         setBusy(false);
+        setCancelling(false);
         if(receivedRunId && !subscription.signal.aborted)
           api<Run>('/api/agent/runs/' + receivedRunId, {signal:subscription.signal}).then(setTrace).catch(e=>{if(!subscription.signal.aborted) message.error(e.message);});
       }
+    }
+  }
+  async function stop() {
+    if (!runId || cancelling) return;
+    setCancelling(true);
+    try {
+      await post('/api/agent/runs/' + runId + '/cancel');
+    } catch (error) {
+      setCancelling(false);
+      message.error((error as Error).message);
     }
   }
   async function decide(approved: boolean) {
@@ -151,7 +163,7 @@ export default function Investigation({onSource, canApprove, initialId, initialR
       <ConversationList items={sessions.map(s=>({id:s.id,title:s.title,detail:formatTime(s.created_at)}))} current={sessionId} busy={busy} open={id=>void selectSession(id)} deleted={async ids=>{if(ids.includes(sessionId))fresh();await refresh();}} />
       {total>10&&<Pagination simple current={page} total={total} pageSize={10} onChange={setPage} />}
     </aside>
-    <section className="chat-panel"><div className="panel-heading"><strong>故障调查</strong><Tag color={busy ? 'processing' : 'default'}>{busy ? '正在调查' : '就绪'}</Tag></div>
+    <section className="chat-panel"><div className="panel-heading"><strong>故障调查</strong><Tag color={busy ? 'processing' : 'default'}>{cancelling ? '已请求停止' : busy ? '正在调查' : '就绪'}</Tag></div>
       <div className="chat-history">{!messages.length && <div className="chat-empty"><h2>体验一次故障调查与恢复</h2><p>测试环境会模拟连接池等待超时，可能看到请求失败、延迟上升和 ERR_5003 日志。先调查证据，再申请关闭故障注入，经审批后观察请求验证结果；实际异常以工具查询为准。</p>
         {guest ? <Alert type="info" title="访客模式仅支持只读浏览，退出访客并登录个人账号后即可发起调查演练。" /> : <Button disabled={!drillService} onClick={() => setQuestion(`调查 ${drillService} 最近5分钟的错误，结合日志、指标和手册，说明已确认事实与证据缺口。`)}>填入调查示例</Button>}</div>}
         {messages.map((item, i) => <article className={`chat-message ${item.role}`} key={i}><div className="message-label">{item.role === 'user' ? '你' : 'OpsPilot'}</div><div className="message-body">{item.content || (busy ? '正在收集证据…' : '本次没有生成回答，请查看执行记录。')}</div></article>)}
@@ -160,7 +172,7 @@ export default function Investigation({onSource, canApprove, initialId, initialR
         </Card>}<div ref={bottom} />
       </div>
       <div className="composer"><Input.TextArea aria-label="调查问题" disabled={guest} value={question} onChange={e => setQuestion(e.target.value)} autoSize={{minRows: 2, maxRows: 5}} placeholder="服务名、异常表现、时间范围，以及需要核对的证据…" onKeyDown={e => {if (e.ctrlKey && e.key === 'Enter') void send();}} />
-        <div className="composer-footer"><span>Ctrl + Enter 发送 · 手册经验需结合当前证据判断</span><Button type="primary" loading={busy} disabled={guest||!question.trim() || !!approval} onClick={send}>开始调查</Button></div>
+        <div className="composer-footer"><span>Ctrl + Enter 发送 · 手册经验需结合当前证据判断</span>{busy ? <Button danger disabled={!runId || cancelling} onClick={stop}>停止调查</Button> : <Button type="primary" disabled={guest||!question.trim() || !!approval} onClick={send}>开始调查</Button>}</div>
       </div>
     </section>
     <aside className="evidence-panel"><div className="panel-heading"><strong>证据与执行过程</strong></div><div className="evidence-scroll">

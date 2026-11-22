@@ -1,11 +1,13 @@
 """按网站配置运行只读探测，把连续异常写入同一个问题。"""
 
 import logging
+from contextlib import nullcontext
 from datetime import timedelta
 from threading import Event, Thread
 from urllib.parse import urlsplit, urlunsplit
 
-from app.db.base import SessionLocal
+from app.config import get_settings
+from app.db.base import SessionLocal, postgres_lock
 from app.db.models import WebsiteMonitor, WebsiteProfile, _now, _uuid
 from app.services.case_service import create_case_record
 from app.services.http_probe import probe_url, validate_probe_url
@@ -105,9 +107,17 @@ def save_result(db, site, monitor, target, result):
 
 
 def check_site(site_id, due_at):
+    lock = postgres_lock(f"opspilot:website:{site_id}", blocking=False) if get_settings().multi_replica_enabled else nullcontext(True)
+    with lock as acquired:
+        if acquired:
+            _check_site(site_id, due_at)
+
+
+def _check_site(site_id, due_at):
     with SessionLocal() as db:
         site = db.get(WebsiteProfile, site_id)
-        if not site or site.deleted_at:
+        monitor = db.get(WebsiteMonitor, site_id)
+        if not site or site.deleted_at or not monitor or not monitor.enabled or monitor.next_check_at != due_at:
             return
         saved_url = site.data.get("url")
         try:

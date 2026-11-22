@@ -13,7 +13,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.agent.tools import TOOL_REGISTRY
-from app.db.base import run_with_sqlite_retry
+from app.db.base import postgres_lock, run_with_sqlite_retry
 from app.db.models import AgentRun, ApprovalRequest, Message, Ticket, _now
 from app.services import chat_service, ticket_service
 from app.services.budget import BudgetExceededError
@@ -32,7 +32,7 @@ from app.services.run_service import (
 from app.services.support_service import context_for_session, redact
 
 logger = logging.getLogger(__name__)
-# shortcut: 单 API 进程串行审批；多实例部署时升级为跨进程协调。
+# SQLite 离线环境使用进程锁；PostgreSQL 跨副本按审批单加锁。
 _approval_lock = threading.Lock()
 _ACTIVE_RUN_STATUSES = ("running", "cancel_requested")
 
@@ -43,7 +43,9 @@ def _assert_recorder_lease_on_row(db: Session, locked: AgentRun | None, recorder
     if recorder is None or not getattr(recorder, "has_lease", False):
         return
     if recorder.lease_lost.is_set() or (
-        locked.lease_owner != recorder.lease_owner
+        locked.lease_expires_at is None
+        or locked.lease_expires_at <= _now()
+        or locked.lease_owner != recorder.lease_owner
         or locked.lease_token != recorder.lease_token
         or locked.status not in _ACTIVE_RUN_STATUSES
     ):
@@ -253,6 +255,11 @@ def _chat_once(container, db, tenant_id, user_id, username, session_id, question
     approval = _pending_approval_payload(db, tenant_id, session_id)
     if approval:
         result["approval"] = approval
+    check_cancelled()
+    locked = lock_run_row(db, run_id, tenant_id)
+    if locked is not None and locked.status == "cancel_requested":
+        db.rollback()
+        raise RunCancelled("用户已停止本次运行")
     _ensure_idempotent_message(
         db,
         tenant_id,
@@ -467,9 +474,11 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
                 recorder if (background and recorder is not None and recorder.id == run_id and recorder.has_lease) else None
             )
             with container.db_session() as db:
+                locked = lock_run_row(db, run_id, tenant_id)
                 if background:
-                    locked = lock_run_row(db, run_id, tenant_id)
                     _assert_recorder_lease_on_row(db, locked, lease_recorder)
+                if locked is not None and locked.status == "cancel_requested":
+                    raise RunCancelled("用户已停止本次运行")
                 approval = _pending_approval_payload(db, tenant_id, session_id)
                 _ensure_idempotent_message(
                     db,
@@ -537,9 +546,14 @@ def _pending_approval_payload(db: Session, tenant_id: str, session_id: str) -> d
 
 def decide_approval(container, db: Session, auth, approval_id: str, approved: bool, comment: str = "") -> dict:
     """先原子确认审批决定，再恢复图；重试使用既有决定与唯一工单。"""
-    with _approval_lock:
-        # 结束此前的身份查询事务，在锁内重新读取审批状态。
-        db.rollback()
+    # 等待审批锁之前释放请求事务占用的连接。
+    db.rollback()
+    bind = db.get_bind()
+    multi = getattr(container.settings, "multi_replica_enabled", False) and bind.dialect.name == "postgresql"
+    lock = postgres_lock(f"opspilot:approval:{approval_id}", blocking=False) if multi else _approval_lock
+    with lock as acquired:
+        if multi and not acquired:
+            raise HTTPException(status_code=409, detail="另一个副本正在处理该审批，请稍后重试")
         req = db.get(ApprovalRequest, approval_id)
         if req is None or req.tenant_id != auth.tenant_id:
             raise HTTPException(status_code=404, detail="审批单不存在")

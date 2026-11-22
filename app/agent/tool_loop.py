@@ -2,13 +2,13 @@
 
 import json
 import time
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, wait
 from contextvars import copy_context
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from app.services.budget import BudgetExceededError, BudgetLedgerError
-from app.services.run_service import RunCancelled, check_cancelled, emit, push_live, tool_deadline
+from app.services.run_service import LeaseLostError, RunCancelled, check_cancelled, emit, push_live, tool_deadline
 
 
 class _Args(BaseModel):
@@ -98,12 +98,27 @@ SYSTEM = (
 _READ_POOL = ThreadPoolExecutor(max_workers=4, thread_name_prefix="opspilot-read")
 
 
-def _timed_execute(execute, name, args, seconds):
-    with tool_deadline(seconds):
+def _timed_execute(execute, name, args, deadline):
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise TimeoutError("只读工具排队超时")
+    with tool_deadline(remaining):
         check_cancelled()
         result = execute(name, args)
         check_cancelled()
         return result
+
+
+def _wait_for_tool(future, deadline):
+    while True:
+        check_cancelled()
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            future.cancel()
+            raise TimeoutError("只读工具超时")
+        done, _ = wait({future}, timeout=min(0.1, remaining))
+        if done:
+            return future.result()
 
 
 def _validation_fields(exc: ValidationError) -> list[str]:
@@ -220,9 +235,10 @@ def run_tool_loop(
                         push_live({"type": "tool_start", "name": name, "args": args, "tool_call_id": call["id"]})
                         call_timeout = (tool_timeouts or {}).get(name, timeout)
                         # 超时只停止等待，不能强杀已运行线程；工具因此仅限只读，真实网络请求另受同一 deadline 约束。
-                        future = _READ_POOL.submit(copy_context().run, _timed_execute, execute, name, args, call_timeout)
+                        deadline = time.monotonic() + call_timeout
+                        future = _READ_POOL.submit(copy_context().run, _timed_execute, execute, name, args, deadline)
                         executed += 1
-                        planned.append((call, name, args, started, True, future, call_timeout, None))
+                        planned.append((call, name, args, started, True, future, deadline, None))
                 except ValidationError as exc:
                     planned.append(
                         (
@@ -258,15 +274,17 @@ def run_tool_loop(
                     )
 
         # 阶段 2：按原始 calls 顺序回收并发执行结果，保证事件流与 tool_call_id 严格对齐。
-        for call, name, args, started, did_execute, future, call_timeout, preset_output in planned:
+        for call, name, args, started, did_execute, future, deadline, preset_output in planned:
             if future is not None:
                 try:
-                    remaining = max(0.001, call_timeout - (time.perf_counter() - started))
-                    output = future.result(timeout=remaining)
+                    output = _wait_for_tool(future, deadline)
                 except TimeoutError:
                     output = {"status": "timeout", "message": "只读工具超时，当前证据不足"}
                     fatal = fatal or "tool_timeout"
-                except (BudgetExceededError, BudgetLedgerError, RunCancelled):
+                except (BudgetExceededError, BudgetLedgerError, LeaseLostError, RunCancelled):
+                    for task in planned:
+                        if task[5] is not None:
+                            task[5].cancel()
                     raise
                 except Exception as exc:
                     output = {"status": "error", "error_type": type(exc).__name__, "message": "工具执行失败，证据不足"}

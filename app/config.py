@@ -93,6 +93,7 @@ class Settings(BaseSettings):
     # PostgreSQL 连接池配额（默认按 max_connections=30、双副本核算：单副本 5+3+4=12，双副本 24，管理预留 6）
     db_max_connections: int = 30
     db_replica_budget: int = 2
+    multi_replica_enabled: bool = False
     db_admin_reserved_connections: int = 6
     db_pool_size: int = 5
     db_max_overflow: int = 3
@@ -199,6 +200,13 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_connection_budget(self):
         budget = calculate_db_connection_budget(self)
+        if self.multi_replica_enabled:
+            if not self.database_url.startswith("postgresql") or self.vector_store_backend != "milvus":
+                raise ValueError("多副本需要共享 PostgreSQL 和 Milvus")
+            if budget.app_pool_max < 2:
+                raise ValueError("多副本每个业务连接池需至少两条连接")
+            if budget.replicas < 2 or self.budget_ledger_backend == "jsonl":
+                raise ValueError("多副本需要至少两份连接配额和 PostgreSQL 预算账本")
         if not budget.fits:
             raise ValueError(
                 f"PostgreSQL 连接池总配额超限：单副本上限 {budget.per_replica_max} "

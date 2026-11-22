@@ -6,10 +6,12 @@
 import hashlib
 import json
 import logging
+import threading
 import time
 from dataclasses import dataclass, field
 
 from app.db.models import Document, DocumentParent, RetrievalLog
+from app.rag.bm25 import BM25Retriever
 from app.rag.embeddings import tokenize
 from app.rag.vector_store import RetrievedChunk
 
@@ -60,6 +62,9 @@ class HybridRetriever:
         self.embedder = embedder
         self.reranker = reranker
         self.settings = settings
+        self.replica_bm25 = BM25Retriever() if getattr(settings, "multi_replica_enabled", False) else None
+        self._replica_versions = {}
+        self._replica_lock = threading.Lock()
         self.cache = cache
         self.cache_ttl = getattr(settings, "retrieval_cache_ttl", 120)
         self.mode_name = "hybrid"  # 评测脚本可动态切换对比
@@ -67,6 +72,18 @@ class HybridRetriever:
         self.top_k = getattr(settings, "top_k", 5)
         self.dense_top_k = getattr(settings, "dense_top_k", 5)
         self.bm25_top_k = getattr(settings, "bm25_top_k", 5)
+
+    def _search_bm25(self, tenant_id, query, top_k, active_versions):
+        if self.replica_bm25 is None or active_versions is None:
+            return self.bm25.search(tenant_id, query, top_k=top_k, active_versions=active_versions)
+        with self._replica_lock:
+            if self._replica_versions.get(tenant_id) != active_versions:
+                chunks = [chunk for chunk in self.vector_store.scroll_tenant(tenant_id)
+                          if chunk["doc_id"] in active_versions and chunk.get("version_id") == active_versions[chunk["doc_id"]]]
+                # 顺序统一，避免分值相同时不同副本返回不同排名。
+                self.replica_bm25.replace_tenant(tenant_id, sorted(chunks, key=lambda chunk: chunk["chunk_id"]))
+                self._replica_versions[tenant_id] = active_versions
+            return self.replica_bm25.search(tenant_id, query, top_k=top_k, active_versions=active_versions)
 
     def _cache_key(self, tenant_id: str, mode: str, top_k: int, query: str, active_versions: dict) -> str:
         reranker_tag = (
@@ -80,7 +97,8 @@ class HybridRetriever:
             separators=(",", ":"),
         )
         digest = hashlib.sha256(fingerprint_payload.encode("utf-8")).hexdigest()[:32]
-        return f"ret:v1:{tenant_id}:{mode}:{top_k}:{reranker_tag}:{digest}"
+        prefix = "ret:replica:v1" if self.replica_bm25 is not None else "ret:v1"
+        return f"{prefix}:{tenant_id}:{mode}:{top_k}:{reranker_tag}:{digest}"
 
     def retrieve(
         self, db, tenant_id: str, query: str, mode: str = "hybrid", top_k: int | None = None, log: bool = True
@@ -123,8 +141,8 @@ class HybridRetriever:
                     tenant_id, query_vector, top_k=max(candidate_k, self.dense_top_k), active_versions=active_versions
                 )
             if mode in ("bm25", "hybrid"):
-                result.bm25_raw = self.bm25.search(
-                    tenant_id, query, top_k=max(candidate_k, self.bm25_top_k), active_versions=active_versions
+                result.bm25_raw = self._search_bm25(
+                    tenant_id, query, max(candidate_k, self.bm25_top_k), active_versions
                 )
 
             if mode == "dense":

@@ -7,12 +7,13 @@ from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.auth.deps import AuthUser, get_current_user
 from app.auth.security import create_access_token, hash_password, verify_password
 from app.config import get_settings
-from app.db.base import SessionLocal
+from app.db.base import SessionLocal, run_with_sqlite_retry
 from app.db.models import LoginSession, Tenant, User, _now
 from app.services.cache import check_rate_limit, get_cache
 
@@ -93,20 +94,25 @@ def register(body: RegisterRequest, request: Request):
         raise HTTPException(403, "当前部署已关闭自助注册，请联系部署者获取账号")
     auth_limit(request, body.username)
     password_hash = hash_password(body.password)
-    with SessionLocal() as db:
-        if db.scalar(select(User).where(User.username == body.username)):
-            raise HTTPException(status.HTTP_400_BAD_REQUEST, "用户名已存在")
-        tenant_id = uuid.uuid4().hex
-        db.add(Tenant(id=tenant_id, name=f"{body.username} 的组织"))
-        user = User(
-            tenant_id=tenant_id,
-            username=body.username,
-            password_hash=password_hash,
-            role="viewer",
-        )
-        db.add(user)
-        db.commit()
-        return issue_token(db, user)
+    def create_account():
+        with SessionLocal() as db:
+            if db.scalar(select(User.id).where(User.username == body.username)):
+                raise HTTPException(status.HTTP_400_BAD_REQUEST, "用户名已存在")
+            tenant_id = uuid.uuid4().hex
+            db.add(Tenant(id=tenant_id, name=f"{body.username} 的组织"))
+            db.flush()
+            user = User(tenant_id=tenant_id, username=body.username, password_hash=password_hash, role="viewer")
+            db.add(user)
+            db.flush()
+            return issue_token(db, user)
+
+    try:
+        return run_with_sqlite_retry(create_account)
+    except IntegrityError as exc:
+        with SessionLocal() as db:
+            if db.scalar(select(User.id).where(User.username == body.username)):
+                raise HTTPException(status.HTTP_400_BAD_REQUEST, "用户名已存在") from exc
+        raise
 
 
 @router.post("/login", response_model=TokenResponse)

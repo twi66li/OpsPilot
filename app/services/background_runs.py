@@ -233,6 +233,7 @@ def renew_run_lease(
                     AgentRun.status.in_(ACTIVE),
                     AgentRun.lease_owner == lease_owner,
                     AgentRun.lease_token == lease_token,
+                    AgentRun.lease_expires_at > ts,
                 )
                 .values(heartbeat_at=ts, lease_expires_at=expires_at, updated_at=ts)
             ).rowcount

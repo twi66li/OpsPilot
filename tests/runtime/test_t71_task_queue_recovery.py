@@ -73,8 +73,10 @@ def _seed_tenant_user_session(factory, *, tenant_id="t-t71", user_id="u-t71", us
     with factory() as db:
         if db.get(Tenant, tenant_id) is None:
             db.add(Tenant(id=tenant_id, name="T71 租户"))
+            db.flush()
         if db.get(User, user_id) is None:
             db.add(User(id=user_id, tenant_id=tenant_id, username=username, password_hash="x", role="admin"))
+            db.flush()
         db.add(ChatSession(id=session_id, tenant_id=tenant_id, user_id=user_id, title="T71 会话"))
         db.commit()
     return tenant_id, user_id, username, session_id
@@ -112,7 +114,9 @@ def _create_doc_and_version(factory, tmp_path: Path, *, tenant_id="t-t71", text_
     with factory() as db:
         if db.get(Tenant, tenant_id) is None:
             db.add(Tenant(id=tenant_id, name="T71 租户"))
+            db.flush()
         db.add(Document(id=doc_id, tenant_id=tenant_id, title="故障手册", content="", source=filename))
+        db.flush()
         db.add(
             DocumentVersion(
                 id=version_id,

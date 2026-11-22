@@ -10,7 +10,7 @@ import re
 
 import jieba
 
-from app.services.run_service import emit, tool_time_left
+from app.services.run_service import check_cancelled, current_run, emit, run_cancelable, tool_time_left
 
 jieba.setLogLevel(60)
 logger = logging.getLogger(__name__)
@@ -51,7 +51,8 @@ class OpenAIEmbedding:
         self._budget = get_budget_guard()
         if self._budget is None:
             raise BudgetLedgerError("真实向量入口未配置持久预算账本（BUDGET_LEDGER_PATH/BUDGET_TOKEN_LIMIT），拒绝启动")
-        self._client = OpenAI(api_key=api_key, base_url=base_url or None, timeout=60, max_retries=0)
+        self._client_options = dict(api_key=api_key, base_url=base_url or None, timeout=60, max_retries=0)
+        self._client = OpenAI(**self._client_options)
         self.model = model
         self.dim = dim
         self.calls: list[dict] = []
@@ -62,6 +63,7 @@ class OpenAIEmbedding:
         from app.services.budget import BudgetExceededError, BudgetLedgerError, estimate_upper_bound
 
         guard = self._budget
+        check_cancelled()
         try:
             reservation = guard.reserve("embedding", self.model, estimate_upper_bound(texts, output_cap=0))
         except (BudgetExceededError, BudgetLedgerError) as exc:
@@ -73,8 +75,18 @@ class OpenAIEmbedding:
         try:
             params = {"dimensions": self.dim} if self.dim is not None else {}
             remaining = tool_time_left()
-            client = self._client.with_options(timeout=remaining) if remaining is not None else self._client
-            resp = client.embeddings.create(model=self.model, input=texts, **params)
+            if getattr(current_run(), "cancel_signal", None) is not None:
+                from openai import AsyncOpenAI
+
+                async def request():
+                    opts = {**self._client_options, "timeout": min(60, remaining) if remaining is not None else 60}
+                    async with AsyncOpenAI(**opts) as client:
+                        return await client.embeddings.create(model=self.model, input=texts, **params)
+
+                resp = run_cancelable(request)
+            else:
+                client = self._client.with_options(timeout=remaining) if remaining is not None else self._client
+                resp = client.embeddings.create(model=self.model, input=texts, **params)
             usage = getattr(resp, "usage", None)
             record["usage"] = usage.model_dump() if usage else {}
             vectors = [item.embedding for item in sorted(resp.data, key=lambda item: item.index)]

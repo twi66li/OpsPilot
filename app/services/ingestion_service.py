@@ -252,6 +252,7 @@ def renew_version_lease(
                     DocumentVersion.status.in_(CLAIMABLE_STATUSES),
                     DocumentVersion.lease_owner == lease_owner,
                     DocumentVersion.lease_token == lease_token,
+                    DocumentVersion.lease_expires_at > ts,
                 )
                 .values(heartbeat_at=ts, lease_expires_at=expires_at, updated_at=ts)
             ).rowcount
@@ -289,6 +290,7 @@ def advance_version_stage(
                     DocumentVersion.status.in_(CLAIMABLE_STATUSES),
                     DocumentVersion.lease_owner == lease.owner,
                     DocumentVersion.lease_token == lease.token,
+                    DocumentVersion.lease_expires_at > now,
                 )
                 .values(**values)
             ).rowcount
@@ -313,12 +315,14 @@ def _assert_lease_active(version_id: str, lease: TaskLease, lost_event: threadin
                     DocumentVersion.status,
                     DocumentVersion.lease_owner,
                     DocumentVersion.lease_token,
+                    DocumentVersion.lease_expires_at,
                 ).where(DocumentVersion.id == version_id)
             ).first()
             if row is None:
                 return False
-            status, owner, token = row
-            return status in CLAIMABLE_STATUSES and owner == lease.owner and token == lease.token
+            status, owner, token, expires_at = row
+            return (status in CLAIMABLE_STATUSES and owner == lease.owner and token == lease.token
+                    and expires_at is not None and expires_at > _now())
 
     if not run_with_sqlite_retry(_check):
         lost_event.set()
@@ -359,6 +363,7 @@ def persist_version_chunks_with_lease(
                     DocumentVersion.status.in_(CLAIMABLE_STATUSES),
                     DocumentVersion.lease_owner == lease.owner,
                     DocumentVersion.lease_token == lease.token,
+                    DocumentVersion.lease_expires_at > now,
                 )
                 .values(**values)
             ).rowcount
@@ -436,6 +441,7 @@ def complete_version_with_lease(
                     DocumentVersion.status.in_(CLAIMABLE_STATUSES),
                     DocumentVersion.lease_owner == lease.owner,
                     DocumentVersion.lease_token == lease.token,
+                    DocumentVersion.lease_expires_at > now,
                 )
                 .values(
                     status="ready",
@@ -505,6 +511,7 @@ def fail_version_with_lease(
                     DocumentVersion.status.in_(CLAIMABLE_STATUSES),
                     DocumentVersion.lease_owner == lease.owner,
                     DocumentVersion.lease_token == lease.token,
+                    DocumentVersion.lease_expires_at > now,
                 )
                 .values(
                     status="failed",

@@ -1,8 +1,16 @@
 """RAG 组件单元测试：分块 / 向量 / BM25 / RRF / 重排 / 评测指标。"""
+import sqlite3
+
+from sqlalchemy import create_engine, event
+from sqlalchemy.exc import OperationalError
+from sqlalchemy.orm import Session
+
+from app.db.models import Document, RetrievalLog
 from app.rag.bm25 import BM25Retriever
 from app.rag.chunking import split_into_chunks
 from app.rag.embeddings import MockEmbedding, tokenize
 from app.rag.fusion import rrf_fuse
+from app.rag.hybrid import HybridRetriever
 from app.rag.rerank import HeuristicReranker
 from app.rag.vector_store import InMemoryVectorStore, RetrievedChunk
 
@@ -74,6 +82,28 @@ def test_bm25_add_search_remove():
     assert bm25.search("t2", "连接池", top_k=2) == []
     assert bm25.remove_doc("t1", "doc-a") == 1
     assert bm25.search("t1", "连接池耗尽", top_k=2) == []
+
+
+def test_retrieval_log_retries_sqlite_lock_without_duplicating_entry():
+    engine = create_engine("sqlite://")
+    Document.__table__.create(engine)
+    RetrievalLog.__table__.create(engine)
+    inserts = 0
+
+    @event.listens_for(engine, "before_cursor_execute")
+    def lock_first_insert(_conn, _cursor, statement, parameters, _context, _executemany):
+        nonlocal inserts
+        if statement.startswith("INSERT INTO retrieval_logs"):
+            inserts += 1
+            if inserts == 1:
+                raise OperationalError(statement, parameters, sqlite3.OperationalError("database table is locked"))
+
+    with Session(engine) as db:
+        retriever = HybridRetriever(None, BM25Retriever(), None)
+        result = retriever.retrieve(db, "default", "连接池", mode="bm25")
+        assert result.hits == []
+        assert db.query(RetrievalLog).one().query == "连接池"
+        assert inserts == 2
 
 
 def test_rrf_fuse_prefers_consensus():

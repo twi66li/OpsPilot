@@ -10,6 +10,9 @@ import threading
 import time
 from dataclasses import dataclass, field
 
+from sqlalchemy.exc import OperationalError
+
+from app.db.base import run_with_sqlite_retry
 from app.db.models import Document, DocumentParent, RetrievalLog
 from app.rag.bm25 import BM25Retriever
 from app.rag.embeddings import tokenize
@@ -198,18 +201,25 @@ class HybridRetriever:
         result.latency_ms = (time.perf_counter() - start) * 1000
 
         if log and db is not None:
-            db.add(
-                RetrievalLog(
-                    tenant_id=tenant_id,
-                    query=query,
-                    mode=mode,
-                    top_k=top_k,
-                    hit_doc_ids=[h.doc_id for h in result.hits],
-                    scores=[round(h.score, 4) for h in result.hits],
-                    latency_ms=result.latency_ms,
-                )
+            entry = RetrievalLog(
+                tenant_id=tenant_id,
+                query=query,
+                mode=mode,
+                top_k=top_k,
+                hit_doc_ids=[h.doc_id for h in result.hits],
+                scores=[round(h.score, 4) for h in result.hits],
+                latency_ms=result.latency_ms,
             )
-            db.commit()
+
+            def save_log():
+                db.add(entry)
+                try:
+                    db.commit()
+                except OperationalError:
+                    db.rollback()
+                    raise
+
+            run_with_sqlite_retry(save_log)
         return result
 
 

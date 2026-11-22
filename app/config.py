@@ -177,6 +177,8 @@ class Settings(BaseSettings):
     langfuse_host: str = "https://cloud.langfuse.com"
 
     # ---- 预算门控（真实模型调用统一入口；路径留空=不启用，仅离线 Mock 使用）----
+    budget_ledger_backend: Literal["auto", "jsonl", "db"] = "auto"  # auto: PG 走 db，其余按 path 走 jsonl
+    budget_ledger_scope: str = "default"
     budget_ledger_path: str = ""
     budget_token_limit: int = 0
     budget_model_limits: dict[str, int] = {}  # 按 budget.json p1 列的分模型授权；未授权模型一律拒绝

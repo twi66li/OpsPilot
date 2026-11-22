@@ -327,3 +327,6 @@ class CaseHandoff(Base):
     version: Mapped[str] = mapped_column(String(64), default=_uuid)
     status: Mapped[str] = mapped_column(String(32))
     data: Mapped[dict] = mapped_column(JSON, default=dict)
+
+
+from app.db.budget_models import BudgetLedgerEvent, BudgetLedgerState, BudgetReservation  # noqa: E402, F401, I001

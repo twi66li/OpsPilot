@@ -283,7 +283,7 @@ def test_migration_0005_backfills_event_seq_and_enforces_uniqueness(tmp_path):
                     ),
                     {"kind": kind},
                 )
-            command.upgrade(cfg, "head")
+            command.upgrade(cfg, "0005")
             assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "0005"
             assert conn.scalar(text("SELECT event_seq FROM agent_runs WHERE id='run-legacy'")) == 3
             seqs = conn.execute(

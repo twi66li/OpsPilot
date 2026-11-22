@@ -119,11 +119,21 @@ def estimate_chat_bound(messages: list[dict], tools: list[dict] | None, *, outpu
     return payload + _BASE_WRAP_BYTES + _WRAP_PER_ELEMENT_BYTES * elements + int(output_cap) + int(thinking_cap)
 
 
-def reserve_for_channel(calls: list, guard, kind: str, model: str, estimate: int):
+def reserve_for_channel(
+    calls: list,
+    guard,
+    kind: str,
+    model: str,
+    estimate: int,
+    *,
+    idempotency_key: str | None = None,
+):
     """发送前统一预留；拒绝时留 budget_refused 审计记录并抛出，调用方不触达供应商。"""
     if guard is None:
         raise BudgetLedgerError("真实模型通道缺少预算账本实例，fail closed")
     try:
+        if idempotency_key is not None:
+            return guard, guard.reserve(kind, model, estimate, idempotency_key=idempotency_key)
         return guard, guard.reserve(kind, model, estimate)
     except (BudgetExceededError, BudgetLedgerError) as exc:
         calls.append(
@@ -138,24 +148,53 @@ def reserve_for_channel(calls: list, guard, kind: str, model: str, estimate: int
         raise
 
 
-def settle_for_channel(record: dict, guard, reservation):
+def settle_for_channel(record: dict, guard, reservation, *, idempotency_key: str | None = None):
     """结算失败不得掩盖模型自身结果；账本内部已 fail closed，后续调用将被拒绝。"""
     if reservation is None:
         return
     try:
-        guard.settle(reservation, record.get("usage") or None)
+        usage = record.get("usage") or None
+        if idempotency_key is not None:
+            guard.settle(reservation, usage, idempotency_key=idempotency_key)
+        else:
+            guard.settle(reservation, usage)
     except BudgetLedgerError as exc:
         record["settlement_error"] = type(exc).__name__
         logger.error("预算结算写入失败（%s），账本 fail closed，后续真实调用将被拒绝", exc)
 
 
+def release_for_channel(
+    record: dict,
+    guard,
+    reservation,
+    *,
+    reason: str = "",
+    idempotency_key: str | None = None,
+):
+    """确认供应商未收到请求时释放预留；不支持释放的账本保守退回 unknown 结算。"""
+    if reservation is None:
+        return
+    if not hasattr(guard, "release"):
+        settle_for_channel(record, guard, reservation, idempotency_key=idempotency_key)
+        return
+    try:
+        if idempotency_key is not None:
+            guard.release(reservation, reason=reason, idempotency_key=idempotency_key)
+        else:
+            guard.release(reservation, reason=reason)
+        record["budget_action"] = "released"
+    except BudgetLedgerError as exc:
+        record["settlement_error"] = type(exc).__name__
+        logger.error("预算预留释放失败（%s），账本 fail closed", exc)
+
+
 class ChatAPI:
-    def __init__(self, api_key: str, base_url: str, model: str):
+    def __init__(self, api_key: str, base_url: str, model: str, *, budget_guard=None):
         # 真实供应商入口：无持久账本配置即 fail closed，Mock 路径（MockLLM 等）不经过本类
-        self._budget = get_budget_guard()
+        self._budget = budget_guard if budget_guard is not None else get_budget_guard()
         if self._budget is None:
             raise BudgetLedgerError(
-                "真实对话模型入口未配置持久预算账本（BUDGET_LEDGER_PATH/BUDGET_TOKEN_LIMIT），拒绝启动"
+                "真实对话模型入口未配置持久预算账本（BUDGET_LEDGER_BACKEND/BUDGET_LEDGER_PATH/BUDGET_TOKEN_LIMIT），拒绝启动"
             )
         self.client = OpenAI(api_key=api_key, base_url=base_url or None, timeout=60, max_retries=0)
         self.model = model
@@ -233,7 +272,6 @@ class ChatAPI:
     ) -> str:
         messages = [{"role": "system", "content": system}, {"role": "user", "content": user}]
         guard, reservation = self._reserve("chat", model, messages, None, output_cap=output_cap)
-        emit("model_input", {"kind": "chat", "model": model, "system": system, "user": user})
         started = time.perf_counter()
         record = {"model": model, "status": "error", "first_token_ms": None, "usage": {}}
         params = {}
@@ -243,7 +281,11 @@ class ChatAPI:
             params["response_format"] = {"type": "json_object"}
         text = []
         finish = None
+        dispatched = False
         try:
+            emit("model_input", {"kind": "chat", "model": model, "system": system, "user": user})
+            check_cancelled()
+            dispatched = True
             with self.client.chat.completions.create(
                 model=model,
                 messages=messages,
@@ -280,7 +322,10 @@ class ChatAPI:
             self.calls.append(record)
             logger.info("model_api_usage kind=chat record=%s", json.dumps(record, ensure_ascii=False))
             emit("model_call", {"kind": "chat", **record})
-            self._settle(guard, reservation, record)
+            if dispatched:
+                self._settle(guard, reservation, record)
+            else:
+                release_for_channel(record, guard, reservation, reason=record.get("error_type", "not_dispatched"))
 
     def tool_turn(self, messages: list[dict], tools: list[dict], *, allow_tools: bool = True) -> dict:
         check_cancelled()
@@ -308,7 +353,10 @@ class ChatAPI:
         guard, reservation = self._reserve("tool_chat", model, messages, tools, output_cap=_CHAT_OUTPUT_CAP)
         started = time.perf_counter()
         record = {"model": model, "status": "error", "usage": {}}
+        dispatched = False
         try:
+            check_cancelled()
+            dispatched = True
             if live_model_stream():
                 result = self._stream_tool_turn(model, messages, tools, allow_tools, record, started)
                 record["status"] = "ok"
@@ -353,7 +401,10 @@ class ChatAPI:
             self.calls.append(record)
             logger.info("model_api_usage kind=tool_chat record=%s", json.dumps(record, ensure_ascii=False))
             emit("model_call", {"kind": "tool_chat", **record})
-            self._settle(guard, reservation, record)
+            if dispatched:
+                self._settle(guard, reservation, record)
+            else:
+                release_for_channel(record, guard, reservation, reason=record.get("error_type", "not_dispatched"))
 
     def _stream_tool_turn(self, model, messages, tools, allow_tools, record, started):
         content, calls, finish = [], {}, None
@@ -404,10 +455,12 @@ class ChatAPI:
 
 
 class RerankAPI:
-    def __init__(self, api_key: str, base_url: str, model: str):
-        self._budget = get_budget_guard()
+    def __init__(self, api_key: str, base_url: str, model: str, *, budget_guard=None):
+        self._budget = budget_guard if budget_guard is not None else get_budget_guard()
         if self._budget is None:
-            raise BudgetLedgerError("真实重排入口未配置持久预算账本（BUDGET_LEDGER_PATH/BUDGET_TOKEN_LIMIT），拒绝启动")
+            raise BudgetLedgerError(
+                "真实重排入口未配置持久预算账本（BUDGET_LEDGER_BACKEND/BUDGET_LEDGER_PATH/BUDGET_TOKEN_LIMIT），拒绝启动"
+            )
         origin = urlsplit(base_url)
         self.url = f"{origin.scheme}://{origin.netloc}/api/v1/services/rerank/text-rerank/text-rerank"
         self.client = httpx.Client(headers={"Authorization": f"Bearer {api_key}"}, timeout=60)
@@ -425,8 +478,11 @@ class RerankAPI:
         guard, reservation = reserve_for_channel(self.calls, self._budget, "rerank", self.model, estimate)
         started = time.perf_counter()
         record = {"model": self.model, "status": "error", "usage": {}}
+        dispatched = False
         try:
+            check_cancelled()
             remaining = tool_time_left()
+            dispatched = True
             response = self.client.post(
                 self.url,
                 **({"timeout": remaining} if remaining is not None else {}),
@@ -456,4 +512,7 @@ class RerankAPI:
             self.calls.append(record)
             logger.info("model_api_usage kind=rerank record=%s", json.dumps(record, ensure_ascii=False))
             emit("model_call", {"kind": "rerank", **record})
-            settle_for_channel(record, guard, reservation)
+            if dispatched:
+                settle_for_channel(record, guard, reservation)
+            else:
+                release_for_channel(record, guard, reservation, reason=record.get("error_type", "not_dispatched"))

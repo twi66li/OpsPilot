@@ -23,6 +23,8 @@ import threading
 import uuid
 from datetime import datetime, timezone
 
+from app.services.budget_pg import DatabaseBudgetLedger
+
 try:
     import fcntl  # POSIX 进程锁
 except ImportError:  # Windows
@@ -122,6 +124,8 @@ class BudgetLedger:
         self.corrupt = False
         self.corrupt_detail = ""
         self._pending: dict[str, tuple[str, int]] = {}
+        self._released: set[str] = set()
+        self._settled: set[str] = set()
         self._replay()
 
     # ---- 账本重放 ----
@@ -148,6 +152,10 @@ class BudgetLedger:
 
     def _apply(self, record):
         kind = record.get("type")
+        if kind == "clearance":
+            self.halted = False
+            self.halted_reason = ""
+            return
         model = record.get("model", "")
         bucket = self.per_model.setdefault(model, {"actual": 0, "unknown": 0, "in_flight": 0})
         if kind == "reserved":
@@ -168,9 +176,10 @@ class BudgetLedger:
             bucket["in_flight"] -= estimate
             self.unknown += estimate
             bucket["unknown"] += estimate
-        elif kind == "clearance":
-            self.halted = False
-            self.halted_reason = ""
+        elif kind == "released":
+            estimate = int(record["estimate"])
+            self.in_flight -= estimate
+            bucket["in_flight"] -= estimate
         else:
             raise ValueError(f"未知账本记录类型 {kind!r}")
 
@@ -257,6 +266,7 @@ class BudgetLedger:
                     self.per_model[model]["in_flight"] -= estimate
                     self.unknown += estimate
                     self.per_model[model]["unknown"] += estimate
+                    self._settled.add(rid)
                     return
                 over = actual > estimate
                 self._append({"type": "committed", "id": rid, "at": self._stamp(), "pid": os.getpid(),
@@ -265,6 +275,7 @@ class BudgetLedger:
                 self.per_model[model]["in_flight"] -= estimate
                 self.actual += actual
                 self.per_model[model]["actual"] += actual
+                self._settled.add(rid)
                 if over:
                     self.halted = True
                     self.halted_reason = f"实报 {actual} 超预留 {estimate}（记录 {rid}），需人工核查"
@@ -272,6 +283,37 @@ class BudgetLedger:
                 self.halted = True
                 self.halted_reason = "结算写入失败，账本 fail closed，需人工核查"
                 raise
+
+    def commit(self, rid: str, usage) -> None:
+        """按实际 usage 结算；缺有效实报请调用 commit_unknown。"""
+        actual = int(usage) if isinstance(usage, (int, float)) and not isinstance(usage, bool) and usage > 0 else _total_tokens(usage)
+        if actual is None:
+            raise BudgetLedgerError("commit 缺少有效正整数实报 token，缺 usage 请调用 commit_unknown")
+        self.settle(rid, {"total_tokens": actual})
+
+    def commit_unknown(self, rid: str, *, reason: str = "") -> None:
+        """已发供应商请求但超时/缺 usage，转 unknown 保留风险额度。"""
+        self.settle(rid, None)
+
+    def release(self, rid: str, *, reason: str = "") -> None:
+        """确认未发供应商请求时释放预占额度；重复释放幂等，已结算禁止释放。"""
+        with self._lock:
+            if rid in self._released:
+                return
+            if rid in self._settled:
+                raise BudgetLedgerError(f"预留 {rid} 已结算，不可释放")
+            pending = self._pending.pop(rid, None)
+            if pending is None:
+                raise BudgetLedgerError(f"释放找不到预留 {rid}，拒绝操作")
+            model, estimate = pending
+            record = {"type": "released", "id": rid, "at": self._stamp(), "pid": os.getpid(),
+                      "model": model, "estimate": estimate}
+            if reason:
+                record["reason"] = reason
+            self._append(record)
+            self.in_flight -= estimate
+            self.per_model[model]["in_flight"] -= estimate
+            self._released.add(rid)
 
     def clear_halt(self, note: str) -> None:
         """人工核查后显式解除 halt；写失败则保持 halt。"""
@@ -294,29 +336,104 @@ class BudgetLedger:
         self._process_lock.release()
 
 
-_guards: dict[str, BudgetLedger] = {}
+_guards: dict[str, BudgetLedger | DatabaseBudgetLedger] = {}
 _guard_lock = threading.Lock()
 
 
 def reset_budget_guard() -> None:
-    """测试用：清空单写者缓存。"""
+    """测试用：清空单写者/单例账本缓存。"""
     with _guard_lock:
         _guards.clear()
 
 
-def get_budget_guard():
-    """按 settings 返回进程内单例账本；未配置路径/额度即 fail closed（真实入口拒绝启动）。"""
+def resolve_budget_backend(settings) -> str:
+    """决定当前配置应启用的预算账本后端：db | jsonl | none。"""
+    backend = str(getattr(settings, "budget_ledger_backend", "auto") or "auto").strip().lower()
+    db_url = str(getattr(settings, "database_url", "") or "").strip()
+    path = str(getattr(settings, "budget_ledger_path", "") or "").strip()
+    limit = int(getattr(settings, "budget_token_limit", 0) or 0)
+    model_limits = getattr(settings, "budget_model_limits", None) or {}
+
+    if backend == "db":
+        return "db"
+    if backend == "jsonl":
+        if not path:
+            raise BudgetLedgerError("显式配置了 jsonl 预算后端但 BUDGET_LEDGER_PATH 为空，拒绝放行真实调用")
+        return "jsonl"
+    if backend != "auto":
+        raise BudgetLedgerError(f"不支持的预算账本后端配置：{backend!r}")
+
+    if db_url.startswith(("postgresql", "postgres")):
+        if limit > 0 or model_limits or path:
+            return "db"
+        return "none"
+    if path:
+        return "jsonl"
+    return "none"
+
+
+def _can_reuse_global_session(database_url: str) -> bool:
+    from sqlalchemy.engine import make_url
+
+    from app.db import base as db_base
+
+    engine_url = db_base.engine.url
+    if database_url == "sqlite:///:memory:":
+        rendered = engine_url.render_as_string(hide_password=False)
+        return engine_url.drivername.startswith("sqlite") and (":memory:" in rendered or "mode=memory" in rendered)
+    try:
+        target = make_url(database_url)
+    except Exception:
+        return False
+    return target.render_as_string(hide_password=False) == engine_url.render_as_string(hide_password=False)
+
+
+def get_budget_guard(settings=None):
+    """按 settings 返回进程内单例账本；PG 或显式 db 走数据库账本，否则兼容 JSONL。"""
     from app.config import get_settings
 
-    settings = get_settings()
-    path = getattr(settings, "budget_ledger_path", "")
-    if not path:
+    cfg = settings if settings is not None else get_settings()
+    mode = resolve_budget_backend(cfg)
+    if mode == "none":
         return None
+
+    limit = int(getattr(cfg, "budget_token_limit", 0) or 0)
+    model_limits = getattr(cfg, "budget_model_limits", None) or {}
+
+    if mode == "db":
+        db_url = str(getattr(cfg, "database_url", "") or "").strip()
+        scope = str(getattr(cfg, "budget_ledger_scope", "default") or "default").strip()
+        cache_key = f"db:{db_url}|{scope}"
+        with _guard_lock:
+            guard = _guards.get(cache_key)
+            if guard is None:
+                if limit <= 0:
+                    raise BudgetLedgerError("配置了数据库预算账本但 budget_token_limit 非正，拒绝放行真实调用")
+                normalized = {str(m): int(v) for m, v in model_limits.items()}
+                if _can_reuse_global_session(db_url):
+                    from app.db.base import SessionLocal
+
+                    guard = DatabaseBudgetLedger(
+                        scope=scope,
+                        limit=limit,
+                        model_limits=normalized,
+                        session_factory=SessionLocal,
+                    )
+                else:
+                    guard = DatabaseBudgetLedger(
+                        scope=scope,
+                        limit=limit,
+                        model_limits=normalized,
+                        database_url=db_url,
+                        settings=cfg,
+                    )
+                _guards[cache_key] = guard
+            return guard
+
+    path = str(getattr(cfg, "budget_ledger_path", "") or "")
     with _guard_lock:
         guard = _guards.get(path)
         if guard is None:
-            limit = int(getattr(settings, "budget_token_limit", 0) or 0)
-            model_limits = getattr(settings, "budget_model_limits", None) or {}
             if limit <= 0:
                 raise BudgetLedgerError("配置了预算账本路径但 budget_token_limit 非正，拒绝放行真实调用")
             guard = BudgetLedger(path, limit, {str(m): int(v) for m, v in model_limits.items()})

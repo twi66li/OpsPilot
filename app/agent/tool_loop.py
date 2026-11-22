@@ -7,7 +7,9 @@ from contextvars import copy_context
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
+from app.config import get_settings
 from app.services.budget import BudgetExceededError, BudgetLedgerError
+from app.services.metrics_service import known_service_names
 from app.services.run_service import LeaseLostError, RunCancelled, check_cancelled, emit, push_live, tool_deadline
 
 
@@ -80,7 +82,7 @@ SYSTEM = (
     "手册问题用search_runbook，当前状态必须查询query_service_metrics，历史故障仅供参考。"
     "与运维诊断无关的问题（闲聊、通用知识、与本项目运维无关的咨询）不调用工具，直接简短回答；"
     "用户明确说不查某类工具或指标时，不得调用对应工具。"
-    "服务名仅限：order-service、payment-service、user-service、inventory-service、api-gateway-service、notify-service；"
+    "指标、日志和故障史工具使用以下服务名：{services}；"
     "不得猜测或编造服务名，工具返回未知服务时按其清单纠正或向用户澄清。"
     "query_service_metrics的window_minutes单位为分钟、取值5–240，仅支持以当前时间为终点的最近窗口，"
     "更早的历史时间窗无法查询，需如实说明。"
@@ -154,7 +156,7 @@ def run_tool_loop(
         }
         for name in names
     ]
-    prompt = system_prompt or SYSTEM
+    prompt = system_prompt or SYSTEM.format(services="、".join(sorted(known_service_names(get_settings().drill_service))))
     if "delegate_retrieval" in names:
         prompt = prompt.replace("手册问题用search_runbook", "手册问题委派delegate_retrieval")
     prior = [{"role": m["role"], "content": m["content"]} for m in history[-6:]]

@@ -26,6 +26,10 @@ KNOWN_SERVICES = frozenset(
 )
 
 
+def known_service_names(drill_service: str) -> frozenset[str]:
+    return KNOWN_SERVICES | {drill_service}
+
+
 def _mock_metrics(service: str, window_minutes: int) -> dict:
     service = service.strip().lower()
     points = min(max(window_minutes, 5), 240)
@@ -87,7 +91,7 @@ def query_service_metrics(service: str, window_minutes: int = 60, *, evaluation_
     if tenant_id != "default":
         return {**result, "status": "no_data", "message": "当前测试指标源未接入本租户，不能据此判定服务正常"}
     if settings.metrics_provider == "mock":
-        known_services = KNOWN_SERVICES | {settings.drill_service}
+        known_services = known_service_names(settings.drill_service)
         if service not in known_services:
             return {
                 **result,

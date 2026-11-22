@@ -5,7 +5,7 @@ import httpx
 import pytest
 
 from app.agent.llm import detect_intent
-from app.agent.tool_loop import DESCRIPTIONS, SYSTEM, run_tool_loop
+from app.agent.tool_loop import DESCRIPTIONS, run_tool_loop
 from app.agent.tools import (
     TOOL_REGISTRY,
     extract_entities,
@@ -14,7 +14,7 @@ from app.agent.tools import (
     run_diagnostic_tools,
     strip_negations,
 )
-from app.config import Settings
+from app.config import Settings, get_settings
 from app.services import metrics_service as metrics
 from app.services.metrics_service import KNOWN_SERVICES
 
@@ -170,10 +170,17 @@ def test_prometheus_no_series_message_distinguishes_service_name(monkeypatch):
 
 # ---- 原生循环提示词与未知服务回传 ----
 
-def test_native_system_prompt_carries_constraints():
-    assert "不调用工具" in SYSTEM
-    assert "order-service、payment-service" in SYSTEM
-    assert "5–240" in SYSTEM and "UTC" in SYSTEM and "北京时间" in SYSTEM
+def test_native_system_prompt_shares_configured_metrics_service_names(monkeypatch):
+    monkeypatch.setenv("DRILL_SERVICE", "checkout-service")
+    monkeypatch.setattr(get_settings(), "drill_service", Settings(_env_file=None).drill_service)
+    result = run_tool_loop("你好", _ScriptedAPI({"content": "你好"}), lambda *_: {})
+    prompt = result["messages"][0]["content"]
+    unknown = metrics.query_service_metrics("db-service")
+    assert "不调用工具" in prompt
+    assert "5–240" in prompt and "UTC" in prompt and "北京时间" in prompt
+    assert "、".join(unknown["valid_services"]) in prompt
+    assert unknown["status"] == "unknown_service"
+    assert "checkout-service" in prompt and metrics.query_service_metrics("checkout-service")["status"] == "ok"
     assert "5–240" in DESCRIPTIONS["query_service_metrics"]
 
 

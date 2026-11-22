@@ -52,13 +52,11 @@ async def lifespan(_: FastAPI):
         website_monitor.start_worker()
         yield
     finally:
-        from app.db.async_session import close_async_db
         from app.services.ingestion_service import stop_worker
 
         website_monitor.stop_worker()
         background_runs.stop_worker()
         stop_worker()
-        await close_async_db()
         reset_container()
 
 

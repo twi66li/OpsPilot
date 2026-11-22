@@ -9,14 +9,13 @@ from concurrent.futures import ThreadPoolExecutor
 from fastapi import HTTPException
 from starlette.concurrency import run_in_threadpool
 
-from app.db.base import SessionLocal
+from app.db.base import SessionLocal, run_with_sqlite_retry
 from app.db.models import AgentRun, AgentRunEvent, ChatSession, SupportCase, User
 from app.services import agent_service
 from app.services.case_service import assert_editable
 from app.services.run_service import (
     RunCancelled,
     RunRecorder,
-    _write_lock,
     capture_run,
     check_cancelled,
     get_run,
@@ -86,18 +85,43 @@ def execute(container, run_id):
         if not run or run.status not in ACTIVE:
             return
         session = db.get(ChatSession, run.session_id)
-        user = db.get(User, session.user_id) if session and session.tenant_id == run.tenant_id and session.deleted_at is None else None
+        user = (
+            db.get(User, session.user_id)
+            if session and session.tenant_id == run.tenant_id and session.deleted_at is None
+            else None
+        )
         personal = db.get(SupportCase, run.session_id)
-    recorder = RunRecorder(run.id, run.tenant_id)
+        run_tenant_id = run.tenant_id
+        run_session_id = run.session_id
+        run_status = run.status
+        run_question = run.data["question"]
+        run_workflow = run.data["workflow"]
+        user_id = user.id if user else None
+        user_username = user.username if user else None
+        user_tenant_id = user.tenant_id if user else None
+        personal_error = None
+        if personal is not None:
+            try:
+                assert_editable(personal)
+            except Exception as exc:
+                personal_error = exc
+    recorder = RunRecorder(run_id, run_tenant_id)
     try:
         with capture_run(recorder), live_events():
-            if run.status == "cancel_requested" or not user or user.tenant_id != run.tenant_id:
+            if run_status == "cancel_requested" or not user_id or user_tenant_id != run_tenant_id:
                 raise RunCancelled()
-            if personal:
-                assert_editable(personal)
+            if personal_error is not None:
+                raise personal_error
             stream = agent_service._chat_stream(
-                container, run.tenant_id, user.id, user.username, run.session_id,
-                run.data["question"], run.id, run.data["workflow"], background=True,
+                container,
+                run_tenant_id,
+                user_id,
+                user_username,
+                run_session_id,
+                run_question,
+                run_id,
+                run_workflow,
+                background=True,
             )
             tokens = None
             flushed_at = time.monotonic()
@@ -134,23 +158,33 @@ def execute(container, run_id):
 
 
 def read_events(run_id, tenant_id, user_id, after):
-    with _write_lock, SessionLocal() as db:
-        run = get_run(db, tenant_id, run_id, user_id)
-        if run is None:
-            return [], {"type": "error", "message": "运行记录不可访问", "run_id": run_id}
-        events = (db.query(AgentRunEvent).filter_by(run_id=run_id, tenant_id=tenant_id, kind="stream")
-                  .filter(AgentRunEvent.id > after).order_by(AgentRunEvent.id).limit(100).all())
-        rows = [(row.id, row.detail) for row in events]
-        if len(rows) == 100 or run.status in ACTIVE:
-            return rows, None
-        result = run.data.get("result", {})
-        if run.status == "cancelled":
-            terminal = {"type": "cancelled", "message": "已停止，已有证据保留"}
-        elif "answer" in result:
-            terminal = {**result, "type": "final"}
-        else:
-            terminal = {"type": "error", "message": result.get("error") or "本次调查未完成，已有证据保留"}
-        return rows, {**terminal, "run_id": run_id, "status": run.status}
+    def _read():
+        with SessionLocal() as db:
+            # 先读 AgentRun 状态再按单调 seq 读事件：在 PG READ COMMITTED 下若已见到终态，后续事件快照必覆盖终态前全部提交。
+            run = get_run(db, tenant_id, run_id, user_id)
+            if run is None:
+                return [], {"type": "error", "message": "运行记录不可访问", "run_id": run_id}
+            events = (
+                db.query(AgentRunEvent)
+                .filter_by(run_id=run_id, tenant_id=tenant_id, kind="stream")
+                .filter(AgentRunEvent.seq > after)
+                .order_by(AgentRunEvent.seq)
+                .limit(100)
+                .all()
+            )
+            rows = [(row.seq, row.detail) for row in events]
+            if len(rows) == 100 or run.status in ACTIVE:
+                return rows, None
+            result = run.data.get("result", {})
+            if run.status == "cancelled":
+                terminal = {"type": "cancelled", "message": "已停止，已有证据保留"}
+            elif "answer" in result:
+                terminal = {**result, "type": "final"}
+            else:
+                terminal = {"type": "error", "message": result.get("error") or "本次调查未完成，已有证据保留"}
+            return rows, {**terminal, "run_id": run_id, "status": run.status}
+
+    return run_with_sqlite_retry(_read)
 
 
 async def subscribe(run_id, tenant_id, user_id, after=0):

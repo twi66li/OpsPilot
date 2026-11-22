@@ -1,43 +1,102 @@
-"""SQLAlchemy 引擎与会话管理。生产用 PostgreSQL，测试/开发可退化为 SQLite。"""
+"""SQLAlchemy 同步引擎与工作单元会话管理。生产用 PostgreSQL，测试/开发可退化为 SQLite。"""
+
 import os
+import random
+import time
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from sqlalchemy.pool import QueuePool
 
-from app.config import get_settings
+from app.config import DbConnectionBudget, calculate_db_connection_budget, get_settings
+
+__all__ = [
+    "Base",
+    "DbConnectionBudget",
+    "SessionLocal",
+    "_make_engine",
+    "calculate_db_connection_budget",
+    "engine",
+    "get_db",
+    "init_db",
+    "is_sqlite_lock_error",
+    "run_with_sqlite_retry",
+    "shared_database_url",
+]
 
 
 class Base(DeclarativeBase):
     pass
 
 
-def _make_engine(database_url: str):
+def _attach_sqlite_pragmas(eng) -> None:
+    @event.listens_for(eng, "connect")
+    def _set_sqlite_pragma(dbapi_connection, _connection_record):
+        cursor = dbapi_connection.cursor()
+        try:
+            cursor.execute("PRAGMA busy_timeout=30000")
+        finally:
+            cursor.close()
+
+
+def _make_engine(database_url: str, settings=None):
     if database_url.startswith("sqlite"):
         if ":memory:" in database_url or "mode=memory" in database_url:
             # 共享内存库允许独立连接，避免一个会话退出时回滚另一个会话的事务。
             limits = {} if "cache=shared" in database_url else {"pool_size": 1, "max_overflow": 0}
-            return create_engine(
+            eng = create_engine(
                 database_url,
-                connect_args={"check_same_thread": False},
+                connect_args={"check_same_thread": False, "timeout": 30},
                 poolclass=QueuePool,
                 **limits,
             )
+            _attach_sqlite_pragmas(eng)
+            return eng
         db_path = database_url.replace("sqlite:///", "", 1)
         parent = Path(db_path).parent
         if str(parent) not in ("", "."):
             os.makedirs(parent, exist_ok=True)
-        return create_engine(database_url, connect_args={"check_same_thread": False})
-    return create_engine(database_url, pool_pre_ping=True, pool_recycle=3600)
+        eng = create_engine(database_url, connect_args={"check_same_thread": False, "timeout": 30})
+        _attach_sqlite_pragmas(eng)
+        return eng
+    cfg = settings or get_settings()
+    budget = calculate_db_connection_budget(cfg)
+    return create_engine(
+        database_url,
+        pool_size=budget.app_pool_size,
+        max_overflow=budget.app_max_overflow,
+        pool_timeout=cfg.db_pool_timeout,
+        pool_pre_ping=True,
+        pool_recycle=3600,
+    )
 
 
 def shared_database_url():
     url = get_settings().database_url
-    # 测试的同步图与异步接口使用同一个进程内SQLite库，仍不落盘。
+    # 测试的图执行线程与 HTTP 请求线程共享同一个进程内 SQLite 内存库，不落盘。
     if url == "sqlite:///:memory:":
         return f"sqlite:///file:opspilot-{os.getpid()}?mode=memory&cache=shared&uri=true"
     return url
+
+
+def is_sqlite_lock_error(exc: BaseException) -> bool:
+    if not isinstance(exc, OperationalError):
+        return False
+    msg = str(exc).lower()
+    return "locked" in msg or "busy" in msg
+
+
+def run_with_sqlite_retry(fn, *, max_retries: int = 40):
+    """SQLite 并发事务短暂锁冲突时做短退避重试；PostgreSQL 下单次执行直接返回。"""
+    for attempt in range(max_retries):
+        try:
+            return fn()
+        except OperationalError as exc:
+            if not is_sqlite_lock_error(exc) or attempt + 1 >= max_retries:
+                raise
+            time.sleep(min(0.05, 0.002 * (attempt + 1)) + random.uniform(0, 0.005))
 
 
 engine = _make_engine(shared_database_url())

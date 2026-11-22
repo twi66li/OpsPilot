@@ -12,17 +12,18 @@ from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 from app.agent.tools import TOOL_REGISTRY
+from app.db.base import run_with_sqlite_retry
 from app.db.models import AgentRun, ApprovalRequest, Message, Ticket
 from app.services import chat_service, ticket_service
 from app.services.budget import BudgetExceededError
 from app.services.run_service import (
     RunCancelled,
     RunRecorder,
-    _write_lock,
     capture_run,
     check_cancelled,
     current_run,
     live_events,
+    lock_run_row,
 )
 from app.services.support_service import context_for_session, redact
 
@@ -238,14 +239,35 @@ def chat_stream(
 
 
 def _background_input(db, run, tenant_id, session_id, input_state):
-    with _write_lock:
-        prior = chat_service.get_history(db, session_id, limit=5)
-        input_state["history"] = prior + [{"role": "user", "content": input_state["question"]}]
-        db.add(Message(tenant_id=tenant_id, session_id=session_id, role="user",
-                       content=input_state["question"], meta={"run_id": run.id}))
-        run.data = {**run.data, "background_input": input_state}
-        db.commit()
-    return input_state
+    run_id = run.id
+
+    def _apply():
+        try:
+            locked = lock_run_row(db, run_id, tenant_id)
+            if locked is None:
+                raise LookupError(f"AgentRun 不存在: {run_id}")
+            saved = locked.data.get("background_input")
+            if saved:
+                return saved
+            prior = chat_service.get_history(db, session_id, limit=5)
+            prepared = {**input_state, "history": prior + [{"role": "user", "content": input_state["question"]}]}
+            db.add(
+                Message(
+                    tenant_id=tenant_id,
+                    session_id=session_id,
+                    role="user",
+                    content=prepared["question"],
+                    meta={"run_id": locked.id},
+                )
+            )
+            locked.data = {**locked.data, "background_input": prepared}
+            db.commit()
+            return prepared
+        except Exception:
+            db.rollback()
+            raise
+
+    return run_with_sqlite_retry(_apply)
 
 
 def _chat_stream(container, tenant_id, user_id, username, session_id, question, run_id, workflow="auto", *, background=False):
@@ -257,7 +279,7 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
     def generator():
         event_data = _record_event if background else _sse
         config = {"configurable": {"thread_id": session_id}}
-        input_state = {
+        base_input = {
             "question": question,
             "session_id": session_id,
             "tenant_id": tenant_id,
@@ -268,20 +290,28 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
             "support_report": None,
             "support_workflow": workflow,
         }
-        with _write_lock, container.db_session() as db:
-            if background:
-                run = db.get(AgentRun, run_id)
-                saved_input = run.data.get("background_input")
-                if saved_input:
-                    input_state = saved_input
-                else:
-                    input_state["support_context"] = context_for_session(db, session_id, tenant_id, user_id)
-                    input_state["evaluation_time"] = round(time.time(), 3)
-                    input_state = _background_input(db, run, tenant_id, session_id, input_state)
-            else:
+
+        def _prepare_input():
+            with container.db_session() as db:
+                if background:
+                    run = db.get(AgentRun, run_id)
+                    saved_input = run.data.get("background_input") if run else None
+                    if saved_input:
+                        return saved_input
+                    prepared = {
+                        **base_input,
+                        "support_context": context_for_session(db, session_id, tenant_id, user_id),
+                        "evaluation_time": round(time.time(), 3),
+                    }
+                    return _background_input(db, run, tenant_id, session_id, prepared)
                 chat_service.add_message(db, tenant_id, session_id, "user", question)
-                input_state["history"] = chat_service.get_history(db, session_id, limit=6)
-                input_state["support_context"] = context_for_session(db, session_id, tenant_id, user_id)
+                return {
+                    **base_input,
+                    "history": chat_service.get_history(db, session_id, limit=6),
+                    "support_context": context_for_session(db, session_id, tenant_id, user_id),
+                }
+
+        input_state = run_with_sqlite_retry(_prepare_input)
         yield event_data({"type": "start", "session_id": session_id, "question": question})
         snapshot = container.graph.get_state(config) if background else None
         resumed = snapshot is not None and snapshot.values.get("run_id") == run_id
@@ -314,7 +344,7 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
                 }
             )
             return
-        with _write_lock, container.db_session() as db:
+        with container.db_session() as db:
             events: list[dict] = []
             if not approval_emitted:
                 _ensure_approval_event(container, db, config, tenant_id, session_id, events)
@@ -322,20 +352,37 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
             yield event_data(event)
         check_cancelled()
         result = _final_snapshot(container, config)
-        with _write_lock, container.db_session() as db:
-            approval = _pending_approval_payload(db, tenant_id, session_id)
-            if approval:
-                result["approval"] = approval
-            existing_answer = background and db.query(Message.id).filter(
-                Message.session_id == session_id, Message.tenant_id == tenant_id, Message.role == "assistant",
-                Message.meta["run_id"].as_string() == run_id,
-            ).first()
-            if not existing_answer:
-                chat_service.add_message(
-                    db, tenant_id, session_id, "assistant", result["answer"],
-                    meta={"citations": result["citations"], "intent": result["intent"],
-                          "ticket_id": result["ticket_id"], "run_id": run_id},
-                )
+
+        def _persist_assistant():
+            with container.db_session() as db:
+                if background:
+                    lock_run_row(db, run_id, tenant_id)
+                approval = _pending_approval_payload(db, tenant_id, session_id)
+                existing_answer = background and db.query(Message.id).filter(
+                    Message.session_id == session_id,
+                    Message.tenant_id == tenant_id,
+                    Message.role == "assistant",
+                    Message.meta["run_id"].as_string() == run_id,
+                ).first()
+                if not existing_answer:
+                    chat_service.add_message(
+                        db,
+                        tenant_id,
+                        session_id,
+                        "assistant",
+                        result["answer"],
+                        meta={
+                            "citations": result["citations"],
+                            "intent": result["intent"],
+                            "ticket_id": result["ticket_id"],
+                            "run_id": run_id,
+                        },
+                    )
+                return approval
+
+        approval = run_with_sqlite_retry(_persist_assistant)
+        if approval:
+            result["approval"] = approval
         result["run_id"] = run_id
         current_run().finish(result)
         yield event_data({**result, "type": "final"})

@@ -8,7 +8,7 @@ from app.agent.tools import DRILL_TOOLS, TOOL_REGISTRY
 from app.api.schemas import ChatIn, DecisionIn
 from app.auth.deps import AuthUser, get_current_user, require_roles
 from app.container import get_container
-from app.db.base import get_db
+from app.db.base import SessionLocal, get_db
 from app.db.models import SupportCase
 from app.services import agent_service, background_runs, chat_service
 from app.services.cache import check_rate_limit
@@ -57,32 +57,44 @@ def chat(body: ChatIn, user: AuthUser = Depends(get_current_user), db: Session =
 
 
 @router.post("/chat/stream")
-def chat_stream(body: ChatIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def chat_stream(body: ChatIn, user: AuthUser = Depends(get_current_user)):
     """SSE 流式诊断：推送节点状态、检索命中、工具事件、回答与审批请求。"""
-    container = _check_session_and_ratelimit(user, db, body.session_id, body.message)
-    existing = existing_request(db, body, user)
-    if body.background and (existing is None or existing.data.get("background")):
-        if existing is None:
+    # 前置校验使用短生命周期同步工作单元，流式响应开始前立即归还数据库连接。
+    with SessionLocal() as db:
+        container = _check_session_and_ratelimit(user, db, body.session_id, body.message)
+        existing = existing_request(db, body, user)
+        existing_info = (
+            {
+                "id": existing.id,
+                "status": existing.status,
+                "background": bool(existing.data.get("background")),
+                "result": dict(existing.data.get("result", {})),
+            }
+            if existing is not None
+            else None
+        )
+    if body.background and (existing_info is None or existing_info["background"]):
+        if existing_info is None:
             try:
                 run_id = background_runs.enqueue(container, user, body)
             except HTTPException as exc:
                 # 断线重试可能先于原请求提交返回。同一请求只订阅已经创建的运行。
-                db.rollback()
-                existing = existing_request(db, body, user) if exc.status_code == 409 else None
-                if existing is None or not existing.data.get("background"):
-                    raise
-                run_id = existing.id
+                with SessionLocal() as db:
+                    retry_existing = existing_request(db, body, user) if exc.status_code == 409 else None
+                    if retry_existing is None or not retry_existing.data.get("background"):
+                        raise
+                    run_id = retry_existing.id
         else:
-            run_id = existing.id
+            run_id = existing_info["id"]
         generator = background_runs.subscribe(run_id, user.tenant_id, user.user_id)
-    elif existing:
+    elif existing_info is not None:
         import json
 
         data = {
-            **existing.data.get("result", {}),
+            **existing_info["result"],
             "type": "existing_run",
-            "run_id": existing.id,
-            "status": existing.status,
+            "run_id": existing_info["id"],
+            "status": existing_info["status"],
         }
         generator = iter(["data: " + json.dumps(data, ensure_ascii=False) + "\n\n", 'data: {"type":"done"}\n\n'])
     else:
@@ -104,15 +116,22 @@ def chat_stream(body: ChatIn, user: AuthUser = Depends(get_current_user), db: Se
 
 
 @router.get("/runs/{run_id}/events")
-def run_events(run_id: str, after: int = Query(default=0, ge=0),
-               user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def run_events(
+    run_id: str,
+    after: int = Query(default=0, ge=0),
+    user: AuthUser = Depends(get_current_user),
+):
     from app.services.run_service import get_run
 
-    run = get_run(db, user.tenant_id, run_id, user.user_id)
-    if run is None or not run.data.get("background"):
-        raise HTTPException(404, "找不到可订阅的运行")
-    return StreamingResponse(background_runs.subscribe(run_id, user.tenant_id, user.user_id, after),
-                             media_type="text/event-stream", headers=_SSE_HEADERS)
+    with SessionLocal() as db:
+        run = get_run(db, user.tenant_id, run_id, user.user_id)
+        if run is None or not run.data.get("background"):
+            raise HTTPException(404, "找不到可订阅的运行")
+    return StreamingResponse(
+        background_runs.subscribe(run_id, user.tenant_id, user.user_id, after),
+        media_type="text/event-stream",
+        headers=_SSE_HEADERS,
+    )
 
 
 @router.get("/sessions/{session_id}/pending-approval")

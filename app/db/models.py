@@ -18,7 +18,7 @@ def _uuid() -> str:
 
 
 def _now() -> datetime:
-    # 现有DateTime列不含时区，统一存UTC；asyncpg不接受带时区值写入这些列。
+    # 现有 DateTime 列不含时区，统一存 UTC naive 时间。
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
@@ -227,6 +227,7 @@ class AgentRun(Base):
     session_id: Mapped[str] = mapped_column(String(64), index=True)
     mode: Mapped[str] = mapped_column(String(16))
     status: Mapped[str] = mapped_column(String(32), default="running")
+    event_seq: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
     data: Mapped[dict] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
@@ -234,9 +235,12 @@ class AgentRun(Base):
 
 class AgentRunEvent(Base):
     __tablename__ = "agent_run_events"
+    __table_args__ = (Index("uq_agent_run_events_run_seq", "run_id", "seq", unique=True),)
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     run_id: Mapped[str] = mapped_column(String(64), ForeignKey("agent_runs.id"), index=True)
     tenant_id: Mapped[str] = mapped_column(String(64), index=True)
+    seq: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
     kind: Mapped[str] = mapped_column(String(64))
     detail: Mapped[dict] = mapped_column(JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)

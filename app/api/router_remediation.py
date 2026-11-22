@@ -7,13 +7,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from app.auth.deps import AuthUser, get_current_user, require_roles
 from app.config import get_settings
-from app.db.async_session import get_async_db
-from app.db.base import get_db
+from app.db.base import SessionLocal, get_db
 from app.db.models import RemediationRequest, SupportCase
 from app.services import remediation_service, run_service
 
@@ -71,7 +69,7 @@ def _require_enabled(user):
 
 
 @router.get("/actions")
-async def actions(user: AuthUser = Depends(get_current_user)):
+def actions(user: AuthUser = Depends(get_current_user)):
     settings = get_settings()
     enabled = settings.drill_remediation_enabled and user.tenant_id == "default"
     return {
@@ -83,12 +81,17 @@ async def actions(user: AuthUser = Depends(get_current_user)):
 
 
 @router.get("")
-async def list_requests(user: AuthUser = Depends(require_roles("admin", "engineer")), db: AsyncSession = Depends(get_async_db)):
+def list_requests(user: AuthUser = Depends(require_roles("admin", "engineer"))):
     if not get_settings().drill_enabled:
         raise HTTPException(404, "当前环境未开放故障演练")
-    rows = (await db.scalars(select(RemediationRequest).filter_by(tenant_id=user.tenant_id).order_by(
-        RemediationRequest.created_at.desc()).limit(100))).all()
-    return [_serialize(row, user) for row in rows]
+    with SessionLocal() as db:
+        rows = db.scalars(
+            select(RemediationRequest)
+            .filter_by(tenant_id=user.tenant_id)
+            .order_by(RemediationRequest.created_at.desc())
+            .limit(100)
+        ).all()
+        return [_serialize(row, user) for row in rows]
 
 
 @router.post("", status_code=201)

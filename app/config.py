@@ -1,10 +1,79 @@
 """全局配置：全部通过环境变量 / .env 覆盖，默认值支持零依赖离线运行。"""
 
+from dataclasses import asdict, dataclass
 from functools import lru_cache
 from typing import Literal
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+@dataclass(frozen=True)
+class DbConnectionBudget:
+    """PostgreSQL 连接池配额核算结果（按多副本上限 + 管理预留合并核定）。"""
+
+    pg_max_connections: int
+    replicas: int
+    admin_reserved: int
+    app_pool_size: int
+    app_max_overflow: int
+    app_pool_max: int
+    checkpoint_pool_min: int
+    checkpoint_pool_max: int
+    per_replica_max: int
+    total_app_max: int
+    total_budget: int
+    headroom: int
+    fits: bool
+
+    def to_dict(self) -> dict[str, int | bool]:
+        return asdict(self)
+
+
+def calculate_db_connection_budget(settings: "Settings | None" = None) -> DbConnectionBudget:
+    """合并核算业务连接池 + LangGraph 检查点连接池 + 管理预留连接。"""
+    cfg = settings or get_settings()
+    pg_max = int(cfg.db_max_connections)
+    replicas = int(cfg.db_replica_budget)
+    admin_reserved = int(cfg.db_admin_reserved_connections)
+    app_pool_size = int(cfg.db_pool_size)
+    app_max_overflow = int(cfg.db_max_overflow)
+    checkpoint_min = int(cfg.checkpoint_pool_min_size)
+    checkpoint_max = int(cfg.checkpoint_pool_max_size)
+
+    if pg_max < 1:
+        raise ValueError("DB_MAX_CONNECTIONS 必须 >= 1")
+    if replicas < 1:
+        raise ValueError("DB_REPLICA_BUDGET 必须 >= 1")
+    if admin_reserved < 1:
+        raise ValueError("DB_ADMIN_RESERVED_CONNECTIONS 必须 >= 1")
+    if app_pool_size < 1 or app_max_overflow < 0:
+        raise ValueError("DB_POOL_SIZE 必须 >= 1 且 DB_MAX_OVERFLOW 必须 >= 0")
+    if checkpoint_min < 1 or checkpoint_max < checkpoint_min:
+        raise ValueError("CHECKPOINT_POOL_MIN_SIZE 必须 >= 1 且 CHECKPOINT_POOL_MAX_SIZE >= MIN_SIZE")
+    if int(cfg.db_pool_timeout) < 1:
+        raise ValueError("DB_POOL_TIMEOUT 必须 >= 1")
+
+    app_pool_max = app_pool_size + app_max_overflow
+    per_replica_max = app_pool_max + checkpoint_max
+    total_app_max = per_replica_max * replicas
+    total_budget = total_app_max + admin_reserved
+    headroom = pg_max - total_app_max
+    return DbConnectionBudget(
+        pg_max_connections=pg_max,
+        replicas=replicas,
+        admin_reserved=admin_reserved,
+        app_pool_size=app_pool_size,
+        app_max_overflow=app_max_overflow,
+        app_pool_max=app_pool_max,
+        checkpoint_pool_min=checkpoint_min,
+        checkpoint_pool_max=checkpoint_max,
+        per_replica_max=per_replica_max,
+        total_app_max=total_app_max,
+        total_budget=total_budget,
+        headroom=headroom,
+        fits=total_budget <= pg_max,
+    )
 
 
 class Settings(BaseSettings):
@@ -21,6 +90,15 @@ class Settings(BaseSettings):
 
     # ---- 存储 ----
     database_url: str = "sqlite:///./data/app.db"
+    # PostgreSQL 连接池配额（默认按 max_connections=30、双副本核算：单副本 5+3+4=12，双副本 24，管理预留 6）
+    db_max_connections: int = 30
+    db_replica_budget: int = 2
+    db_admin_reserved_connections: int = 6
+    db_pool_size: int = 5
+    db_max_overflow: int = 3
+    db_pool_timeout: int = 30
+    checkpoint_pool_min_size: int = 1
+    checkpoint_pool_max_size: int = 4
     kb_storage_path: str = "./data/knowledge"
 
     # ---- 认证 ----
@@ -110,6 +188,18 @@ class Settings(BaseSettings):
     @property
     def drill_mcp_enabled(self) -> bool:
         return self.drill_enabled and self.mcp_enabled
+
+    @model_validator(mode="after")
+    def validate_connection_budget(self):
+        budget = calculate_db_connection_budget(self)
+        if not budget.fits:
+            raise ValueError(
+                f"PostgreSQL 连接池总配额超限：单副本上限 {budget.per_replica_max} "
+                f"(业务 {budget.app_pool_size}+{budget.app_max_overflow} + 检查点 {budget.checkpoint_pool_max}) "
+                f"× {budget.replicas} 副本 + 管理预留 {budget.admin_reserved} = {budget.total_budget} "
+                f"> max_connections={budget.pg_max_connections}"
+            )
+        return self
 
     @model_validator(mode="after")
     def production_security(self):

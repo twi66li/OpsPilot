@@ -7,14 +7,12 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
 from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
 from app.api.schemas import DocumentIn, SearchIn
 from app.auth.deps import AuthUser, get_current_user, require_roles
 from app.container import get_container
-from app.db.async_session import get_async_db
-from app.db.base import get_db
+from app.db.base import SessionLocal, get_db
 from app.db.models import Document, DocumentChunk, DocumentParent, DocumentVersion, Tenant, User
 from app.services import kb_service
 from app.services.cache import check_rate_limit
@@ -160,32 +158,29 @@ def store_upload(file: UploadFile, title: str, doc_id: str, parsed_file: UploadF
 
 
 @router.get("/versions/{version_id}")
-async def get_version(
-    version_id: str, user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)
-):
-    version, doc = await db.run_sync(_get_version, version_id, user)
-    chunks = (
-        await db.scalars(select(DocumentChunk).filter_by(version_id=version.id, tenant_id=version.tenant_id))
-    ).all()
-    return {**_version_dict(version, doc), "pages": version.pages, "chunks": [c.payload for c in chunks]}
+def get_version(version_id: str, user: AuthUser = Depends(get_current_user)):
+    with SessionLocal() as db:
+        version, doc = _get_version(db, version_id, user)
+        chunks = db.scalars(select(DocumentChunk).filter_by(version_id=version.id, tenant_id=version.tenant_id)).all()
+        return {**_version_dict(version, doc), "pages": version.pages, "chunks": [c.payload for c in chunks]}
 
 
 @router.get("/versions/{version_id}/file")
-async def get_original(
-    version_id: str, user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)
-):
-    version, _ = await db.run_sync(_get_version, version_id, user)
-    if not Path(version.original_path).is_file():
+def get_original(version_id: str, user: AuthUser = Depends(get_current_user)):
+    with SessionLocal() as db:
+        version, _ = _get_version(db, version_id, user)
+        original_path = version.original_path
+        filename = version.filename
+    if not Path(original_path).is_file():
         raise HTTPException(404, "原文件不存在，请检查持久卷")
-    return FileResponse(version.original_path, filename=version.filename, media_type="application/octet-stream")
+    return FileResponse(original_path, filename=filename, media_type="application/octet-stream")
 
 
 @router.get("/versions/{version_id}/status")
-async def version_status(
-    version_id: str, user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)
-):
-    version, doc = await db.run_sync(_get_version, version_id, user)
-    return _version_dict(version, doc)
+def version_status(version_id: str, user: AuthUser = Depends(get_current_user)):
+    with SessionLocal() as db:
+        version, doc = _get_version(db, version_id, user)
+        return _version_dict(version, doc)
 
 
 @router.post("/versions/{version_id}/retry", status_code=202)
@@ -226,24 +221,23 @@ def activate_version(version_id: str, user: AuthUser = Depends(get_current_user)
 
 
 @router.get("/chunks/{chunk_id}")
-async def get_chunk(
-    chunk_id: str, user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)
-):
-    chunk = await db.scalar(
-        select(DocumentChunk).where(
-            DocumentChunk.id == chunk_id, DocumentChunk.tenant_id.in_(readable_namespaces(user))
+def get_chunk(chunk_id: str, user: AuthUser = Depends(get_current_user)):
+    with SessionLocal() as db:
+        chunk = db.scalar(
+            select(DocumentChunk).where(
+                DocumentChunk.id == chunk_id, DocumentChunk.tenant_id.in_(readable_namespaces(user))
+            )
         )
-    )
-    if chunk is None:
-        raise HTTPException(404, "片段不存在")
-    parent = await db.scalar(select(DocumentParent).filter_by(id=chunk.parent_id, tenant_id=chunk.tenant_id))
-    version, doc = await db.run_sync(_get_version, chunk.version_id, user)
-    return {
-        **chunk.payload,
-        "parent_text": parent.text,
-        "active": version.id == doc.active_version_id,
-        "file_url": f"/api/kb/versions/{version.id}/file",
-    }
+        if chunk is None:
+            raise HTTPException(404, "片段不存在")
+        parent = db.scalar(select(DocumentParent).filter_by(id=chunk.parent_id, tenant_id=chunk.tenant_id))
+        version, doc = _get_version(db, chunk.version_id, user)
+        return {
+            **chunk.payload,
+            "parent_text": parent.text,
+            "active": version.id == doc.active_version_id,
+            "file_url": f"/api/kb/versions/{version.id}/file",
+        }
 
 
 @router.post("/documents")
@@ -259,63 +253,64 @@ def create_document(
 
 
 @router.get("/documents")
-async def list_documents(user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)):
-    docs = (
-        await db.scalars(
+def list_documents(user: AuthUser = Depends(get_current_user)):
+    with SessionLocal() as db:
+        docs = db.scalars(
             select(Document)
             .filter_by(tenant_id=user.tenant_id, deleted_at=None)
             .order_by(Document.created_at.desc())
             .limit(200)
-        )
-    ).all()
-    return [
-        {
-            "id": d.id,
-            "title": d.title,
-            "source": d.source,
-            "chunk_count": d.chunk_count,
-            "active_version_id": d.active_version_id,
-            "created_at": d.created_at.isoformat(),
-        }
-        for d in docs
-    ]
+        ).all()
+        return [
+            {
+                "id": d.id,
+                "title": d.title,
+                "source": d.source,
+                "chunk_count": d.chunk_count,
+                "active_version_id": d.active_version_id,
+                "created_at": d.created_at.isoformat(),
+            }
+            for d in docs
+        ]
 
 
 @router.get("/documents/{doc_id}")
-async def get_document(
-    doc_id: str, user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)
-):
-    doc = await db.scalar(
-        select(Document).where(
-            Document.id == doc_id, Document.tenant_id.in_(readable_namespaces(user)), Document.deleted_at.is_(None)
+def get_document(doc_id: str, user: AuthUser = Depends(get_current_user)):
+    with SessionLocal() as db:
+        doc = db.scalar(
+            select(Document).where(
+                Document.id == doc_id,
+                Document.tenant_id.in_(readable_namespaces(user)),
+                Document.deleted_at.is_(None),
+            )
         )
-    )
-    if not doc:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "文档不存在")
-    return {
-        "id": doc.id,
-        "title": doc.title,
-        "source": doc.source,
-        "content": doc.content,
-        "chunk_count": doc.chunk_count,
-    }
+        if not doc:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "文档不存在")
+        return {
+            "id": doc.id,
+            "title": doc.title,
+            "source": doc.source,
+            "content": doc.content,
+            "chunk_count": doc.chunk_count,
+        }
 
 
 @router.get("/documents/{doc_id}/versions")
-async def list_versions(
-    doc_id: str, user: AuthUser = Depends(get_current_user), db: AsyncSession = Depends(get_async_db)
-):
-    doc = await db.scalar(
-        select(Document).where(
-            Document.id == doc_id, Document.tenant_id.in_(readable_namespaces(user)), Document.deleted_at.is_(None)
+def list_versions(doc_id: str, user: AuthUser = Depends(get_current_user)):
+    with SessionLocal() as db:
+        doc = db.scalar(
+            select(Document).where(
+                Document.id == doc_id,
+                Document.tenant_id.in_(readable_namespaces(user)),
+                Document.deleted_at.is_(None),
+            )
         )
-    )
-    if doc is None:
-        raise HTTPException(404, "文档不存在")
-    versions = (
-        await db.scalars(select(DocumentVersion).filter_by(doc_id=doc_id).order_by(DocumentVersion.number.desc()))
-    ).all()
-    return [_version_dict(v, doc) for v in versions]
+        if doc is None:
+            raise HTTPException(404, "文档不存在")
+        versions = db.scalars(
+            select(DocumentVersion).filter_by(doc_id=doc_id).order_by(DocumentVersion.number.desc())
+        ).all()
+        return [_version_dict(v, doc) for v in versions]
 
 
 @router.delete("/documents/{doc_id}")

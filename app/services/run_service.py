@@ -17,9 +17,40 @@ _deadline = ContextVar("tool_deadline", default=None)
 _agent = ContextVar("agent_name", default="main")
 _live = ContextVar("live_events", default=False)
 _answer = ContextVar("answer_stream", default=False)
-# shortcut: 单 API 进程协调运行记录写入和事件回放，多实例时升级为数据库原子追加。
-_write_lock = threading.RLock()
+# 跨副本/多线程 start() 并发上限检查使用的 PostgreSQL 事务级 advisory lock 键。
+_START_ADVISORY_LOCK_KEY = 0x54363952
 _cancel_signals = {}
+
+
+def _dialect_name(db) -> str:
+    bind = db.get_bind()
+    return getattr(getattr(bind, "dialect", None), "name", "")
+
+
+def lock_run_row(db, run_id: str, tenant_id: str):
+    """锁定指定 AgentRun 行并刷新为已提交最新状态（PG 用 FOR UPDATE，SQLite 用先写抢占写锁）。"""
+    from sqlalchemy import update
+
+    from app.db.models import AgentRun, _now
+
+    dialect = _dialect_name(db)
+    if dialect == "postgresql":
+        return (
+            db.query(AgentRun)
+            .filter_by(id=run_id, tenant_id=tenant_id)
+            .populate_existing()
+            .with_for_update()
+            .first()
+        )
+    if dialect == "sqlite":
+        updated = db.execute(
+            update(AgentRun)
+            .where(AgentRun.id == run_id, AgentRun.tenant_id == tenant_id)
+            .values(updated_at=_now())
+        ).rowcount
+        if updated == 0:
+            return None
+    return db.query(AgentRun).filter_by(id=run_id, tenant_id=tenant_id).populate_existing().first()
 
 
 class RunCancelled(RuntimeError):
@@ -34,13 +65,35 @@ def check_cancelled():
 
 
 def request_cancel(db, run):
+    from sqlalchemy import update
+
+    from app.db.base import run_with_sqlite_retry
+    from app.db.models import AgentRun, _now
+
     if run.status != "running":
         return run.status
     signal = _cancel_signals.get(run.id)
     if signal:
         signal.set()
-    run.status = "cancel_requested"
-    db.commit()
+
+    def _apply():
+        try:
+            db.execute(
+                update(AgentRun)
+                .where(
+                    AgentRun.id == run.id,
+                    AgentRun.tenant_id == run.tenant_id,
+                    AgentRun.status == "running",
+                )
+                .values(status="cancel_requested", updated_at=_now())
+            )
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
+
+    run_with_sqlite_retry(_apply)
+    db.refresh(run)
     return run.status
 
 
@@ -142,8 +195,12 @@ class RunRecorder:
 
     @classmethod
     def start(cls, container, tenant_id, session_id, question, request_id=None, workflow="auto", *, background=False):
-        from app.db.base import SessionLocal
-        from app.db.models import AgentRun
+        from fastapi import HTTPException
+        from sqlalchemy import text
+        from sqlalchemy.exc import IntegrityError
+
+        from app.db.base import SessionLocal, run_with_sqlite_retry
+        from app.db.models import AgentRun, AgentRunEvent, ChatSession
 
         settings = container.settings
         config_keys = (
@@ -176,95 +233,122 @@ class RunRecorder:
             "app/services/mcp_client.py",
             "app/agent/retrieval_agent.py",
         )
-        with _write_lock, SessionLocal() as db:
-            from fastapi import HTTPException
+        run_payload = {
+            "question": question,
+            "workflow": workflow,
+            **({"background": True} if background else {}),
+            "config": {k: getattr(settings, k, None) for k in config_keys},
+            "source_sha256": {p: hashlib.sha256((root / p).read_bytes()).hexdigest() for p in sources},
+            "backends": {
+                k: type(getattr(container, k, None)).__name__
+                for k in ("llm", "embedder", "vector_store", "cache")
+            },
+            "max_tool_calls": getattr(settings, "max_tool_calls", 5),
+            "events": [],
+        }
 
-            from app.db.models import ChatSession
+        def _insert():
+            with SessionLocal() as db:
+                dialect = _dialect_name(db)
+                if dialect == "postgresql":
+                    db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": _START_ADVISORY_LOCK_KEY})
+                elif dialect == "sqlite":
+                    db.execute(text("UPDATE tenants SET name = name WHERE id = :tid"), {"tid": tenant_id})
 
-            active = (
-                db.query(AgentRun)
-                .join(ChatSession, AgentRun.session_id == ChatSession.id)
-                .filter(AgentRun.status.in_(["running", "cancel_requested"]), ChatSession.deleted_at.is_(None))
-            )
-            if active.filter(AgentRun.session_id == session_id).first():
-                _cancel_signals.pop(recorder.id, None)
-                raise HTTPException(409, "本会话已有执行中的请求，请查看当前运行记录")
-            if active.count() >= getattr(settings, "max_concurrent_runs", 1):
-                _cancel_signals.pop(recorder.id, None)
-                raise HTTPException(429, "当前分析任务已满，请稍后重试；单实例演示默认只执行一项分析")
-            db.add(
-                AgentRun(
-                    id=recorder.id,
-                    tenant_id=tenant_id,
-                    session_id=session_id,
-                    mode=getattr(settings, "agent_mode", "rule"),
-                    status="running",
-                    request_id=request_id,
-                    data={
-                        "question": question,
-                        "workflow": workflow,
-                        **({"background": True} if background else {}),
-                        "config": {k: getattr(settings, k, None) for k in config_keys},
-                        "source_sha256": {p: hashlib.sha256((root / p).read_bytes()).hexdigest() for p in sources},
-                        "backends": {
-                            k: type(getattr(container, k, None)).__name__
-                            for k in ("llm", "embedder", "vector_store", "cache")
-                        },
-                        "max_tool_calls": getattr(settings, "max_tool_calls", 5),
-                        "events": [],
-                    },
+                active = (
+                    db.query(AgentRun)
+                    .join(ChatSession, AgentRun.session_id == ChatSession.id)
+                    .filter(AgentRun.status.in_(["running", "cancel_requested"]), ChatSession.deleted_at.is_(None))
                 )
-            )
-            try:
-                db.commit()
-            except Exception as exc:
-                from sqlalchemy.exc import IntegrityError
+                if active.filter(AgentRun.session_id == session_id).first():
+                    _cancel_signals.pop(recorder.id, None)
+                    raise HTTPException(409, "本会话已有执行中的请求，请查看当前运行记录")
+                if active.count() >= getattr(settings, "max_concurrent_runs", 1):
+                    _cancel_signals.pop(recorder.id, None)
+                    raise HTTPException(429, "当前分析任务已满，请稍后重试；单实例演示默认只执行一项分析")
+                try:
+                    db.add(
+                        AgentRun(
+                            id=recorder.id,
+                            tenant_id=tenant_id,
+                            session_id=session_id,
+                            mode=getattr(settings, "agent_mode", "rule"),
+                            status="running",
+                            event_seq=1,
+                            request_id=request_id,
+                            data=copy.deepcopy(run_payload),
+                        )
+                    )
+                    db.flush()
+                    db.add(
+                        AgentRunEvent(
+                            run_id=recorder.id,
+                            tenant_id=tenant_id,
+                            seq=1,
+                            kind="started",
+                            detail={"request_id": request_id, "workflow": workflow},
+                        )
+                    )
+                    db.commit()
+                except IntegrityError as exc:
+                    db.rollback()
+                    _cancel_signals.pop(recorder.id, None)
+                    raise HTTPException(
+                        409, "本会话已有执行中的请求，或这个请求编号已经使用；请查看当前运行记录"
+                    ) from exc
 
-                if not isinstance(exc, IntegrityError):
-                    raise
-                _cancel_signals.pop(recorder.id, None)
-                from fastapi import HTTPException
-
-                raise HTTPException(409, "本会话已有执行中的请求，或这个请求编号已经使用；请查看当前运行记录") from exc
-        recorder.add("started", {"request_id": request_id, "workflow": workflow})
+        run_with_sqlite_retry(_insert)
         return recorder
 
     def _update(self, event=None, result=None):
-        from sqlalchemy import update
+        from app.db.base import SessionLocal, run_with_sqlite_retry
+        from app.db.models import AgentRunEvent, _now
 
-        from app.db.base import SessionLocal
-        from app.db.models import AgentRun, AgentRunEvent, _now
+        def _apply():
+            with SessionLocal() as db:
+                row = lock_run_row(db, self.id, self.tenant_id)
+                if row is None:
+                    raise LookupError(f"AgentRun 不存在: {self.id}")
+                assigned_seq = None
+                now = _now()
+                if event:
+                    assigned_seq = (row.event_seq or 0) + 1
+                    row.event_seq = assigned_seq
+                    db.add(
+                        AgentRunEvent(
+                            run_id=self.id,
+                            tenant_id=self.tenant_id,
+                            seq=assigned_seq,
+                            kind=event["kind"],
+                            detail=event["detail"],
+                        )
+                    )
+                    row.updated_at = now
+                if result is not None:
+                    data = copy.deepcopy(row.data)
+                    data["result"] = {**data.get("result", {}), **result}
+                    cancelled = self.cancel_signal.is_set() or row.status == "cancel_requested"
+                    row.status = (
+                        "cancelled"
+                        if cancelled
+                        else result.get("approval_status")
+                        or result.get("status")
+                        or ("completed" if result.get("end_reason") == "answered" else "failed")
+                    )
+                    row.data, row.updated_at = data, now
+                db.commit()
+                return assigned_seq
 
-        with _write_lock, SessionLocal() as db:
-            if event:
-                db.add(
-                    AgentRunEvent(run_id=self.id, tenant_id=self.tenant_id, kind=event["kind"], detail=event["detail"])
-                )
-                db.execute(
-                    update(AgentRun)
-                    .where(AgentRun.id == self.id, AgentRun.tenant_id == self.tenant_id)
-                    .values(updated_at=_now())
-                )
-            if result is not None:
-                row = db.query(AgentRun).filter_by(id=self.id, tenant_id=self.tenant_id).one()
-                data = copy.deepcopy(row.data)
-                data["result"] = {**data.get("result", {}), **result}
-                row.status = (
-                    "cancelled"
-                    if self.cancel_signal.is_set()
-                    else result.get("approval_status")
-                    or result.get("status")
-                    or ("completed" if result.get("end_reason") == "answered" else "failed")
-                )
-                row.data, row.updated_at = data, _now()
-            db.commit()
+        return run_with_sqlite_retry(_apply)
 
     def add(self, kind, detail):
-        self._update(event={"kind": kind, "detail": detail})
+        return self._update(event={"kind": kind, "detail": detail})
 
     def finish(self, result):
-        self.add("finished", {"status": result.get("status") or result.get("end_reason") or "finished"})
-        self._update(result=result)
+        self._update(
+            event={"kind": "finished", "detail": {"status": result.get("status") or result.get("end_reason") or "finished"}},
+            result=result,
+        )
         self.finished = True
         _cancel_signals.pop(self.id, None)
 
@@ -289,8 +373,13 @@ def get_run(db, tenant_id, run_id, user_id):
 def serialize_run(db, run):
     from app.db.models import AgentRunEvent
 
-    events = (db.query(AgentRunEvent).filter_by(run_id=run.id, tenant_id=run.tenant_id)
-              .filter(AgentRunEvent.kind != "stream").order_by(AgentRunEvent.id).all())
+    events = (
+        db.query(AgentRunEvent)
+        .filter_by(run_id=run.id, tenant_id=run.tenant_id)
+        .filter(AgentRunEvent.kind != "stream")
+        .order_by(AgentRunEvent.seq, AgentRunEvent.id)
+        .all()
+    )
     return {
         "run_id": run.id,
         "session_id": run.session_id,
@@ -302,7 +391,10 @@ def serialize_run(db, run):
             **{key: value for key, value in run.data.items() if key != "background_input"},
             "events": [
                 *run.data.get("events", []),
-                *[{"id": e.id, "at": e.created_at.isoformat(), "kind": e.kind, "detail": e.detail} for e in events],
+                *[
+                    {"id": e.id, "seq": e.seq, "at": e.created_at.isoformat(), "kind": e.kind, "detail": e.detail}
+                    for e in events
+                ],
             ],
         },
     }

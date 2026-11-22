@@ -73,12 +73,17 @@ def _build_container() -> Container:
         from psycopg.rows import dict_row
         from psycopg_pool import ConnectionPool
 
-        # 后台运行线程与请求线程并发读写检查点，单连接会串行且断线即全部失败；用连接池隔离。
+        from app.config import calculate_db_connection_budget
+
+        budget = calculate_db_connection_budget(settings)
+        # 后台运行线程与请求线程并发读写检查点，用显式配额连接池隔离并计入总连接上限。
         connection = ConnectionPool(
             settings.database_url.replace("postgresql+psycopg://", "postgresql://"),
-            min_size=1, max_size=max(2, settings.max_concurrent_runs + 2),
+            min_size=budget.checkpoint_pool_min,
+            max_size=budget.checkpoint_pool_max,
             kwargs={"autocommit": True, "row_factory": dict_row, "prepare_threshold": 0},
-            check=ConnectionPool.check_connection, open=True,
+            check=ConnectionPool.check_connection,
+            open=True,
         )
         checkpointer = PostgresSaver(connection)
         checkpointer.setup()

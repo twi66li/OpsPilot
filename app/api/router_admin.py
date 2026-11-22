@@ -1,13 +1,12 @@
 """管理员接口：用户管理。"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.concurrency import run_in_threadpool
 
 from app.auth.deps import AuthUser, require_roles
 from app.auth.security import hash_password
-from app.db.async_session import get_async_db
+from app.db.base import SessionLocal
 from app.db.models import Tenant, User
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
@@ -21,18 +20,19 @@ class UserIn(BaseModel):
 
 
 @router.post("/users")
-async def create_user(body: UserIn, admin: AuthUser = Depends(require_roles("admin")), db: AsyncSession = Depends(get_async_db)):
+def create_user(body: UserIn, admin: AuthUser = Depends(require_roles("admin"))):
     """管理员创建用户：仅限本租户（跨租户建号一律拒绝）。"""
     if body.role not in ("admin", "engineer", "viewer"):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "role 必须是 admin/engineer/viewer")
     if body.tenant_id != admin.tenant_id:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "不能为其他租户创建用户")
-    if await db.scalar(select(User).where(User.username == body.username)):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "用户名已存在")
-    if not await db.get(Tenant, body.tenant_id):
-        db.add(Tenant(id=body.tenant_id, name=body.tenant_id))
-    password_hash = await run_in_threadpool(hash_password, body.password)
-    user = User(tenant_id=body.tenant_id, username=body.username, password_hash=password_hash, role=body.role)
-    db.add(user)
-    await db.commit()
-    return {"id": user.id, "username": user.username, "role": user.role, "tenant_id": user.tenant_id}
+    password_hash = hash_password(body.password)
+    with SessionLocal() as db:
+        if db.scalar(select(User).where(User.username == body.username)):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "用户名已存在")
+        if not db.get(Tenant, body.tenant_id):
+            db.add(Tenant(id=body.tenant_id, name=body.tenant_id))
+        user = User(tenant_id=body.tenant_id, username=body.username, password_hash=password_hash, role=body.role)
+        db.add(user)
+        db.commit()
+        return {"id": user.id, "username": user.username, "role": user.role, "tenant_id": user.tenant_id}

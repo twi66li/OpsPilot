@@ -95,6 +95,15 @@ def test_background_run_resumes_persisted_checkpoint(client, admin_headers, monk
 
     restarted = sqlite3.connect(path, check_same_thread=False)
     try:
+        from datetime import timedelta
+
+        from app.db.models import AgentRun, _now
+
+        # 模拟旧进程崩溃后租约已过期，允许重启后的新 worker 从检查点重领续跑。
+        with container.db_session() as db:
+            stale = db.get(AgentRun, recorder.id)
+            stale.lease_expires_at = _now() - timedelta(seconds=1)
+            db.commit()
         monkeypatch.setattr(container, "graph", graph.compile(checkpointer=SqliteSaver(restarted)))
         monkeypatch.setattr(background_runs, "_worker", None)
         background_runs.start_worker(container)

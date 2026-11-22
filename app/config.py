@@ -183,6 +183,11 @@ class Settings(BaseSettings):
     budget_token_limit: int = 0
     budget_model_limits: dict[str, int] = {}  # 按 budget.json p1 列的分模型授权；未授权模型一律拒绝
 
+    # ---- 后台任务租约队列 ----
+    task_lease_seconds: float = 30.0
+    task_heartbeat_interval_seconds: float = 10.0
+    task_poll_interval_seconds: float = 0.5
+
     @property
     def drill_remediation_enabled(self) -> bool:
         return self.drill_enabled and self.remediation_enabled

@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 from alembic import command
 from alembic.config import Config
+from alembic.script import ScriptDirectory
 from pydantic import ValidationError
 from sqlalchemy import create_engine, inspect, text
 
@@ -125,5 +126,6 @@ def test_migration_adopts_old_database_without_resetting_data(tmp_path):
         assert conn.scalar(text("SELECT name FROM tenants WHERE id='kept'")) == "existing"
         assert "login_sessions" in inspect(conn).get_table_names()
         assert "budget_ledgers" in inspect(conn).get_table_names()
-        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "0006"
+        expected_head = ScriptDirectory.from_config(config).get_current_head()
+        assert conn.scalar(text("SELECT version_num FROM alembic_version")) == expected_head
         command.upgrade(config, "head")

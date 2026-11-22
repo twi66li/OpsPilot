@@ -112,7 +112,7 @@ def test_migration_0006_upgrade_and_downgrade(tmp_path):
             assert "budget_reservations" not in tables_after
             assert "budget_ledger_events" not in tables_after
 
-            command.upgrade(cfg, "head")
+            command.upgrade(cfg, "0006")
             assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "0006"
     finally:
         eng.dispose()
@@ -751,7 +751,7 @@ def test_real_postgres16_end_to_end_when_available(tmp_path):
     try:
         with eng.begin() as conn:
             cfg.attributes["connection"] = conn
-            command.upgrade(cfg, "head")
+            command.upgrade(cfg, "0006")
             assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "0006"
     finally:
         eng.dispose()

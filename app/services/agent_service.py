@@ -8,28 +8,109 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from langgraph.types import Command
-from sqlalchemy import update
+from sqlalchemy import or_, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.agent.tools import TOOL_REGISTRY
 from app.db.base import run_with_sqlite_retry
-from app.db.models import AgentRun, ApprovalRequest, Message, Ticket
+from app.db.models import AgentRun, ApprovalRequest, Message, Ticket, _now
 from app.services import chat_service, ticket_service
 from app.services.budget import BudgetExceededError
 from app.services.run_service import (
+    LeaseLostError,
     RunCancelled,
     RunRecorder,
     capture_run,
     check_cancelled,
+    check_lease,
     current_run,
     live_events,
     lock_run_row,
+    make_message_idempotency_key,
 )
 from app.services.support_service import context_for_session, redact
 
 logger = logging.getLogger(__name__)
 # shortcut: 单 API 进程串行审批；多实例部署时升级为跨进程协调。
 _approval_lock = threading.Lock()
+_ACTIVE_RUN_STATUSES = ("running", "cancel_requested")
+
+
+def _assert_recorder_lease_on_row(db: Session, locked: AgentRun | None, recorder) -> None:
+    if locked is None:
+        raise LookupError("AgentRun 不存在")
+    if recorder is None or not getattr(recorder, "has_lease", False):
+        return
+    if recorder.lease_lost.is_set() or (
+        locked.lease_owner != recorder.lease_owner
+        or locked.lease_token != recorder.lease_token
+        or locked.status not in _ACTIVE_RUN_STATUSES
+    ):
+        db.rollback()
+        recorder.lease_lost.set()
+        raise LeaseLostError(
+            f"AgentRun 租约已失效: run_id={locked.id} expected=({recorder.lease_owner}, {recorder.lease_token}) "
+            f"actual=({locked.lease_owner}, {locked.lease_token}, status={locked.status})"
+        )
+
+
+def _find_existing_run_message(db: Session, tenant_id: str, session_id: str, role: str, run_id: str | None):
+    if not run_id:
+        return None
+    idem_key = make_message_idempotency_key(run_id, role)
+    return (
+        db.query(Message)
+        .filter(
+            Message.tenant_id == tenant_id,
+            Message.session_id == session_id,
+            Message.role == role,
+            or_(
+                Message.idempotency_key == idem_key,
+                Message.meta["run_id"].as_string() == run_id,
+            ),
+        )
+        .first()
+    )
+
+
+def _ensure_idempotent_message(
+    db: Session,
+    tenant_id: str,
+    session_id: str,
+    role: str,
+    content: str,
+    meta: dict | None = None,
+    run_id: str | None = None,
+) -> tuple[Message, bool]:
+    """幂等写入带幂等键的会话消息，返回 (message, created)。调用方负责事务提交。"""
+    idem_key = make_message_idempotency_key(run_id, role)
+    existing = _find_existing_run_message(db, tenant_id, session_id, role, run_id)
+    if existing is not None:
+        return existing, False
+    msg = Message(
+        tenant_id=tenant_id,
+        session_id=session_id,
+        role=role,
+        content=content,
+        meta=meta or {},
+        idempotency_key=idem_key,
+    )
+    try:
+        nested = db.begin_nested() if hasattr(db, "begin_nested") else None
+        if nested is not None and hasattr(nested, "__enter__"):
+            with nested:
+                db.add(msg)
+                db.flush()
+        else:
+            db.add(msg)
+            db.flush()
+        return msg, True
+    except IntegrityError:
+        existing = _find_existing_run_message(db, tenant_id, session_id, role, run_id)
+        if existing is not None:
+            return existing, False
+        raise
 
 
 def _record_event(data: dict) -> dict:
@@ -144,7 +225,8 @@ def chat_once(
 
 def _chat_once(container, db, tenant_id, user_id, username, session_id, question, run_id, workflow="auto"):
     """非流式诊断：返回最终结果与全部过程事件（便于测试与调试）。"""
-    chat_service.add_message(db, tenant_id, session_id, "user", question)
+    _ensure_idempotent_message(db, tenant_id, session_id, "user", question, meta={"run_id": run_id}, run_id=run_id)
+    db.commit()
     history = chat_service.get_history(db, session_id, limit=6)
     config = {"configurable": {"thread_id": session_id}}
     input_state = {
@@ -171,7 +253,7 @@ def _chat_once(container, db, tenant_id, user_id, username, session_id, question
     approval = _pending_approval_payload(db, tenant_id, session_id)
     if approval:
         result["approval"] = approval
-    chat_service.add_message(
+    _ensure_idempotent_message(
         db,
         tenant_id,
         session_id,
@@ -183,7 +265,9 @@ def _chat_once(container, db, tenant_id, user_id, username, session_id, question
             "ticket_id": result["ticket_id"],
             "run_id": run_id,
         },
+        run_id=run_id,
     )
+    db.commit()
     return result
 
 
@@ -240,27 +324,48 @@ def chat_stream(
 
 def _background_input(db, run, tenant_id, session_id, input_state):
     run_id = run.id
+    recorder = current_run()
+    lease_recorder = recorder if (recorder is not None and recorder.id == run_id and recorder.has_lease) else None
 
     def _apply():
         try:
             locked = lock_run_row(db, run_id, tenant_id)
             if locked is None:
                 raise LookupError(f"AgentRun 不存在: {run_id}")
+            _assert_recorder_lease_on_row(db, locked, lease_recorder)
             saved = locked.data.get("background_input")
             if saved:
                 return saved
             prior = chat_service.get_history(db, session_id, limit=5)
             prepared = {**input_state, "history": prior + [{"role": "user", "content": input_state["question"]}]}
-            db.add(
-                Message(
-                    tenant_id=tenant_id,
-                    session_id=session_id,
-                    role="user",
-                    content=prepared["question"],
-                    meta={"run_id": locked.id},
-                )
+            _ensure_idempotent_message(
+                db,
+                tenant_id,
+                session_id,
+                "user",
+                prepared["question"],
+                meta={"run_id": locked.id},
+                run_id=locked.id,
             )
-            locked.data = {**locked.data, "background_input": prepared}
+            new_data = {**locked.data, "background_input": prepared}
+            if lease_recorder is not None:
+                updated = db.execute(
+                    update(AgentRun)
+                    .where(
+                        AgentRun.id == run_id,
+                        AgentRun.tenant_id == tenant_id,
+                        AgentRun.lease_owner == lease_recorder.lease_owner,
+                        AgentRun.lease_token == lease_recorder.lease_token,
+                        AgentRun.status.in_(_ACTIVE_RUN_STATUSES),
+                    )
+                    .values(data=new_data, updated_at=_now())
+                ).rowcount
+                if updated != 1:
+                    db.rollback()
+                    lease_recorder.lease_lost.set()
+                    raise LeaseLostError(f"AgentRun 租约已失效，拒绝写入背景输入: run_id={run_id}")
+            else:
+                locked.data = new_data
             db.commit()
             return prepared
         except Exception:
@@ -304,7 +409,10 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
                         "evaluation_time": round(time.time(), 3),
                     }
                     return _background_input(db, run, tenant_id, session_id, prepared)
-                chat_service.add_message(db, tenant_id, session_id, "user", question)
+                _ensure_idempotent_message(
+                    db, tenant_id, session_id, "user", question, meta={"run_id": run_id}, run_id=run_id
+                )
+                db.commit()
                 return {
                     **base_input,
                     "history": chat_service.get_history(db, session_id, limit=6),
@@ -354,32 +462,50 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
         result = _final_snapshot(container, config)
 
         def _persist_assistant():
+            recorder = current_run()
+            lease_recorder = (
+                recorder if (background and recorder is not None and recorder.id == run_id and recorder.has_lease) else None
+            )
             with container.db_session() as db:
                 if background:
-                    lock_run_row(db, run_id, tenant_id)
+                    locked = lock_run_row(db, run_id, tenant_id)
+                    _assert_recorder_lease_on_row(db, locked, lease_recorder)
                 approval = _pending_approval_payload(db, tenant_id, session_id)
-                existing_answer = background and db.query(Message.id).filter(
-                    Message.session_id == session_id,
-                    Message.tenant_id == tenant_id,
-                    Message.role == "assistant",
-                    Message.meta["run_id"].as_string() == run_id,
-                ).first()
-                if not existing_answer:
-                    chat_service.add_message(
-                        db,
-                        tenant_id,
-                        session_id,
-                        "assistant",
-                        result["answer"],
-                        meta={
-                            "citations": result["citations"],
-                            "intent": result["intent"],
-                            "ticket_id": result["ticket_id"],
-                            "run_id": run_id,
-                        },
-                    )
+                _ensure_idempotent_message(
+                    db,
+                    tenant_id,
+                    session_id,
+                    "assistant",
+                    result["answer"],
+                    meta={
+                        "citations": result["citations"],
+                        "intent": result["intent"],
+                        "ticket_id": result["ticket_id"],
+                        "run_id": run_id,
+                    },
+                    run_id=run_id,
+                )
+                if lease_recorder is not None:
+                    now = _now()
+                    updated = db.execute(
+                        update(AgentRun)
+                        .where(
+                            AgentRun.id == run_id,
+                            AgentRun.tenant_id == tenant_id,
+                            AgentRun.lease_owner == lease_recorder.lease_owner,
+                            AgentRun.lease_token == lease_recorder.lease_token,
+                            AgentRun.status.in_(_ACTIVE_RUN_STATUSES),
+                        )
+                        .values(heartbeat_at=now, updated_at=now)
+                    ).rowcount
+                    if updated != 1:
+                        db.rollback()
+                        lease_recorder.lease_lost.set()
+                        raise LeaseLostError(f"AgentRun 租约已失效，拒绝写入助手消息: run_id={run_id}")
+                db.commit()
                 return approval
 
+        check_lease()
         approval = run_with_sqlite_retry(_persist_assistant)
         if approval:
             result["approval"] = approval

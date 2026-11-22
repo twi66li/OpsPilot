@@ -3,11 +3,15 @@
 import copy
 import hashlib
 import logging
+import os
+import socket
 import threading
 import time
 import uuid
 from contextlib import contextmanager
 from contextvars import ContextVar
+from dataclasses import dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -20,6 +24,43 @@ _answer = ContextVar("answer_stream", default=False)
 # 跨副本/多线程 start() 并发上限检查使用的 PostgreSQL 事务级 advisory lock 键。
 _START_ADVISORY_LOCK_KEY = 0x54363952
 _cancel_signals = {}
+_ACTIVE_RUN_STATUSES = ("running", "cancel_requested")
+
+
+@dataclass(frozen=True)
+class TaskLease:
+    """数据库后台任务租约令牌（fencing token）。"""
+
+    task_id: str
+    owner: str
+    token: str
+    attempt: int
+    expires_at: datetime
+
+
+class LeaseLostError(RuntimeError):
+    """任务租约已失效或已被其他 worker 接管，禁止继续写入状态或结果。"""
+
+
+def make_worker_id(prefix: str = "worker") -> str:
+    host = socket.gethostname()[:32] or "host"
+    return f"{prefix}:{host}:{os.getpid()}:{uuid.uuid4().hex[:8]}"
+
+
+def make_lease_token(attempt: int) -> str:
+    return f"a{attempt}-{uuid.uuid4().hex[:24]}"
+
+
+def make_run_idempotency_key(session_id: str, request_id: str | None) -> str | None:
+    if not request_id:
+        return None
+    return f"run:{session_id}:{request_id}"
+
+
+def make_message_idempotency_key(run_id: str | None, role: str) -> str | None:
+    if not run_id:
+        return None
+    return f"msg:{run_id}:{role}"
 
 
 def _dialect_name(db) -> str:
@@ -57,7 +98,15 @@ class RunCancelled(RuntimeError):
     pass
 
 
+def check_lease():
+    recorder = current_run()
+    lost = getattr(recorder, "lease_lost", None)
+    if lost is not None and lost.is_set():
+        raise LeaseLostError(f"AgentRun 租约已失效: run_id={getattr(recorder, 'id', '')}")
+
+
 def check_cancelled():
+    check_lease()
     recorder = current_run()
     signal = getattr(recorder, "cancel_signal", None)
     if signal and signal.is_set():
@@ -178,6 +227,15 @@ def emit(kind, detail):
     if recorder:
         try:
             recorder.add(kind, {**detail, "agent": _agent.get()})
+        except LeaseLostError:
+            if getattr(recorder, "lease_lost", None) is not None:
+                recorder.lease_lost.set()
+            logger.warning(
+                "run_event_rejected_lease_lost run_id=%s kind=%s owner=%s",
+                getattr(recorder, "id", "offline"),
+                kind,
+                getattr(recorder, "lease_owner", None),
+            )
         except Exception as exc:
             # 附加追踪故障不改变业务结果；异常原文可能含SQL参数/正文，只记录类型。
             logger.warning(
@@ -189,20 +247,54 @@ def emit(kind, detail):
 
 
 class RunRecorder:
-    def __init__(self, run_id, tenant_id):
+    def __init__(
+        self,
+        run_id,
+        tenant_id,
+        *,
+        lease_owner: str | None = None,
+        lease_token: str | None = None,
+        attempt: int | None = None,
+        session_factory=None,
+    ):
         self.id, self.tenant_id, self.finished = run_id, tenant_id, False
+        self.lease_owner = lease_owner
+        self.lease_token = lease_token
+        self.attempt = attempt
+        self._session_factory = session_factory
+        self.lease_lost = threading.Event()
         self.cancel_signal = _cancel_signals.setdefault(run_id, threading.Event())
 
+    @property
+    def has_lease(self) -> bool:
+        return self.lease_owner is not None or self.lease_token is not None
+
     @classmethod
-    def start(cls, container, tenant_id, session_id, question, request_id=None, workflow="auto", *, background=False):
+    def start(
+        cls,
+        container,
+        tenant_id,
+        session_id,
+        question,
+        request_id=None,
+        workflow="auto",
+        *,
+        background=False,
+        queued=False,
+        idempotency_key=None,
+        lease_owner=None,
+        lease_seconds=None,
+        session_factory=None,
+    ):
         from fastapi import HTTPException
         from sqlalchemy import text
         from sqlalchemy.exc import IntegrityError
 
         from app.db.base import SessionLocal, run_with_sqlite_retry
-        from app.db.models import AgentRun, AgentRunEvent, ChatSession
+        from app.db.models import AgentRun, AgentRunEvent, ChatSession, _now
 
         settings = container.settings
+        factory = session_factory or SessionLocal
         config_keys = (
             "agent_mode",
             "llm_provider",
@@ -220,7 +312,31 @@ class RunRecorder:
             "mcp_enabled",
             "retrieval_subagent_enabled",
         )
-        recorder = cls(uuid.uuid4().hex, tenant_id)
+        run_id = uuid.uuid4().hex
+        resolved_idem_key = idempotency_key or make_run_idempotency_key(session_id, request_id)
+        initial_owner = None
+        initial_token = None
+        initial_attempt = 0
+        initial_heartbeat = None
+        initial_expires = None
+        if background and not queued:
+            # 直接手工驱动的后台运行（未通过队列 enqueue）先绑定初始租约，防止后台轮询线程并发抢占。
+            now = _now()
+            ttl = float(lease_seconds if lease_seconds is not None else getattr(settings, "task_lease_seconds", 30.0))
+            initial_attempt = 1
+            initial_owner = lease_owner or make_worker_id("inline")
+            initial_token = make_lease_token(initial_attempt)
+            initial_heartbeat = now
+            initial_expires = now + timedelta(seconds=ttl)
+
+        recorder = cls(
+            run_id,
+            tenant_id,
+            lease_owner=initial_owner,
+            lease_token=initial_token,
+            attempt=initial_attempt if initial_attempt else None,
+            session_factory=session_factory,
+        )
         root = Path(__file__).resolve().parents[2]
         sources = (
             "app/agent/tool_loop.py",
@@ -248,7 +364,7 @@ class RunRecorder:
         }
 
         def _insert():
-            with SessionLocal() as db:
+            with factory() as db:
                 dialect = _dialect_name(db)
                 if dialect == "postgresql":
                     db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": _START_ADVISORY_LOCK_KEY})
@@ -276,6 +392,12 @@ class RunRecorder:
                             status="running",
                             event_seq=1,
                             request_id=request_id,
+                            idempotency_key=resolved_idem_key,
+                            lease_owner=initial_owner,
+                            lease_token=initial_token,
+                            attempt=initial_attempt,
+                            heartbeat_at=initial_heartbeat,
+                            lease_expires_at=initial_expires,
                             data=copy.deepcopy(run_payload),
                         )
                     )
@@ -301,19 +423,84 @@ class RunRecorder:
         return recorder
 
     def _update(self, event=None, result=None):
+        from sqlalchemy import update
+
         from app.db.base import SessionLocal, run_with_sqlite_retry
-        from app.db.models import AgentRunEvent, _now
+        from app.db.models import AgentRun, AgentRunEvent, _now
+
+        if self.has_lease and self.lease_lost.is_set():
+            raise LeaseLostError(f"AgentRun 租约已失效: run_id={self.id} owner={self.lease_owner}")
+
+        factory = self._session_factory or SessionLocal
 
         def _apply():
-            with SessionLocal() as db:
+            with factory() as db:
                 row = lock_run_row(db, self.id, self.tenant_id)
                 if row is None:
                     raise LookupError(f"AgentRun 不存在: {self.id}")
+                if self.has_lease:
+                    if (
+                        row.lease_owner != self.lease_owner
+                        or row.lease_token != self.lease_token
+                        or row.status not in _ACTIVE_RUN_STATUSES
+                    ):
+                        db.rollback()
+                        self.lease_lost.set()
+                        raise LeaseLostError(
+                            f"AgentRun 租约校验失败: run_id={self.id} expected=({self.lease_owner}, {self.lease_token}) "
+                            f"actual=({row.lease_owner}, {row.lease_token}, status={row.status})"
+                        )
                 assigned_seq = None
                 now = _now()
+                values = {"updated_at": now}
                 if event:
                     assigned_seq = (row.event_seq or 0) + 1
-                    row.event_seq = assigned_seq
+                    values["event_seq"] = assigned_seq
+                if result is not None:
+                    data = copy.deepcopy(row.data)
+                    data["result"] = {**data.get("result", {}), **result}
+                    cancelled = self.cancel_signal.is_set() or row.status == "cancel_requested"
+                    new_status = (
+                        "cancelled"
+                        if cancelled
+                        else result.get("approval_status")
+                        or result.get("status")
+                        or ("completed" if result.get("end_reason") == "answered" else "failed")
+                    )
+                    values["status"] = new_status
+                    values["data"] = data
+                    if self.has_lease:
+                        values["lease_expires_at"] = None
+                        values["heartbeat_at"] = now
+
+                if self.has_lease:
+                    updated = db.execute(
+                        update(AgentRun)
+                        .where(
+                            AgentRun.id == self.id,
+                            AgentRun.tenant_id == self.tenant_id,
+                            AgentRun.lease_owner == self.lease_owner,
+                            AgentRun.lease_token == self.lease_token,
+                            AgentRun.status.in_(_ACTIVE_RUN_STATUSES),
+                        )
+                        .values(**values)
+                    ).rowcount
+                    if updated != 1:
+                        db.rollback()
+                        self.lease_lost.set()
+                        raise LeaseLostError(
+                            f"AgentRun 条件更新被拒绝: run_id={self.id} owner={self.lease_owner} token={self.lease_token}"
+                        )
+                else:
+                    if "event_seq" in values:
+                        row.event_seq = values["event_seq"]
+                    if "status" in values:
+                        row.status = values["status"]
+                    if "data" in values:
+                        row.data = values["data"]
+                    row.updated_at = now
+
+                if event:
                     db.add(
                         AgentRunEvent(
                             run_id=self.id,
@@ -323,19 +510,6 @@ class RunRecorder:
                             detail=event["detail"],
                         )
                     )
-                    row.updated_at = now
-                if result is not None:
-                    data = copy.deepcopy(row.data)
-                    data["result"] = {**data.get("result", {}), **result}
-                    cancelled = self.cancel_signal.is_set() or row.status == "cancel_requested"
-                    row.status = (
-                        "cancelled"
-                        if cancelled
-                        else result.get("approval_status")
-                        or result.get("status")
-                        or ("completed" if result.get("end_reason") == "answered" else "failed")
-                    )
-                    row.data, row.updated_at = data, now
                 db.commit()
                 return assigned_seq
 

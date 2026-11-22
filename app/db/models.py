@@ -66,6 +66,7 @@ class ChatSession(Base):
 
 class Message(Base):
     __tablename__ = "messages"
+    __table_args__ = (Index("uq_messages_idempotency_key", "tenant_id", "idempotency_key", unique=True),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     session_id: Mapped[str] = mapped_column(String(64), ForeignKey("chat_sessions.id"), index=True)
@@ -73,6 +74,7 @@ class Message(Base):
     role: Mapped[str] = mapped_column(String(16))  # user | assistant | system
     content: Mapped[str] = mapped_column(Text)
     meta: Mapped[dict] = mapped_column(JSON, default=dict)
+    idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
 
@@ -97,7 +99,11 @@ class DocumentVersion(Base):
     """原文件与持久化入库任务；ready 与当前生效版本分开记录。"""
 
     __tablename__ = "document_versions"
-    __table_args__ = (Index("uq_document_version_number", "doc_id", "number", unique=True),)
+    __table_args__ = (
+        Index("uq_document_version_number", "doc_id", "number", unique=True),
+        Index("uq_document_versions_idempotency_key", "tenant_id", "idempotency_key", unique=True),
+        Index("ix_document_versions_lease_claim", "status", "lease_expires_at", "created_at"),
+    )
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True, default=_uuid)
     tenant_id: Mapped[str] = mapped_column(String(64), index=True)
@@ -114,7 +120,14 @@ class DocumentVersion(Base):
     pages: Mapped[list] = mapped_column(JSON, default=list)
     warnings: Mapped[list] = mapped_column(JSON, default=list)
     index_config: Mapped[dict] = mapped_column(JSON, default=dict)
+    idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    lease_owner: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    lease_token: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    attempt: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
+    updated_at: Mapped[datetime | None] = mapped_column(DateTime, default=_now, onupdate=_now, nullable=True)
 
 
 class DocumentParent(Base):
@@ -179,6 +192,16 @@ class ApprovalRequest(Base):
     """LangGraph interrupt 产生的工单创建审批单（人工审批入口）。"""
 
     __tablename__ = "approval_requests"
+    __table_args__ = (
+        Index(
+            "uq_approval_pending_session",
+            "tenant_id",
+            "session_id",
+            unique=True,
+            sqlite_where=text("status = 'pending'"),
+            postgresql_where=text("status = 'pending'"),
+        ),
+    )
 
     id: Mapped[str] = mapped_column(String(64), primary_key=True, default=_uuid)
     tenant_id: Mapped[str] = mapped_column(String(64), index=True)
@@ -212,6 +235,8 @@ class AgentRun(Base):
     __tablename__ = "agent_runs"
     __table_args__ = (
         Index("uq_agent_request", "session_id", "request_id", unique=True),
+        Index("uq_agent_runs_idempotency_key", "tenant_id", "idempotency_key", unique=True),
+        Index("ix_agent_runs_lease_claim", "status", "lease_expires_at", "created_at"),
         Index(
             "uq_agent_active_session",
             "session_id",
@@ -228,6 +253,12 @@ class AgentRun(Base):
     mode: Mapped[str] = mapped_column(String(16))
     status: Mapped[str] = mapped_column(String(32), default="running")
     event_seq: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    idempotency_key: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    lease_owner: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    lease_token: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    attempt: Mapped[int] = mapped_column(Integer, default=0, server_default="0", nullable=False)
+    heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     data: Mapped[dict] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_now)

@@ -7,8 +7,11 @@ import time
 
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.db.models import FaultRecord
 from app.services.metrics_service import query_service_metrics
+
+DRILL_TOOLS = ("query_service_metrics", "query_logs")
 
 # 中文服务名 → 服务标识（演示环境约定）
 SERVICE_ALIAS = {
@@ -166,7 +169,9 @@ def make_tool_executor(container, tenant_id, user_id=None, *, evaluation_time=No
             settings = container.settings
             api = ChatAPI(settings.openai_api_key, settings.openai_base_url, settings.chat_model)
             return number_hits(run_retrieval_agent(args["query"], api, retrieve, top_k=args["top_k"], timeout=settings.tool_timeout_seconds))
-        if name in ("query_logs", "query_service_metrics") and getattr(container.settings, "mcp_enabled", False):
+        if name in DRILL_TOOLS and not container.settings.drill_enabled:
+            return {"status": "unavailable", "summary": "当前环境未开放故障演练工具。"}
+        if name in DRILL_TOOLS and container.settings.drill_mcp_enabled:
             from app.services.mcp_client import call_observability_tool
 
             result = call_observability_tool(container.settings, user_id, tenant_id, name, args, evaluation_time)
@@ -189,7 +194,9 @@ def make_tool_executor(container, tenant_id, user_id=None, *, evaluation_time=No
     return execute
 
 
-def run_diagnostic_tools(db: Session, tenant_id: str, question: str, *, evaluation_time=None) -> tuple[list[dict], list[dict], dict]:
+def run_diagnostic_tools(
+    db: Session, tenant_id: str, question: str, *, evaluation_time=None, drill_enabled: bool | None = None,
+) -> tuple[list[dict], list[dict], dict]:
     """执行工具链：返回 (tool_events, fault_records, metrics)。
 
     tool_events 记录每次调用的名称/参数/耗时/关键发现，随 SSE 推送并写入 Langfuse。
@@ -206,8 +213,11 @@ def run_diagnostic_tools(db: Session, tenant_id: str, question: str, *, evaluati
     fault_records: list[dict] = []
 
     allowed = policy["allowed"]
+    if drill_enabled is None:
+        drill_enabled = get_settings().drill_enabled
     if (
-        entities["services"]
+        drill_enabled
+        and entities["services"]
         and METRICS_HINT_RE.search(text)
         and "query_service_metrics" not in policy["forbidden"]
         and (allowed is None or "query_service_metrics" in allowed)

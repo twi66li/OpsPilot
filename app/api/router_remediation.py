@@ -42,7 +42,7 @@ def _serialize(row, user: AuthUser | None = None):
         requested_by=row.requested_by,
         approver_username=user.username if user else "",
         approver_role=user.role if user else "",
-        remediation_enabled=settings.remediation_enabled,
+        remediation_enabled=settings.drill_remediation_enabled,
         strict_four_eyes=settings.strict_four_eyes,
     )
     return {
@@ -64,7 +64,7 @@ def _serialize(row, user: AuthUser | None = None):
 
 
 def _require_enabled(user):
-    if not get_settings().remediation_enabled:
+    if not get_settings().drill_remediation_enabled:
         raise HTTPException(503, "当前环境尚未启用演练修复")
     if user.tenant_id != "default":
         raise HTTPException(404, "本租户没有配置演练修复目标")
@@ -72,13 +72,15 @@ def _require_enabled(user):
 
 @router.get("/actions")
 async def actions(user: AuthUser = Depends(get_current_user)):
-    enabled = get_settings().remediation_enabled and user.tenant_id == "default"
+    enabled = get_settings().drill_remediation_enabled and user.tenant_id == "default"
     return {"enabled": enabled, "actions": [{"id": remediation_service.ACTION, "label": remediation_service.ACTION_LABEL,
                                             "environment": "test", "requires_approval": True}] if enabled else []}
 
 
 @router.get("")
 async def list_requests(user: AuthUser = Depends(require_roles("admin", "engineer")), db: AsyncSession = Depends(get_async_db)):
+    if not get_settings().drill_enabled:
+        raise HTTPException(404, "当前环境未开放故障演练")
     rows = (await db.scalars(select(RemediationRequest).filter_by(tenant_id=user.tenant_id).order_by(
         RemediationRequest.created_at.desc()).limit(100))).all()
     return [_serialize(row, user) for row in rows]
@@ -125,7 +127,7 @@ def decide(request_id: str, body: DecisionIn, user: AuthUser = Depends(require_r
         requested_by=row.requested_by,
         approver_username=user.username,
         approver_role=user.role,
-        remediation_enabled=settings.remediation_enabled,
+        remediation_enabled=settings.drill_remediation_enabled,
         strict_four_eyes=settings.strict_four_eyes,
     )
     if body.approved and not preflight["passed"]:

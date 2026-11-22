@@ -77,7 +77,7 @@ def test_no_matching_fault_returns_empty_and_keeps_tenant_isolation():
         assert len(rows) == 1 and rows[0]["match_type"] == "exact"
 
 
-def test_metric_summary_preserves_operational_thresholds(monkeypatch):
+def test_metric_summary_preserves_operational_thresholds(monkeypatch, enable_drill):
     from app.agent import tools
     from app.db.base import SessionLocal
 
@@ -88,7 +88,7 @@ def test_metric_summary_preserves_operational_thresholds(monkeypatch):
     assert all(anomaly in event["summary"] for anomaly in event["anomalies"])
 
 
-def test_demo_measures_real_requests_and_controls_injected_errors():
+def test_demo_measures_real_requests_and_controls_injected_errors(enable_drill):
     from scripts.metrics_demo import app
 
     with TestClient(app) as client:

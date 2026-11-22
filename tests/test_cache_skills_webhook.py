@@ -161,7 +161,7 @@ def test_tool_loop_parallel_readonly_calls_and_validation_field_hints():
     assert any("service" in item for item in bad_result.get("invalid_fields", []))
 
 
-def test_skills_registry_and_preflight_governance(client, admin_headers, monkeypatch):
+def test_skills_registry_and_preflight_governance(client, admin_headers, monkeypatch, enable_drill):
     resp = client.get("/api/agent/skills", headers=admin_headers)
     assert resp.status_code == 200
     names = {item["name"] for item in resp.json()}

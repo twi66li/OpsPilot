@@ -113,6 +113,7 @@ def test_organization_records_and_platform_evaluation_have_distinct_permissions(
 
 
 def test_operations_exclude_private_and_deleted_runs(client, admin_headers, monkeypatch):
+    monkeypatch.setattr(get_settings(), "drill_enabled", True)
     monkeypatch.setattr(get_settings(), "remediation_enabled", True)
     private = client.post("/api/support/cases", json={"title": "私人排障"}, headers=admin_headers).json()["id"]
     deleted = new_session(client, admin_headers)

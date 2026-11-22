@@ -459,7 +459,7 @@ def main():
     os.environ.update(DATABASE_URL="sqlite:///:memory:", OPENAI_API_KEY=api_key, OPENAI_BASE_URL=base_url,
         EMBEDDING_PROVIDER="openai", EMBEDDING_MODEL="qwen3.7-text-embedding-flash", EMBEDDING_DIM="1024",
         LLM_PROVIDER="openai", CHAT_MODEL=args.chat_model, MODEL_STRICT="true", VECTOR_STORE_BACKEND="memory",
-        RERANK_ENABLED="false", REDIS_URL="redis://127.0.0.1:1/0",
+        RERANK_ENABLED="false", REDIS_URL="redis://127.0.0.1:1/0", DRILL_ENABLED="true",
         LANGFUSE_PUBLIC_KEY="", LANGFUSE_SECRET_KEY="")
     args.output.mkdir(parents=True, exist_ok=args.resume)
     manifest = json.loads((args.dataset / "manifest.json").read_text(encoding="utf-8"))

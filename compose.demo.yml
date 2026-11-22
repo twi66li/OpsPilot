@@ -36,6 +36,8 @@ services:
       MILVUS_URI: http://milvus:19530
       PROMETHEUS_URL: http://prometheus:9090
       LOGS_URL: http://metrics-demo:8081
+      DRILL_ENABLED: ${DRILL_ENABLED:-true}
+      REMEDIATION_ENABLED: ${REMEDIATION_ENABLED:-true}
       BUDGET_LEDGER_PATH: /app/data/model-budget-cloud.jsonl
       KB_STORAGE_PATH: /app/data/knowledge
       TOOL_TIMEOUT_SECONDS: ${TOOL_TIMEOUT_SECONDS:-30}
@@ -59,6 +61,8 @@ services:
   metrics-demo:
     image: ${OPSPILOT_IMAGE:?请配置包含 Milvus 的应用镜像标签}
     command: uvicorn scripts.metrics_demo:app --host 0.0.0.0 --port 8081
+    environment:
+      DRILL_ENABLED: ${DRILL_ENABLED:-true}
     mem_limit: 96m
     restart: unless-stopped
     healthcheck:

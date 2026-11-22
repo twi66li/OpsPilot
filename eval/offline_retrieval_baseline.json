@@ -1,0 +1,49 @@
+{
+  "git_head": "f13e38f735780fc20950ad4abe77f9ef04836b48",
+  "dataset_sha256": {
+    "v1": "f67b0e0c2bc54bd67e1d1458537bc2ffe271b6128f8f01fb4c25e350463bc0f1",
+    "v2": "7adb6a587f697d61b34543bdfc312355aaacdc5645d0963f260f002096b9174a"
+  },
+  "embeddings_sha256": "7c2f4b3ba9360d59b418ffabfef2a0456beb228556e238f738d230405ca6d528",
+  "embedding_model": "qwen3.7-text-embedding-flash",
+  "embedding_dim": 1024,
+  "model_calls": 0,
+  "embedding_tokens": 0,
+  "coverage": {
+    "queries": 100,
+    "chunks": 58,
+    "v1/dev": 16,
+    "v1/dev/ERR_5003": 0,
+    "v1/dev/order-service": 1,
+    "v2/dev": 4,
+    "v1/test": 64,
+    "v1/test/ERR_5003": 2,
+    "v1/test/order-service": 3,
+    "v2/test": 10
+  },
+  "metrics": {
+    "v1/dev/bm25/recall@5": 1.0,
+    "v1/dev/bm25/mrr@5": 1.0,
+    "v1/dev/bm25/order-service": 1.0,
+    "v1/dev/dense/recall@5": 1.0,
+    "v1/dev/dense/mrr@5": 0.96875,
+    "v1/dev/dense/order-service": 1.0,
+    "v1/dev/hybrid/recall@5": 1.0,
+    "v1/dev/hybrid/mrr@5": 0.96875,
+    "v1/dev/hybrid/order-service": 1.0,
+    "v2/dev/bm25/keywords@5": 1.0,
+    "v1/test/bm25/recall@5": 1.0,
+    "v1/test/bm25/mrr@5": 0.992188,
+    "v1/test/bm25/ERR_5003": 1.0,
+    "v1/test/bm25/order-service": 1.0,
+    "v1/test/dense/recall@5": 1.0,
+    "v1/test/dense/mrr@5": 0.976562,
+    "v1/test/dense/ERR_5003": 1.0,
+    "v1/test/dense/order-service": 1.0,
+    "v1/test/hybrid/recall@5": 1.0,
+    "v1/test/hybrid/mrr@5": 0.976562,
+    "v1/test/hybrid/ERR_5003": 1.0,
+    "v1/test/hybrid/order-service": 1.0,
+    "v2/test/bm25/keywords@5": 0.766667
+  }
+}

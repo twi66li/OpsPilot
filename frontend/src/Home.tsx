@@ -12,7 +12,7 @@ type SkillItem={name:string;label:string};
 type Section = 'cases'|'sites'|'todos'|'approvals'|'activity';
 const activityLabels: Record<string,string> = {site_change:'网站变更',evidence_observed:'样本时间',http_incident:'巡检异常',http_probe_normal:'巡检响应正常',webhook_alert:'Webhook 告警'};
 
-export default function Home({navigate,canWrite}: {navigate:(path:string)=>void;canWrite:boolean}) {
+export default function Home({navigate,canWrite,drillEnabled}: {navigate:(path:string)=>void;canWrite:boolean;drillEnabled:boolean}) {
   const [cases,setCases]=useState<PageData<PersonalCase>|null>(null),[sites,setSites]=useState<PageData<Site>|null>(null);
   const [todos,setTodos]=useState<MaintenanceTodo[]|null>(null),[approvals,setApprovals]=useState<number|null>(null);
   const [activity,setActivity]=useState<Activity[]>([]),[onboarding,setOnboarding]=useState(true);
@@ -55,7 +55,8 @@ export default function Home({navigate,canWrite}: {navigate:(path:string)=>void;
   const siteItems = sites?.items || [];
   const webhookCount = siteItems.filter(s=>s.webhook?.enabled).length;
   const highPriorityCases = (cases?.items || []).filter(c=>c.severity==='P0'||c.severity==='P1').length;
-  const quick=guest?[['浏览网站','/websites',<GlobalOutlined/>],['查看示例问题','/issues',<UnorderedListOutlined/>],['维护资料库','/knowledge',<BookOutlined/>],['故障演练','/investigation',<ExperimentOutlined/>]]:[['登记网站','/websites?create=1',<GlobalOutlined/>],['上传手册','/knowledge?tab=private&upload=1',<BookOutlined/>],['提交日志','/support?workflow=diagnose',<UploadOutlined/>],['故障演练','/investigation',<ExperimentOutlined/>]];
+  const quick=guest?[['浏览网站','/websites',<GlobalOutlined/>],['查看示例问题','/issues',<UnorderedListOutlined/>],['维护资料库','/knowledge',<BookOutlined/>]]:[['登记网站','/websites?create=1',<GlobalOutlined/>],['上传手册','/knowledge?tab=private&upload=1',<BookOutlined/>],['提交日志','/support?workflow=diagnose',<UploadOutlined/>]];
+  if(drillEnabled)quick.push(['故障演练','/investigation',<ExperimentOutlined/>]);
   return <div className="page-stack home-page">
     <div className="page-title"><h2>维护工作台</h2><Button aria-label={guest?'浏览示例问题':'记录新问题'} type="primary" icon={guest?<ArrowRightOutlined aria-hidden/>:<PlusOutlined aria-hidden/>} onClick={()=>navigate(guest?'/issues':'/issues?create=1')}>{guest?'浏览示例问题':'记录新问题'}</Button></div>
     {errorNotice('sites','网站')}

@@ -16,7 +16,7 @@ def observability_server_params(settings, user_id, tenant_id, evaluation_time):
         raise ValueError("MCP调用必须来自认证用户")
     env = {name.upper(): str(getattr(settings, name)) for name in (
         "database_url", "jwt_secret", "jwt_algorithm", "metrics_provider", "logs_url",
-        "prometheus_url", "prometheus_timeout_seconds",
+        "prometheus_url", "prometheus_timeout_seconds", "drill_enabled", "mcp_enabled",
     )}
     env.update(OPSPILOT_MCP_TOKEN=create_access_token(user_id, "", tenant_id, "viewer", purpose="mcp"),
                OPSPILOT_MCP_EVALUATION_TIME=str(evaluation_time))

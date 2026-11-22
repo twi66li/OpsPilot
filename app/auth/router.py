@@ -70,8 +70,12 @@ async def issue_token(db, user):
 def options():
     from app.services.visitor_service import VISITOR_PASSWORD, VISITOR_USERNAME
 
-    return {"registration_enabled":get_settings().registration_enabled,
-            "visitor": {"username": VISITOR_USERNAME, "password": VISITOR_PASSWORD} if get_settings().visitor_enabled else None}
+    settings = get_settings()
+    return {
+        "registration_enabled": settings.registration_enabled,
+        "drill_enabled": settings.drill_enabled,
+        "visitor": {"username": VISITOR_USERNAME, "password": VISITOR_PASSWORD} if settings.visitor_enabled else None,
+    }
 
 
 @router.post("/register", response_model=TokenResponse)

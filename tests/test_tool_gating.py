@@ -1,6 +1,5 @@
 """三类明确问题的最小修复回归——无关工具查询门控、服务名清单、时间窗参数。"""
 import json
-from types import SimpleNamespace
 
 import httpx
 import pytest
@@ -33,7 +32,7 @@ def test_multi_hyphen_service_names_are_not_truncated():
     assert extract_entities("网关和 api-gateway-service 都要查")["services"] == ["api-gateway-service"]
 
 
-def test_rule_chain_queries_full_hyphenated_service():
+def test_rule_chain_queries_full_hyphenated_service(enable_drill):
     from app.db.base import SessionLocal
 
     with SessionLocal() as db:
@@ -63,7 +62,7 @@ def test_window_minutes_extraction(question, expected):
 
 # ---- 规则链意图门控 ----
 
-def test_manual_only_question_runs_no_rule_tools():
+def test_manual_only_question_runs_no_rule_tools(enable_drill):
     from app.db.base import SessionLocal
 
     with SessionLocal() as db:
@@ -71,7 +70,7 @@ def test_manual_only_question_runs_no_rule_tools():
     assert events == []
 
 
-def test_explicit_tool_prohibition_is_honored():
+def test_explicit_tool_prohibition_is_honored(enable_drill):
     from app.db.base import SessionLocal
 
     with SessionLocal() as db:
@@ -84,7 +83,7 @@ def test_explicit_tool_prohibition_is_honored():
     assert [e["name"] for e in events] == ["query_fault_history"]
 
 
-def test_metrics_require_service_and_status_hint():
+def test_metrics_require_service_and_status_hint(enable_drill):
     from app.db.base import SessionLocal
 
     with SessionLocal() as db:
@@ -92,7 +91,7 @@ def test_metrics_require_service_and_status_hint():
     assert [e["name"] for e in events] == ["query_fault_history"]
 
 
-def test_metrics_run_for_service_with_hint_and_default_window():
+def test_metrics_run_for_service_with_hint_and_default_window(enable_drill):
     from app.db.base import SessionLocal
 
     with SessionLocal() as db:
@@ -102,7 +101,7 @@ def test_metrics_run_for_service_with_hint_and_default_window():
     assert any(e["name"] == "query_fault_history" for e in events)
 
 
-def test_rule_chain_passes_extracted_window():
+def test_rule_chain_passes_extracted_window(enable_drill):
     from app.db.base import SessionLocal
 
     with SessionLocal() as db:
@@ -192,7 +191,7 @@ class _ScriptedAPI:
 
 
 class _MetricsOnlyContainer:
-    settings = SimpleNamespace(retrieval_mode="bm25")
+    settings = Settings(_env_file=None, retrieval_mode="bm25", drill_enabled=True, mcp_enabled=False)
 
     def db_session(self):
         raise AssertionError("本用例只允许 metrics 工具，不应打开数据库会话")

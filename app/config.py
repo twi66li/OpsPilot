@@ -85,6 +85,7 @@ class Settings(BaseSettings):
     max_tool_calls: int = 5
     max_concurrent_runs: int = 1
     logs_url: str = "http://localhost:18081"
+    drill_enabled: bool = False
     remediation_enabled: bool = False
     strict_four_eyes: bool = False  # 生产/企业可开启：禁止同一账号自提自批工单或演练修复
     mcp_enabled: bool = False
@@ -100,6 +101,14 @@ class Settings(BaseSettings):
     budget_ledger_path: str = ""
     budget_token_limit: int = 0
     budget_model_limits: dict[str, int] = {}  # 按 budget.json p1 列的分模型授权；未授权模型一律拒绝
+
+    @property
+    def drill_remediation_enabled(self) -> bool:
+        return self.drill_enabled and self.remediation_enabled
+
+    @property
+    def drill_mcp_enabled(self) -> bool:
+        return self.drill_enabled and self.mcp_enabled
 
     @model_validator(mode="after")
     def production_security(self):

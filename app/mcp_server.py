@@ -7,6 +7,7 @@ from mcp.types import ToolAnnotations
 
 from app.agent.tool_loop import LogArgs, MetricsArgs
 from app.auth.security import decode_token
+from app.config import get_settings
 from app.db.base import SessionLocal
 from app.db.models import LoginSession, User, _now
 from app.services.log_service import query_logs as read_logs
@@ -17,6 +18,8 @@ READ_ONLY = ToolAnnotations(readOnlyHint=True, destructiveHint=False, openWorldH
 
 
 def authenticated_tenant():
+    if not get_settings().drill_mcp_enabled:
+        raise ValueError("当前环境未开放 MCP 演练工具")
     token = os.environ.get("OPSPILOT_MCP_TOKEN", "")
     claims = decode_token(token)
     with SessionLocal() as db:

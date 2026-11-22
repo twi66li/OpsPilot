@@ -28,7 +28,7 @@ def test_diagnose_flow_with_error_code(client, admin_headers):
     assert retrieval["hits"]
 
 
-def test_tool_metrics_called_for_service_question(client, admin_headers):
+def test_tool_metrics_called_for_service_question(client, admin_headers, enable_drill):
     session_id = new_session(client, admin_headers)
     result = _chat(client, admin_headers, session_id, "order-service 接口大量超时，如何排查？")
     tool_events = [e for e in result["events"] if e["type"] == "tool"]
@@ -64,7 +64,7 @@ def test_insufficient_triggers_reretrieve(client, admin_headers):
     assert grades and rewrites, "检索不足时应出现 grade 与 rewrite 节点"
 
 
-def test_tools_endpoint(client, admin_headers):
+def test_tools_endpoint(client, admin_headers, enable_drill):
     resp = client.get("/api/agent/tools", headers=admin_headers)
     names = [t["name"] for t in resp.json()]
     assert "query_service_metrics" in names and "query_fault_history" in names

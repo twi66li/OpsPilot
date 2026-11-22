@@ -26,7 +26,7 @@ async function fixture(page:Page,{signedIn=true,role='viewer',tenantId='design',
     const req=route.request(),path=new URL(req.url()).pathname;
     if(path.startsWith('/assets/'))return route.fulfill({path:resolve(dist,'assets',basename(path))});
     let value:unknown;
-    if(path==='/auth/options')value={registration_enabled:true};
+    if(path==='/auth/options')value={registration_enabled:true,drill_enabled:true};
     else if(path.startsWith('/auth/'))value=auth;
     else if(path==='/ready')value={status:'ready'};
     else if(path==='/api/workspace/cases')value={items:[item],total:1,page:1,page_size:10};
@@ -762,4 +762,24 @@ test('优化助手保留唯一主结论，详情按需展开和手机网站整�
   await page.screenshot({path:info.outputPath('focused-answer.png'),animations:'disabled'});
   await page.getByText('分析详情',{exact:true}).click();await expect(page.locator('.maintenance-timeline')).toContainText('登记问题');
   await page.getByText('分析详情',{exact:true}).click();await expect(page.locator('.maintenance-timeline')).not.toBeVisible();await noOverflow(page);
+});
+
+test('关闭演练后隐藏入口并将旧链接带回工作台',async({page})=>{
+  await fixture(page,{role:'admin',tenantId:'default'});
+  await page.route('**/auth/options',route=>route.fulfill({json:{drill_enabled:false}}));
+  await page.route('**/api/workspace/tickets?*',route=>route.fulfill({json:{items:[],total:0}}));
+  const repairRequests:string[]=[];
+  page.on('request',request=>{if(request.url().includes('/api/workspace/remediations'))repairRequests.push(request.url());});
+  await page.goto('/investigation/old-session');
+  await expect(page).toHaveURL(/\/home$/);
+  await expect(page.getByText('故障演练',{exact:true})).toHaveCount(0);
+  await page.keyboard.press('Control+k');
+  await page.getByLabel('全局搜索关键词').fill('故障演练');
+  await expect(page.getByRole('option',{name:/个人网站/})).toBeVisible();
+  await expect(page.getByRole('option',{name:/故障演练/})).toHaveCount(0);
+  await page.keyboard.press('Escape');
+  await page.goto('/operations');
+  await expect(page.getByText(/待审批工单 ·/)).toBeVisible();
+  await expect(page.getByText(/演练修复 ·/)).toHaveCount(0);
+  expect(repairRequests).toEqual([]);
 });

@@ -2,6 +2,7 @@
 from sqlalchemy import case as sql_case
 from sqlalchemy import func
 
+from app.config import get_settings
 from app.db.models import AgentRun, ApprovalRequest, ChatSession, Document, DocumentVersion, SupportCase
 from app.services.knowledge_access import personal_namespace
 
@@ -62,15 +63,15 @@ def todo_items(db, user):
         for v in versions
         if db.query(DocumentVersion.id).filter_by(doc_id=v.doc_id).order_by(DocumentVersion.number.desc()).first()[0] == v.id
     )
+    visible_runs = db.query(AgentRun).join(ChatSession, AgentRun.session_id == ChatSession.id).filter(
+        ChatSession.user_id == user.user_id,
+        AgentRun.tenant_id == user.tenant_id,
+        ChatSession.deleted_at.is_(None),
+    )
+    if not get_settings().drill_enabled:
+        visible_runs = visible_runs.join(SupportCase, SupportCase.session_id == ChatSession.id)
     runs = (
-        db.query(AgentRun)
-        .join(ChatSession, AgentRun.session_id == ChatSession.id)
-        .filter(
-            ChatSession.user_id == user.user_id,
-            AgentRun.tenant_id == user.tenant_id,
-            ChatSession.deleted_at.is_(None),
-            AgentRun.status.in_(["running", "cancel_requested", "interrupted"]),
-        )
+        visible_runs.filter(AgentRun.status.in_(["running", "cancel_requested", "interrupted"]))
         .order_by(AgentRun.created_at.desc())
         .limit(10)
         .all()
@@ -102,14 +103,7 @@ def todo_items(db, user):
             "updated_at": r.updated_at.isoformat(),
         })
     finished = (
-        db.query(AgentRun)
-        .join(ChatSession, AgentRun.session_id == ChatSession.id)
-        .filter(
-            ChatSession.user_id == user.user_id,
-            AgentRun.tenant_id == user.tenant_id,
-            ChatSession.deleted_at.is_(None),
-            AgentRun.status.in_(["completed", "answered"]),
-        )
+        visible_runs.filter(AgentRun.status.in_(["completed", "answered"]))
         .order_by(AgentRun.updated_at.desc())
         .limit(5)
         .all()

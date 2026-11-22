@@ -4,11 +4,12 @@ from types import SimpleNamespace
 import httpx
 from fastapi.testclient import TestClient
 
+from app.config import Settings
 from app.services import log_service
 from scripts import metrics_demo
 
 
-def test_real_request_logs_are_bounded_by_identity_time_and_error():
+def test_real_request_logs_are_bounded_by_identity_time_and_error(enable_drill):
     before = time.time()
     with TestClient(metrics_demo.app) as client:
         client.post("/control", json={"error_every": 2, "error_code": "ERR_DOWNSTREAM_TIMEOUT"})
@@ -45,7 +46,7 @@ def test_metrics_and_logs_share_one_investigation_window(monkeypatch):
         "window": {"start": "start", "end": "end"}, "status": "no_data", "anomalies": [],
     })
     monkeypatch.setattr(log_service, "query_logs", lambda tenant_id, **kwargs: calls.append({**kwargs, "tenant_id": tenant_id}) or {"status": "no_data"})
-    execute = tools.make_tool_executor(SimpleNamespace(settings=SimpleNamespace(mcp_enabled=False)), "default")
+    execute = tools.make_tool_executor(SimpleNamespace(settings=Settings(_env_file=None, drill_enabled=True, mcp_enabled=False)), "default")
     execute("query_service_metrics", {"service": "order-service", "window_minutes": 5})
     execute("query_logs", {"service": "order-service", "window_minutes": 5})
     assert calls[0]["evaluation_time"] == calls[1]["evaluation_time"]
@@ -65,7 +66,7 @@ def test_four_step_investigation_can_refine_log_query():
     assert result["end_reason"] == "answered" and result["tool_calls_executed"] == 4
 
 
-def test_rule_path_does_not_expose_default_tenant_metrics():
+def test_rule_path_does_not_expose_default_tenant_metrics(enable_drill):
     from app.agent.tools import run_diagnostic_tools
     from app.container import get_container
 

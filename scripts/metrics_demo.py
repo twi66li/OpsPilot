@@ -5,9 +5,11 @@ import uuid
 from collections import deque
 from typing import Literal
 
-from fastapi import FastAPI, Query, Response
+from fastapi import Depends, FastAPI, HTTPException, Query, Response
 from prometheus_client import CONTENT_TYPE_LATEST, CollectorRegistry, Counter, Histogram, generate_latest
 from pydantic import BaseModel, Field
+
+from app.config import get_settings
 
 app = FastAPI(title="OpsPilot 测试服务（非生产监控）")
 registry = CollectorRegistry()
@@ -32,19 +34,24 @@ sequence = 0
 request_logs: deque = deque(maxlen=2000)
 
 
-@app.post("/control")
+def require_drill():
+    if not get_settings().drill_enabled:
+        raise HTTPException(404, "当前环境未开放故障演练")
+
+
+@app.post("/control", dependencies=[Depends(require_drill)])
 async def control(config: FaultConfig):
     global fault, sequence
     fault, sequence = config, 0
     return {"service": "order-service", "environment": "test", "fault_injection": config.model_dump()}
 
 
-@app.get("/control")
+@app.get("/control", dependencies=[Depends(require_drill)])
 async def control_status():
     return {"service": "order-service", "environment": "test", "fault_injection": fault.model_dump()}
 
 
-@app.get("/work")
+@app.get("/work", dependencies=[Depends(require_drill)])
 async def work():
     global sequence
     sequence += 1
@@ -65,7 +72,7 @@ async def work():
     return Response(status_code=status, content="injected error" if status == 500 else "ok", headers={"X-Request-ID": request_id})
 
 
-@app.get("/logs")
+@app.get("/logs", dependencies=[Depends(require_drill)])
 async def logs(tenant_id: str, service: str, start: float, end: float, limit: int = Query(default=30, ge=1, le=100), error_code: str | None = None):
     rows = [row for row in list(request_logs) if row["tenant_id"] == tenant_id and row["service"] == service
             and start <= row["timestamp"] <= end and (not error_code or row["error_code"] == error_code)]

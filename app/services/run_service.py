@@ -159,6 +159,7 @@ class RunRecorder:
             "model_strict",
             "vector_store_backend",
             "metrics_provider",
+            "drill_enabled",
             "mcp_enabled",
             "retrieval_subagent_enabled",
         )

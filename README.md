@@ -140,7 +140,7 @@ ssh -N -L 18000:127.0.0.1:18000 your-server
 
 ## 受控演练修复
 
-本地 Compose 默认可通过 `REMEDIATION_ENABLED=true` 开启（`.env.example` 默认关闭）。只为 default 租户配置了 order-service 演练目标。
+本地 Compose 默认关闭故障演练。体验时设置 `DRILL_ENABLED=true`，并启用 `observability` profile。模拟修复和 MCP 分别由 `REMEDIATION_ENABLED`、`MCP_ENABLED` 开启，均依赖演练总开关。演示 Compose 的总开关默认开启，可通过 `.env` 覆盖。order-service 修复目标仅为 default 租户配置。
 
 调查完成后，工作台可提出修复申请；管理员或工程师在“审批与工单”批准后才执行。固定动作是关闭 metrics-demo 的故障注入，不接受URL、Shell或模型自定义脚本。执行前后各发送3个实际请求，保存状态码、耗时、请求编号与故障配置。短探针恢复不等同于生产根因修复或长期SLO恢复。
 
@@ -165,5 +165,7 @@ ssh -N -L 18000:127.0.0.1:18000 your-server
 - `uv run python -m scripts.demo_acceptance`：串起真实PDF、来源回查、真实模型流式调查和审批修复。
 
 CI 使用同一 Compose 启动隔离的 PostgreSQL、Milvus 和 Redis，验证向量迁移和浏览器流程。浏览器流程要求 `OPSPILOT_E2E_ISOLATED=1`，仅在隔离环境运行。
+
+从项目根目录运行 `python -m eval.offline_retrieval` 可复查冻结检索基线。默认读取本地 `eval/reports/real_ops_20261029T221616/embeddings.json` 及同目录的 `run_manifest.json`。保存在其他位置时用 `--embeddings` 指定向量文件。入口会校验数据和向量覆盖，报告 Recall@5、MRR@5 与关键词命中，回归时以非零状态退出。
 
 模型额度、`.env`、原文数据和本地运行日志不要提交到 GitHub。已有评测是开发案例记录，不能据此宣称独立根因准确率。

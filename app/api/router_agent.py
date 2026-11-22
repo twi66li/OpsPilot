@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.agent.tools import TOOL_REGISTRY
+from app.agent.tools import DRILL_TOOLS, TOOL_REGISTRY
 from app.api.schemas import ChatIn, DecisionIn
 from app.auth.deps import AuthUser, get_current_user, require_roles
 from app.container import get_container
@@ -175,19 +175,20 @@ def list_approvals(user: AuthUser = Depends(require_roles("admin", "engineer")),
 def skills(user: AuthUser = Depends(get_current_user)):
     from app.agent.skills import list_skills
 
-    return list_skills()
+    return [item for item in list_skills() if item["name"] != "drill" or get_container().settings.drill_enabled]
 
 
 @router.get("/tools")
 def tools(user: AuthUser = Depends(get_current_user)):
     settings = get_container().settings
+    registry = [tool for tool in TOOL_REGISTRY if settings.drill_enabled or tool["name"] not in DRILL_TOOLS]
     if settings.retrieval_subagent_enabled:
         from app.agent.tool_loop import DESCRIPTIONS
 
-        return [tool for tool in TOOL_REGISTRY if tool["name"] != "search_runbook"] + [
+        return [tool for tool in registry if tool["name"] != "search_runbook"] + [
             {"name": "delegate_retrieval", "description": DESCRIPTIONS["delegate_retrieval"]}
         ]
-    return TOOL_REGISTRY
+    return registry
 
 
 @router.get("/runs/{run_id}")

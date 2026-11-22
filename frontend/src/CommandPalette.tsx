@@ -7,8 +7,8 @@ import InfoTip from './InfoTip';
 type Item = {id:string; title:string; kind:string; open:()=>void};
 type Article = {doc_id:string; title:string; content:string; url:string; applicable_version:string; checked_at:string};
 
-export default function CommandPalette({open, close, navigate, onSource, guest, canApprove, admin}: {
-  open:boolean; close:()=>void; navigate:(url:string)=>void; onSource:(hit:Hit)=>void; guest:boolean; canApprove:boolean; admin:boolean;
+export default function CommandPalette({open, close, navigate, onSource, guest, canApprove, admin, drillEnabled}: {
+  open:boolean; close:()=>void; navigate:(url:string)=>void; onSource:(hit:Hit)=>void; guest:boolean; canApprove:boolean; admin:boolean; drillEnabled:boolean;
 }) {
   const [query,setQuery]=useState(''),[items,setItems]=useState<Item[]>([]),[active,setActive]=useState(0),[busy,setBusy]=useState(false),[error,setError]=useState('');
   const input=useRef<import('antd').InputRef>(null),list=useRef<HTMLDivElement>(null);
@@ -33,12 +33,12 @@ export default function CommandPalette({open, close, navigate, onSource, guest, 
       if(cases.status==='fulfilled')values.push(...cases.value.items.map(item=>({id:'case:'+item.id,title:item.title||'未命名问题',kind:'问题',open:go('/issues/'+encodeURIComponent(item.id))})));
       if(docs.status==='fulfilled')values.push(...docs.value.items.map(item=>({id:'doc:'+item.id,title:item.title,kind:'私人资料',open:go('/knowledge/'+encodeURIComponent(item.id)+'?tab=private')})));
       if(articles.status==='fulfilled')values.push(...articles.value.filter(item=>item.title.toLowerCase().includes(query.trim().toLowerCase())).slice(0,6).map(item=>({id:'official:'+item.doc_id,title:item.title,kind:'官方资料',open:()=>onSource({chunk_id:'',doc_id:item.doc_id,doc_title:item.title,text:item.content,parent_text:item.content,source:item.url,source_kind:'official',applicable_version:item.applicable_version,checked_at:item.checked_at})})));
-      const actions=[['智能维护助手','/support'],['我的网站','/websites'],['维护资料库','/knowledge'],['故障演练','/investigation'],...(!guest?[['记录新问题','/issues?create=1'],['上传手册','/knowledge?tab=private&upload=1']]:[]),...(canApprove?[['审批与工单','/operations']]:[]),...(admin?[['评测记录','/evaluation']]:[])];
+      const actions=[['智能维护助手','/support'],['我的网站','/websites'],['维护资料库','/knowledge'],...(drillEnabled?[['故障演练','/investigation']]:[]),...(!guest?[['记录新问题','/issues?create=1'],['上传手册','/knowledge?tab=private&upload=1']]:[]),...(canApprove?[['审批与工单','/operations']]:[]),...(admin?[['评测记录','/evaluation']]:[])];
       values.push(...actions.filter(([title])=>title.includes(query.trim())).map(([title,url])=>({id:'action:'+url,title,kind:'操作',open:go(url)})));
       setItems(values);setBusy(false);setError(results.some(result=>result.status==='rejected')?'部分搜索结果加载失败，可修改关键词重试。':'');
     },200);
     return()=>{current=false;clearTimeout(timer);};
-  },[open,query,navigate,onSource,guest,canApprove,admin]);
+  },[open,query,navigate,onSource,guest,canApprove,admin,drillEnabled]);
   useEffect(()=>{
     const node=list.current?.querySelector<HTMLElement>(`[data-index="${active}"]`);
     if(node&&list.current){const top=node.offsetTop,bottom=top+node.offsetHeight;if(top<list.current.scrollTop)list.current.scrollTop=top;else if(bottom>list.current.scrollTop+list.current.clientHeight)list.current.scrollTop=bottom-list.current.clientHeight;}

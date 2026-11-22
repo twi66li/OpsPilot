@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, App as AntApp, Button, Drawer, Dropdown, Layout, Menu, Space, Spin } from 'antd';
 import { BookOutlined, CommentOutlined, DashboardOutlined, ExperimentOutlined, FileSearchOutlined, GlobalOutlined, LockOutlined, LogoutOutlined, MenuFoldOutlined, MenuOutlined, MenuUnfoldOutlined, SearchOutlined, SafetyCertificateOutlined, UnorderedListOutlined, UserOutlined } from '@ant-design/icons';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { api, post, savedAuth, saveAuth } from './api';
 import type { Auth, Hit, SupportEntry } from './types';
 import SourceDrawer from './SourceDrawer';
@@ -30,6 +30,15 @@ export default function App() {
   const [auth,setAuth] = useState<Auth|null>(savedAuth), [source,setSource] = useState<Hit|null>(null);
   const [healthy,setHealthy] = useState<boolean|null>(null), [drawer,setDrawer] = useState(false), [passwordOpen,setPasswordOpen] = useState(false);
   const [sideEntry,setSideEntry]=useState<SupportEntry|null>(null),[capabilitiesOpen,setCapabilitiesOpen]=useState(false);
+  const [drillEnabled,setDrillEnabled]=useState<boolean|null>(null);
+  useEffect(()=>{
+    const controller=new AbortController();
+    api<{drill_enabled:boolean}>('/auth/options',{signal:controller.signal}).then(
+      value=>setDrillEnabled(value.drill_enabled===true),
+      ()=>{if(!controller.signal.aborted)setDrillEnabled(false);},
+    );
+    return ()=>controller.abort();
+  },[]);
   const [searchOpen,setSearchOpen]=useState(false),[windowWidth,setWindowWidth]=useState(window.innerWidth),[resourceTitle,setResourceTitle]=useState<{id:string;name:string}|null>(null);
   const siteTitle=useCallback((id:string,name:string)=>setResourceTitle({id,name}),[]);
   const [navCollapsed,setNavCollapsed]=useState(()=>{try{return localStorage.getItem('opspilot.nav-collapsed')==='true';}catch{return false;}});
@@ -45,10 +54,10 @@ export default function App() {
   useEffect(()=>{try{localStorage.setItem('opspilot.nav-collapsed',String(navCollapsed));}catch{/* 浏览器禁用存储时仍可在本次使用中折叠。 */}},[navCollapsed]);
   useEffect(()=>{if(mobile)setDrawer(false);},[mobile]);
   useEffect(()=>{const key=(event:KeyboardEvent)=>{if(auth&&(event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='k'){event.preventDefault();setSearchOpen(value=>!value);}};window.addEventListener('keydown',key);return()=>window.removeEventListener('keydown',key);},[auth]);
-  const allowed = (key:Page) => (key !== 'evaluation' || canReadEvaluation) && (key !== 'operations' || canWrite);
+  const allowed = (key:Page) => (key !== 'evaluation' || canReadEvaluation) && (key !== 'operations' || canWrite) && (key !== 'investigation' || drillEnabled === true);
   const icons={home:<DashboardOutlined/>,websites:<GlobalOutlined/>,issues:<UnorderedListOutlined/>,support:<CommentOutlined/>,knowledge:<BookOutlined/>,investigation:<ExperimentOutlined/>,operations:<SafetyCertificateOutlined/>,evaluation:<FileSearchOutlined/>};
   const group = (key:string,label:string,keys:Page[]) => ({key,type:'group' as const,className:`nav-group nav-${key}`,label:<span className="nav-group-label">{label}</span>,children:keys.filter(allowed).map(key=>({key,label:pages[key],icon:icons[key]}))});
-  const menuItems = [group('overview','概览',['home']),group('maintenance','网站维护',['websites','issues']),group('resources','资料与演练',['knowledge','investigation']),group('management','管理与质量',['operations','evaluation'])].filter(item=>item.children.length);
+  const menuItems = [group('overview','概览',['home']),group('maintenance','网站维护',['websites','issues']),group('resources',drillEnabled?'资料与演练':'资料',['knowledge','investigation']),group('management','管理与质量',['operations','evaluation'])].filter(item=>item.children.length);
   function setPage(target:Page) {navigate('/'+target);setDrawer(false);}
   function assist(entry:SupportEntry) {
     const params = new URLSearchParams();if(entry.siteId)params.set('site',entry.siteId);if(entry.workflow)params.set('workflow',entry.workflow);if(entry.question)params.set('question',entry.question);
@@ -86,18 +95,19 @@ export default function App() {
       <Space className="app-header-actions" size="small"><ThemeToggleButton compact /><Button className="ask-current-page" aria-label="询问当前页面" title="在旁边询问当前页面" type="text" icon={<CommentOutlined/>} disabled={page==='support'||(page==='issues'&&!!resourceId)} onClick={()=>askHere()}/><TodoCenter canWrite={canWrite}/><Dropdown trigger={['click']} menu={{items:[{key:'identity',label:<span className="account-identity">{auth.username} · {roleLabel}</span>,disabled:true},{type:'divider' as const},{key:'capabilities',label:'查看能力状态'},...(!auth.is_guest?[{key:'password',icon:<LockOutlined/>,label:'修改密码'},{type:'divider' as const}]:[]),{key:'logout',icon:<LogoutOutlined/>,label:auth.is_guest?'退出访客':'退出登录'}],onClick:({key})=>key==='capabilities'?setCapabilitiesOpen(true):key==='logout'?void logout():key==='password'?setPasswordOpen(true):undefined}}><Button aria-label={`账号：${auth.username}`} title={`${auth.username} · ${roleLabel}`} type="text" className="account-button" icon={<UserOutlined aria-hidden="true"/>}><span className="account-name">{auth.username}</span></Button></Dropdown></Space>
     </Layout.Header><Layout.Content className={`app-content ${page==='investigation'?'chat-content':''} ${page==='support'||(page==='issues'&&resourceId)?'support-content':''}`}>
       <ErrorBoundary resetKey={location.pathname}><Suspense fallback={<div className="page-loading"><Spin tip="正在加载工作区" /></div>}>
-        {page==='home'&&<Home navigate={path=>navigate(path)} canWrite={canWrite}/>}
+        {page==='home'&&<Home navigate={path=>navigate(path)} canWrite={canWrite} drillEnabled={drillEnabled===true}/>}
         {page==='websites'&&<Websites onTitle={siteTitle} assist={assist} ask={askHere} knowledge={()=>setPage('knowledge')} initialId={resourceId} opened={id=>navigate('/websites/'+id)}/>}
         {page==='issues'&&(resourceId?<PersonalSupport issueDetail entry={supportEntry} onSource={setSource} onKnowledge={()=>setPage('knowledge')} onIssues={()=>setPage('issues')} opened={id=>{if(id!==resourceId)navigate('/issues/'+id);}}/>:<Issues assist={entry=>navigate('/issues/'+entry.caseId)}/>)}
         {page==='support'&&<PersonalSupport entry={supportEntry} onSource={setSource} onKnowledge={()=>setPage('knowledge')} onIssues={()=>setPage('issues')} opened={id=>{if(id!==resourceId)navigate('/support/'+id);}}/>}
-        {page==='investigation'&&<Investigation onSource={setSource} canApprove={canWrite} initialId={resourceId} initialRunId={new URLSearchParams(location.search).get('run')||undefined} opened={id=>{if(id!==resourceId)navigate('/investigation/'+id);}}/>}
+        {page==='investigation'&&drillEnabled===false&&<Navigate to='/home' replace/>}
+        {page==='investigation'&&drillEnabled===true&&<Investigation onSource={setSource} canApprove={canWrite} initialId={resourceId} initialRunId={new URLSearchParams(location.search).get('run')||undefined} opened={id=>{if(id!==resourceId)navigate('/investigation/'+id);}}/>}
         {page==='knowledge'&&<OfficialLibrary onSource={setSource} assist={assist}/>}
-        {page==='operations'&&(canWrite?<Operations canApprove={canWrite}/>:<Alert type="warning" title="此模块需要工程师或管理员权限"/>)}
+        {page==='operations'&&(canWrite?<Operations canApprove={canWrite} drillEnabled={drillEnabled===true}/>:<Alert type="warning" title="此模块需要工程师或管理员权限"/>)}
         {page==='evaluation'&&(canReadEvaluation?<Evaluation/>:<Alert type="warning" title="评测记录仅平台管理员可查看"/>)}
       </Suspense></ErrorBoundary>
     </Layout.Content></Layout><SourceDrawer hit={source} close={()=>setSource(null)} ask={hit=>{setSource(null);askHere({...sideEntry,workflow:'consult',question:`请解释资料「${hit.doc_title}」${hit.applicable_version?`（适用版本：${hit.applicable_version}）`:''}中的检查方法、适用条件和证据要求；不要把手册当作本次故障现场证据。`});}}/><PasswordDialog open={passwordOpen} close={()=>setPasswordOpen(false)} changed={clearAuth}/>
     <Capabilities open={capabilitiesOpen} close={()=>setCapabilitiesOpen(false)} navigate={url=>navigate(url)}/>
-    <CommandPalette key={auth.tenant_id+':'+auth.username} open={searchOpen} close={()=>setSearchOpen(false)} navigate={navigate} onSource={setSource} guest={!!auth.is_guest} canApprove={canWrite} admin={canReadEvaluation}/>
+    <CommandPalette key={auth.tenant_id+':'+auth.username} open={searchOpen} close={()=>setSearchOpen(false)} navigate={navigate} onSource={setSource} guest={!!auth.is_guest} canApprove={canWrite} admin={canReadEvaluation} drillEnabled={drillEnabled===true}/>
     <Drawer className="side-assistant" open={!!sideEntry} onClose={()=>setSideEntry(null)} title="随页维护助手" width={Math.min(1000, windowWidth)} destroyOnHidden>
       {sideEntry&&<ErrorBoundary resetKey={sideEntry.caseId||''}><Suspense fallback={<Spin/>}><PersonalSupport entry={sideEntry} onSource={setSource} onKnowledge={()=>setPage('knowledge')} onIssues={()=>setPage('issues')} opened={id=>setSideEntry(previous=>previous===sideEntry&&previous.caseId!==(id||undefined)?{...previous,caseId:id||undefined,question:undefined}:previous)}/></Suspense></ErrorBoundary>}
     </Drawer>

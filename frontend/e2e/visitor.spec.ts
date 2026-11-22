@@ -38,8 +38,10 @@ for(const width of [1440,1024,390]){
     await page.goto('/knowledge?tab=retrieval');
     await page.getByLabel('检索测试问题').fill('QueuePool 超时');
     await expect(page.getByRole('button',{name:'测试检索',exact:true})).toBeDisabled();
+    const {drill_enabled}=await (await request.get('/auth/options')).json();
     await page.goto('/investigation');
-    await expect(page.getByRole('heading',{name:'体验一次故障调查与恢复',exact:true})).toBeVisible();
+    if(drill_enabled)await expect(page.getByRole('heading',{name:'体验一次故障调查与恢复',exact:true})).toBeVisible();
+    else await expect(page).toHaveURL(/\/home$/);
     await expect(page.getByText('故障演练 · 独立测试环境，未接入你的网站',{exact:true})).toHaveCount(0);
     await expect(page.getByRole('button',{name:/^账号：/})).toBeVisible();
     await page.getByRole('button',{name:/^账号：/}).click();

@@ -42,7 +42,7 @@ def test_native_citations_keep_ids_across_repeated_hits(monkeypatch):
     container = SimpleNamespace(
         llm=SimpleNamespace(_api=None),
         settings=SimpleNamespace(
-            retrieval_subagent_enabled=False, tool_timeout_seconds=8,
+            drill_enabled=False, retrieval_subagent_enabled=False, tool_timeout_seconds=8,
             max_tool_calls=3, retrieval_subagent_timeout_seconds=8,
         ),
     )

@@ -18,6 +18,8 @@ os.environ["BUDGET_TOKEN_LIMIT"] = "0"
 os.environ["BUDGET_MODEL_LIMITS"] = "{}"
 os.environ["CHAT_MODEL_CANDIDATES"] = "[]"
 os.environ["CHAT_MODEL_EXPIRATIONS"] = "{}"
+os.environ["DRILL_ENABLED"] = "false"
+os.environ["REMEDIATION_ENABLED"] = "false"
 os.environ["MCP_ENABLED"] = "false"
 os.environ["RETRIEVAL_SUBAGENT_ENABLED"] = "false"
 os.environ["AUTH_RATE_LIMIT_PER_MINUTE"] = "10000"
@@ -28,6 +30,13 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+
+
+@pytest.fixture
+def enable_drill(monkeypatch):
+    from app.config import get_settings
+
+    monkeypatch.setattr(get_settings(), "drill_enabled", True)
 
 
 @pytest.fixture(scope="session")

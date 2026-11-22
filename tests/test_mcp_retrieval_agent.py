@@ -5,12 +5,14 @@ from types import SimpleNamespace
 from mcp import Client
 
 from app.agent.retrieval_agent import run_retrieval_agent
+from app.config import Settings, get_settings
 from tests.test_tool_loop import ScriptedAPI, tool
 
 
-def test_mcp_rejects_identity_override_writes_and_invalid_credentials(monkeypatch, admin_headers):
+def test_mcp_rejects_identity_override_writes_and_invalid_credentials(monkeypatch, admin_headers, enable_drill):
     from app import mcp_server
 
+    monkeypatch.setattr(get_settings(), "mcp_enabled", True)
     observed = []
     monkeypatch.setenv("OPSPILOT_MCP_TOKEN", admin_headers["Authorization"].removeprefix("Bearer "))
     monkeypatch.setenv("OPSPILOT_MCP_EVALUATION_TIME", "1001")
@@ -89,6 +91,6 @@ def test_mcp_metrics_keep_the_existing_tool_summary_contract(monkeypatch):
         "source": {"kind": "prometheus"}, "window": {"start": "a", "end": "b"}, "service": "order-service",
         "status": "no_data", "anomalies": [], "mcp": {"transport": "stdio"},
     })
-    result = make_tool_executor(SimpleNamespace(settings=SimpleNamespace(mcp_enabled=True)), "default", "user")(
+    result = make_tool_executor(SimpleNamespace(settings=Settings(_env_file=None, drill_enabled=True, mcp_enabled=True)), "default", "user")(
         "query_service_metrics", {"service": "order-service", "window_minutes": 5})
     assert result["summary"] and "证据不足" in result["summary"] and result["mcp"]["transport"] == "stdio"

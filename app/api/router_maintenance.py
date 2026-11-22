@@ -62,12 +62,16 @@ def capabilities(user: AuthUser = Depends(get_current_user), db: Session = Depen
         {"key": "website", "title": "个人网站观测", "state": "available" if scheduled else "manual",
          "description": "已开启网站定时 HTTP 巡检。分析可结合巡检证据和提交的日志。" if scheduled else
          "可手动检查公开网址或提交日志。你也可以在网站详情开启定时 HTTP 巡检。"},
-        {"key": "demo", "title": "独立故障演练", "state": "configured" if settings.metrics_provider == "prometheus" else "offline",
-         "description": "指标与日志配置仅用于平台自带的测试服务，与个人网站分开；配置存在不代表本次查询已成功。"},
     ]
-    runs = (db.query(AgentRun).join(ChatSession, AgentRun.session_id == ChatSession.id)
-            .filter(AgentRun.tenant_id == user.tenant_id, ChatSession.user_id == user.user_id, ChatSession.deleted_at.is_(None))
-            .order_by(AgentRun.updated_at.desc()).limit(5).all())
+    if settings.drill_enabled:
+        items.append({"key": "demo", "title": "独立故障演练", "state": "configured" if settings.metrics_provider == "prometheus" else "offline",
+         "description": "指标与日志配置仅用于平台自带的测试服务，与个人网站分开；配置存在不代表本次查询已成功。"})
+    runs_query = db.query(AgentRun).join(ChatSession, AgentRun.session_id == ChatSession.id).filter(
+        AgentRun.tenant_id == user.tenant_id, ChatSession.user_id == user.user_id, ChatSession.deleted_at.is_(None),
+    )
+    if not settings.drill_enabled:
+        runs_query = runs_query.join(SupportCase, SupportCase.session_id == ChatSession.id)
+    runs = runs_query.order_by(AgentRun.updated_at.desc()).limit(5).all()
     reasons = {"model_error": "模型请求未完成", "budget_exceeded": "触及当前用量限制", "tool_error": "工具查询未完成",
                "answered": "已保存回答", "cancelled": "已停止", "interrupted": "服务重启中断了执行"}
     recent = []
@@ -524,6 +528,7 @@ def retry_failed(body: RetryIn, user: AuthUser = Depends(get_current_user), db: 
 
 @router.get("/operations/{record_id}")
 def operation_detail(record_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    from app.config import get_settings
     from app.db.models import AgentRun, ApprovalRequest, RemediationRequest, Ticket
     from app.services.run_service import serialize_run
 
@@ -531,7 +536,11 @@ def operation_detail(record_id: str, user: AuthUser = Depends(get_current_user),
         raise HTTPException(403, "需要工程师或管理员权限")
     row = None
     kind = ""
-    for model, name in ((ApprovalRequest, "ticket_approval"), (RemediationRequest, "remediation"), (Ticket, "ticket")):
+    settings = get_settings()
+    models = [(ApprovalRequest, "ticket_approval"), (Ticket, "ticket")]
+    if settings.drill_enabled:
+        models.append((RemediationRequest, "remediation"))
+    for model, name in models:
         row = db.query(model).filter_by(id=record_id, tenant_id=user.tenant_id).first()
         if row:
             kind = name
@@ -557,10 +566,7 @@ def operation_detail(record_id: str, user: AuthUser = Depends(get_current_user),
         run = runs.filter(AgentRun.id == row.run_id).first()
     else:
         run = runs.filter(AgentRun.session_id == row.session_id).order_by(AgentRun.created_at.desc()).first()
-    from app.config import get_settings
     from app.services.preflight import evaluate_remediation_preflight, evaluate_ticket_preflight
-
-    settings = get_settings()
     preflight = None
     if kind == "remediation":
         preflight = evaluate_remediation_preflight(
@@ -570,7 +576,7 @@ def operation_detail(record_id: str, user: AuthUser = Depends(get_current_user),
             requested_by=row.requested_by,
             approver_username=user.username,
             approver_role=user.role,
-            remediation_enabled=settings.remediation_enabled,
+            remediation_enabled=settings.drill_remediation_enabled,
             strict_four_eyes=settings.strict_four_eyes,
         )
     elif kind == "ticket_approval":

@@ -8,6 +8,7 @@ from sqlalchemy import Text, case, cast, func, or_
 from sqlalchemy.orm import Session
 
 from app.auth.deps import AuthUser, get_current_user
+from app.config import get_settings
 from app.db.base import get_db
 from app.db.models import (
     ApprovalRequest,
@@ -176,6 +177,8 @@ def read_page(kind, params, user, db):
     elif kind in ("approvals", "tickets", "remediations"):
         if user.role not in ("admin", "engineer"):
             raise HTTPException(403, "需要工程师或管理员权限")
+        if kind == "remediations" and not get_settings().drill_enabled:
+            raise HTTPException(404, "当前环境未开放故障演练")
         model = {"approvals": ApprovalRequest, "tickets": Ticket, "remediations": RemediationRequest}[kind]
         query = db.query(model).filter_by(tenant_id=user.tenant_id)
         if params.status:
@@ -197,7 +200,6 @@ def read_page(kind, params, user, db):
                 if hasattr(value, "isoformat"):
                     data[key] = value.isoformat()
             if kind == "approvals":
-                from app.config import get_settings
                 from app.services.preflight import evaluate_ticket_preflight
 
                 data["approval_id"] = row.id
@@ -209,7 +211,6 @@ def read_page(kind, params, user, db):
                     strict_four_eyes=get_settings().strict_four_eyes,
                 )
             if kind == "remediations":
-                from app.config import get_settings
                 from app.services.preflight import evaluate_remediation_preflight
 
                 settings = get_settings()
@@ -221,7 +222,7 @@ def read_page(kind, params, user, db):
                     requested_by=row.requested_by,
                     approver_username=user.username,
                     approver_role=user.role,
-                    remediation_enabled=settings.remediation_enabled,
+                    remediation_enabled=settings.drill_remediation_enabled,
                     strict_four_eyes=settings.strict_four_eyes,
                 )
             return data

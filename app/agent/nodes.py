@@ -8,7 +8,7 @@ import logging
 import re
 
 from app.agent.llm import detect_intent
-from app.agent.tools import make_tool_executor, run_diagnostic_tools
+from app.agent.tools import DRILL_TOOLS, make_tool_executor, run_diagnostic_tools
 from app.services.observability import estimate_tokens, get_tracer
 from app.services.run_service import answer_stream
 from app.services.ticket_service import get_or_create_approval
@@ -69,7 +69,9 @@ class DiagnosisNodes:
         if not hasattr(self.container.llm, "_api"):
             raise ValueError("原生工具模式需要真实OpenAI兼容模型，不回退Mock")
         delegated = self.container.settings.retrieval_subagent_enabled
-        tool_names = ("delegate_retrieval" if delegated else "search_runbook", "query_service_metrics", "query_logs", "query_fault_history")
+        tool_names = ("delegate_retrieval" if delegated else "search_runbook", "query_fault_history")
+        if self.container.settings.drill_enabled:
+            tool_names += DRILL_TOOLS
         result = run_tool_loop(
             state["question"], self.container.llm._api, make_tool_executor(
                 self.container, state["tenant_id"], state["user_id"], evaluation_time=state.get("evaluation_time"),
@@ -343,6 +345,7 @@ class DiagnosisNodes:
         with self.container.db_session() as db:
             tool_events, fault_records, metrics = run_diagnostic_tools(
                 db, state["tenant_id"], state["question"], evaluation_time=state.get("evaluation_time"),
+                drill_enabled=self.container.settings.drill_enabled,
             )
         events = [{"type": "tool", **event} for event in tool_events]
         with self.tracer.span("tools", count=len(tool_events)) as span:

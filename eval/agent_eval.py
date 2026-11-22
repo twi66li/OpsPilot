@@ -139,7 +139,7 @@ class Trace:
         self.events.append({"kind": kind, "detail": copy.deepcopy(detail)})
 
 
-def replay_metrics(service, window_minutes=60):
+def replay_metrics(service, window_minutes=60, **_scope):
     return ACTIVE.get().call("query_service_metrics", {"service": service, "window_minutes": window_minutes})
 
 
@@ -151,7 +151,9 @@ def generate(case, mode, settings, root=DATASET):
     backend, trace = ReplayBackend(root), Trace()
     token = ACTIVE.set(backend)
     llm = OpenAIChatLLM(settings.openai_api_key, settings.openai_base_url, settings.chat_model, strict=True)
-    container = SimpleNamespace(settings=settings.model_copy(update={"agent_mode": mode, "retrieval_mode": "bm25"}),
+    container = SimpleNamespace(settings=settings.model_copy(update={
+        "agent_mode": mode, "retrieval_mode": "bm25", "drill_enabled": True, "mcp_enabled": False,
+    }),
                                 llm=llm, retriever=ReplayRetriever(), db_session=lambda: nullcontext(EmptyChatDB()))
     started = time.perf_counter()
     row = {"id": case["id"], "split": case["split"], "family": case["family"], "mode": mode, "question": case["question"]}

@@ -12,7 +12,7 @@ from tests.conftest import new_session, seed_tenant_admin
 
 
 @pytest.fixture
-def demo_service(monkeypatch):
+def demo_service(monkeypatch, enable_drill):
     monkeypatch.setattr(get_settings(), "remediation_enabled", True)
     demo = TestClient(metrics_demo.app)
     demo.post("/control", json={"error_every": 1})
@@ -77,3 +77,28 @@ def test_request_is_bound_to_owned_run_and_tenant(client, admin_headers, enginee
     assert request_repair(client, other, run_id).status_code == 404
     assert client.get("/api/remediations", headers=other).json() == []
     assert client.post(f"/api/remediations/{row['id']}/decide", headers=other, json={"approved": True}).status_code == 404
+
+def test_disabled_drill_blocks_child_switches_and_keeps_retrieval(client, admin_headers, monkeypatch):
+    from app.agent.tools import make_tool_executor
+    from app.container import get_container
+
+    settings = get_settings()
+    monkeypatch.setattr(settings, "remediation_enabled", True)
+    monkeypatch.setattr(settings, "mcp_enabled", True)
+    monkeypatch.setattr(settings, "retrieval_subagent_enabled", True)
+    assert client.get("/auth/options").json()["drill_enabled"] is False
+    assert client.get("/api/remediations/actions", headers=admin_headers).json() == {"enabled": False, "actions": []}
+    assert request_repair(client, admin_headers, "sample-run").status_code == 503
+    assert client.post("/api/remediations/sample/decide", headers=admin_headers, json={"approved": True}).status_code == 503
+    for path in ("/api/remediations", "/api/workspace/remediations"):
+        assert client.get(path, headers=admin_headers).status_code == 404
+    tools = client.get("/api/agent/tools", headers=admin_headers).json()
+    assert {item["name"] for item in tools} == {"delegate_retrieval", "query_fault_history"}
+    skills = client.get("/api/agent/skills", headers=admin_headers).json()
+    assert "drill" not in {item["name"] for item in skills}
+    execute = make_tool_executor(get_container(), "default")
+    assert execute("query_logs", {"service": "order-service"})["status"] == "unavailable"
+    with TestClient(metrics_demo.app) as demo:
+        assert demo.post("/control", json={"error_every": 1}).status_code == 404
+        assert demo.get("/work").status_code == 404
+        assert demo.get("/metrics").status_code == 200

@@ -102,3 +102,21 @@ def test_disabled_drill_blocks_child_switches_and_keeps_retrieval(client, admin_
         assert demo.post("/control", json={"error_every": 1}).status_code == 404
         assert demo.get("/work").status_code == 404
         assert demo.get("/metrics").status_code == 200
+
+
+def test_repair_is_bound_to_service_selected_when_requested(client, admin_headers, demo_service, monkeypatch):
+    old = request_repair(client, admin_headers, completed_run(client, admin_headers)).json()
+    target = "orders-drill-service"
+    monkeypatch.setattr(get_settings(), "drill_service", target)
+    actions = client.get("/api/remediations/actions", headers=admin_headers).json()
+    assert actions["service"] == target and target in actions["actions"][0]["label"]
+
+    old_decision = client.post(f"/api/remediations/{old['id']}/decide", headers=admin_headers, json={"approved": True})
+    assert old_decision.status_code == 403
+    assert demo_service.get("/control").json()["fault_injection"]["error_every"] == 1
+
+    current = request_repair(client, admin_headers, completed_run(client, admin_headers)).json()
+    assert current["service"] == target
+    decision = client.post(f"/api/remediations/{current['id']}/decide", headers=admin_headers, json={"approved": True})
+    assert decision.status_code == 200 and decision.json()["status"] == "succeeded"
+    assert decision.json()["result"]["after"]["control"]["service"] == target

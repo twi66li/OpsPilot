@@ -39,7 +39,7 @@ class DiagState(TypedDict, total=False):
     citations: list[str]
     # [n]→第 n 条证据文档（与生成器编号同源，重复文档保留各自编号）；
     # 生成器实际收到的编号证据与范围组装元数据；必须声明在状态中，
-    # 否则 LangGraph 会丢弃节点返回的未声明字段，最终响应拿不到映射（终审 P1-CITATIONS）。
+    # LangGraph 只保留声明的字段，最终响应需要这些映射解析引用。
     citations_indexed: list[str]
     used_evidence: list[dict] | None
     range_assembly: dict | None

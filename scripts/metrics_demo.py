@@ -18,9 +18,6 @@ latency = Histogram(
     "aiops_demo_request_duration_seconds", "实际请求耗时", ["service"],
     buckets=(0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5), registry=registry,
 )
-for code in ("200", "500"):
-    requests.labels(service="order-service", code=code)
-latency.labels(service="order-service")
 
 
 class FaultConfig(BaseModel):
@@ -43,18 +40,19 @@ def require_drill():
 async def control(config: FaultConfig):
     global fault, sequence
     fault, sequence = config, 0
-    return {"service": "order-service", "environment": "test", "fault_injection": config.model_dump()}
+    return {"service": get_settings().drill_service, "environment": "test", "fault_injection": config.model_dump()}
 
 
 @app.get("/control", dependencies=[Depends(require_drill)])
 async def control_status():
-    return {"service": "order-service", "environment": "test", "fault_injection": fault.model_dump()}
+    return {"service": get_settings().drill_service, "environment": "test", "fault_injection": fault.model_dump()}
 
 
 @app.get("/work", dependencies=[Depends(require_drill)])
 async def work():
     global sequence
     sequence += 1
+    service = get_settings().drill_service
     current, config = sequence, fault
     start = time.perf_counter()
     await asyncio.sleep(config.delay_ms / 1000)
@@ -62,13 +60,13 @@ async def work():
     elapsed_ms = round((time.perf_counter() - start) * 1000, 3)
     request_id = uuid.uuid4().hex
     request_logs.append({
-        "timestamp": time.time(), "tenant_id": "default", "service": "order-service", "environment": "test",
+        "timestamp": time.time(), "tenant_id": "default", "service": service, "environment": "test",
         "request_id": request_id, "status_code": status, "elapsed_ms": elapsed_ms,
         "error_code": config.error_code if status == 500 else "", "fault_injected": bool(config.delay_ms or status == 500),
         "message": f"测试注入：{config.error_code}" if status == 500 else "请求完成",
     })
-    requests.labels(service="order-service", code=str(status)).inc()
-    latency.labels(service="order-service").observe(time.perf_counter() - start)
+    requests.labels(service=service, code=str(status)).inc()
+    latency.labels(service=service).observe(time.perf_counter() - start)
     return Response(status_code=status, content="injected error" if status == 500 else "ok", headers={"X-Request-ID": request_id})
 
 
@@ -81,4 +79,8 @@ async def logs(tenant_id: str, service: str, start: float, end: float, limit: in
 
 @app.get("/metrics")
 async def metrics():
+    service = get_settings().drill_service
+    for code in ("200", "500"):
+        requests.labels(service=service, code=code)
+    latency.labels(service=service)
     return Response(generate_latest(registry), headers={"Content-Type": CONTENT_TYPE_LATEST})

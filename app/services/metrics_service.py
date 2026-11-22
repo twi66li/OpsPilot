@@ -86,14 +86,15 @@ def query_service_metrics(service: str, window_minutes: int = 60, *, evaluation_
         return {**result, "status": "invalid_service", "message": "服务标识无效，指标证据不足"}
     if tenant_id != "default":
         return {**result, "status": "no_data", "message": "当前测试指标源未接入本租户，不能据此判定服务正常"}
-    if settings.metrics_provider == "mock" and service not in KNOWN_SERVICES:
-        return {
-            **result,
-            "status": "unknown_service",
-            "valid_services": sorted(KNOWN_SERVICES),
-            "message": "服务名不在已知服务清单，不合成模拟指标；请核对服务名或改用清单内服务",
-        }
     if settings.metrics_provider == "mock":
+        known_services = KNOWN_SERVICES | {settings.drill_service}
+        if service not in known_services:
+            return {
+                **result,
+                "status": "unknown_service",
+                "valid_services": sorted(known_services),
+                "message": "服务名不在已知服务清单，不合成模拟指标；请核对服务名或改用清单内服务",
+            }
         return {**result, **_mock_metrics(service, window_minutes), "status": "ok"}
     if settings.metrics_provider != "prometheus":
         raise ValueError("metrics_provider 必须是 mock 或 prometheus")

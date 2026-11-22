@@ -6,6 +6,7 @@
   在开启 strict_four_eyes=True 时升级为 fail 强制双人复核（四眼原则）。
 """
 
+from app.config import get_settings
 from app.services import remediation_service
 
 _ALLOWED_ROLES = {"admin", "engineer"}
@@ -109,6 +110,8 @@ def evaluate_remediation_preflight(
     remediation_enabled: bool = True,
     strict_four_eyes: bool = False,
 ) -> dict:
+    target_service = get_settings().drill_service
+    allowed_target = tenant_id == "default" and service == target_service
     checks = [
         _item(
             "feature_gate",
@@ -120,16 +123,16 @@ def evaluate_remediation_preflight(
             "action_whitelist",
             "动作白名单校验",
             "pass" if action == remediation_service.ACTION else "fail",
-            f"固定受控动作：{remediation_service.ACTION_LABEL}"
+            f"固定受控动作：{remediation_service.action_label(service)}"
             if action == remediation_service.ACTION
             else f"未知或未授权动作：{action}",
         ),
         _item(
             "target_scope",
             "目标环境与租户边界",
-            "pass" if tenant_id == "default" and service == "order-service" else "fail",
-            "限定测试租户 default / order-service 演练靶场，不触及个人生产网站"
-            if tenant_id == "default" and service == "order-service"
+            "pass" if allowed_target else "fail",
+            f"限定测试租户 default / {target_service} 演练靶场，不触及个人生产网站"
+            if allowed_target
             else "目标租户或服务不在演练白名单内",
         ),
     ]

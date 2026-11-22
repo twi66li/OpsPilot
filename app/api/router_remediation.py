@@ -49,7 +49,7 @@ def _serialize(row, user: AuthUser | None = None):
         "id": row.id,
         "run_id": row.run_id,
         "action": row.action,
-        "action_label": remediation_service.ACTION_LABEL,
+        "action_label": remediation_service.action_label(row.service),
         "service": row.service,
         "reason": row.reason,
         "status": row.status,
@@ -72,9 +72,14 @@ def _require_enabled(user):
 
 @router.get("/actions")
 async def actions(user: AuthUser = Depends(get_current_user)):
-    enabled = get_settings().drill_remediation_enabled and user.tenant_id == "default"
-    return {"enabled": enabled, "actions": [{"id": remediation_service.ACTION, "label": remediation_service.ACTION_LABEL,
-                                            "environment": "test", "requires_approval": True}] if enabled else []}
+    settings = get_settings()
+    enabled = settings.drill_remediation_enabled and user.tenant_id == "default"
+    return {
+        "enabled": enabled,
+        "actions": [{"id": remediation_service.ACTION, "label": remediation_service.action_label(settings.drill_service),
+                     "environment": "test", "requires_approval": True}] if enabled else [],
+        **({"service": settings.drill_service} if settings.drill_enabled else {}),
+    }
 
 
 @router.get("")
@@ -95,7 +100,7 @@ def create_request(body: RemediationIn, user: AuthUser = Depends(require_roles("
         raise HTTPException(404, "调查记录不存在")
     if run.status == "running":
         raise HTTPException(409, "请等待调查完成，再提出修复申请")
-    row = RemediationRequest(tenant_id=user.tenant_id, run_id=run.id, action=body.action,
+    row = RemediationRequest(tenant_id=user.tenant_id, run_id=run.id, action=body.action, service=get_settings().drill_service,
                              reason=body.reason, requested_by=user.username)
     db.add(row)
     try:
@@ -148,7 +153,7 @@ def decide(request_id: str, body: DecisionIn, user: AuthUser = Depends(require_r
               "preflight": preflight,
               "verification_scope": "短请求探针，不代表长期SLO；关闭演练注入不等同于生产故障根因修复"}
     try:
-        succeeded = remediation_service.execute_demo_reset(get_settings().logs_url, result)
+        succeeded = remediation_service.execute_demo_reset(settings.logs_url, result, service=row.service)
         row.status = "succeeded" if succeeded else "failed"
     except Exception as exc:
         row.status = "failed"

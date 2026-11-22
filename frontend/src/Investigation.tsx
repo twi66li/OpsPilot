@@ -26,13 +26,19 @@ export default function Investigation({onSource, canApprove, initialId, initialR
   const [approval, setApproval] = useState<Approval | null>(null), [deciding, setDeciding] = useState(false), [comment, setComment] = useState('');
   const [runId, setRunId] = useState(''), [trace, setTrace] = useState<Run | null>(null);
   const [repairEnabled, setRepairEnabled] = useState(false), [repairOpen, setRepairOpen] = useState(false);
+  const [drillService, setDrillService] = useState('');
   const [repairReason, setRepairReason] = useState(''), [repairBusy, setRepairBusy] = useState(false);
   const controller = useRef<AbortController | null>(null), bottom = useRef<HTMLDivElement>(null);
   const [page,setPage]=useState(1),[total,setTotal]=useState(0),[search,setSearch]=useState('');
   const refresh=useCallback(async()=>{const r=await api<PageData<Session>>(`/api/workspace/sessions?page=${page}&page_size=10&q=${encodeURIComponent(search)}`);setSessions(r.items);setTotal(r.total);},[page,search]);
   useEffect(() => {refresh().catch(e => message.error(e.message));}, [refresh, message]);
   useEffect(() => () => controller.current?.abort(), []);
-  useEffect(() => {api<{enabled: boolean}>('/api/remediations/actions').then(result => setRepairEnabled(result.enabled)).catch(() => setRepairEnabled(false));}, []);
+  useEffect(() => {
+    api<{enabled: boolean; service?: string}>('/api/remediations/actions').then(result => {
+      setDrillService(result.service || '');
+      setRepairEnabled(result.enabled && !!result.service);
+    }).catch(() => setRepairEnabled(false));
+  }, []);
   useEffect(() => {bottom.current?.scrollIntoView({behavior: 'smooth', block: 'nearest'});}, [messages]);
   useEffect(()=>{if(initialId&&initialId!==sessionId)void selectSession(initialId);},[initialId]);
   function fresh() {setSessionId(''); setMessages([]); setHits([]); setEvents([]); setApproval(null); setTrace(null); setRunId('');opened?.('');}
@@ -147,7 +153,7 @@ export default function Investigation({onSource, canApprove, initialId, initialR
     </aside>
     <section className="chat-panel"><div className="panel-heading"><strong>故障调查</strong><Tag color={busy ? 'processing' : 'default'}>{busy ? '正在调查' : '就绪'}</Tag></div>
       <div className="chat-history">{!messages.length && <div className="chat-empty"><h2>体验一次故障调查与恢复</h2><p>测试环境会模拟连接池等待超时，可能看到请求失败、延迟上升和 ERR_5003 日志。先调查证据，再申请关闭故障注入，经审批后观察请求验证结果；实际异常以工具查询为准。</p>
-        {guest ? <Alert type="info" title="访客模式仅支持只读浏览，退出访客并登录个人账号后即可发起调查演练。" /> : <Button onClick={() => setQuestion('调查 order-service 最近5分钟的错误，结合日志、指标和手册，说明已确认事实与证据缺口。')}>填入调查示例</Button>}</div>}
+        {guest ? <Alert type="info" title="访客模式仅支持只读浏览，退出访客并登录个人账号后即可发起调查演练。" /> : <Button disabled={!drillService} onClick={() => setQuestion(`调查 ${drillService} 最近5分钟的错误，结合日志、指标和手册，说明已确认事实与证据缺口。`)}>填入调查示例</Button>}</div>}
         {messages.map((item, i) => <article className={`chat-message ${item.role}`} key={i}><div className="message-label">{item.role === 'user' ? '你' : 'OpsPilot'}</div><div className="message-body">{item.content || (busy ? '正在收集证据…' : '本次没有生成回答，请查看执行记录。')}</div></article>)}
         {approval && <Card className="approval-card" title="工单等待审批" size="small"><Descriptions column={1} size="small" items={['title','service','severity','description'].map((key,index)=>({key,label:['标题','服务','严重度','说明'][index],children:String(draft?.[key]||'未提供')}))}/><Collapse size="small" ghost items={[{key:'draft',label:'查看工单原始数据',children:<pre>{JSON.stringify(draft,null,2)}</pre>}]}/><Input.TextArea aria-label="审批意见" value={comment} onChange={e => setComment(e.target.value)} placeholder="审批意见" />
           <Space className="section-gap"><Button type="primary" disabled={!canApprove} loading={deciding} onClick={() => decide(true)}>批准创建工单</Button><Button disabled={!canApprove} loading={deciding} onClick={() => decide(false)}>拒绝</Button></Space>
@@ -165,12 +171,12 @@ export default function Investigation({onSource, canApprove, initialId, initialR
       {hits.map((hit, i) => <button className="evidence-card" key={`${hit.chunk_id}-${i}`} onClick={() => onSource(hit)}><strong>[{hit.citation_id || i + 1}] {hit.doc_title}</strong><small>{hit.version ? `v${hit.version} · ` : ''}{hit.page_start ? `第${hit.page_start}页` : '文本来源'}</small><p>{hit.text.slice(0, 160)}</p><span>查看原文与上下文 →</span></button>)}
       <Collapse className="section-bottom" size="small" items={[{key:'process',label:`执行过程 · ${events.length} 条记录${lastEvent?' · '+(labels[lastEvent.name||lastEvent.node||'']||'调查进展'):''}`,children:<Timeline items={events.map((event, i) => ({key: i, color: event.type === 'error' ? 'red' : 'blue', content: <><strong>{labels[event.name || event.node || ''] || (event.type === 'error' ? '执行异常' : '调查进展')}</strong><p className="muted">{event.summary || event.message || (event.type === 'tool_start' ? '正在查询…' : '已记录')}</p><Collapse size="small" ghost items={[{key: 'raw', label: '查看记录', children: <pre>{JSON.stringify(event, null, 2)}</pre>}]} /></>}))}/>}]}/>
       {runId && <><small className="muted">Run {runId.slice(0, 12)}</small><Button size="small" onClick={() => api<Run>(`/api/agent/runs/${runId}`).then(setTrace).catch(e => message.error(e.message))}>读取完整记录</Button></>}
-      {runId && repairEnabled && canApprove && <Button className="section-gap" disabled={busy} onClick={() => {setRepairReason('根据本次调查，申请关闭 order-service 的演练故障注入，并核对实际请求结果。'); setRepairOpen(true);}}>申请演练修复</Button>}
+      {runId && repairEnabled && canApprove && <Button className="section-gap" disabled={busy} onClick={() => {setRepairReason(`根据本次调查，申请关闭 ${drillService} 的演练故障注入，并核对实际请求结果。`); setRepairOpen(true);}}>申请演练修复</Button>}
       {trace && <Collapse size="small" items={[{key: 'trace', label: '查看调查原始数据', children: <pre>{JSON.stringify(trace.data, null, 2)}</pre>}]} />}
       {approval && !canApprove && <Alert type="info" title="当前账号可查看，需要工程师或管理员审批。" />}
     </div></aside>
     <Modal open={repairOpen} title="申请演练修复" onCancel={() => setRepairOpen(false)} onOk={requestRepair} confirmLoading={repairBusy} okText="提交审批" okButtonProps={{disabled: !repairReason.trim()}}>
-      <Alert type="warning" title="固定动作：关闭 order-service 的测试故障注入。需要人工批准后才执行，并用短请求探针验证。" />
+      <Alert type="warning" title={`将关闭 ${drillService} 的测试故障注入。批准后使用短请求探针验证。`} />
       <Input.TextArea className="section-gap" aria-label="演练修复理由" value={repairReason} maxLength={600} rows={4} onChange={e => setRepairReason(e.target.value)} />
     </Modal>
   </div></div>;

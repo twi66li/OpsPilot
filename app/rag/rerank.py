@@ -49,7 +49,7 @@ class CrossEncoderReranker:
 
 
 class DashScopeReranker:
-    """DashScope 原生 text-rerank API（T7：正式 API 的真实重排路径，复用评测已验证的 RerankAPI）。
+    """DashScope 原生 text-rerank API，与评测共用 RerankAPI。
 
     与 heuristic/cross_encoder 不同：API 调用失败直接抛出、不静默回退词面重排，
     避免真实后端故障被掩盖（strict 语义在 provider 层即成立）。

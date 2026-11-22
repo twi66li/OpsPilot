@@ -4,7 +4,10 @@ import time
 import httpx
 
 ACTION = "reset_demo_fault"
-ACTION_LABEL = "关闭 order-service 演练故障注入"
+
+
+def action_label(service: str) -> str:
+    return f"关闭 {service} 演练故障注入"
 
 
 def _probe(client):
@@ -17,13 +20,13 @@ def _probe(client):
     return {"samples": samples, "healthy": all(s["status_code"] == 200 and s["elapsed_ms"] < 1000 for s in samples)}
 
 
-def execute_demo_reset(base_url, result):
+def execute_demo_reset(base_url, result, *, service: str):
     # 目标地址只来自服务端配置；没有模型可填写的URL、命令或脚本。
     with httpx.Client(base_url=base_url.rstrip("/"), timeout=5.0, trust_env=False) as client:
         before = client.get("/control")
         before.raise_for_status()
         state = before.json()
-        if state.get("environment") != "test" or state.get("service") != "order-service":
+        if state.get("environment") != "test" or state.get("service") != service:
             raise ValueError("目标不是指定的演练服务")
         result["before"] = {"control": state, **_probe(client)}
         response = client.post("/control", json={"delay_ms": 0, "error_every": 0, "error_code": "ERR_INJECTED"})

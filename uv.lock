@@ -1189,7 +1189,6 @@ dependencies = [
     { name = "pypdf" },
     { name = "python-multipart" },
     { name = "pyyaml" },
-    { name = "qdrant-client" },
     { name = "rank-bm25" },
     { name = "redis" },
     { name = "sqlalchemy", extra = ["asyncio"] },
@@ -1201,6 +1200,9 @@ dependencies = [
 dev = [
     { name = "pytest" },
     { name = "ruff" },
+]
+migration = [
+    { name = "qdrant-client" },
 ]
 
 [package.metadata]
@@ -1227,7 +1229,6 @@ requires-dist = [
     { name = "pypdf", specifier = "==7.0.1" },
     { name = "python-multipart", specifier = "==0.0.33" },
     { name = "pyyaml", specifier = "==6.0.3" },
-    { name = "qdrant-client", specifier = "==1.13.3" },
     { name = "rank-bm25", specifier = "==0.2.2" },
     { name = "redis", specifier = "==8.1.0" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = "==2.1.6" },
@@ -1240,6 +1241,7 @@ dev = [
     { name = "pytest", specifier = "==9.2.0" },
     { name = "ruff", specifier = "==0.17.3" },
 ]
+migration = [{ name = "qdrant-client", specifier = "==1.13.3" }]
 
 [[package]]
 name = "orjson"

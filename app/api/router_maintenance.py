@@ -593,7 +593,7 @@ def operation_detail(record_id: str, user: AuthUser = Depends(get_current_user),
         "record": data,
         "run": serialize_run(db, run) if run else None,
         "preflight": preflight,
-        "impact": "仅关闭order-service测试故障注入；不操作用户网站或生产环境"
+        "impact": f"将关闭 {row.service} 测试服务的故障注入"
         if kind == "remediation"
         else "仅创建或查看跟进工单；不执行修复命令",
         "verification_scope": "验证仅对应所记录的请求样本，不能证明生产根因消除或长期恢复",

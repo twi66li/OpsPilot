@@ -75,7 +75,7 @@ cd ..
 
 访问工作台 `http://127.0.0.1:8000`，接口文档 `http://127.0.0.1:8000/docs`。
 前端需要 Node 24；Docker 使用独立构建阶段，运行容器只托管静态产物。开发前端可在 `frontend` 执行 `npm run dev`，代理API至本机8000端口。
-默认管理员是 `admin / admin123`，云端部署前需修改管理员密码和 JWT 密钥。
+离线开发首次启动会创建管理员，示例账号为 `admin / admin123`。生产环境使用下方的显式初始化流程。
 
 ## PostgreSQL + Milvus 本地联调
 
@@ -93,7 +93,7 @@ docker compose -f compose.local.yml --profile app --profile observability up -d 
 
 使用宿主机运行 API 时，设置 `VECTOR_STORE_BACKEND=milvus` 和 `MILVUS_URI=http://127.0.0.1:19531` 连接本机 Compose 服务。离线开发可显式选择 `VECTOR_STORE_BACKEND=memory`。
 
-如果旧资料仍在 Qdrant，保持原 Embedding 模型和维度，在启动新 API 前暂停旧库入库并迁移现有向量和分块信息。迁移工具 `python -m scripts.migrate_milvus --help` 默认只盘点源数据，显式传 `--apply` 才写入目标集合。确认迁移校验通过后，将 `MILVUS_COLLECTION` 指向该集合。
+如果旧资料仍在 Qdrant，保持原 Embedding 模型和维度，在启动新 API 前暂停旧库入库并迁移现有向量和分块信息。用 `uv run --frozen --group migration python -m scripts.migrate_milvus --help` 查看参数。迁移默认只盘点源数据，显式传 `--apply` 才写入目标集合。确认迁移校验通过后，将 `MILVUS_COLLECTION` 指向该集合。运行镜像只安装核心依赖，迁移命令在单独的本机环境执行。
 
 `/live` 检查进程，`/ready` 检查数据库、Milvus、缓存和入库线程。用 `docker compose -f compose.local.yml exec -T api python -m integration.check_stack` 检查真实依赖，只创建并清理本次随机测试资源，无需调用模型供应商。
 
@@ -103,7 +103,7 @@ docker compose -f compose.local.yml --profile app --profile observability up -d 
 
 **数据库**：由 Alembic 升级，`uv run python -m scripts.migrate` 可显式执行。升级前备份；基线和审计迁移不自动删表回退。新镜像以 UID/GID 10001 运行，Linux 宿主的 `data` 持久目录需要授予该用户读写权限。迁移会使旧版无登录会话的令牌失效，升级后需要重新登录。
 
-首次部署先配置独立密钥和至少12字符管理员密码，并准备持久目录：
+首次生产启动前配置至少 32 字符的独立 JWT 密钥、至少 12 字符的管理员密码和持久目录。空库须先执行 `scripts.init_admin`，否则 API 会拒绝启动并提示初始化。首次启动导入内置资料，需要可用的 Embedding 配置和预算。
 
 ```bash
 docker build -t opspilot:milvus .          # .env 中设置 OPSPILOT_IMAGE=opspilot:milvus
@@ -140,7 +140,7 @@ ssh -N -L 18000:127.0.0.1:18000 your-server
 
 ## 受控演练修复
 
-本地 Compose 默认关闭故障演练。体验时设置 `DRILL_ENABLED=true`，并启用 `observability` profile。模拟修复和 MCP 分别由 `REMEDIATION_ENABLED`、`MCP_ENABLED` 开启，均依赖演练总开关。演示 Compose 的总开关默认开启，可通过 `.env` 覆盖。order-service 修复目标仅为 default 租户配置。
+本地 Compose 默认关闭故障演练。体验时设置 `DRILL_ENABLED=true`，并启用 `observability` profile。模拟修复和 MCP 分别由 `REMEDIATION_ENABLED`、`MCP_ENABLED` 开启，均依赖演练总开关。演示 Compose 的总开关默认开启，可通过 `.env` 覆盖。API 与模拟器共用 `DRILL_SERVICE`，默认 `order-service`，修复仅对 default 租户开放。更换目标后，旧目标的待批申请无法批准执行。
 
 调查完成后，工作台可提出修复申请；管理员或工程师在“审批与工单”批准后才执行。固定动作是关闭 metrics-demo 的故障注入，不接受URL、Shell或模型自定义脚本。执行前后各发送3个实际请求，保存状态码、耗时、请求编号与故障配置。短探针恢复不等同于生产根因修复或长期SLO恢复。
 
@@ -154,7 +154,7 @@ ssh -N -L 18000:127.0.0.1:18000 your-server
 ## 开发检查
 
 ```powershell
-.venv/Scripts/python -m pytest tests/test_knowledge_files.py tests/test_kb.py tests/test_rag.py -q
+uv run --frozen --group migration pytest tests/test_knowledge_files.py tests/test_kb.py tests/test_rag.py -q
 .venv/Scripts/python -m pytest tests/test_logstats.py tests/test_checkpoint_persistence.py tests/test_tool_loop.py tests/test_approval.py -q
 .venv/Scripts/python -m ruff check app tests
 ```
@@ -165,6 +165,8 @@ ssh -N -L 18000:127.0.0.1:18000 your-server
 - `uv run python -m scripts.demo_acceptance`：串起真实PDF、来源回查、真实模型流式调查和审批修复。
 
 CI 使用同一 Compose 启动隔离的 PostgreSQL、Milvus 和 Redis，验证向量迁移和浏览器流程。浏览器流程要求 `OPSPILOT_E2E_ISOLATED=1`，仅在隔离环境运行。
+
+应用与开发依赖以 `pyproject.toml`、`uv.lock` 为准，`requirements.txt` 和 `requirements-dev.txt` 为锁文件导出。迁移检查显式加 `--group migration`。Cross-Encoder 和 Langfuse 可以用 `requirements-optional.txt` 按需安装。
 
 从项目根目录运行 `python -m eval.offline_retrieval` 可复查冻结检索基线。默认读取本地 `eval/reports/real_ops_20261029T221616/embeddings.json` 及同目录的 `run_manifest.json`。保存在其他位置时用 `--embeddings` 指定向量文件。入口会校验数据和向量覆盖，报告 Recall@5、MRR@5 与关键词命中，回归时以非零状态退出。
 

@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import model_validator
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -66,7 +66,7 @@ class Settings(BaseSettings):
     # 完整计数类问题必须整窗可见；超限整行截断并在 range_assembly 报告 targets_dropped_by_budget。
     evidence_range_chars: int = 12000
     rerank_enabled: bool = False
-    rerank_provider: str = "heuristic"  # heuristic | cross_encoder | dashscope（T7：DashScope 原生 text-rerank）
+    rerank_provider: str = "heuristic"  # heuristic | cross_encoder | dashscope
     rerank_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
     # ---- Redis ----
@@ -86,6 +86,7 @@ class Settings(BaseSettings):
     max_concurrent_runs: int = 1
     logs_url: str = "http://localhost:18081"
     drill_enabled: bool = False
+    drill_service: str = Field(default="order-service", max_length=64, pattern=r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*-service$")
     remediation_enabled: bool = False
     strict_four_eyes: bool = False  # 生产/企业可开启：禁止同一账号自提自批工单或演练修复
     mcp_enabled: bool = False

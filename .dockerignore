@@ -9,5 +9,13 @@ venv
 .ruff_cache
 data
 eval/reports
+eval/**/*.log
+eval/**/ledger.jsonl
+eval/**/*_ledger.jsonl
+eval/**/*.jsonl.lock
 frontend/node_modules
 frontend/dist
+frontend/src.zip
+frontend/test-results
+frontend/playwright-report
+frontend/debug.log

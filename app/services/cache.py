@@ -77,7 +77,7 @@ _cache_instance = None
 
 
 def get_cache(settings=None):
-    """单例缓存：Redis 不可达时退化为进程内；model_strict 下直接抛出（T7：真实后端不得被静默掩盖）。"""
+    """Redis 不可达时回退进程内缓存。严格模式直接报错，以便核对实际后端。"""
     global _cache_instance
     if _cache_instance is None:
         if settings is None:

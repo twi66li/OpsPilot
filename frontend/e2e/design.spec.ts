@@ -566,7 +566,7 @@ for(const width of [1440,1024,390]){
     await page.setViewportSize({width,height:900});await fixture(page);
     await page.route('**/api/workspace/sessions?*',r=>r.fulfill({json:{items:[{id:'demo-case',title:'原演练问题',created_at:now}],total:1}}));
     await page.route('**/api/sessions/demo-case',r=>r.fulfill({json:{id:'demo-case',title:'原演练问题',messages:[{role:'user',content:'调查 order-service 错误'}]}}));
-    await page.route('**/api/remediations/actions',r=>r.fulfill({json:{enabled:true}}));
+    await page.route('**/api/remediations/actions',r=>r.fulfill({json:{enabled:true,service:'orders-drill-service'}}));
     await page.route('**/api/agent/sessions/demo-case/pending-approval',r=>r.fulfill({json:{pending:false}}));
     await page.route('**/api/agent/runs/interrupted-run',r=>r.fulfill({json:{run_id:'interrupted-run',status:'interrupted',created_at:now,updated_at:'2026-11-13T04:00:08Z',data:{question:'调查 order-service 错误',result:{message:'服务重启，执行中断'},events:[{kind:'progress',detail:{type:'node_status',node:'retrieve',message:'已取得手册'}}]}}}));
     let submitted=0;page.on('request',r=>{if(r.url().includes('/chat/stream'))submitted++;});
@@ -635,7 +635,7 @@ test('脱敏类别与IP核对展示，编辑文本后必须再次预览',async({
 
 test('演练工单默认字段摘要且保留审批权限',async({page})=>{
   await fixture(page);await page.route('**/api/workspace/sessions?*',r=>r.fulfill({json:{items:[],total:0}}));
-  await page.route('**/api/remediations/actions',r=>r.fulfill({json:{enabled:false}}));
+  await page.route('**/api/remediations/actions',r=>r.fulfill({json:{enabled:false,service:'order-service'}}));
   await page.route('**/api/sessions/demo-approval',r=>r.fulfill({json:{id:'demo-approval',messages:[]}}));
   await page.route('**/api/agent/sessions/demo-approval/pending-approval',r=>r.fulfill({json:{pending:true,approval_id:'approval-one',ticket_draft:{title:'连接池故障工单',service:'order-service',severity:'P1',description:'核对连接释放'}}}));
   await page.goto('/investigation/demo-approval');await expect(page.locator('.approval-card')).toContainText('连接池故障工单');
@@ -782,4 +782,13 @@ test('关闭演练后隐藏入口并将旧链接带回工作台',async({page})=>
   await expect(page.getByText(/待审批工单 ·/)).toBeVisible();
   await expect(page.getByText(/演练修复 ·/)).toHaveCount(0);
   expect(repairRequests).toEqual([]);
+});
+
+test('演练调查示例使用当前配置的服务名',async({page})=>{
+  await fixture(page,{role:'admin',tenantId:'default'});
+  await page.route('**/api/workspace/sessions?*',r=>r.fulfill({json:{items:[],total:0}}));
+  await page.route('**/api/remediations/actions',r=>r.fulfill({json:{enabled:false,service:'orders-drill-service'}}));
+  await page.goto('/investigation');
+  await page.getByRole('button',{name:'填入调查示例'}).click();
+  await expect(page.getByLabel('调查问题')).toHaveValue(/orders-drill-service/);
 });

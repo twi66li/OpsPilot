@@ -37,7 +37,7 @@ jobs:
         # 历史冻结实验脚本保留原样，检查应用、测试与当前评测入口。
         run: uv run ruff check app scripts tests integration eval/investigation_eval.py
       - name: Run tests
-        run: uv run pytest -q
+        run: uv run --group migration pytest -q
 
   integration:
     runs-on: ubuntu-24.04
@@ -73,7 +73,7 @@ jobs:
       - name: Verify real infrastructure
         run: |
           uv run python -m integration.check_stack
-          uv run python -m integration.check_milvus --uri "$MILVUS_URI" --collection opspilot_test_ci_migration
+          uv run --group migration python -m integration.check_milvus --uri "$MILVUS_URI" --collection opspilot_test_ci_migration
       - name: Start isolated browser-test application
         run: |
           uv run python -m scripts.seed

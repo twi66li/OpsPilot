@@ -77,9 +77,11 @@ flowchart TD
 | 路径 | 入口条件 | 说明 |
 | --- | --- | --- |
 | personal | state 带 `support_context`（个人排障） | `support_service.run_personal`：原生工具循环，只开放资料检索与本人案例检索 |
-| native | `AGENT_MODE=native` | `tool_loop.run_tool_loop`：Function Calling，工具为 `search_runbook`/`delegate_retrieval`、`query_service_metrics`、`query_logs`、`query_fault_history`；需真实模型 |
+| native | `AGENT_MODE=native` | 真实模型通过 Function Calling 调用资料检索和历史故障工具。日志和指标工具由 `DRILL_ENABLED` 控制 |
 | pure | `AGENT_MODE=rule` 且策略为 `range_stats_direct` | 纯日志行范围统计，由确定性代码直接回答 |
-| rule | `AGENT_MODE=rule` | 规则链：检索 → 相关性判断 →（最多补充 1 轮改写检索）→ 指标/故障史工具 → 生成带 `[n]` 引用的回答 |
+| rule | `AGENT_MODE=rule` | 由程序选择检索和故障史工具，演练开启后可查指标。相关性判断、改写和回答使用当前配置的模型 |
+
+`LLM_PROVIDER=mock` 为离线规则链提供固定响应，适合验证流程。配置 `LLM_PROVIDER=openai` 后，规则链仍由程序控制工具选择，原生模式由模型选择工具。个人排障优先走表中的 personal 路径。
 
 | 节点 | 职责 |
 | --- | --- |

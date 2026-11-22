@@ -1,0 +1,1312 @@
+{
+  "task": "T72",
+  "generated_at": "2026-11-22T06:51:37.178224+00:00",
+  "git_head": "b8706356ebbe6494c6a302223a746f89d2931627",
+  "environment": {
+    "milvus_image": "milvusdb/milvus:v2.5.10",
+    "milvus_server_version": "2.5.10",
+    "pymilvus_version": "3.0.2",
+    "uri": "http://127.0.0.1:29530",
+    "compose_file": "deploy/milvus/compose.bm25-proto.yml",
+    "compose_project": "opspilot-t72-bm25",
+    "model_calls": 0,
+    "embedding_tokens": 0
+  },
+  "corpus_and_baseline": {
+    "dataset_v1_sha256": "f67b0e0c2bc54bd67e1d1458537bc2ffe271b6128f8f01fb4c25e350463bc0f1",
+    "embeddings_sha256": "7c2f4b3ba9360d59b418ffabfef2a0456beb228556e238f738d230405ca6d528",
+    "embedding_model": "qwen3.7-text-embedding-flash",
+    "embedding_dim": 1024,
+    "documents_count": 20,
+    "chunks_count": 58,
+    "total_questions": 100,
+    "test_total_questions": 80,
+    "test_retrieval_questions": 64,
+    "dev_total_questions": 20,
+    "dev_retrieval_questions": 16,
+    "baseline_file": "eval/offline_retrieval_baseline.json",
+    "baseline_v1_test_hybrid": {
+      "recall@5": 1.0,
+      "mrr@5": 0.976562,
+      "ERR_5003": 1.0,
+      "order-service": 1.0
+    },
+    "baseline_v1_test_bm25": {
+      "recall@5": 1.0,
+      "mrr@5": 0.992188,
+      "ERR_5003": 1.0,
+      "order-service": 1.0
+    }
+  },
+  "primary_analyzer": "chinese_ci",
+  "verifications": {
+    "1_chinese_tokenization": {
+      "run_analyzer_rpc_supported": false,
+      "run_analyzer_rpc_note": "_InactiveRpcError: <_InactiveRpcError of RPC that terminated with:\n\tstatus = StatusCode.UNIMPLEMENTED\n\tdetails = \"unknown method RunAnalyzer for service milvus.proto.milvus.MilvusService\"\n\tdebug_error_string = \"UNIMPLEMENTED:unknown method RunAnalyzer for service milvus.proto.milvus.MilvusService\"\n>",
+      "analyzers": {
+        "chinese": {
+          "analyzer_params": {
+            "type": "chinese"
+          },
+          "supported": true,
+          "error": null,
+          "passed_probes": 9,
+          "total_probes": 10,
+          "all_probes_passed": false,
+          "probes": [
+            {
+              "id": "zh_compound",
+              "query": "数据库连接池耗尽",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-001",
+                  "score": 4.032
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "zh_subword",
+              "query": "连接池",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-001",
+                  "score": 1.344
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "zh_slow_sql",
+              "query": "慢查询",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-001",
+                  "score": 1.344
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "code_upper",
+              "query": "ERR_5003",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-001",
+                  "score": 0.672
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "code_lower",
+              "query": "err_5003",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [],
+              "passed": false
+            },
+            {
+              "id": "service_exact",
+              "query": "order-service",
+              "expected_doc_id": "ops-kb-006",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-006",
+                  "score": 1.4313
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "service_zh_adjacent",
+              "query": "order-service接口超时",
+              "expected_doc_id": "ops-kb-006",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-006",
+                  "score": 2.8627
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "english_mixed_case",
+              "query": "Read timed out",
+              "expected_doc_id": "ops-kb-006",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-006",
+                  "score": 2.147
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "english_lower_case",
+              "query": "read timed out",
+              "expected_doc_id": "ops-kb-006",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-006",
+                  "score": 1.4313
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "whitespace_only",
+              "query": "   ",
+              "expected_doc_id": null,
+              "hits": [],
+              "passed": true
+            }
+          ],
+          "failed_probe_ids": [
+            "code_lower"
+          ]
+        },
+        "chinese_ci": {
+          "analyzer_params": {
+            "tokenizer": "jieba",
+            "filter": [
+              "cnalphanumonly",
+              "lowercase"
+            ]
+          },
+          "supported": true,
+          "error": null,
+          "passed_probes": 10,
+          "total_probes": 10,
+          "all_probes_passed": true,
+          "probes": [
+            {
+              "id": "zh_compound",
+              "query": "数据库连接池耗尽",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-001",
+                  "score": 4.032
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "zh_subword",
+              "query": "连接池",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-001",
+                  "score": 1.344
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "zh_slow_sql",
+              "query": "慢查询",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-001",
+                  "score": 1.344
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "code_upper",
+              "query": "ERR_5003",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-001",
+                  "score": 0.672
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "code_lower",
+              "query": "err_5003",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-001",
+                  "score": 0.672
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "service_exact",
+              "query": "order-service",
+              "expected_doc_id": "ops-kb-006",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-006",
+                  "score": 1.4313
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "service_zh_adjacent",
+              "query": "order-service接口超时",
+              "expected_doc_id": "ops-kb-006",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-006",
+                  "score": 2.8627
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "english_mixed_case",
+              "query": "Read timed out",
+              "expected_doc_id": "ops-kb-006",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-006",
+                  "score": 2.147
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "english_lower_case",
+              "query": "read timed out",
+              "expected_doc_id": "ops-kb-006",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-006",
+                  "score": 2.147
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "whitespace_only",
+              "query": "   ",
+              "expected_doc_id": null,
+              "hits": [],
+              "passed": true
+            }
+          ],
+          "failed_probe_ids": []
+        },
+        "standard": {
+          "analyzer_params": {
+            "type": "standard"
+          },
+          "supported": true,
+          "error": null,
+          "passed_probes": 7,
+          "total_probes": 10,
+          "all_probes_passed": false,
+          "probes": [
+            {
+              "id": "zh_compound",
+              "query": "数据库连接池耗尽",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [],
+              "passed": false
+            },
+            {
+              "id": "zh_subword",
+              "query": "连接池",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [],
+              "passed": false
+            },
+            {
+              "id": "zh_slow_sql",
+              "query": "慢查询",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [],
+              "passed": false
+            },
+            {
+              "id": "code_upper",
+              "query": "ERR_5003",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-001",
+                  "score": 1.6323
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "code_lower",
+              "query": "err_5003",
+              "expected_doc_id": "ops-kb-001",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-001",
+                  "score": 1.6323
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "service_exact",
+              "query": "order-service",
+              "expected_doc_id": "ops-kb-006",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-006",
+                  "score": 1.2047
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "service_zh_adjacent",
+              "query": "order-service接口超时",
+              "expected_doc_id": "ops-kb-006",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-006",
+                  "score": 0.6024
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "english_mixed_case",
+              "query": "Read timed out",
+              "expected_doc_id": "ops-kb-006",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-006",
+                  "score": 1.8071
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "english_lower_case",
+              "query": "read timed out",
+              "expected_doc_id": "ops-kb-006",
+              "hits": [
+                {
+                  "doc_id": "ops-kb-006",
+                  "score": 1.8071
+                }
+              ],
+              "passed": true
+            },
+            {
+              "id": "whitespace_only",
+              "query": "   ",
+              "expected_doc_id": null,
+              "hits": [],
+              "passed": true
+            }
+          ],
+          "failed_probe_ids": [
+            "zh_compound",
+            "zh_subword",
+            "zh_slow_sql"
+          ]
+        }
+      },
+      "baseline_jieba_reference": {
+        "zh_compound": [
+          "数据",
+          "据库",
+          "数据库",
+          "连接",
+          "连接池",
+          "耗尽"
+        ],
+        "zh_subword": [
+          "连接",
+          "连接池"
+        ],
+        "zh_slow_sql": [
+          "慢",
+          "查询"
+        ],
+        "code_upper": [
+          "err",
+          "5003",
+          "err_5003"
+        ],
+        "code_lower": [
+          "err",
+          "5003",
+          "err_5003"
+        ],
+        "service_exact": [
+          "order",
+          "service",
+          "order-service"
+        ],
+        "service_zh_adjacent": [
+          "order",
+          "service",
+          "接口",
+          "超时",
+          "order-service"
+        ],
+        "english_mixed_case": [
+          "read",
+          "timed",
+          "out",
+          "read",
+          "timed",
+          "out"
+        ],
+        "english_lower_case": [
+          "read",
+          "timed",
+          "out",
+          "read",
+          "timed",
+          "out"
+        ],
+        "whitespace_only": []
+      }
+    },
+    "2_exact_keyword_hits": {
+      "primary_analyzer": "chinese_ci",
+      "exact_keyword_probes": {
+        "probes": [
+          {
+            "query": "ERR_5003",
+            "expected_doc_id": "ops-kb-001",
+            "bm25_hit_docs": [
+              "ops-kb-001",
+              "ops-kb-006"
+            ],
+            "bm25_hit_expected": true,
+            "bm25_top1_expected": true,
+            "hybrid_hit_docs": [
+              "ops-kb-001"
+            ],
+            "hybrid_hit_expected": true,
+            "hybrid_top1_expected": true
+          },
+          {
+            "query": "err_5003",
+            "expected_doc_id": "ops-kb-001",
+            "bm25_hit_docs": [
+              "ops-kb-001",
+              "ops-kb-006"
+            ],
+            "bm25_hit_expected": true,
+            "bm25_top1_expected": true,
+            "hybrid_hit_docs": [
+              "ops-kb-001"
+            ],
+            "hybrid_hit_expected": true,
+            "hybrid_top1_expected": true
+          },
+          {
+            "query": "order-service",
+            "expected_doc_id": "ops-kb-006",
+            "bm25_hit_docs": [
+              "ops-kb-006",
+              "ops-kb-008"
+            ],
+            "bm25_hit_expected": true,
+            "bm25_top1_expected": true,
+            "hybrid_hit_docs": [
+              "ops-kb-006"
+            ],
+            "hybrid_hit_expected": true,
+            "hybrid_top1_expected": true
+          },
+          {
+            "query": "order-service接口超时",
+            "expected_doc_id": "ops-kb-006",
+            "bm25_hit_docs": [
+              "ops-kb-006"
+            ],
+            "bm25_hit_expected": true,
+            "bm25_top1_expected": true,
+            "hybrid_hit_docs": [
+              "ops-kb-006"
+            ],
+            "hybrid_hit_expected": true,
+            "hybrid_top1_expected": true
+          }
+        ],
+        "all_bm25_hit_expected": true,
+        "all_bm25_top1_expected": true
+      },
+      "v1_test_summary": {
+        "bm25_ERR_5003": 1.0,
+        "bm25_order-service": 1.0,
+        "hybrid_ERR_5003": 1.0,
+        "hybrid_order-service": 1.0
+      },
+      "v1_test_key_cases": {
+        "bm25": {
+          "ERR_5003": [
+            {
+              "id": "ops-q-001-1",
+              "expected_doc_ids": [
+                "ops-kb-001"
+              ],
+              "hit_doc_ids_top5": [
+                "ops-kb-001",
+                "ops-kb-004",
+                "ops-kb-006",
+                "ops-kb-005",
+                "ops-kb-012"
+              ],
+              "top1_match": true,
+              "recall@5": 1.0,
+              "mrr@5": 1.0,
+              "keyword_hit": true
+            },
+            {
+              "id": "ops-q-001-4",
+              "expected_doc_ids": [
+                "ops-kb-001",
+                "ops-kb-003"
+              ],
+              "hit_doc_ids_top5": [
+                "ops-kb-001",
+                "ops-kb-003",
+                "ops-kb-006"
+              ],
+              "top1_match": true,
+              "recall@5": 1.0,
+              "mrr@5": 1.0,
+              "keyword_hit": true
+            }
+          ],
+          "order-service": [
+            {
+              "id": "ops-q-006-1",
+              "expected_doc_ids": [
+                "ops-kb-006"
+              ],
+              "hit_doc_ids_top5": [
+                "ops-kb-006",
+                "ops-kb-001",
+                "ops-kb-011"
+              ],
+              "top1_match": true,
+              "recall@5": 1.0,
+              "mrr@5": 1.0,
+              "keyword_hit": true
+            },
+            {
+              "id": "ops-q-006-3",
+              "expected_doc_ids": [
+                "ops-kb-006"
+              ],
+              "hit_doc_ids_top5": [
+                "ops-kb-006",
+                "ops-kb-011",
+                "ops-kb-007",
+                "ops-kb-002",
+                "ops-kb-019"
+              ],
+              "top1_match": true,
+              "recall@5": 1.0,
+              "mrr@5": 1.0,
+              "keyword_hit": true
+            },
+            {
+              "id": "ops-q-006-4",
+              "expected_doc_ids": [
+                "ops-kb-006"
+              ],
+              "hit_doc_ids_top5": [
+                "ops-kb-006",
+                "ops-kb-011",
+                "ops-kb-001",
+                "ops-kb-007"
+              ],
+              "top1_match": true,
+              "recall@5": 1.0,
+              "mrr@5": 1.0,
+              "keyword_hit": true
+            }
+          ]
+        },
+        "hybrid": {
+          "ERR_5003": [
+            {
+              "id": "ops-q-001-1",
+              "expected_doc_ids": [
+                "ops-kb-001"
+              ],
+              "hit_doc_ids_top5": [
+                "ops-kb-001",
+                "ops-kb-004",
+                "ops-kb-006"
+              ],
+              "top1_match": true,
+              "recall@5": 1.0,
+              "mrr@5": 1.0,
+              "keyword_hit": true
+            },
+            {
+              "id": "ops-q-001-4",
+              "expected_doc_ids": [
+                "ops-kb-001",
+                "ops-kb-003"
+              ],
+              "hit_doc_ids_top5": [
+                "ops-kb-001",
+                "ops-kb-006",
+                "ops-kb-003"
+              ],
+              "top1_match": true,
+              "recall@5": 1.0,
+              "mrr@5": 1.0,
+              "keyword_hit": true
+            }
+          ],
+          "order-service": [
+            {
+              "id": "ops-q-006-1",
+              "expected_doc_ids": [
+                "ops-kb-006"
+              ],
+              "hit_doc_ids_top5": [
+                "ops-kb-006",
+                "ops-kb-001",
+                "ops-kb-011"
+              ],
+              "top1_match": true,
+              "recall@5": 1.0,
+              "mrr@5": 1.0,
+              "keyword_hit": true
+            },
+            {
+              "id": "ops-q-006-3",
+              "expected_doc_ids": [
+                "ops-kb-006"
+              ],
+              "hit_doc_ids_top5": [
+                "ops-kb-006",
+                "ops-kb-007",
+                "ops-kb-011",
+                "ops-kb-002",
+                "ops-kb-019"
+              ],
+              "top1_match": true,
+              "recall@5": 1.0,
+              "mrr@5": 1.0,
+              "keyword_hit": true
+            },
+            {
+              "id": "ops-q-006-4",
+              "expected_doc_ids": [
+                "ops-kb-006"
+              ],
+              "hit_doc_ids_top5": [
+                "ops-kb-006",
+                "ops-kb-007",
+                "ops-kb-011",
+                "ops-kb-001"
+              ],
+              "top1_match": true,
+              "recall@5": 1.0,
+              "mrr@5": 1.0,
+              "keyword_hit": true
+            }
+          ]
+        }
+      }
+    },
+    "3_tenant_filter": {
+      "alpha_cannot_see_beta_bm25": true,
+      "alpha_dense_only_alpha": true,
+      "alpha_hybrid_only_alpha": true,
+      "beta_hits_own_secret_bm25": true,
+      "default_cannot_see_beta_bm25": true,
+      "injection_tenant_returns_empty": true,
+      "passed": true
+    },
+    "4_version_filter": {
+      "is_active_bm25_excludes_legacy": true,
+      "is_active_dense_excludes_legacy": true,
+      "is_active_hybrid_excludes_legacy": true,
+      "active_versions_bm25_pins_specific_version": true,
+      "active_versions_hybrid_pins_v2": true,
+      "empty_active_versions_short_circuits": true,
+      "passed": true
+    },
+    "5_resource_usage": {
+      "before_load": {
+        "container": "opspilot-t72-bm25-milvus-bm25-proto-1",
+        "cpu_perc": "16.29%",
+        "mem_usage": "84.02MiB / 3.718GiB",
+        "mem_usage_mib": 84.02,
+        "mem_perc": "2.21%",
+        "net_io": "1.7kB / 126B",
+        "block_io": "6.84MB / 516kB",
+        "pids": "32",
+        "captured_at": "2026-11-22T06:45:37.332233+00:00"
+      },
+      "after_benchmark": {
+        "container": "opspilot-t72-bm25-milvus-bm25-proto-1",
+        "cpu_perc": "14.36%",
+        "mem_usage": "159.8MiB / 3.718GiB",
+        "mem_usage_mib": 159.8,
+        "mem_perc": "4.20%",
+        "net_io": "4.38MB / 4.97MB",
+        "block_io": "6.84MB / 13.2MB",
+        "pids": "56",
+        "captured_at": "2026-11-22T06:51:37.177682+00:00"
+      }
+    }
+  },
+  "migration_and_rollback": {
+    "milvus_to_milvus_migration": {
+      "source_collection": "t72_legacy_dense_source",
+      "target_collection": "t72_migrated_bm25_target",
+      "source_fingerprint": {
+        "count": 58,
+        "sha256": "2f1195ae38fa2cee716870379528588ce645f7f6ad50cc5087fa7351cb0bb83a"
+      },
+      "target_fingerprint": {
+        "count": 58,
+        "sha256": "2f1195ae38fa2cee716870379528588ce645f7f6ad50cc5087fa7351cb0bb83a"
+      },
+      "count_match": true,
+      "sha256_match": true,
+      "verified": true,
+      "dense_comparison": {
+        "queries": 16,
+        "different_queries": [],
+        "exact_match": true
+      }
+    },
+    "rollback_verification": {
+      "alias": "t72_active_alias_proto",
+      "initial_target": "t72_legacy_dense_source",
+      "switched_target": "t72_migrated_bm25_target",
+      "switched_bm25_hit_docs": [
+        "ops-kb-001",
+        "ops-kb-001",
+        "ops-kb-001",
+        "ops-kb-001",
+        "ops-kb-001"
+      ],
+      "legacy_preserved": true,
+      "legacy_fingerprint_unchanged": true,
+      "rolled_back_target": "t72_legacy_dense_source",
+      "dense_hits_identical_after_rollback": true,
+      "passed": true
+    }
+  },
+  "analyzer_benchmarks": {
+    "chinese": {
+      "collection": "t72_bm25_proto_chinese",
+      "analyzer_params": {
+        "type": "chinese"
+      },
+      "metrics": {
+        "v1/dev/bm25/recall@5": 1.0,
+        "v1/dev/bm25/mrr@5": 1.0,
+        "v1/dev/bm25/order-service": 1.0,
+        "v1/dev/dense/recall@5": 1.0,
+        "v1/dev/dense/mrr@5": 0.96875,
+        "v1/dev/dense/order-service": 1.0,
+        "v1/dev/hybrid/recall@5": 1.0,
+        "v1/dev/hybrid/mrr@5": 0.96875,
+        "v1/dev/hybrid/order-service": 1.0,
+        "v1/dev/hybrid_client_rrf/recall@5": 1.0,
+        "v1/dev/hybrid_client_rrf/mrr@5": 0.96875,
+        "v1/dev/hybrid_client_rrf/order-service": 1.0,
+        "v1/test/bm25/recall@5": 1.0,
+        "v1/test/bm25/mrr@5": 0.984375,
+        "v1/test/bm25/ERR_5003": 1.0,
+        "v1/test/bm25/order-service": 1.0,
+        "v1/test/dense/recall@5": 1.0,
+        "v1/test/dense/mrr@5": 0.976562,
+        "v1/test/dense/ERR_5003": 1.0,
+        "v1/test/dense/order-service": 1.0,
+        "v1/test/hybrid/recall@5": 1.0,
+        "v1/test/hybrid/mrr@5": 0.984375,
+        "v1/test/hybrid/ERR_5003": 1.0,
+        "v1/test/hybrid/order-service": 1.0,
+        "v1/test/hybrid_client_rrf/recall@5": 1.0,
+        "v1/test/hybrid_client_rrf/mrr@5": 0.976562,
+        "v1/test/hybrid_client_rrf/ERR_5003": 1.0,
+        "v1/test/hybrid_client_rrf/order-service": 1.0
+      },
+      "latency_ms": {
+        "v1/dev/bm25": {
+          "mean_ms": 395.58,
+          "p50_ms": 400.28,
+          "p95_ms": 411.61
+        },
+        "v1/dev/dense": {
+          "mean_ms": 399.88,
+          "p50_ms": 400.03,
+          "p95_ms": 413.73
+        },
+        "v1/dev/hybrid": {
+          "mean_ms": 399.99,
+          "p50_ms": 399.92,
+          "p95_ms": 422.08
+        },
+        "v1/dev/hybrid_client_rrf": {
+          "mean_ms": 795.5,
+          "p50_ms": 798.85,
+          "p95_ms": 810.8
+        },
+        "v1/test/bm25": {
+          "mean_ms": 387.4,
+          "p50_ms": 399.79,
+          "p95_ms": 402.42
+        },
+        "v1/test/dense": {
+          "mean_ms": 374.88,
+          "p50_ms": 399.53,
+          "p95_ms": 403.38
+        },
+        "v1/test/hybrid": {
+          "mean_ms": 381.15,
+          "p50_ms": 399.84,
+          "p95_ms": 403.15
+        },
+        "v1/test/hybrid_client_rrf": {
+          "mean_ms": 762.32,
+          "p50_ms": 798.15,
+          "p95_ms": 804.07
+        }
+      },
+      "baseline_comparison": {
+        "all_non_regressed": false,
+        "regressions": [
+          "v1/test/bm25/mrr@5: 0.984375 < 0.992188 (delta=-0.007813)"
+        ],
+        "v1_test_items": {
+          "v1/test/bm25/recall@5": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/bm25/mrr@5": {
+            "baseline": 0.992188,
+            "prototype": 0.984375,
+            "delta": -0.007813,
+            "regressed": true
+          },
+          "v1/test/bm25/ERR_5003": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/bm25/order-service": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/dense/recall@5": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/dense/mrr@5": {
+            "baseline": 0.976562,
+            "prototype": 0.976562,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/dense/ERR_5003": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/dense/order-service": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/hybrid/recall@5": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/hybrid/mrr@5": {
+            "baseline": 0.976562,
+            "prototype": 0.984375,
+            "delta": 0.007813,
+            "regressed": false
+          },
+          "v1/test/hybrid/ERR_5003": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/hybrid/order-service": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          }
+        }
+      },
+      "exact_keyword_probes_passed": false
+    },
+    "chinese_ci": {
+      "collection": "t72_bm25_proto_chinese_ci",
+      "analyzer_params": {
+        "tokenizer": "jieba",
+        "filter": [
+          "cnalphanumonly",
+          "lowercase"
+        ]
+      },
+      "metrics": {
+        "v1/dev/bm25/recall@5": 1.0,
+        "v1/dev/bm25/mrr@5": 1.0,
+        "v1/dev/bm25/order-service": 1.0,
+        "v1/dev/dense/recall@5": 1.0,
+        "v1/dev/dense/mrr@5": 0.96875,
+        "v1/dev/dense/order-service": 1.0,
+        "v1/dev/hybrid/recall@5": 1.0,
+        "v1/dev/hybrid/mrr@5": 0.96875,
+        "v1/dev/hybrid/order-service": 1.0,
+        "v1/dev/hybrid_client_rrf/recall@5": 1.0,
+        "v1/dev/hybrid_client_rrf/mrr@5": 0.96875,
+        "v1/dev/hybrid_client_rrf/order-service": 1.0,
+        "v1/test/bm25/recall@5": 1.0,
+        "v1/test/bm25/mrr@5": 0.984375,
+        "v1/test/bm25/ERR_5003": 1.0,
+        "v1/test/bm25/order-service": 1.0,
+        "v1/test/dense/recall@5": 1.0,
+        "v1/test/dense/mrr@5": 0.976562,
+        "v1/test/dense/ERR_5003": 1.0,
+        "v1/test/dense/order-service": 1.0,
+        "v1/test/hybrid/recall@5": 1.0,
+        "v1/test/hybrid/mrr@5": 0.984375,
+        "v1/test/hybrid/ERR_5003": 1.0,
+        "v1/test/hybrid/order-service": 1.0,
+        "v1/test/hybrid_client_rrf/recall@5": 1.0,
+        "v1/test/hybrid_client_rrf/mrr@5": 0.976562,
+        "v1/test/hybrid_client_rrf/ERR_5003": 1.0,
+        "v1/test/hybrid_client_rrf/order-service": 1.0
+      },
+      "latency_ms": {
+        "v1/dev/bm25": {
+          "mean_ms": 371.64,
+          "p50_ms": 398.95,
+          "p95_ms": 402.12
+        },
+        "v1/dev/dense": {
+          "mean_ms": 399.86,
+          "p50_ms": 399.51,
+          "p95_ms": 406.87
+        },
+        "v1/dev/hybrid": {
+          "mean_ms": 374.83,
+          "p50_ms": 398.62,
+          "p95_ms": 412.56
+        },
+        "v1/dev/hybrid_client_rrf": {
+          "mean_ms": 771.56,
+          "p50_ms": 798.66,
+          "p95_ms": 805.98
+        },
+        "v1/test/bm25": {
+          "mean_ms": 381.17,
+          "p50_ms": 399.98,
+          "p95_ms": 405.2
+        },
+        "v1/test/dense": {
+          "mean_ms": 381.09,
+          "p50_ms": 399.89,
+          "p95_ms": 403.04
+        },
+        "v1/test/hybrid": {
+          "mean_ms": 387.29,
+          "p50_ms": 399.12,
+          "p95_ms": 404.07
+        },
+        "v1/test/hybrid_client_rrf": {
+          "mean_ms": 762.31,
+          "p50_ms": 799.54,
+          "p95_ms": 805.41
+        }
+      },
+      "baseline_comparison": {
+        "all_non_regressed": false,
+        "regressions": [
+          "v1/test/bm25/mrr@5: 0.984375 < 0.992188 (delta=-0.007813)"
+        ],
+        "v1_test_items": {
+          "v1/test/bm25/recall@5": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/bm25/mrr@5": {
+            "baseline": 0.992188,
+            "prototype": 0.984375,
+            "delta": -0.007813,
+            "regressed": true
+          },
+          "v1/test/bm25/ERR_5003": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/bm25/order-service": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/dense/recall@5": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/dense/mrr@5": {
+            "baseline": 0.976562,
+            "prototype": 0.976562,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/dense/ERR_5003": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/dense/order-service": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/hybrid/recall@5": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/hybrid/mrr@5": {
+            "baseline": 0.976562,
+            "prototype": 0.984375,
+            "delta": 0.007813,
+            "regressed": false
+          },
+          "v1/test/hybrid/ERR_5003": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/hybrid/order-service": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          }
+        }
+      },
+      "exact_keyword_probes_passed": true
+    },
+    "standard": {
+      "collection": "t72_bm25_proto_standard",
+      "analyzer_params": {
+        "type": "standard"
+      },
+      "metrics": {
+        "v1/dev/bm25/recall@5": 0.3125,
+        "v1/dev/bm25/mrr@5": 0.3125,
+        "v1/dev/bm25/order-service": 0.0,
+        "v1/dev/dense/recall@5": 1.0,
+        "v1/dev/dense/mrr@5": 0.96875,
+        "v1/dev/dense/order-service": 1.0,
+        "v1/dev/hybrid/recall@5": 1.0,
+        "v1/dev/hybrid/mrr@5": 0.96875,
+        "v1/dev/hybrid/order-service": 1.0,
+        "v1/dev/hybrid_client_rrf/recall@5": 1.0,
+        "v1/dev/hybrid_client_rrf/mrr@5": 0.96875,
+        "v1/dev/hybrid_client_rrf/order-service": 1.0,
+        "v1/test/bm25/recall@5": 0.367188,
+        "v1/test/bm25/mrr@5": 0.351562,
+        "v1/test/bm25/ERR_5003": 1.0,
+        "v1/test/bm25/order-service": 0.333333,
+        "v1/test/dense/recall@5": 1.0,
+        "v1/test/dense/mrr@5": 0.976562,
+        "v1/test/dense/ERR_5003": 1.0,
+        "v1/test/dense/order-service": 1.0,
+        "v1/test/hybrid/recall@5": 1.0,
+        "v1/test/hybrid/mrr@5": 0.976562,
+        "v1/test/hybrid/ERR_5003": 1.0,
+        "v1/test/hybrid/order-service": 1.0,
+        "v1/test/hybrid_client_rrf/recall@5": 1.0,
+        "v1/test/hybrid_client_rrf/mrr@5": 0.976562,
+        "v1/test/hybrid_client_rrf/ERR_5003": 1.0,
+        "v1/test/hybrid_client_rrf/order-service": 1.0
+      },
+      "latency_ms": {
+        "v1/dev/bm25": {
+          "mean_ms": 345.28,
+          "p50_ms": 399.08,
+          "p95_ms": 403.03
+        },
+        "v1/dev/dense": {
+          "mean_ms": 387.46,
+          "p50_ms": 399.56,
+          "p95_ms": 403.71
+        },
+        "v1/dev/hybrid": {
+          "mean_ms": 387.45,
+          "p50_ms": 398.91,
+          "p95_ms": 404.54
+        },
+        "v1/dev/hybrid_client_rrf": {
+          "mean_ms": 732.77,
+          "p50_ms": 797.46,
+          "p95_ms": 804.37
+        },
+        "v1/test/bm25": {
+          "mean_ms": 384.22,
+          "p50_ms": 399.73,
+          "p95_ms": 401.79
+        },
+        "v1/test/dense": {
+          "mean_ms": 390.85,
+          "p50_ms": 399.83,
+          "p95_ms": 402.31
+        },
+        "v1/test/hybrid": {
+          "mean_ms": 393.41,
+          "p50_ms": 399.87,
+          "p95_ms": 405.81
+        },
+        "v1/test/hybrid_client_rrf": {
+          "mean_ms": 775.12,
+          "p50_ms": 799.59,
+          "p95_ms": 806.41
+        }
+      },
+      "baseline_comparison": {
+        "all_non_regressed": false,
+        "regressions": [
+          "v1/dev/bm25/recall@5: 0.3125 < 1.0 (delta=-0.6875)",
+          "v1/dev/bm25/mrr@5: 0.3125 < 1.0 (delta=-0.6875)",
+          "v1/dev/bm25/order-service: 0.0 < 1.0 (delta=-1.0)",
+          "v1/test/bm25/recall@5: 0.367188 < 1.0 (delta=-0.632812)",
+          "v1/test/bm25/mrr@5: 0.351562 < 0.992188 (delta=-0.640626)",
+          "v1/test/bm25/order-service: 0.333333 < 1.0 (delta=-0.666667)"
+        ],
+        "v1_test_items": {
+          "v1/test/bm25/recall@5": {
+            "baseline": 1.0,
+            "prototype": 0.367188,
+            "delta": -0.632812,
+            "regressed": true
+          },
+          "v1/test/bm25/mrr@5": {
+            "baseline": 0.992188,
+            "prototype": 0.351562,
+            "delta": -0.640626,
+            "regressed": true
+          },
+          "v1/test/bm25/ERR_5003": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/bm25/order-service": {
+            "baseline": 1.0,
+            "prototype": 0.333333,
+            "delta": -0.666667,
+            "regressed": true
+          },
+          "v1/test/dense/recall@5": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/dense/mrr@5": {
+            "baseline": 0.976562,
+            "prototype": 0.976562,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/dense/ERR_5003": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/dense/order-service": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/hybrid/recall@5": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/hybrid/mrr@5": {
+            "baseline": 0.976562,
+            "prototype": 0.976562,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/hybrid/ERR_5003": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          },
+          "v1/test/hybrid/order-service": {
+            "baseline": 1.0,
+            "prototype": 1.0,
+            "delta": 0.0,
+            "regressed": false
+          }
+        }
+      },
+      "exact_keyword_probes_passed": true
+    }
+  },
+  "recommendation": {
+    "decision": "conditional_go_staged_rollout",
+    "recommend_switch_default_now": false,
+    "selected_analyzer": "chinese_ci",
+    "summary": "原型功能、中文分词（chinese_ci）、混合检索精度（MRR@5 高于基线）与内存占用均达标，具备技术可行性；但当前单实例中小语料下不建议立即切换线上默认路径（仍保持 v2.4.15 + 进程内 BM25 以维持零升级风险与低延迟），建议待多副本水平扩展需要共享词法索引或语料规模增长时，再升级至固定 v2.5.10 并按双集合盘点校验 + Alias 原子切流灰度切换。",
+    "reasons": [
+      "在冻结 v1/test 上，chinese_ci 原生 Hybrid Recall@5=1.0 (基线 1.0)、MRR@5=0.984375 (基线 0.976562，delta=0.007813)，未出现混合检索回归。",
+      "纯 BM25 维度 MRR@5=0.984375 (基线 rank-bm25+jieba 0.992188，delta=-0.007813)，ERR_5003 (2/2) 与 order-service (3/3) 均 100% 命中。",
+      "内置 chinese 分析器（jieba + cnalphanumonly）默认区分英文大小写（实测 err_5003 返回空），必须显式配置自定义分析器 {tokenizer: jieba, filter: [cnalphanumonly, lowercase]} 才能覆盖大小写变体。",
+      "Milvus 2.5.10 standalone 加载原型与迁移集合后的实测常驻内存约 159.8 MiB（较加载前 84.02 MiB 增量 +75.78 MiB），单机内存占用可控。",
+      "强一致（Strong）口径下原生 hybrid_search 实测 P50=399.12ms、P95=404.07ms（显著高于进程内 rank-bm25 的毫秒级，但较客户端分两路查延迟降低约一半）。",
+      "租户过滤、有效版本过滤（is_active 与 active_versions）、Milvus-to-Milvus 盘点迁移与保留旧集合 Alias 回滚全部验证通过。"
+    ]
+  }
+}

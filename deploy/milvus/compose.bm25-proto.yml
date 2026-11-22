@@ -1,0 +1,28 @@
+# T72 Milvus 2.5 原生 BM25 独立隔离原型配置（严禁用于默认线上环境）
+# 启动：docker compose -p opspilot-t72-bm25 -f deploy/milvus/compose.bm25-proto.yml up -d
+# 清理：docker compose -p opspilot-t72-bm25 -f deploy/milvus/compose.bm25-proto.yml down -v
+name: opspilot-t72-bm25
+services:
+  milvus-bm25-proto:
+    image: milvusdb/milvus:v2.5.10
+    command: milvus run standalone
+    environment:
+      ETCD_USE_EMBED: "true"
+      ETCD_DATA_DIR: /var/lib/milvus/etcd
+      ETCD_CONFIG_PATH: /milvus/configs/embedEtcd.yaml
+      COMMON_STORAGETYPE: local
+      DEPLOY_MODE: STANDALONE
+    ports:
+      - "127.0.0.1:29530:19530"
+      - "127.0.0.1:29091:9091"
+    volumes:
+      - milvus_bm25_proto_data:/var/lib/milvus
+      - ./embedEtcd.yaml:/milvus/configs/embedEtcd.yaml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9091/healthz"]
+      interval: 5s
+      timeout: 3s
+      start_period: 60s
+      retries: 18
+volumes:
+  milvus_bm25_proto_data:

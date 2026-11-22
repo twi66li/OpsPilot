@@ -7,7 +7,7 @@ from eval.metrics import aggregate, faithfulness_heuristic, recall_at_k
 
 
 def test_questions_yaml_valid():
-    path = Path(__file__).parent.parent / "eval" / "questions.yaml"
+    path = Path(__file__).resolve().parents[2] / "eval" / "questions.yaml"
     questions = yaml.safe_load(path.read_text(encoding="utf-8"))["questions"]
     assert len(questions) >= 10
     categories = {q["category"] for q in questions}

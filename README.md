@@ -154,8 +154,8 @@ ssh -N -L 18000:127.0.0.1:18000 your-server
 ## 开发检查
 
 ```powershell
-uv run --frozen --group migration pytest tests/test_knowledge_files.py tests/test_kb.py tests/test_rag.py -q
-.venv/Scripts/python -m pytest tests/test_logstats.py tests/test_checkpoint_persistence.py tests/test_tool_loop.py tests/test_approval.py -q
+uv run --frozen --group migration pytest tests/rag/test_knowledge_files.py tests/rag/test_kb.py tests/rag/test_rag.py -q
+.venv/Scripts/python -m pytest tests/agent/test_logstats.py tests/agent/test_checkpoint_persistence.py tests/agent/test_tool_loop.py tests/agent/test_approval.py -q
 .venv/Scripts/python -m ruff check app tests
 ```
 

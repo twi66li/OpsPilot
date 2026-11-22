@@ -78,7 +78,7 @@ def test_chat_switches_when_retry_returns_quota_exhaustion(monkeypatch):
 
 
 def test_missing_window_gold_matches_its_own_source():
-    run = Path(__file__).resolve().parents[1] / "eval/night20261102q"
+    run = Path(__file__).resolve().parents[2] / "eval/night20261102q"
     for frozen in (run / "scenarios_frozen.json", run / "quality_run/scenarios_frozen.json"):
         data = json.loads(frozen.read_text(encoding="utf-8"))
         question = next(q for q in data["questions"] if q["id"] == "heldout-q6")
@@ -90,7 +90,7 @@ def test_missing_window_gold_matches_its_own_source():
 
 
 def test_launcher_total_cap_follows_budget_file(monkeypatch):
-    script = Path(__file__).resolve().parents[1] / "eval/night20261102q/quality_budget.py"
+    script = Path(__file__).resolve().parents[2] / "eval/night20261102q/quality_budget.py"
     read_text = Path.read_text
 
     def adjusted_budget(path, *args, **kwargs):

@@ -112,7 +112,7 @@ def test_liveness_and_readiness_are_distinct(client, monkeypatch):
 
 def test_migration_adopts_old_database_without_resetting_data(tmp_path):
     engine = create_engine("sqlite:///" + str(tmp_path / "legacy.db"))
-    config = Config(str(Path(__file__).resolve().parents[1] / "alembic.ini"))
+    config = Config(str(Path(__file__).resolve().parents[2] / "alembic.ini"))
     with engine.begin() as conn:
         conn.execute(
             text(

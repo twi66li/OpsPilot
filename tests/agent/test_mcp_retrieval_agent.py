@@ -6,7 +6,7 @@ from mcp import Client
 
 from app.agent.retrieval_agent import run_retrieval_agent
 from app.config import Settings, get_settings
-from tests.test_tool_loop import ScriptedAPI, tool
+from tests.agent.test_tool_loop import ScriptedAPI, tool
 
 
 def test_mcp_rejects_identity_override_writes_and_invalid_credentials(monkeypatch, admin_headers, enable_drill):

@@ -213,7 +213,7 @@ def test_review_script_single_judge_completes_summary(tmp_path):
     from pathlib import Path
     from types import SimpleNamespace
 
-    script = Path(__file__).resolve().parents[1] / "eval/night20261101/run_review_fix_verify.py"
+    script = Path(__file__).resolve().parents[2] / "eval/night20261101/run_review_fix_verify.py"
     tree = ast.parse(script.read_text(encoding="utf-8"))
     names = {"run_cross_reviews", "summarize"}
     functions = [n for n in tree.body if isinstance(n, ast.FunctionDef) and n.name in names]

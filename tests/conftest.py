@@ -1,9 +1,18 @@
-"""pytest 公共夹具：全部使用离线 Mock（内存 SQLite / 进程内向量库 / MockLLM）。"""
+"""pytest 公共夹具：全部使用离线 Mock（独立临时 WAL SQLite / 进程内向量库 / MockLLM）。"""
+import atexit
 import os
+import shutil
+import tempfile
+from pathlib import Path
+
+import pytest
+from fastapi.testclient import TestClient
 
 # 离线契约显式钉死（不用 setdefault）：项目 .env 会被真实评测改为 MODEL_STRICT=true 等，
 # 若不覆盖，strict 分支会在夹具内拒绝 mock 组件，全部测试无法离线运行。
-os.environ["DATABASE_URL"] = "sqlite:///:memory:"
+# 使用进程独占临时文件 + WAL 模式，彻底避免 SQLite cache=shared 在多线程后台任务下触发 SQLITE_LOCKED。
+_TEST_DB_DIR = tempfile.mkdtemp(prefix="opspilot-pytest-")
+os.environ["DATABASE_URL"] = f"sqlite:///{(Path(_TEST_DB_DIR) / 'test.db').as_posix()}"
 os.environ["EMBEDDING_PROVIDER"] = "mock"
 os.environ["LLM_PROVIDER"] = "mock"
 os.environ["MODEL_STRICT"] = "false"
@@ -27,10 +36,20 @@ os.environ["AUTH_RATE_LIMIT_PER_MINUTE"] = "10000"
 os.environ["REGISTRATION_ENABLED"] = "true"
 os.environ["VISITOR_ENABLED"] = "true"
 
-import pytest
-from fastapi.testclient import TestClient
+from app.main import app  # noqa: E402
 
-from app.main import app
+
+def _cleanup_test_db() -> None:
+    try:
+        from app.db.base import engine
+
+        engine.dispose()
+    except Exception:
+        pass
+    shutil.rmtree(_TEST_DB_DIR, ignore_errors=True)
+
+
+atexit.register(_cleanup_test_db)
 
 
 @pytest.fixture

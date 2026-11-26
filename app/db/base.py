@@ -32,12 +32,15 @@ class Base(DeclarativeBase):
     pass
 
 
-def _attach_sqlite_pragmas(eng) -> None:
+def _attach_sqlite_pragmas(eng, *, enable_wal: bool = False) -> None:
     @event.listens_for(eng, "connect")
     def _set_sqlite_pragma(dbapi_connection, _connection_record):
         cursor = dbapi_connection.cursor()
         try:
             cursor.execute("PRAGMA busy_timeout=30000")
+            if enable_wal:
+                cursor.execute("PRAGMA journal_mode=WAL")
+                cursor.execute("PRAGMA synchronous=NORMAL")
         finally:
             cursor.close()
 
@@ -60,7 +63,7 @@ def _make_engine(database_url: str, settings=None):
         if str(parent) not in ("", "."):
             os.makedirs(parent, exist_ok=True)
         eng = create_engine(database_url, connect_args={"check_same_thread": False, "timeout": 30})
-        _attach_sqlite_pragmas(eng)
+        _attach_sqlite_pragmas(eng, enable_wal=True)
         return eng
     cfg = settings or get_settings()
     budget = calculate_db_connection_budget(cfg)

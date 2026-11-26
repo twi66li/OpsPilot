@@ -19,3 +19,5 @@ frontend/src.zip
 frontend/test-results
 frontend/playwright-report
 frontend/debug.log
+*.tar.gz
+*.zip

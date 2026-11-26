@@ -299,6 +299,24 @@ def test_idempotent_reserve_commit_unknown_and_release_rules(tmp_path):
 # ---- 4. 实报超预留触发 halt、跨实例持久化生效、在途继续结算与 clearance 恢复 ----
 
 
+def test_minor_over_reserve_records_overrun_without_halt(tmp_path):
+    db_url = _init_sqlite_db(tmp_path / "minor_overrun.db")
+    ledger = DatabaseBudgetLedger(scope="overrun-scope", limit=2000, model_limits={"m1": 2000}, database_url=db_url)
+    try:
+        rid = ledger.reserve("embedding", "m1", 100)
+        out = ledger.commit(rid, {"total_tokens": 456})  # 2 * 100 + 256 边界内
+        assert out["over_reserve"] is True
+        assert ledger.halted is False
+        assert ledger.usage_now()["actual"] == 456
+        rid_next = ledger.reserve("chat", "m1", 50)
+        ledger.commit(rid_next, {"total_tokens": 40})
+        with ledger._session_factory() as db:
+            events = db.query(BudgetLedgerEvent).filter_by(scope="overrun-scope").all()
+            assert [e.event_type for e in events] == ["overrun"]
+    finally:
+        ledger.close()
+
+
 def test_over_reserve_halt_persists_and_recovers_only_via_clearance(tmp_path):
     db_url = _init_sqlite_db(tmp_path / "halt.db")
     replica_a = DatabaseBudgetLedger(scope="halt-scope", limit=1000, model_limits={"m1": 1000}, database_url=db_url)
@@ -307,8 +325,8 @@ def test_over_reserve_halt_persists_and_recovers_only_via_clearance(tmp_path):
         rid1 = replica_a.reserve("chat", "m1", 100)
         rid2 = replica_b.reserve("chat", "m1", 200)
 
-        # 副本 A 实报超预留 -> 立即 halt
-        out = replica_a.commit(rid1, {"total_tokens": 160})
+        # 副本 A 大幅实报超预留 -> 立即 halt
+        out = replica_a.commit(rid1, {"total_tokens": 500})
         assert out["over_reserve"] is True
         assert replica_a.halted is True
         assert replica_b.halted is True
@@ -319,7 +337,7 @@ def test_over_reserve_halt_persists_and_recovers_only_via_clearance(tmp_path):
 
         # 已在途的 rid2 仍可精确结算
         replica_b.commit(rid2, {"total_tokens": 180})
-        assert replica_b.usage_now()["actual"] == 340
+        assert replica_b.usage_now()["actual"] == 680
         assert replica_b.usage_now()["in_flight"] == 0
 
         # 重建实例不等于人工核查，halt 仍然持久生效
@@ -339,7 +357,7 @@ def test_over_reserve_halt_persists_and_recovers_only_via_clearance(tmp_path):
             rid3 = restarted.reserve("chat", "m1", 50)
             restarted.commit(rid3, {"total_tokens": 40})
             snap = restarted.verify_consistency()
-            assert snap["actual"] == 380 and snap["halted"] is False
+            assert snap["actual"] == 720 and snap["halted"] is False
 
             with restarted._session_factory() as db:
                 events = (
@@ -516,12 +534,15 @@ def test_migrate_jsonl_matches_legacy_ledger_and_is_idempotent(tmp_path):
     legacy.settle(r_unk, None)
     r_rel = legacy.reserve("embedding", "m-embed", 500)
     legacy.release(r_rel, reason="cancelled")
+    r_minor = legacy.reserve("embedding", "m-embed", 100)
+    legacy.settle(r_minor, {"total_tokens": 150})  # 小幅超预留不 halt
+    assert legacy.halted is False
     r_over = legacy.reserve("chat", "m-chat", 200)
-    legacy.settle(r_over, {"total_tokens": 350})  # 触发 halt
+    legacy.settle(r_over, {"total_tokens": 700})  # 大幅超预留触发 halt
     assert legacy.halted is True
     legacy.clear_halt("首次人工核查解除")
     r_over2 = legacy.reserve("embedding", "m-embed", 100)
-    legacy.settle(r_over2, {"total_tokens": 150})  # 再次触发 halt，保留为 halted=True
+    legacy.settle(r_over2, {"total_tokens": 500})  # 再次触发 halt，保留为 halted=True
     r_unsettled = legacy.reserve("embedding", "m-embed", 0) if False else None
     legacy.close()
 
@@ -553,15 +574,15 @@ def test_migrate_jsonl_matches_legacy_ledger_and_is_idempotent(tmp_path):
         database_url=db_url,
     )
     assert report1["verified"] is True
-    assert report1["inserted_reservations"] == 6
+    assert report1["inserted_reservations"] == 7
     assert report1["skipped_reservations"] == 0
     assert report1["unsettled_ids"] == ["unsettled_legacy_001"]
 
     target = report1["target"]
-    assert target["actual"] == expected["actual"] == 1120
+    assert target["actual"] == expected["actual"] == 1970
     assert target["unknown"] == expected["unknown"] == 800
     assert target["in_flight"] == expected["in_flight"] == 700
-    assert target["remaining"] == limit - (1120 + 800 + 700)
+    assert target["remaining"] == limit - (1970 + 800 + 700)
     assert target["models"] == expected["models"]
     assert target["halted"] is True
 
@@ -575,7 +596,7 @@ def test_migrate_jsonl_matches_legacy_ledger_and_is_idempotent(tmp_path):
     )
     assert report2["verified"] is True
     assert report2["inserted_reservations"] == 0
-    assert report2["skipped_reservations"] == 6
+    assert report2["skipped_reservations"] == 7
     assert report2["inserted_events"] == 0
     assert report2["target"] == target
 
@@ -796,7 +817,7 @@ def test_real_postgres16_end_to_end_when_available(tmp_path):
             ledger.release(r1)  # 已结算不可释放
         r2 = ledger.reserve("chat", "qwen3.8-max", 50, idempotency_key="pg-idem-1")
         assert ledger.reserve("chat", "qwen3.8-max", 50, idempotency_key="pg-idem-1") == r2
-        ledger.commit(r2, {"total_tokens": 90})  # 超预留触发 halt
+        ledger.commit(r2, {"total_tokens": 400})  # 大幅超预留触发 halt
         assert ledger.halted is True
         with pytest.raises(BudgetExceededError):
             ledger.reserve("chat", "qwen3.8-max", 1)

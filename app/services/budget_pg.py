@@ -26,6 +26,14 @@ from app.db.budget_models import BudgetLedgerEvent, BudgetLedgerState, BudgetRes
 
 logger = logging.getLogger(__name__)
 
+OVERRUN_HALT_MULTIPLIER = 2
+OVERRUN_HALT_MARGIN = 256
+
+
+def should_halt_overrun(estimate: int, actual: int) -> bool:
+    """小幅超预留（≤ 2 × estimate + 256）只记录告警不熔断；大幅失控仍触发 halt。"""
+    return actual > OVERRUN_HALT_MULTIPLIER * int(estimate) + OVERRUN_HALT_MARGIN
+
 
 def _now() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
@@ -435,7 +443,7 @@ class DatabaseBudgetLedger:
             if note:
                 res.note = note
 
-            if over:
+            if over and should_halt_overrun(est, actual):
                 reason = f"实报 {actual} 超预留 {est}（记录 {rid}），需人工核查"
                 ledger.halted = True
                 ledger.halted_reason = reason
@@ -447,6 +455,28 @@ class DatabaseBudgetLedger:
                         reservation_id=rid,
                         pid=os.getpid(),
                         note=reason,
+                        detail={"model": res.model, "estimate": est, "actual": actual},
+                        created_at=now,
+                    )
+                )
+            elif over:
+                note_msg = f"实报 {actual} 小幅超预留 {est}（记录 {rid}），按实报入账不熔断"
+                logger.warning(
+                    "budget_overrun scope=%s rid=%s model=%s estimate=%s actual=%s",
+                    self.scope,
+                    rid,
+                    res.model,
+                    est,
+                    actual,
+                )
+                db.add(
+                    BudgetLedgerEvent(
+                        scope=self.scope,
+                        event_type="overrun",
+                        idempotency_key=f"overrun:{rid}",
+                        reservation_id=rid,
+                        pid=os.getpid(),
+                        note=note_msg,
                         detail={"model": res.model, "estimate": est, "actual": actual},
                         created_at=now,
                     )

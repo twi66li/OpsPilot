@@ -23,7 +23,7 @@ import threading
 import uuid
 from datetime import datetime, timezone
 
-from app.services.budget_pg import DatabaseBudgetLedger
+from app.services.budget_pg import DatabaseBudgetLedger, should_halt_overrun
 
 try:
     import fcntl  # POSIX 进程锁
@@ -49,7 +49,7 @@ def estimate_upper_bound(texts, *, output_cap, thinking_cap: int = 0) -> int:
     """可证明保守输入上界 + 输出/思考封顶。
 
     依据模型定义：Qwen 系列为字节级 BPE，每个 token 至少编码 1 个 UTF-8 字节，
-    故任意文本的 token 数不超过其 UTF-8 字节数；上界因此取全部载荷字节之和。
+    正文按 UTF-8 字节数估算，并为供应商模板和特殊 token 留出余量。
     output_cap/thinking_cap 分别约束 completion（含推理，服务端 max_tokens 强制）
     与思考量（DashScope enable_thinking=False 记 0）；缺失即无法保证，发送前拒绝。
     """
@@ -57,8 +57,7 @@ def estimate_upper_bound(texts, *, output_cap, thinking_cap: int = 0) -> int:
         raise BudgetExceededError("调用无法保证输出上界，发送前拒绝")
     total = 0
     for text in texts:
-        if text:
-            total += len(text if isinstance(text, bytes) else str(text).encode("utf-8"))
+        total += 32 + len(text if isinstance(text, bytes) else str(text or "").encode("utf-8"))
     return total + int(output_cap) + int(thinking_cap)
 
 
@@ -167,7 +166,7 @@ class BudgetLedger:
             bucket["in_flight"] -= estimate
             self.actual += actual
             bucket["actual"] += actual
-            if actual > estimate:
+            if should_halt_overrun(estimate, actual):
                 self.halted = True
                 self.halted_reason = f"实报 {actual} 超预留 {estimate}（记录 {record.get('id')}）"
         elif kind == "committed_unknown":
@@ -276,9 +275,17 @@ class BudgetLedger:
                 self.actual += actual
                 self.per_model[model]["actual"] += actual
                 self._settled.add(rid)
-                if over:
+                if should_halt_overrun(estimate, actual):
                     self.halted = True
                     self.halted_reason = f"实报 {actual} 超预留 {estimate}（记录 {rid}），需人工核查"
+                elif over:
+                    logger.warning(
+                        "budget_overrun rid=%s model=%s estimate=%s actual=%s",
+                        rid,
+                        model,
+                        estimate,
+                        actual,
+                    )
             except BudgetLedgerError:
                 self.halted = True
                 self.halted_reason = "结算写入失败，账本 fail closed，需人工核查"

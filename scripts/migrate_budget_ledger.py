@@ -15,7 +15,12 @@ from sqlalchemy.orm import sessionmaker
 from app.config import Settings
 from app.db.base import _make_engine
 from app.db.budget_models import BudgetLedgerEvent, BudgetLedgerState, BudgetReservation
-from app.services.budget_pg import DatabaseBudgetLedger, _clone_model_usage, _normalize_model_limits
+from app.services.budget_pg import (
+    DatabaseBudgetLedger,
+    _clone_model_usage,
+    _normalize_model_limits,
+    should_halt_overrun,
+)
 
 
 def _now() -> datetime:
@@ -127,7 +132,7 @@ def parse_jsonl_ledger(path: str | Path, *, limit: int, model_limits: dict[str, 
                 settled_at=settled_at,
                 settlement_key=f"commit:{rid}",
             )
-            if over:
+            if should_halt_overrun(est, act):
                 halted = True
                 halted_reason = f"实报 {act} 超预留 {est}（记录 {rid}）"
                 events.append(
@@ -137,6 +142,18 @@ def parse_jsonl_ledger(path: str | Path, *, limit: int, model_limits: dict[str, 
                         "reservation_id": rid,
                         "pid": int(record.get("pid") or 0),
                         "note": halted_reason,
+                        "detail": {"model": model, "estimate": est, "actual": act, "source_line": lineno},
+                        "created_at": settled_at,
+                    }
+                )
+            elif over:
+                events.append(
+                    {
+                        "event_type": "overrun",
+                        "idempotency_key": f"jsonl:overrun:{rid}",
+                        "reservation_id": rid,
+                        "pid": int(record.get("pid") or 0),
+                        "note": f"实报 {act} 小幅超预留 {est}（记录 {rid}），按实报入账不熔断",
                         "detail": {"model": model, "estimate": est, "actual": act, "source_line": lineno},
                         "created_at": settled_at,
                     }

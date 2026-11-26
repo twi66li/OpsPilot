@@ -75,8 +75,8 @@ def _fresh_ledger(path, limit=10_000, models=None):
 
 def test_estimate_is_byte_level_provable_bound():
     # 每个 token 至少占 1 个 UTF-8 字节 ⇒ token 数 ≤ 字节数（rerank/embedding 通道）
-    assert estimate_upper_bound(["a" * 2000], output_cap=1536) == 2000 + 1536
-    assert estimate_upper_bound(["你好世界"], output_cap=0) == 12  # 4 CJK × 3 字节
+    assert estimate_upper_bound(["a" * 2000], output_cap=1536) == 2000 + 32 + 1536
+    assert estimate_upper_bound(["超时"], output_cap=0) >= 17
     with pytest.raises(BudgetExceededError):
         estimate_upper_bound(["x"], output_cap=None)
 
@@ -99,12 +99,35 @@ def test_chat_bound_covers_full_billing_input_including_wrapping():
     assert estimate_chat_bound([{"role": "user", "content": "字" * 1000}], None, output_cap=1536) >= 3000 + 1536
 
 
+def test_minor_over_reserve_warns_and_keeps_actual_without_halt(tmp_path, caplog):
+    """T88：小幅超预留（≤ 2 × estimate + 256）按实报扣额并告警，不全局 halt。"""
+    path = str(tmp_path / "minor.jsonl")
+    ledger = BudgetLedger(path, 10_000, {"test-model": 10_000})
+    r1 = ledger.reserve("embedding", "test-model", 6)
+    with caplog.at_level("WARNING"):
+        ledger.settle(r1, {"total_tokens": 17})
+    assert not ledger.halted
+    assert "budget_overrun" in caplog.text
+
+    r2 = ledger.reserve("chat", "test-model", 100)
+    ledger.settle(r2, {"total_tokens": 456})  # 边界值：2 * 100 + 256 = 456
+    assert not ledger.halted
+    assert ledger.usage_now()["actual"] == 473
+    ledger.close()
+
+    rebuilt = BudgetLedger(path, 10_000, {"test-model": 10_000})
+    assert not rebuilt.halted
+    assert rebuilt.usage_now()["actual"] == 473
+    assert rebuilt.reserve("chat", "test-model", 10)
+    rebuilt.close()
+
+
 def test_over_reserve_keeps_actual_and_halts(tmp_path):
-    """终审 F2 同型：实报超预留时保留原始实报并停机（字节上界也可能被越界 provider 超出）。"""
+    """终审 F2 同型：大幅实报超预留时保留原始实报并停机。"""
     ledger = BudgetLedger(str(tmp_path / "l.jsonl"), 10_000, {"test-model": 10_000})
     rid = ledger.reserve("chat", "test-model", 3536)  # 2000 字节载荷 + 1536 封顶
-    ledger.settle(rid, {"total_tokens": 4500})
-    assert ledger.usage_now()["actual"] == 4500, "实报全额落账"
+    ledger.settle(rid, {"total_tokens": 8000})
+    assert ledger.usage_now()["actual"] == 8000, "实报全额落账"
     assert ledger.halted
     with pytest.raises(BudgetExceededError):
         ledger.reserve("chat", "test-model", 1)
@@ -201,7 +224,7 @@ def test_rids_are_unique_and_settlements_pair_exactly(tmp_path):
     rid1 = ledger.reserve("chat", "test-model", 100)
     rid2 = ledger.reserve("chat", "test-model", 200)  # 同线程同毫秒
     assert rid1 != rid2
-    ledger.settle(rid1, {"total_tokens": 150})  # 超预留 → halt
+    ledger.settle(rid1, {"total_tokens": 500})  # 大幅超预留 → halt
     assert ledger.halted
     ledger.settle(rid2, {"total_tokens": 200})  # 在途预留仍精确结算，不受 halt 影响
     with pytest.raises(BudgetLedgerError):
@@ -210,10 +233,10 @@ def test_rids_are_unique_and_settlements_pair_exactly(tmp_path):
         ledger.settle(rid1, {"total_tokens": 1})  # 重复结算不静默覆盖
     with pytest.raises(BudgetExceededError):
         ledger.reserve("chat", "test-model", 1)  # halt 阻止新调用
-    assert ledger.usage_now()["actual"] == 350
+    assert ledger.usage_now()["actual"] == 700
     ledger.close()
     rebuilt = BudgetLedger(str(tmp_path / "l.jsonl"), 10_000, {"test-model": 10_000})
-    assert rebuilt.usage_now()["actual"] == 350, "重放后累计正确"
+    assert rebuilt.usage_now()["actual"] == 700, "重放后累计正确"
 
 
 # ---- 预留/结算与账本恢复 ----
@@ -308,13 +331,13 @@ def test_over_reserve_halt_persists_across_rebuild(tmp_path):
     path = str(tmp_path / "ledger.jsonl")
     ledger = BudgetLedger(path, 1000, {"test-model": 1000})
     rid = ledger.reserve("chat", "test-model", 10)
-    ledger.settle(rid, {"total_tokens": 20})
+    ledger.settle(rid, {"total_tokens": 300})
     assert ledger.halted
     ledger.close()
 
     rebuilt = _fresh_ledger(path, limit=1000)  # 不做任何人工核查直接重建
     assert rebuilt.halted, "halt 必须由账本重放恢复"
-    assert rebuilt.usage_now()["actual"] == 20, "实报全额保留"
+    assert rebuilt.usage_now()["actual"] == 300, "实报全额保留"
     with pytest.raises(BudgetExceededError):
         rebuilt.reserve("chat", "test-model", 1)
 

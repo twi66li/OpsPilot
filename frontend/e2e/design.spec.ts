@@ -108,11 +108,11 @@ test('390px 问题详情展示处理进度和去重后的复测对照',async({pa
   await page.setViewportSize({width:390,height:844});await fixture(page,{item});await page.goto('/issues/design-case');
   const progress=page.getByRole('region',{name:'处理进度',exact:true});
   await expect(progress).toContainText('三个有效复测样本均成功');
-  await expect(progress.getByRole('button',{name:'确认实际结局',exact:true})).toBeInViewport();
+  await expect(progress.getByRole('button',{name:'确认已解决',exact:true})).toBeInViewport();
   const comparison=page.getByRole('region',{name:'处理前后对照',exact:true});
   await expect(comparison).toContainText('3 个有效样本 · 0 个失败');
   await expect(comparison).toContainText('合并了 2 条重复记录');
-  await progress.getByRole('button',{name:'确认实际结局',exact:true}).click();
+  await progress.getByRole('button',{name:'确认已解决',exact:true}).click();
   await expect(page.getByRole('dialog',{name:'由你确认问题已解决'})).toBeVisible();
   await noOverflow(page);
 });
@@ -173,14 +173,14 @@ for(const width of [1440,1024,390]) {
     await expect(page.getByRole('heading',{name:'今天想聊点什么？'})).toBeVisible();
     await expect(page.getByLabel('给维护助手发消息')).toBeEnabled();
     await expect(page.getByLabel('选择网站')).toHaveCount(0);
-    await expect(page.getByRole('button',{name:'添加日志',exact:true})).toHaveCount(0);
+    await expect(page.getByRole('button',{name:'诊断',exact:true})).toBeVisible();
     await noOverflow(page);await page.screenshot({path:info.outputPath('plain-assistant.png')});
-    await page.getByRole('button',{name:'网站排查',exact:true}).click();
+    await page.goto('/support?mode=diagnose');
     await expect(page.getByRole('heading',{name:'网站遇到了什么问题？'})).toBeVisible();
     await expect(page.locator('.support-suggestions button')).toHaveCount(4);
     const composer=await page.locator('.support-composer').boundingBox();expect(composer!.y+composer!.height).toBeLessThanOrEqual(844);
-    await expect(page.getByRole('button',{name:'提交操作后结果',exact:true})).toHaveCount(0);
-    await expect(page.getByLabel('网站排障问题')).toHaveAttribute('placeholder',/脱敏后提交/);
+    await expect(page.getByRole('button',{name:'补充证据',exact:true})).toHaveCount(1);
+    await expect(page.getByLabel('网站排障问题')).toHaveAttribute('placeholder',/脱敏/);
     if(width===390){
       await expect(page.locator('.support-conversations')).toBeHidden();
       await expect(page.getByRole('button',{name:'排查历史',exact:true})).toBeVisible();
@@ -217,19 +217,15 @@ for(const {role,tenantId} of [
 for(const existing of [true,false]) {
   test(`${existing?'已有':'新建'}对话提交证据后保留标题`,async({page})=>{
     await fixture(page,{messages:[]});
-    await page.route('**/api/support/evidence/preview',route=>route.fulfill({json:{text:'password=[已脱敏]',replacements:1}}));
-    await page.route(`**/api/support/cases/${record.id}/evidence`,route=>route.fulfill({json:{saved:true}}));
+    await page.route(`**/api/support/cases/${record.id}/evidence`,route=>route.fulfill({json:{saved:true,replacements:1}}));
     await page.goto(existing?'/support/'+record.id:'/support?mode=diagnose');
     if(existing)await expect(page.locator('.support-chat-top h3')).toHaveText(record.title!);
     else await page.getByLabel('网站排障问题').fill(record.title!);
-    await page.getByRole('button',{name:'添加日志',exact:true}).click();
+    await page.getByRole('button',{name:'补充证据',exact:true}).click();
     await page.getByLabel('证据文本',{exact:true}).fill('password=fictional-test-secret');
-    await page.getByRole('button',{name:'脱敏预览',exact:true}).click();
-    await expect(page.getByLabel('证据文本',{exact:true})).toHaveValue('password=[已脱敏]');
-    const submit=page.getByRole('button',{name:/确认提交这份证据$/});
-    await expect(submit).not.toHaveClass(/ant-btn-loading/);
+    const submit=page.getByRole('button',{name:'提交并分析',exact:true});
+    await expect(submit).toBeEnabled();
     await submit.click();
-    await expect(page.getByText('证据已保存，点击「发送」开始分析。',{exact:true})).toBeVisible();
     await expect(page.locator('.support-chat-top h3')).toHaveText(record.title!);
     await page.reload();await expect(page.locator('.support-chat-top h3')).toHaveText(record.title!);
     await page.getByRole('button',{name:'新排查',exact:true}).click();
@@ -247,7 +243,7 @@ for(const state of ['archived','user_resolved']) {
     await expect(page.locator('.support-chat-scroll .ant-card')).toContainText(['当前判断','处理结果核对','维护时间线']);
     await expect(page.locator('.support-result-card')).toContainText('下一步');
     await expect(page.getByRole('button',{name:'检查步骤说明',exact:true})).toBeAttached();
-    await expect(page.getByRole('button',{name:'我确认检查方案，准备自行操作',exact:true})).toBeDisabled();
+    await expect(page.getByRole('button',{name:'确认检查方案',exact:true})).toBeDisabled();
     await page.getByText('当前判断',{exact:true}).scrollIntoViewIfNeeded();await noOverflow(page);
     await page.screenshot({path:info.outputPath('report.png')});
     await page.getByRole('button',{name:'证据与资料 · 0'}).click();
@@ -299,7 +295,7 @@ for(const width of [1440,1024,390]) {
     await page.locator('.app-content').evaluate(node=>node.scrollTop=0);
     await noOverflow(page);await page.screenshot({path:info.outputPath('website-overview.png'),fullPage:true});
     await page.getByRole('tab',{name:'问题记录（4）',exact:true}).click();
-    await expect(page.locator('.site-issues-table')).toContainText('用户确认解决');
+    await expect(page.locator('.site-issues-table')).toContainText('已解决');
     await expect(page.locator('.site-issues-table')).toContainText('已归档');
     await noOverflow(page);await page.screenshot({path:info.outputPath('website-issues.png'),fullPage:true});
     await page.getByRole('tab',{name:'维护资料（1）',exact:true}).click();
@@ -434,7 +430,7 @@ for(const workflow of ['consult','history']) {
     await expect(page.locator('.support-report-flow')).toContainText(item.report!.summary);
     await expect(page.getByText(item.report!.summary,{exact:true})).toHaveCount(1);
     await expect(page.locator('.support-result-card')).toHaveCount(0);
-    await expect(page.getByRole('button',{name:'我确认检查方案，准备自行操作',exact:true})).toHaveCount(0);
+    await expect(page.getByRole('button',{name:'确认检查方案',exact:true})).toHaveCount(0);
     await expect(page.getByText('处理结果核对',{exact:true})).toHaveCount(0);
     await page.getByRole('button',{name:'证据与资料 · 2',exact:true}).click();
     await expect(page.locator('.ant-drawer-open').getByText('[1] 连接等待超时说明',{exact:true})).toBeVisible();
@@ -469,7 +465,7 @@ test('助手确认方案和步骤标记不自动改变恢复结论',async({page}
   await expect(page.locator('.result-steps')).toContainText('docker logs app --tail 100');
   await expect(page.locator('.result-steps')).toContainText('正常时：');
   await expect(page.locator('.result-steps')).toContainText('异常时：');
-  await page.getByRole('button',{name:'我确认检查方案，准备自行操作',exact:true}).click();
+  await page.getByRole('button',{name:'确认检查方案',exact:true}).click();
   await expect(page.getByText('未检查',{exact:true})).toBeVisible();
   await page.getByLabel('检查1的结果记录').fill('已在本地核对，仍需提交新样本');
   await page.getByRole('button',{name:'记录已检查',exact:true}).click();
@@ -480,7 +476,7 @@ test('助手确认方案和步骤标记不自动改变恢复结论',async({page}
   await expect(page.getByText('尚未提供操作后的新样本',{exact:true})).toBeVisible();
   await page.getByRole('button',{name:'提交此步的新证据',exact:true}).click();
   await expect(page.getByText('关联已确认方案的检查 1',{exact:true})).toBeVisible();
-  await expect(page.getByText(/只有确认提交后的文本才会发送给模型/)).toBeVisible();
+  await expect(page.getByText(/自动遮蔽常见密码/)).toBeVisible();
 });
 
 test('助手过程默认折叠且分析失败不会显示已完成',async({page})=>{
@@ -635,15 +631,15 @@ test('已有问题的中断提问保留网站和证据且不自动发送',async(
   await expect(page.getByLabel('选择网站')).toBeDisabled();expect(submitted).toBe(0);
 });
 
-test('脱敏类别与IP核对展示，编辑文本后必须再次预览',async({page})=>{
+test('脱敏类别与IP核对展示，且无需强制预览即可提交',async({page})=>{
   await fixture(page);await page.goto('/support/design-case');
   await page.route('**/api/support/evidence/preview',r=>r.fulfill({json:{text:'password=[已脱敏]\n10.0.0.8 GET /orders HTTP 502',replacements:1,findings:[{label:'口令或密钥',count:1,lines:[1]}],review_findings:[{label:'IPv4地址',count:1,lines:[2]}],summary:logSummary}}));
-  await page.getByRole('button',{name:'添加日志',exact:true}).click();
+  await page.getByRole('button',{name:'补充证据',exact:true}).click();
   const input=page.getByLabel('证据文本',{exact:true});await input.fill('password=original-secret\n10.0.0.8 GET /orders HTTP 502');
+  await expect(page.getByRole('button',{name:'提交并分析',exact:true})).toBeEnabled();
   await page.getByRole('button',{name:'脱敏预览',exact:true}).click();
   await expect(page.getByRole('dialog')).toContainText('口令或密钥 1 处');await expect(page.getByRole('dialog')).toContainText('IPv4地址 1 处');
-  await expect(page.getByRole('button',{name:'确认提交这份证据'})).toBeEnabled();
-  await input.fill('修改过的文本');await expect(page.getByRole('button',{name:'确认提交这份证据'})).toBeDisabled();
+  await input.fill('修改过的文本');await expect(page.getByRole('button',{name:'提交并分析',exact:true})).toBeEnabled();
 });
 
 test('演练工单默认字段摘要且保留审批权限',async({page})=>{

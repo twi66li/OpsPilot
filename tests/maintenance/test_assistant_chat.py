@@ -128,3 +128,82 @@ def test_case_draft_tracks_explicitly_and_retrieval_budget_returns_429(client, m
     monkeypatch.setattr("app.api.maintenance_workspace.retrieve_for_case", quota_exhausted)
     response = client.post("/api/maintenance/retrieval-test", headers=user, json={"query": "超时"})
     assert response.status_code == 429 and "额度不足" in response.json()["detail"]
+
+
+def test_in_chat_evidence_diagnosis_and_review_loop(client):
+    user = register(client, "assistant_in_chat_diag", "quota-pass-123")
+    conv = new_chat(client, user)
+
+    # 1. 先有一条普通聊天消息，后续诊断自动带上上下文
+    turn = {"request_id": str(uuid.uuid4()), "message": "下单接口偶发 502"}
+    assert client.post(f"{ROOT}/{conv}/personal-turn", headers=user, json=turn).status_code == 200
+    assert client.post(f"{ROOT}/{conv}/personal-turn", headers=user, json={**turn, "answer": "请贴一下报错日志"}).status_code == 200
+
+    # 2. 在同一对话内发起证据诊断：自动脱敏、创建排查卡片并返回 workflow=diagnose
+    req1 = str(uuid.uuid4())
+    diag1 = client.post(
+        f"{ROOT}/{conv}/diagnose",
+        headers=user,
+        json={
+            "request_id": req1,
+            "text": "2026-11-26T10:00:00+08:00 ERROR QueuePool limit password=my-secret-pw\n10.0.0.8 GET /orders HTTP 502",
+            "label": "下单报错日志",
+        },
+    )
+    assert diag1.status_code == 200, diag1.text
+    payload1 = diag1.json()
+    case_id = payload1["case"]["id"]
+    assert payload1["workflow"] == "diagnose"
+    assert payload1["redaction"]["replacements"] == 1
+    assert "my-secret-pw" not in payload1["case"]["evidence"][0]["text"]
+    assert "下单接口偶发 502" in payload1["case"]["problem"]["symptom"]
+
+    # 幂等重试不重复追加证据
+    dup = client.post(f"{ROOT}/{conv}/diagnose", headers=user, json={"request_id": req1, "text": "ignored"})
+    assert dup.status_code == 200 and len(dup.json()["case"]["evidence"]) == 1
+
+    # 3. 模拟已有诊断报告并确认检查方案后，再次提交证据自动进入 review 阶段且复用同一 case_id
+    from app.db.base import SessionLocal
+    from app.db.models import SupportCase
+
+    with SessionLocal() as db:
+        row = db.get(SupportCase, case_id)
+        row.data = {
+            **row.data,
+            "revision": 1,
+            "report": {
+                "workflow": "diagnose",
+                "summary": "连接池耗尽",
+                "observations": [],
+                "hypotheses": [],
+                "missing_info": [],
+                "steps": [{"location": "容器", "action": "docker logs app", "normal": "正常", "abnormal": "超时", "risk": "只读", "rollback": ""}],
+                "references": [],
+                "verification": {"verdict": "inconclusive", "evidence_ids": [], "reason": "待复测"},
+            },
+        }
+        db.commit()
+    assert client.post(f"/api/support/cases/{case_id}/confirm-plan", headers=user).status_code == 200
+
+    diag2 = client.post(
+        f"{ROOT}/{conv}/diagnose",
+        headers=user,
+        json={"request_id": str(uuid.uuid4()), "text": "2026-11-26T10:05:00+08:00 GET /orders HTTP 200", "step_index": 0},
+    )
+    assert diag2.status_code == 200, diag2.text
+    payload2 = diag2.json()
+    assert payload2["case"]["id"] == case_id
+    assert payload2["workflow"] == "review"
+    assert payload2["case"]["evidence"][-1]["kind"] == "check_result"
+
+    # 4. 读取聊天历史时一并返回关联 cases 供刷新恢复卡片；访客禁止提交诊断证据
+    hist = client.get(f"{ROOT}/{conv}", headers=user).json()
+    assert case_id in hist["cases"]
+    assert len(hist["cases"][case_id]["evidence"]) == 2
+
+    client.cookies.delete(VISITOR_COOKIE, path="/auth/login")
+    guest = login(client, VISITOR_USERNAME, VISITOR_PASSWORD)
+    guest_conv = new_chat(client, guest)
+    assert client.post(
+        f"{ROOT}/{guest_conv}/diagnose", headers=guest, json={"request_id": str(uuid.uuid4()), "text": "ERROR 500"}
+    ).status_code == 403

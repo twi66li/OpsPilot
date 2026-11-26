@@ -46,8 +46,8 @@ export default function ResultCard({record, hits, disabled, confirmPlan, onEvide
         <Collapse className="result-steps" items={report.steps.map((step,index) => ({key:String(index),label:<span>第 {index+1} 步 · {step.location} <Tag color={step.risk === '只读' ? 'green' : 'orange'}>{step.risk}</Tag></span>,children:<>
           <pre className="source-text">{step.action}</pre><p><strong>正常时：</strong>{step.normal}<br/><strong>异常时：</strong>{step.abnormal}</p>{step.rollback && <p><strong>影响与回退：</strong>{step.rollback}</p>}
         </>}))}/>
-        <Button disabled={disabled || record.plan?.revision === record.revision} onClick={confirmPlan}>我确认检查方案，准备自行操作</Button>
-        <InfoTip label="确认方案说明">此按钮只记录你的确认，不会执行命令、修改配置或标记恢复。</InfoTip>
+        <Button disabled={disabled || record.plan?.revision === record.revision} onClick={confirmPlan}>确认检查方案</Button>
+        <InfoTip label="确认方案说明">确认后可逐项记录检查进展，平台不会代为执行命令。</InfoTip>
       </> : <p className="result-detail">本次没有给出可执行的检查步骤，可先补充下方缺失信息。</p>}
     </section>
     <section aria-label="还不确定"><h4>还不确定</h4>
@@ -59,7 +59,7 @@ export default function ResultCard({record, hits, disabled, confirmPlan, onEvide
           <div>待补充 · {value.missing.length ? value.missing.join('、') : '暂无记录'}</div>
         </li>)}</ul></>}
       {!!report.missing_info.length && <><strong>下一步最需要补充</strong><ul>{report.missing_info.map((value,index) => <li key={index}>{value}</li>)}</ul></>}
-      {!report.hypotheses.length && !report.missing_info.length && <p className="result-detail">报告未列出其他待验证项；这不代表故障已解决。</p>}
+      {!report.hypotheses.length && !report.missing_info.length && <p className="result-detail">暂无其他待验证项。</p>}
     </section>
   </Card>;
 }

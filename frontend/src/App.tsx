@@ -67,7 +67,7 @@ export default function App() {
   const menuItems = [group('overview','概览',['home']),group('maintenance','网站维护',['websites','issues']),group('resources',drillEnabled?'资料与演练':'资料',['knowledge','investigation']),group('management','管理与质量',['operations','evaluation'])].filter(item=>item.children.length);
   function setPage(target:Page) {navigate('/'+target);setDrawer(false);}
   function assist(entry:SupportEntry) {
-    const params = new URLSearchParams({mode:'diagnose'});if(entry.siteId)params.set('site',entry.siteId);if(entry.workflow)params.set('workflow',entry.workflow);if(entry.question)params.set('question',entry.question);
+    const params = new URLSearchParams();if(entry.siteId)params.set('site',entry.siteId);if(entry.workflow)params.set('workflow',entry.workflow);if(entry.question)params.set('question',entry.question);if(!entry.caseId&&!params.size)params.set('mode','diagnose');
     navigate('/support'+(entry.caseId?'/'+entry.caseId:'')+(params.size?'?'+params:''));
   }
   function askHere(entry?:SupportEntry){setSideEntry(entry||{...(page==='websites'&&resourceId?{siteId:resourceId}:page==='issues'&&resourceId?{caseId:resourceId}:{}),workflow:'consult'});}
@@ -124,7 +124,7 @@ export default function App() {
         {page==='websites'&&<Websites onTitle={siteTitle} assist={assist} ask={askHere} knowledge={()=>setPage('knowledge')} initialId={resourceId} opened={id=>navigate('/websites/'+id)}/>}
         {page==='issues'&&(resourceId?<PersonalSupport issueDetail entry={supportEntry} onSource={setSource} onKnowledge={()=>setPage('knowledge')} onIssues={()=>setPage('issues')} opened={id=>{if(id!==resourceId)navigate('/issues/'+id);}}/>:<Issues assist={entry=>navigate('/issues/'+entry.caseId)}/>)}
         {plainChat&&<AssistantChat id={parts[2]} open={id=>navigate(id?'/support/chat/'+id:'/support')}
-          diagnose={()=>navigate('/support?mode=diagnose',{state:{fromChatId:parts[2]}})} model={model} configure={()=>setModelOpen(true)}/>}
+          model={model} configure={()=>setModelOpen(true)} onSource={setSource} onIssues={id=>navigate('/issues/'+id)}/>}
         {page==='support'&&!plainChat&&<PersonalSupport entry={supportEntry} onSource={setSource} onKnowledge={()=>setPage('knowledge')}
           onChat={()=>navigate(fromChatId?'/support/chat/'+fromChatId:'/support')} onIssues={id=>navigate(id?'/issues/'+id:'/issues')}
           opened={id=>{if(id!==resourceId)navigate(id?'/support/'+id:'/support?mode=diagnose',{state:location.state});}}/>}

@@ -13,7 +13,10 @@ from app.db.models import AgentRun, Message, SupportCase
 from app.services import background_runs, chat_service
 from app.services.assistant_quota import admit_chat, usage
 from app.services.cache import check_rate_limit
-from app.services.support_evidence import redact
+from app.services.case_service import assert_editable, case_status, create_case_record, is_archived
+from app.services.maintenance_timeline import record_event
+from app.services.support_evidence import EvidenceIn, new_evidence, owned_case, owned_site, redact
+from app.services.support_report import case_dict
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 assistant_router = APIRouter(prefix="/api/assistant", tags=["assistant"])
@@ -136,9 +139,32 @@ def assistant_create(body: SessionIn, user: AuthUser = Depends(get_assistant_use
     ))
 
 
+def _active_run_id(db: Session, tenant_id: str, target_session_id: str) -> str | None:
+    return db.scalar(
+        select(AgentRun.id).where(
+            AgentRun.session_id == target_session_id,
+            AgentRun.tenant_id == tenant_id,
+            AgentRun.status.in_(background_runs.ACTIVE),
+            AgentRun.data["background"].as_boolean().is_(True),
+        )
+    )
+
+
 @assistant_router.get("/conversations/{session_id}")
 def assistant_history(session_id: str, user: AuthUser = Depends(get_assistant_user), db: Session = Depends(get_db)):
-    return session_history(db, owned_session(db, user, session_id, assistant_only=True))
+    data = session_history(db, owned_session(db, user, session_id, assistant_only=True))
+    case_ids = {
+        m["meta"].get("case_id")
+        for m in data["messages"]
+        if isinstance(m.get("meta"), dict) and m["meta"].get("case_id")
+    }
+    cases = {}
+    for cid in case_ids:
+        case = db.query(SupportCase).filter_by(session_id=cid, tenant_id=user.tenant_id, user_id=user.user_id).first()
+        if case is not None:
+            cases[cid] = {**case_dict(case), "active_run_id": _active_run_id(db, user.tenant_id, cid)}
+    data["cases"] = cases
+    return data
 
 
 @assistant_router.patch("/conversations/{session_id}")
@@ -188,3 +214,155 @@ def personal_turn(session_id: str, body: PersonalReplyIn, user: AuthUser = Depen
             return {"answer": answer.content if answer else body.answer}
 
     return run_with_sqlite_retry(save_turn)
+
+
+class AssistantDiagnoseIn(BaseModel):
+    request_id: str = Field(pattern=r"^[0-9a-f-]{36}$")
+    text: str = Field(min_length=1, max_length=12000)
+    label: str = Field(default="日志片段", min_length=1, max_length=100)
+    endpoint: str = Field(default="", max_length=200)
+    collected_at: str = Field(default="", max_length=80)
+    question: str = Field(default="", max_length=2000)
+    site_id: str | None = None
+    case_id: str | None = None
+    step_index: int | None = Field(default=None, ge=0, le=2)
+
+
+@assistant_router.post("/conversations/{session_id}/diagnose")
+def assistant_diagnose(session_id: str, body: AssistantDiagnoseIn, user: AuthUser = Depends(get_current_user)):
+    """在当前聊天内按需发起或续接证据化诊断，服务端自动脱敏并关联排查卡片。"""
+    limit_assistant_write(user)
+
+    def prepare():
+        with SessionLocal() as db:
+            admit_chat(db, user, session_id)
+            chat_sess = owned_session(db, user, session_id, assistant_only=True)
+            user_key = f"diagnose:{session_id}:{body.request_id}:u"
+            card_key = f"diagnose:{session_id}:{body.request_id}:card"
+            existing_card = db.scalar(select(Message).filter_by(tenant_id=user.tenant_id, idempotency_key=card_key))
+            if existing_card is not None:
+                case = owned_case(db, user, existing_card.meta["case_id"])
+                return {
+                    "case": case_dict(case),
+                    "workflow": existing_card.meta.get("workflow", "diagnose"),
+                    "prompt": existing_card.meta.get("prompt", "请结合日志证据定位异常原因。"),
+                    "redaction": existing_card.meta.get("redaction", {"replacements": 0}),
+                }
+
+            prior_msgs = db.scalars(
+                select(Message).where(Message.session_id == session_id).order_by(Message.id.asc())
+            ).all()
+            case = None
+            if body.case_id:
+                case = owned_case(db, user, body.case_id)
+                assert_editable(case)
+            else:
+                for msg in reversed(prior_msgs):
+                    cid = (msg.meta or {}).get("case_id") if isinstance(msg.meta, dict) else None
+                    if cid:
+                        candidate = (
+                            db.query(SupportCase)
+                            .filter_by(session_id=cid, tenant_id=user.tenant_id, user_id=user.user_id)
+                            .first()
+                        )
+                        if candidate and not is_archived(candidate) and case_status(candidate) != "user_resolved":
+                            case = candidate
+                            break
+            if case is None:
+                site = owned_site(db, user, body.site_id) if body.site_id else None
+                context_lines = [
+                    f"{m.role}: {m.content[:400]}"
+                    for m in prior_msgs[-6:]
+                    if not (isinstance(m.meta, dict) and m.meta.get("case_id"))
+                ]
+                if body.question.strip():
+                    context_lines.append(body.question.strip())
+                symptom = redact("\n".join(context_lines))["text"][:2000]
+                case = create_case_record(
+                    db,
+                    user.tenant_id,
+                    user.user_id,
+                    (chat_sess.title or "故障诊断")[:100],
+                    {
+                        "symptom": symptom,
+                        "endpoint": redact(body.endpoint)["text"],
+                        "impact": "",
+                        "started_at": "",
+                        "recent_changes": "",
+                    },
+                    actor=user.username,
+                    site=site,
+                    kind="problem",
+                )
+
+            evidence = case.data.get("evidence", [])
+            if len(evidence) >= 12 or sum(len(e["text"]) for e in evidence) + len(body.text) > 30000:
+                raise HTTPException(400, "本诊断记录证据已达上限，请开启新对话")
+            plan = case.data.get("plan")
+            kind = "check_result" if plan else "initial"
+            workflow = "review" if plan else "diagnose"
+            if plan and body.step_index is not None and body.step_index >= len(plan["steps"]):
+                raise HTTPException(400, "检查步骤不存在")
+            ev_in = EvidenceIn(
+                text=body.text,
+                label=body.label,
+                kind=kind,
+                collected_at=body.collected_at,
+                endpoint=body.endpoint,
+                plan_revision=plan["revision"] if plan else None,
+                step_index=body.step_index if plan else None,
+            )
+            redacted = redact(body.text)
+            item = new_evidence(ev_in)
+            case.data = {**case.data, "kind": "problem", "evidence": [*evidence, item]}
+            case.status = "evidence_submitted"
+            record_event(
+                db,
+                user.tenant_id,
+                user.user_id,
+                "case",
+                case.session_id,
+                "evidence_submitted",
+                {"evidence_id": item["id"], "label": item["label"], "kind": item["kind"]},
+            )
+            clean_q = redact(body.question.strip())["text"] if body.question.strip() else ""
+            prompt = clean_q or (
+                "已提交检查后的新结果，请结合已确认方案核对原异常是否消失及仍缺少的信息。"
+                if workflow == "review"
+                else "请结合对话上下文与提交的日志证据定位异常原因，并给出下一步检查方案。"
+            )
+            user_text = f"提交证据：{item['label']}" + (f"\n{clean_q}" if clean_q else "")
+            redaction_meta = {
+                "replacements": redacted["replacements"],
+                "findings": redacted["findings"],
+                "review_findings": redacted["review_findings"],
+            }
+            db.add(
+                Message(
+                    tenant_id=user.tenant_id,
+                    session_id=session_id,
+                    role="user",
+                    content=user_text,
+                    idempotency_key=user_key,
+                )
+            )
+            db.add(
+                Message(
+                    tenant_id=user.tenant_id,
+                    session_id=session_id,
+                    role="assistant",
+                    content=item["label"],
+                    idempotency_key=card_key,
+                    meta={
+                        "case_id": case.session_id,
+                        "evidence_id": item["id"],
+                        "workflow": workflow,
+                        "prompt": prompt,
+                        "redaction": redaction_meta,
+                    },
+                )
+            )
+            db.commit()
+            return {"case": case_dict(case), "workflow": workflow, "prompt": prompt, "redaction": redaction_meta}
+
+    return run_with_sqlite_retry(prepare)

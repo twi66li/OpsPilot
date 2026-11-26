@@ -33,14 +33,11 @@ test('普通用户注册、问题深链接和日志预览',async({page})=>{
   await page.getByRole('button',{name:'生成采集步骤'}).click();
   await page.getByRole('button',{name:'复制命令',exact:true}).first().click();
   await expect(page.getByText('已复制只读命令',{exact:true})).toBeVisible();
-  await page.getByRole('button',{name:'我已收集结果，开始脱敏预览'}).click();
+  await page.getByRole('button',{name:'去提交证据'}).click();
   await page.getByLabel('上传日志片段',{exact:true}).setInputFiles({name:'sample.log',mimeType:'text/plain',buffer:Buffer.from('GET /orders HTTP 500\npassword=browser-private')});
-  await expect(page.getByRole('button',{name:'确认提交这份证据'})).toBeEnabled();
-  await page.getByRole('button',{name:'确认提交这份证据'}).click();
-  await expect(page.getByText('证据已保存',{exact:false})).toBeVisible();
-  await page.getByLabel('网站排障问题').fill('请分析这个验收样例');
+  await expect(page.getByRole('button',{name:'提交并分析'})).toBeEnabled();
   const streamed=page.waitForRequest(request=>request.url().endsWith('/api/agent/chat/stream')&&request.method()==='POST');
-  await page.getByRole('button',{name:'发送',exact:true}).click();
+  await page.getByRole('button',{name:'提交并分析'}).click();
   expect((await streamed).postDataJSON().request_id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   if(process.env.OPSPILOT_TEST_OFFLINE==='1') {
     // 隔离离线环境会明确拒绝真实诊断；验证错误状态，不能把它当成成功。
@@ -58,8 +55,7 @@ test('390px导航和提问区可见',async({page,request},testInfo)=>{
   expect(response.ok()).toBeTruthy();const auth=await response.json();
   await page.addInitScript(value=>sessionStorage.setItem('opspilot.auth',JSON.stringify(value)),auth);
   await page.setViewportSize({width:390,height:844});
-  await page.goto('/support');
-  await page.getByRole('button',{name:'网站排查',exact:true}).click();
+  await page.goto('/support?mode=diagnose');
   const box=await page.getByLabel('网站排障问题').boundingBox();
   expect(box?.y).toBeLessThan(844);
   await expect(page.locator('.support-suggestions button')).toHaveCount(4);

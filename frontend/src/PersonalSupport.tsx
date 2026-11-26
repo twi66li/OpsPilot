@@ -1,10 +1,9 @@
-import InfoTip from './InfoTip';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, App, Button, Card, Checkbox, Collapse, Drawer, Dropdown, Empty, Input, Modal, Pagination, Select, Skeleton, Space, Steps, Tag } from 'antd';
-import { ArrowLeftOutlined, HistoryOutlined, MoreOutlined } from '@ant-design/icons';
+import { Alert, App, Button, Card, Checkbox, Collapse, Drawer, Empty, Input, Modal, Pagination, Select, Skeleton, Space, Tag } from 'antd';
+import { ArrowLeftOutlined, HistoryOutlined } from '@ant-design/icons';
 import { savedAuth, api, followChat, newRequestId, post, streamChat } from './api';
 import type { AgentEvent, ChatMessage, EvidencePreview, Hit, PageData, PersonalCase, SessionHistory, Site, SupportEntry, Workflow } from './types';
-import { caseStates as states, workflowNames, workflows } from './supportTypes';
+import { caseStates as states, verdictLabels as verdicts, workflowNames } from './supportTypes';
 import StatusTag from './StatusTag';
 import SiteEditor from './SiteEditor';
 import CollectionGuide from './CollectionGuide';
@@ -16,8 +15,6 @@ import ResultCard from './ResultCard';
 import ProcessFold from './ProcessFold';
 import EvidenceSummary, { RedactionNotice } from './EvidenceSummary';
 import { HandoffEditor } from './CaseHandoff';
-
-const verdicts: Record<string, string> = {inconclusive: '证据仍不足', still_failing: '样本中仍有异常', improved: '样本显示改善', sample_recovered: '提交样本支持原症状不再复现'};
 
 export default function PersonalSupport({entry, onSource, onKnowledge, onIssues, onChat, opened, issueDetail=false}: {issueDetail?:boolean;opened?:(id:string)=>void; entry?: SupportEntry; onSource: (hit: Hit) => void; onKnowledge: () => void; onIssues: (id?: string) => void; onChat?: () => void}) {
   const {message} = App.useApp();
@@ -121,14 +118,14 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
     if(event.type==='final'){setDraft('');setPhase(event.end_reason==='answered'?'本次分析已完成':'本次分析未完成，已有证据保留');setFailed(event.end_reason!=='answered');}
     if(event.type==='error'){setFailed(true);setPhase('分析未完成，已有证据保留');message.error(event.message || '分析未完成');}
   }
-  async function send(text = question.trim(), chosenWorkflow = workflow) {
+  async function send(text = question.trim(), chosenWorkflow = workflow, explicitCase?: PersonalCase) {
     if (!text || busy || cancelling || waitingRun || loadError) return;
     setBusy(true);setFailed(false);setLastQuestion(text);setStartedAt(Date.now());setPhase('正在开始本次分析');
     setDraft('');rawDraft.current='';liveWorkflow.current=chosenWorkflow;run.current='';setUpdated(Date.now());setEvents([]);
     const subscription = new AbortController();
     controller.current = subscription;
     try {
-      const record = await ensureCase();
+      const record = explicitCase || await ensureCase();
       if(subscription.signal.aborted) return;
       setQuestion('');
       const signature=JSON.stringify([record.id,text,chosenWorkflow,(record.evidence || []).map(e=>e.id)]);
@@ -144,9 +141,10 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
     const site = edit ? sites.find(s => s.id === siteId) : undefined;
     setEditingSite(site?.id); setSiteOpen(true);
   }
-  function openEvidence(kind: 'initial' | 'check_result', step?: number) {
+  function openEvidence(kind?: 'initial' | 'check_result', step?: number) {
+    const resolvedKind = kind ?? (current?.plan ? 'check_result' : 'initial');
     setEvidencePreview(null);
-    setEvidenceKind(kind); setEvidenceText(''); setEvidenceLabel(kind === 'check_result' ? '操作后的检查结果' : '应用错误日志');
+    setEvidenceKind(resolvedKind); setEvidenceText(''); setEvidenceLabel(resolvedKind === 'check_result' ? '复测结果' : '应用错误日志');
     setCollectedAt(''); setPreviewed(false); setEvidenceOpen(true);
     setEvidenceEndpoint(current?.problem?.endpoint || ''); setEvidenceStep(step);
   }
@@ -155,19 +153,30 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
     try {
       const value = await post<EvidencePreview>('/api/support/evidence/preview', {text: evidenceText, label: evidenceLabel, kind: evidenceKind,endpoint:evidenceEndpoint});
       setEvidenceText(value.text); setPreviewed(true);setEvidencePreview(value);
-      message.info(`已替换 ${value.replacements} 处常见敏感内容，请继续检查后确认提交。`);
+      message.info(`已遮蔽 ${value.replacements} 处常见敏感内容。`);
     } catch (error) {message.error((error as Error).message);} finally {setActionBusy(false);}
   }
   async function submitEvidence() {
     setActionBusy(true);
     try {
       const record = await ensureCase();
-      await post(`/api/support/cases/${record.id}/evidence`, {text: evidenceText, label: evidenceLabel, kind: evidenceKind, collected_at: collectedAt,
-        endpoint:evidenceEndpoint, step_index:evidenceStep ?? null, plan_revision:evidenceKind === 'check_result' ? record.plan?.revision : null});
-      setCurrent(await api<PersonalCase>(`/api/support/cases/${record.id}`)); setEvidenceOpen(false); setEvidenceText('');
-      if (!question.trim()) setQuestion(evidenceKind === 'check_result' ? '我已提交新的检查结果，请结合之前确认的方案核对原问题是否仍存在，还有什么证据不足？' : '请结合我提交的日志和网站背景，解释异常，并给出下一步最需要做的检查。');
-      setWorkflow(evidenceKind === 'check_result' ? 'review' : 'diagnose');
-      message.success('证据已保存，点击「发送」开始分析。'); await refresh();
+      const savedEv = await post<{replacements?: number; review_findings?: {count: number}[]}>(`/api/support/cases/${record.id}/evidence`, {
+        text: evidenceText, label: evidenceLabel, kind: evidenceKind, collected_at: collectedAt,
+        endpoint: evidenceEndpoint, step_index: evidenceStep ?? null, plan_revision: evidenceKind === 'check_result' ? record.plan?.revision : null,
+      });
+      const updatedCase = await api<PersonalCase>(`/api/support/cases/${record.id}`);
+      setCurrent(updatedCase); setEvidenceOpen(false); setEvidenceText('');
+      const nextWorkflow: Workflow = evidenceKind === 'check_result' ? 'review' : 'diagnose';
+      const nextPrompt = question.trim() || (evidenceKind === 'check_result'
+        ? '已提交检查后的新结果，请结合已确认方案核对原异常是否消失及仍缺少的信息。'
+        : '请结合提交的日志和网站背景定位异常原因，并给出下一步检查方案。');
+      setWorkflow(nextWorkflow);
+      const masked = savedEv.replacements || 0;
+      const ipCount = (savedEv.review_findings || []).reduce((n, f) => n + f.count, 0);
+      message.success(`证据已保存${masked ? `（已遮蔽 ${masked} 处敏感信息）` : ''}${ipCount ? `，含 ${ipCount} 处 IP 请留意` : ''}，正在开始分析`);
+      await refresh();
+      setActionBusy(false);
+      await send(nextPrompt, nextWorkflow, updatedCase);
     } catch (error) {message.error((error as Error).message);} finally {setActionBusy(false);}
   }
   async function confirmPlan() {
@@ -217,12 +226,11 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
   const probeEvidenceSaved = latestEvidence?.source_kind === 'scheduled_http_probe' && current?.status === 'evidence_submitted';
   const needsPlanConfirmation = report?.workflow !== 'review' && !!report?.steps.length
     && current?.status !== 'needs_information' && (!planConfirmed || current?.plan?.revision !== current?.revision);
-  const primaryAction = resultReady ? {label:'确认实际结局', run:()=>{setSolution(current?.solution || '');setConfirmed(false);setRecordAction('resolve');}}
+  const primaryAction = resultReady ? {label:'确认已解决', run:()=>{setSolution(current?.solution || '');setConfirmed(false);setRecordAction('resolve');}}
     : checkResultSaved ? {label:'核对新结果',run:()=>void send('请核对新样本，说明原问题是否仍出现及缺少的证据。','review')}
     : probeEvidenceSaved ? {label:'分析巡检异常',run:()=>void send('请分析这次定时 HTTP 巡检的异常证据，列出需要核实的原因。','diagnose')}
     : needsPlanConfirmation ? {label:'确认检查方案',run:()=>void confirmPlan()}
-    : planConfirmed ? {label:'提交复测结果',run:()=>openEvidence('check_result')}
-    : {label:'补充日志',run:()=>openEvidence('initial')};
+    : {label:'补充证据',run:()=>openEvidence()};
   const issueStatus = current?.status === 'sample_recovered' && !resultReady ? 'awaiting_results' : current?.status;
   useEffect(()=>{const node=conversation.current;if(node&&!issueDetail&&(node.scrollHeight-node.scrollTop-node.clientHeight<140||messages.length<=2))node.scrollTop=node.scrollHeight;},[messages,draft,phase,report,issueDetail]);
   const examples = ['不知道如何取日志？','网站返回 502，但我还没有日志，应该先收集什么信息？','日志出现 QueuePool 连接等待超时，这说明什么，下一步怎么检查？','Docker 里的 Python 应用反复退出，该怎么看日志？'];
@@ -267,13 +275,11 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
       {report && problemFlow && <>
         {current && <ResultCard record={current} hits={hits} showSummary={!issueDetail} disabled={running || actionBusy || readOnly} confirmPlan={confirmPlan} onSource={onSource} onEvidence={(id,start,end)=>{setEvidenceFocus({id,start,end});setEvidenceKeys([id]);setEvidencePanelOpen(true);}}/>}
         {current?.plan && <PlanChecklist record={current} disabled={running || actionBusy || readOnly} changed={setCurrent} evidence={index => openEvidence('check_result',index)} />}
-        <Card title={<>处理结果核对 <InfoTip label="结果核对范围说明">判断仅针对提交样本。实际结局由维护者确认。</InfoTip></>}>
-          <Steps size="small" current={current?.saved ? 3 : resultReady ? 2 : planConfirmed ? 1 : 0} items={[{title:'确认方案'},{title:'提交新结果'},{title:'核对证据'},{title:'保存案例'}]} />
+        <Card title="处理结果核对">
           {verification && <Alert className="section-gap" type={resultReady ? 'success' : 'info'} title={verdicts[verification.verdict]} description={verification.reason} />}
           <SampleResults value={sampleChecks} />
-          <Space wrap>{!issueDetail && !guest && <><Button disabled={running || actionBusy || readOnly || !planConfirmed} onClick={() => openEvidence('check_result')}>添加新的检查结果</Button>
-            {current?.draft?<Button disabled={running||actionBusy} onClick={()=>void trackIssue()}>保存到问题中心</Button>
-              :<Button onClick={()=>onIssues(current?.id)}>在问题中心打开</Button>}</>}
+          <Space wrap>{!issueDetail && !guest && (current?.draft?<Button disabled={running||actionBusy} onClick={()=>void trackIssue()}>保存到问题中心</Button>
+              :<Button onClick={()=>onIssues(current?.id)}>在问题中心打开</Button>)}
           <Button disabled={running || actionBusy || readOnly} onClick={() => {setSolution(current?.solution || '');setConfirmed(false);setRecordAction('archive');}}>归档当前记录</Button></Space>
         </Card>
       </>}
@@ -285,11 +291,8 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
         </div>
       </div>
       <div className="support-composer">
-        <div className="support-composer-box"><Input.TextArea aria-label="网站排障问题" disabled={readOnly||!!loadError} placeholder="描述异常、发生时间和影响。日志请通过「添加日志」脱敏后提交" value={question} maxLength={6000} autoSize={{minRows:2,maxRows:5}} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>{if(e.ctrlKey&&e.key==='Enter')void send();}}/>
-          <div className="support-composer-tools"><div className="support-input-actions"><Button size="small" disabled={running||actionBusy||(!guest&&readOnly)||!!loadError} onClick={()=>guest?message.info('登录个人账号后可上传日志并排查'):openEvidence('initial')}>添加日志</Button>{planConfirmed&&<Button size="small" disabled={running||actionBusy||readOnly} onClick={()=>openEvidence('check_result')}>提交操作后结果</Button>}
-            {!guest&&<Dropdown trigger={['click']} menu={{selectable:true,selectedKeys:[workflow],items:workflows.map(w=>({key:w.value,label:w.label})),onClick:({key})=>setWorkflow(key as Workflow)}}>
-              <Button type="text" size="small" aria-label="维护任务类型" disabled={running||readOnly} icon={<MoreOutlined/>}/>
-            </Dropdown>}</div>
+        <div className="support-composer-box"><Input.TextArea aria-label="网站排障问题" disabled={readOnly||!!loadError} placeholder="描述异常现象，或点「补充证据」提交日志自动脱敏后分析" value={question} maxLength={6000} autoSize={{minRows:2,maxRows:5}} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>{if(e.ctrlKey&&e.key==='Enter')void send();}}/>
+          <div className="support-composer-tools"><div className="support-input-actions"><Button size="small" disabled={running||actionBusy||(!guest&&readOnly)||!!loadError} onClick={()=>guest?message.info('登录个人账号后可上传日志并排查'):openEvidence()}>补充证据</Button></div>
             {running&&!loadingCase?<Button danger disabled={!run.current||cancelling} onClick={stop}>停止生成</Button>:<Button type="primary" disabled={!question.trim()||actionBusy||readOnly||!!loadError||loadingCase} onClick={()=>void send()}>发送</Button>}
           </div>
         </div>
@@ -309,18 +312,18 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
           })}</pre>
         </>}))}/>
       </Card>
-      <Card size="small" title={<>资料依据 · {hits.length} <InfoTip label="资料依据说明">手册是参考依据，不是本次故障的实时证据。</InfoTip></>}>{!hits.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="检索后在这里查看出处"/>}{hits.map(h => <button key={h.chunk_id} className="evidence-card" onClick={() => onSource(h)}><strong>[{h.citation_id}] {h.doc_title}</strong><Tag>{report?.references.includes(h.citation_id || 0)?'本次回答引用':'检索候选'}</Tag><small>{h.source_kind === 'official' ? `官方资料整理 · ${h.checked_at}` : `网站手册 · ${h.version ? `v${h.version}` : '正文'}`}</small><span>查看适用版本与原文 →</span></button>)}</Card>
+      <Card size="small" title={<>资料依据 · {hits.length}</>} extra={<Button type="text" size="small" aria-label="资料依据说明" onClick={()=>message.info('手册是参考依据，不是本次故障的实时证据。')}>说明</Button>}>{!hits.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="检索后在这里查看出处"/>}{hits.map(h => <button key={h.chunk_id} className="evidence-card" onClick={() => onSource(h)}><strong>[{h.citation_id}] {h.doc_title}</strong><Tag>{report?.references.includes(h.citation_id || 0)?'本次回答引用':'检索候选'}</Tag><small>{h.source_kind === 'official' ? `官方资料整理 · ${h.checked_at}` : `网站手册 · ${h.version ? `v${h.version}` : '正文'}`}</small><span>查看适用版本与原文 →</span></button>)}</Card>
       {!!current?.reports?.length && <Card size="small" title="历次判断与资料版本"><Collapse items={current.reports.map(r => ({key: String(r.revision), label: `第 ${r.revision} 次分析`, children: <><p>{r.report.summary}</p><small>{verdicts[r.report.verification.verdict]}</small>{r.hits.map(h => <Button type="link" style={{whiteSpace: 'normal', height: 'auto'}} key={h.chunk_id} onClick={() => onSource(h)}>[{h.citation_id}] {h.doc_title}{h.version ? ` v${h.version}` : ''}</Button>)}</>}))} /></Card>}
     </div></Drawer>
     <SiteEditor open={siteOpen} site={sites.find(s => s.id === editingSite)} close={() => setSiteOpen(false)} saved={s => {setSiteId(s.id); setSiteOpen(false); refresh().catch(e => message.error(e.message));}} />
-    <Modal open={evidenceOpen} title={evidenceKind === 'check_result' ? '提交操作后的新结果' : '添加日志或检查证据'} onCancel={() => setEvidenceOpen(false)} footer={<Space><Button onClick={() => setEvidenceOpen(false)}>取消</Button><Button loading={actionBusy} disabled={!evidenceText.trim()} onClick={preview}>脱敏预览</Button><Button type="primary" disabled={!previewed || !evidenceText.trim() || !evidenceLabel.trim()} loading={actionBusy} onClick={submitEvidence}>确认提交这份证据</Button></Space>}><label className="form-field">上传日志片段（TXT / LOG / JSON，UTF-8，最多64KB / 12000字符）<input aria-label="上传日志片段" type="file" accept=".txt,.log,.json" onChange={async e=>{const f=e.target.files?.[0];if(!f)return;setActionBusy(true);try{const body=new FormData();body.append('file',f);const r=await api<EvidencePreview>('/api/maintenance/evidence/file-preview',{method:'POST',body});setEvidenceText(r.text);setEvidenceLabel((r.filename||f.name).slice(0,100));setPreviewed(true);setEvidencePreview(r);}catch(error){message.error((error as Error).message);}finally{setActionBusy(false);}}}/></label>
-      <Alert type="info" title="日志只作为本次会话证据，不会自动写进长期知识库。" description="先遮蔽常见密码、令牌、连接串密码和邮箱；仍需人工检查IP和其他个人信息。只有确认提交后的文本才会发送给模型。" />
+    <Modal open={evidenceOpen} title={evidenceKind === 'check_result' ? '补充复测结果' : '补充日志或检查证据'} onCancel={() => setEvidenceOpen(false)} footer={<Space><Button onClick={() => setEvidenceOpen(false)}>取消</Button><Button loading={actionBusy} disabled={!evidenceText.trim()} onClick={preview}>脱敏预览</Button><Button type="primary" disabled={!evidenceText.trim() || !evidenceLabel.trim()} loading={actionBusy} onClick={submitEvidence}>提交并分析</Button></Space>}><label className="form-field">上传日志片段（TXT / LOG / JSON，UTF-8，最多64KB / 12000字符）<input aria-label="上传日志片段" type="file" accept=".txt,.log,.json" onChange={async e=>{const f=e.target.files?.[0];if(!f)return;setActionBusy(true);try{const body=new FormData();body.append('file',f);const r=await api<EvidencePreview>('/api/maintenance/evidence/file-preview',{method:'POST',body});setEvidenceText(r.text);setEvidenceLabel((r.filename||f.name).slice(0,100));setPreviewed(true);setEvidencePreview(r);}catch(error){message.error((error as Error).message);}finally{setActionBusy(false);}}}/></label>
+      <Alert type="info" title="提交时自动遮蔽常见密码、令牌和邮箱；请留意日志中的公网 IP 等信息。" />
       <div className="form-field"><label htmlFor="evidence-label">这是什么证据</label><Input id="evidence-label" value={evidenceLabel} maxLength={100} onChange={e => setEvidenceLabel(e.target.value)} /></div>
       <div className="form-field"><label htmlFor="evidence-time">采集时间 / 时区 / 请求范围（可选）</label><Input id="evidence-time" value={collectedAt} maxLength={80} onChange={e => setCollectedAt(e.target.value)} placeholder="例如 2026-11-11 21:00 北京时间，重试了3次下单请求" /></div>
       <div className="form-field"><label htmlFor="evidence-endpoint">对应接口（只有HTTP状态行时请填写）</label><Input id="evidence-endpoint" value={evidenceEndpoint} maxLength={200} onChange={e => setEvidenceEndpoint(e.target.value)} placeholder="/orders；日志中保留带时区时间戳，如2026-11-12T10:00:00+08:00" /></div>
       {evidenceStep !== undefined && <Tag>关联已确认方案的检查 {evidenceStep + 1}</Tag>}
       <Input.TextArea className="section-gap" aria-label="证据文本" value={evidenceText} maxLength={12000} rows={10} onChange={e => {setEvidenceText(e.target.value); setPreviewed(false);setEvidencePreview(null);}} placeholder="粘贴相关日志、报错、脱敏配置片段，或操作后重新请求的结果…" />
-      {previewed&&evidencePreview&&<><RedactionNotice value={evidencePreview}/>{evidencePreview.summary&&<EvidenceSummary value={evidencePreview.summary}/>}<p className="muted section-gap">上面已替换为脱敏预览。请核对无误后确认提交；编辑后需要重新预览。</p></>}
+      {previewed&&evidencePreview&&<><RedactionNotice value={evidencePreview}/>{evidencePreview.summary&&<EvidenceSummary value={evidencePreview.summary}/>}</>}
     </Modal>
     <Modal open={!!recordAction} title={recordAction==='resolve'?'由你确认问题已解决':'归档处理记录'} onCancel={() => setRecordAction(null)} onOk={saveCase} confirmLoading={actionBusy} okText={recordAction==='resolve'?'确认解决':'归档记录'} okButtonProps={{disabled: !confirmed || !solution.trim()}}>
       <p>{recordAction==='resolve'?'填写你实际复测的操作和结果。':'记录实际做过的操作、结果或暂停原因。归档保留当前问题状态。'}</p>

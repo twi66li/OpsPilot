@@ -35,6 +35,7 @@ def submit_evidence(
         raise HTTPException(400, "本会话证据已达上限，请为新的问题创建会话")
     if body.kind == "check_result" and not case.data.get("plan"):
         raise HTTPException(409, "请先确认当前检查方案；普通补充日志请选择初始/补充证据")
+    redacted = redact(body.text)
     item = new_evidence(body)
     if body.kind == "check_result":
         plan = case.data["plan"]
@@ -55,7 +56,13 @@ def submit_evidence(
         {"evidence_id": item["id"], "label": item["label"], "kind": item["kind"]},
     )
     db.commit()
-    return item
+    return {
+        **item,
+        "replacements": redacted["replacements"],
+        "findings": redacted["findings"],
+        "review_findings": redacted["review_findings"],
+        "notice": redacted["notice"],
+    }
 
 
 @router.post("/cases/{session_id}/confirm-plan")

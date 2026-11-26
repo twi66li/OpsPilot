@@ -313,6 +313,8 @@ small, .muted { color: var(--text-3); font-size: 12px; }
 .plain-assistant .support-message:not(.user) .support-bubble { max-width:100%; padding-inline:0; border:0; }
 .plain-assistant .support-message.user .support-bubble { border-color:var(--line); background:var(--sunken); color:var(--text); }
 .assistant-inline-error { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 2px 6px; color:var(--warn); }
+.assistant-log-banner { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 2px 6px; padding:6px 12px; border:1px solid var(--line); border-radius:8px; background:var(--panel); font-size:13px; }
+.chat-diagnosis-card { width:100%; max-width:760px; }
 .assistant-usage > div { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); }
 .assistant-history-drawer .ant-drawer-body { padding:4px 8px; }
 .support-chat-scroll { display:flex; flex:1; flex-direction:column; gap:18px; min-height:0; overflow:auto; overscroll-behavior:contain; padding:24px clamp(16px,3vw,48px); }

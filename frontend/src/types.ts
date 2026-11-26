@@ -7,8 +7,30 @@ export interface Hit {
   parent_text?: string; file_url?: string; content_type?: string; matched_text?: string; source_name?: string;
   source_kind?: 'official' | 'private'; applicable_version?: string; checked_at?: string; content_hash?: string;
 }
-export interface ChatMessage { role: string; content: string; meta?: { run_id?: string; citations?: string[] } }
-export interface SessionHistory { title: string; messages: ChatMessage[]; active_run_id?: string | null }
+export interface ChatMessage {
+  role: string;
+  content: string;
+  meta?: {
+    run_id?: string;
+    citations?: string[];
+    case_id?: string;
+    evidence_id?: string;
+    workflow?: Workflow;
+    prompt?: string;
+    personal_model?: boolean;
+    redaction?: {
+      replacements: number;
+      findings?: EvidencePreview['findings'];
+      review_findings?: EvidencePreview['review_findings'];
+    };
+  };
+}
+export interface SessionHistory {
+  title: string;
+  messages: ChatMessage[];
+  active_run_id?: string | null;
+  cases?: Record<string, PersonalCase & {active_run_id?: string | null}>;
+}
 export interface Approval { pending?: boolean; approval_id: string; ticket_draft: Record<string, unknown> }
 export interface AgentEvent {
   type: string; answer?: string; delta?: string; message?: string; node?: string; name?: string; agent?: string;

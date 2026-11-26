@@ -137,14 +137,14 @@
   .login-mobile-brand { display:block; }
   .auth-screen .login-page { flex-direction:column; justify-content:center; align-items:center; padding:24px 20px; gap:16px; } .login-story { display:none; } .login-card { width:min(100%,380px); }
   .auth-tabs { padding-inline:24px; } .auth-body { padding-inline:24px; }
-  .app-header { padding:0 12px; gap:8px; } .app-header > .ant-space:first-child { flex-shrink:0; gap:8px!important; }
+  .app-header { padding:0 8px; gap:4px; } .app-header > .ant-space:first-child { flex:0 1 auto; min-width:0; gap:6px!important; }
   .app-header .header-page-title { display:none; } .global-search-trigger { flex:0 0 36px; padding:0; justify-content:center; } .global-search-trigger > span:not(.ant-btn-icon),.global-search-trigger kbd { display:none; }
   .app-header-actions { margin-left:auto; } .home-shortcuts { grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
   .home-next-title { font-size:20px; } .home-next-meta { margin-left:0; display:flex; margin-top:8px; }
   .home-next { align-items:flex-start; } .home-next-action { align-self:flex-start; }
   .site-stats { gap:10px 16px; } .onboarding { gap:4px; } .onboarding > strong { flex-basis:100%; }
   .page-breadcrumb { display:flex; font-size:12px; gap:6px; } .page-breadcrumb strong { max-width:56px; }
-  .app-header .account-button { padding-inline:8px; }
+  .app-header .account-button { padding-inline:6px; } .app-header .account-name { display:none; }
 }
 
 

@@ -115,7 +115,7 @@ export default function Knowledge({onSource, canWrite, personal = false, initial
       {personal&&<Alert className="section-bottom" type="info" title="手册只属于你的个人空间。上传前请移除密码、令牌和无关个人信息；日志请在排障会话中脱敏后提交。"/>}
       <div className="form-field"><label htmlFor="knowledge-title">文档标题（可选）</label><Input id="knowledge-title" value={title} onChange={e => setTitle(e.target.value)} maxLength={200} /></div>
       <div className="form-field"><label htmlFor="knowledge-file">原文件 · PDF / Markdown / TXT，最大10MB</label><input id="knowledge-file" type="file" accept=".pdf,.md,.txt" onChange={e => setFile(e.target.files?.[0] || null)} /></div>
-      <div className="form-field"><label htmlFor="knowledge-parsed">MinerU content_list.json（复杂PDF可选）</label><InfoTip label="复杂PDF解析说明">普通 PDF 直接提取文本；复杂 PDF 可用 scripts/parse-pdf.cmd 解析。扫描件需先安装 MinerU，将 content_list.json 与原 PDF 一起上传。</InfoTip><input id="knowledge-parsed" type="file" accept=".json" onChange={e => setParsed(e.target.files?.[0] || null)} /></div>
+      <div className="form-field"><label htmlFor="knowledge-parsed">MinerU content_list.json（可选）</label><InfoTip label="PDF 解析说明">启用在线解析时，未附解析结果的 PDF 会发送给 MinerU。也可以附上本机生成的 content_list.json，使用已有解析结果。</InfoTip><input id="knowledge-parsed" type="file" accept=".json" onChange={e => setParsed(e.target.files?.[0] || null)} /></div>
 
     </Modal>
   </div>;

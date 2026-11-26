@@ -4,7 +4,7 @@ from dataclasses import asdict, dataclass
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import Field, SecretStr, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -101,6 +101,10 @@ class Settings(BaseSettings):
     checkpoint_pool_min_size: int = 1
     checkpoint_pool_max_size: int = 4
     kb_storage_path: str = "./data/knowledge"
+    pdf_parser_mode: Literal["auto", "pypdf", "mineru"] = "auto"
+    mineru_api_key: SecretStr = SecretStr("")
+    mineru_api_base: str = "https://mineru.net/api/v4"
+    mineru_timeout_seconds: float = Field(default=180, gt=0)
 
     # ---- 认证 ----
     jwt_secret: str = "dev-secret-change-me"

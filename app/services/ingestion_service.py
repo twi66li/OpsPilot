@@ -7,6 +7,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from importlib.metadata import version as package_version
+from pathlib import Path
 
 from sqlalchemy import or_, select, update
 
@@ -17,6 +18,7 @@ from app.db.models import Document, DocumentChunk, DocumentParent, DocumentVersi
 from app.services.assistant_quota import model_allowance
 from app.services.budget import BudgetExceededError
 from app.services.document_parser import build_version_chunks, parse_file
+from app.services.mineru import extract_content_list
 from app.services.run_service import (
     LeaseLostError,
     TaskLease,
@@ -832,6 +834,22 @@ def process_version(
             ):
                 raise LeaseLostError(f"parsing 阶段租约失效: version_id={version_id}")
 
+            settings = container.settings
+            pdf_mode = getattr(settings, "pdf_parser_mode", "pypdf")
+            if not parsed_path and Path(filename).suffix.lower() == ".pdf" and (
+                pdf_mode == "mineru" or (pdf_mode == "auto" and settings.mineru_api_key.get_secret_value().strip())
+            ):
+                def check_lease():
+                    if lost_event.is_set():
+                        raise LeaseLostError(f"MinerU 解析阶段租约失效: version_id={version_id}")
+
+                original = Path(original_path)
+                content_list = extract_content_list(original, settings, check_lease)
+                _assert_lease_active(version_id, lease, lost_event, session_factory=factory)
+                parsed_file = original.with_name(f"mineru-{lease.token}.json")
+                parsed_file.write_bytes(content_list)
+                parsed_path = str(parsed_file)
+
             pages, warnings, parser = parse_file(original_path, filename, parsed_path)
             _assert_lease_active(version_id, lease, lost_event, session_factory=factory)
 
@@ -842,6 +860,7 @@ def process_version(
                 pages=pages,
                 warnings=warnings,
                 parser=parser,
+                parsed_path=parsed_path,
                 status="chunking",
                 progress=30,
                 lease_seconds=ttl,

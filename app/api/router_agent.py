@@ -14,6 +14,7 @@ from app.services import agent_service, background_runs, chat_service
 from app.services.assistant_quota import claim_chat, model_allowance
 from app.services.cache import check_rate_limit
 from app.services.case_service import assert_editable
+from app.services.visitor_service import DEMO_DRILL_PREFIX, VISITOR_ID
 
 router = APIRouter(prefix="/api/agent", tags=["agent"])
 _SSE_HEADERS = {"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"}
@@ -216,7 +217,10 @@ def tools(user: AuthUser = Depends(get_current_user)):
 def get_run(run_id: str, user: AuthUser = Depends(get_assistant_user), db: Session = Depends(get_db)):
     from app.services.run_service import get_run as read_run
 
-    run = read_run(db, user.tenant_id, run_id, user.user_id)
+    owner = user.user_id
+    if user.is_guest and run_id.startswith(DEMO_DRILL_PREFIX) and get_container().settings.drill_enabled:
+        owner = VISITOR_ID
+    run = read_run(db, user.tenant_id, run_id, owner)
     if run is None:
         raise HTTPException(status_code=404, detail="运行记录不存在")
     from app.services.run_service import serialize_run

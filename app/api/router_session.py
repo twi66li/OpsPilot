@@ -1,5 +1,7 @@
 """会话接口：创建 / 列表 / 详情（含消息）。"""
 
+from dataclasses import replace
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -17,6 +19,7 @@ from app.services.case_service import assert_editable, case_status, create_case_
 from app.services.maintenance_timeline import record_event
 from app.services.support_evidence import EvidenceIn, new_evidence, owned_case, owned_site, redact
 from app.services.support_report import case_dict
+from app.services.visitor_service import DEMO_DRILL_PREFIX, DEMO_RECORD_PREFIX, VISITOR_ID
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 assistant_router = APIRouter(prefix="/api/assistant", tags=["assistant"])
@@ -69,6 +72,8 @@ def list_sessions(user: AuthUser = Depends(get_current_user)):
 
 @router.get("/{session_id}")
 def get_session(session_id: str, user: AuthUser = Depends(get_current_user)):
+    if user.is_guest and session_id.startswith(DEMO_DRILL_PREFIX) and not get_container().settings.drill_enabled:
+        raise HTTPException(404, "当前环境未开放故障演练")
     with SessionLocal() as db:
         return session_history(db, owned_session(db, user, session_id))
 
@@ -122,7 +127,14 @@ def assistant_usage(user: AuthUser = Depends(get_assistant_user), db: Session = 
 
 @assistant_router.get("/conversations")
 def assistant_list(user: AuthUser = Depends(get_assistant_user), db: Session = Depends(get_db)):
-    return [session_summary(s) for s in chat_service.list_sessions(db, user.tenant_id, user.user_id, assistant_chat=True)]
+    items = [session_summary(s) for s in chat_service.list_sessions(db, user.tenant_id, user.user_id, assistant_chat=True)]
+    if user.is_guest:
+        items.extend(
+            {**session_summary(s), "read_only": True}
+            for s in chat_service.list_sessions(db, user.tenant_id, VISITOR_ID, assistant_chat=True)
+            if s.id.startswith(DEMO_RECORD_PREFIX)
+        )
+    return items
 
 
 def limit_assistant_write(user):
@@ -152,6 +164,10 @@ def _active_run_id(db: Session, tenant_id: str, target_session_id: str) -> str |
 
 @assistant_router.get("/conversations/{session_id}")
 def assistant_history(session_id: str, user: AuthUser = Depends(get_assistant_user), db: Session = Depends(get_db)):
+    if user.is_guest and session_id.startswith(DEMO_RECORD_PREFIX):
+        demo_user = replace(user, user_id=VISITOR_ID)
+        return {**session_history(db, owned_session(db, demo_user, session_id, assistant_only=True)),
+                "read_only": True, "cases": {}}
     data = session_history(db, owned_session(db, user, session_id, assistant_only=True))
     case_ids = {
         m["meta"].get("case_id")

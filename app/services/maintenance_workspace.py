@@ -16,6 +16,7 @@ from app.db.models import (
 )
 from app.services.case_service import case_status, is_archived
 from app.services.maintenance_timeline import record_event
+from app.services.visitor_service import DEMO_RECORD_PREFIX
 
 
 def site_summaries(db, user, sites):
@@ -197,8 +198,10 @@ def get_operation_detail(db, user, record_id):
     from app.services.preflight import evaluate_remediation_preflight, evaluate_ticket_preflight
     from app.services.run_service import serialize_run
 
-    if user.role not in ("admin", "engineer"):
+    if not user.is_guest and user.role not in ("admin", "engineer"):
         raise HTTPException(403, "需要工程师或管理员权限")
+    if user.is_guest and not record_id.startswith(DEMO_RECORD_PREFIX):
+        raise HTTPException(404, "审批或工单不存在")
     row = None
     kind = ""
     settings = get_settings()
@@ -216,6 +219,15 @@ def get_operation_detail(db, user, record_id):
     for key, value in data.items():
         if hasattr(value, "isoformat"):
             data[key] = value.isoformat()
+    if user.is_guest:
+        impact = "示例商城的跟进工单"
+        if kind == "remediation":
+            demo_run = db.get(AgentRun, row.run_id)
+            if demo_run and demo_run.tenant_id == user.tenant_id and demo_run.data.get("demo"):
+                data["session_id"] = demo_run.session_id
+            impact = "关闭独立演练实例的故障注入"
+        return {"kind": kind, "record": data, "run": None, "preflight": None, "impact": impact,
+                "verification_scope": "公开演示样本"}
     runs = (
         db.query(AgentRun)
         .join(ChatSession, ChatSession.id == AgentRun.session_id)

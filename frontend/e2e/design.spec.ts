@@ -635,11 +635,23 @@ test('脱敏类别与IP核对展示，且无需强制预览即可提交',async({
   await fixture(page);await page.goto('/support/design-case');
   await page.route('**/api/support/evidence/preview',r=>r.fulfill({json:{text:'password=[已脱敏]\n10.0.0.8 GET /orders HTTP 502',replacements:1,findings:[{label:'口令或密钥',count:1,lines:[1]}],review_findings:[{label:'IPv4地址',count:1,lines:[2]}],summary:logSummary}}));
   await page.getByRole('button',{name:'补充证据',exact:true}).click();
-  const input=page.getByLabel('证据文本',{exact:true});await input.fill('password=original-secret\n10.0.0.8 GET /orders HTTP 502');
-  await expect(page.getByRole('button',{name:'提交并分析',exact:true})).toBeEnabled();
-  await page.getByRole('button',{name:'脱敏预览',exact:true}).click();
-  await expect(page.getByRole('dialog')).toContainText('口令或密钥 1 处');await expect(page.getByRole('dialog')).toContainText('IPv4地址 1 处');
-  await input.fill('修改过的文本');await expect(page.getByRole('button',{name:'提交并分析',exact:true})).toBeEnabled();
+  const dialog=page.getByRole('dialog',{name:'补充日志或检查证据'});
+  const input=dialog.getByLabel('证据文本',{exact:true});
+  const submit=dialog.getByRole('button',{name:'提交并分析',exact:true});
+  await input.fill('password=original-secret\n10.0.0.8 GET /orders HTTP 502');
+  await expect(submit).toBeEnabled();
+  await dialog.getByRole('button',{name:'脱敏预览',exact:true}).click();
+  await expect(input).toHaveValue('password=[已脱敏]\n10.0.0.8 GET /orders HTTP 502');
+  await expect(dialog).toContainText('口令或密钥 1 处');
+  await expect(dialog).toContainText('IPv4地址 1 处');
+  await input.fill('修改过的文本');
+  await expect(dialog.getByLabel('日志关键信息')).toHaveCount(0);
+  await expect(submit).toBeEnabled();
+  const evidenceUrl=`**/api/support/cases/${record.id}/evidence`;
+  await page.route(evidenceUrl,route=>route.fulfill({json:{saved:true}}));
+  const saved=page.waitForRequest(evidenceUrl);
+  await submit.click();
+  expect((await saved).postDataJSON()).toMatchObject({text:'修改过的文本'});
 });
 
 test('演练工单默认字段摘要且保留审批权限',async({page})=>{
@@ -728,13 +740,15 @@ test('v3 新手引导与快捷入口打开真实表单',async({page})=>{
   await expect(page.getByRole('dialog',{name:'上传运维文档'})).toBeVisible();await expect(page.getByRole('dialog',{name:'上传运维文档'})).toContainText('上传前请移除密码、令牌');
 });
 
-test('v3 访客搜索不出现写入或管理操作，空结果可退出',async({page})=>{
+test('v3 访客搜索提供审批和评测只读入口，空结果可退出',async({page})=>{
   await fixture(page,{guest:true});
   await page.route('**/api/workspace/documents?*',route=>route.fulfill({json:{items:[],total:0,page:1,page_size:6}}));
   await page.goto('/home');await expect(page.getByLabel('开始使用')).toHaveCount(0);
   await page.getByRole('button',{name:'全局搜索',exact:true}).click();const dialog=page.getByRole('dialog',{name:/搜索网站、问题与资料/});
   await expect(dialog.getByRole('option',{name:/个人网站/})).toBeVisible();
-  await expect(dialog.getByRole('option',{name:/上传手册|记录新问题|审批与工单|评测记录/})).toHaveCount(0);
+  await expect(dialog.getByRole('option',{name:/上传手册|记录新问题/})).toHaveCount(0);
+  await expect(dialog.getByRole('option',{name:/审批与工单/})).toBeVisible();
+  await expect(dialog.getByRole('option',{name:/评测记录/})).toBeVisible();
   await page.route('**/api/workspace/sites?*',route=>route.fulfill({json:{items:[],total:0,page:1,page_size:6}}));
   await page.route('**/api/workspace/cases?*',route=>route.fulfill({json:{items:[],total:0,page:1,page_size:6}}));
   await dialog.getByLabel('全局搜索关键词').fill('没有匹配的名字');await expect(dialog).toContainText('没有找到可访问的匹配记录');

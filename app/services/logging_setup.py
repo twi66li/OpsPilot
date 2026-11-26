@@ -15,6 +15,8 @@ def configure_logging():
     handler = logging.StreamHandler()
     handler.setFormatter(formatter)
     logging.basicConfig(level=logging.INFO, handlers=[handler], force=True)
+    # HTTPX 的请求日志包含完整 URL，MinerU 等服务会在 URL 中附带临时签名。
+    logging.getLogger("httpx").setLevel(logging.WARNING)
     structlog.configure(processors=[*processors, structlog.stdlib.ProcessorFormatter.wrap_for_formatter],
                         logger_factory=structlog.stdlib.LoggerFactory(),
                         wrapper_class=structlog.stdlib.BoundLogger, cache_logger_on_first_use=True)

@@ -3,13 +3,16 @@
 from datetime import datetime
 
 from app.auth.security import hash_password
+from app.config import get_settings
 from app.db.models import ChatSession, Message, SupportCase, Tenant, User, WebsiteProfile, WorkspaceEvent
-from app.services.maintenance_service import record_event
+from app.services.maintenance_timeline import record_event
 
 VISITOR_ID = "opspilot-public-visitor"
 VISITOR_TENANT = "opspilot-public-demo"
 VISITOR_USERNAME = "visitor"
 VISITOR_COOKIE = "opspilot_visitor"
+DEMO_RECORD_PREFIX = "visitor-demo-"
+DEMO_DRILL_PREFIX = DEMO_RECORD_PREFIX + "drill-"
 # 公开体验口令，不用于任何真实账号或外部服务。
 VISITOR_PASSWORD = "OpsPilotDemo2026!"
 
@@ -34,6 +37,9 @@ def ensure_visitor_context(db, site):
 
 
 def ensure_visitor(db):
+    from app.services.visitor_drills import ensure_visitor_drills
+    from app.services.visitor_history import ensure_visitor_history
+
     existing = db.query(User).filter_by(username=VISITOR_USERNAME).first()
     if existing and not is_visitor(existing):
         raise RuntimeError("visitor 名称已被普通账号使用，不能覆盖为公开访客账号")
@@ -47,6 +53,9 @@ def ensure_visitor(db):
     previous = db.get(WebsiteProfile, "visitor-example-site")
     if previous:
         ensure_visitor_context(db, previous)
+        ensure_visitor_history(db, previous)
+        if get_settings().drill_enabled:
+            ensure_visitor_drills(db)
         db.commit()
         return
     at = datetime(2026, 11, 1, 2, 0)
@@ -90,4 +99,7 @@ def ensure_visitor(db):
         record_event(db, VISITOR_TENANT, VISITOR_ID, "case", sid, "case_created",
                      {"title": title, "actor": "教学示例", "note": "预置教学记录，非真实采集。"})
     ensure_visitor_context(db, site)
+    ensure_visitor_history(db, site)
+    if get_settings().drill_enabled:
+        ensure_visitor_drills(db)
     db.commit()

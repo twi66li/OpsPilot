@@ -12,18 +12,25 @@ from app.services.official_library import BY_ID, OFFICIAL_TENANT
 
 
 def retrieve_for_case(container, tenant_id, user_id, context, query, top_k):
-    """先过滤授权文档和有效版本，再召回；两个知识域共享一次query embedding及重排。"""
+    """先过滤授权文档和有效版本，再召回；两个知识域共享一次query embedding及重排。
+
+    已绑定网站或显式指定 doc_ids 时，仅检索所选文档以保持站点隔离；
+    未绑定网站且未指定 doc_ids 时，默认检索本人全部已生效私有手册。
+    """
     with container.db_session() as db:
-        private = (
-            db.query(Document)
-            .filter(
-                Document.tenant_id.in_((tenant_id, personal_namespace(user_id))),
-                Document.created_by == user_id,
-                Document.deleted_at.is_(None),
-                Document.id.in_(context.get("profile", {}).get("doc_ids", [])),
-            )
-            .all()
+        profile = context.get("profile") or {}
+        explicit_doc_ids = profile.get("doc_ids")
+        site_bound = bool(context.get("site_id"))
+        private_query = db.query(Document).filter(
+            Document.tenant_id.in_((tenant_id, personal_namespace(user_id))),
+            Document.created_by == user_id,
+            Document.deleted_at.is_(None),
         )
+        if site_bound or explicit_doc_ids:
+            private_query = private_query.filter(Document.id.in_(explicit_doc_ids or []))
+        else:
+            private_query = private_query.filter(Document.active_version_id.is_not(None))
+        private = private_query.all()
         official = (
             []
             if context.get("exclude_official")

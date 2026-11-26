@@ -10,6 +10,7 @@ export interface Hit {
 export interface ChatMessage {
   role: string;
   content: string;
+  created_at?: string;
   meta?: {
     run_id?: string;
     citations?: string[];
@@ -28,12 +29,14 @@ export interface ChatMessage {
 export interface SessionHistory {
   title: string;
   messages: ChatMessage[];
+  read_only?: boolean;
   active_run_id?: string | null;
   cases?: Record<string, PersonalCase & {active_run_id?: string | null}>;
 }
-export interface Approval { pending?: boolean; approval_id: string; ticket_draft: Record<string, unknown> }
+export interface Approval { pending?: boolean; approval_id: string; ticket_draft: Record<string, unknown>; status?: string; created_at?: string }
 export interface AgentEvent {
   type: string; answer?: string; delta?: string; message?: string; node?: string; name?: string; agent?: string;
+  at?: string;
   summary?: string; run_id?: string; hits?: Hit[]; approval?: Approval; approval_id?: string;
   ticket_draft?: Record<string, unknown>; result?: Record<string, unknown>; end_reason?: string;
   support_report?: SupportReport;
@@ -42,7 +45,7 @@ export interface AgentEvent {
 }
 export interface Run {
   run_id: string; status: string; created_at?:string; updated_at?:string;
-  data: { question?:string; result?: AgentEvent; events: { kind: string; at?:string; detail: AgentEvent | Record<string, unknown> }[] };
+  data: { question?:string; result?: AgentEvent; demo_operation_id?: string; events: { kind: string; at?:string; detail: AgentEvent | Record<string, unknown> }[] };
 }
 export interface KnowledgeDoc { id: string; title: string; source: string; chunk_count: number; active_version_id?: string }
 export interface Version {

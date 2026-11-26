@@ -18,9 +18,9 @@ for(const width of [1440,1024,390]){
     expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
     await page.getByRole('button',{name:/浏览示例问题/}).click();
     await expect(page.getByRole('button',{name:/新建问题/})).toBeDisabled();
-    await expect(page.getByRole('button',{name:'查看记录',exact:true})).toHaveCount(2);
+    await expect(page.getByRole('row').filter({hasText:'大报表导出等待时间过长'})).toBeVisible();
     await expect(page.getByRole('checkbox')).toHaveCount(0);
-    await page.getByRole('button',{name:'查看记录',exact:true}).first().click();
+    await page.getByRole('row').filter({hasText:'示例：结算接口返回 502'}).getByRole('button',{name:'查看记录',exact:true}).click();
     await expect(page.getByLabel('网站排障问题')).toBeDisabled();
     await page.getByRole('button',{name:'补充证据',exact:true}).click();
     await expect(page.getByText('登录个人账号后可上传日志并排查',{exact:true})).toBeVisible();
@@ -41,9 +41,49 @@ for(const width of [1440,1024,390]){
     await expect(page.getByRole('button',{name:'测试检索',exact:true})).toBeDisabled();
     const {drill_enabled}=await (await request.get('/auth/options')).json();
     await page.goto('/investigation');
-    if(drill_enabled)await expect(page.getByRole('heading',{name:'体验一次故障调查与恢复',exact:true})).toBeVisible();
-    else await expect(page).toHaveURL(/\/home$/);
+    if(drill_enabled){
+      await expect(page).toHaveURL(/\/investigation\/visitor-demo-drill-pool-recovery$/);
+      await expect(page.locator('.chat-history .chat-message')).toHaveCount(6);
+      await expect(page.locator('.chat-history')).toContainText('三次同入口复测通过');
+      if(width===1440){
+        await expect(page.locator('.evidence-panel')).toContainText('知识引用 · 1');
+        await page.getByText(/执行过程 · 6 条记录/).click();
+        await expect(page.getByText('周宁批准关闭测试注入，范围为 order-service。')).toBeVisible();
+        await page.getByRole('link',{name:'查看审批与三次复测'}).click();
+        await expect(page.getByRole('link',{name:'返回演练回放'})).toBeVisible();
+        await expect(page.getByText('样本验证通过',{exact:true}).last()).toBeVisible();
+        await page.getByRole('link',{name:'返回演练回放'}).click();
+        await expect(page).toHaveURL(/\/investigation\/visitor-demo-drill-pool-recovery$/);
+      }
+    }else await expect(page).toHaveURL(/\/home$/);
     await expect(page.getByText('故障演练 · 独立测试环境，未接入你的网站',{exact:true})).toHaveCount(0);
+    if(width===1440){
+      await page.getByRole('menuitem',{name:/审批与工单/}).click();
+      const pending=page.getByRole('row').filter({hasText:'大报表导出等待时间过长跟进'});
+      await expect(pending).toContainText('待审批');
+      await pending.getByRole('button',{name:'查看',exact:true}).click();
+      await expect(page.getByRole('link',{name:'查看关联问题'})).toBeVisible();
+      await expect(page.getByLabel('本次审批意见')).toHaveCount(0);
+      await page.goto('/evaluation?run=visitor-eval-2026-08');
+      await expect(page.getByText('2026 年 8 月 · 诊断回归（演示）',{exact:true})).toBeVisible();
+      await expect(page.getByRole('table')).toContainText('华东同事还看到旧主图');
+      await page.goto('/support');
+      await page.getByRole('button',{name:/商品图片发布后仍显示旧版本/}).click();
+      await expect(page.getByRole('log',{name:'聊天记录'})).toContainText('源站返回新 ETag');
+      await expect(page.getByRole('log',{name:'聊天记录'}).locator('time')).toHaveCount(6);
+      await expect(page.getByRole('log',{name:'聊天记录'})).toContainText('三个节点的同路径样本一致');
+      await expect(page.getByLabel('给维护助手发消息')).toBeDisabled();
+      await page.getByRole('button',{name:'新对话',exact:true}).click();
+      await expect(page.getByLabel('给维护助手发消息')).toBeEnabled();
+    }
+    if(width===390){
+      await page.goto('/operations');
+      await expect(page.getByText('示例审批记录 · 12',{exact:true})).toBeVisible();
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+      await page.goto('/evaluation');
+      await expect(page.getByText('12 条逐题记录',{exact:true})).toBeVisible();
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBeTruthy();
+    }
     await expect(page.getByRole('button',{name:/^账号：/})).toBeVisible();
     await page.getByRole('button',{name:/^账号：/}).click();
     await page.getByRole('menuitem',{name:/退出访客$/}).click();

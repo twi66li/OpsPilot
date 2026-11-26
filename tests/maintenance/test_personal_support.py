@@ -89,6 +89,17 @@ def test_personal_handbook_is_private_even_with_same_tenant(client, admin_header
     selected = retrieve_for_case(container, identity["tenant_id"], identity["sub"],
                                  {"profile": {"doc_ids": [doc_id]}}, "SITE_ONLY_MANUAL rollback", 5)
     assert any(hit["doc_id"] == doc_id and hit["source_kind"] == "private" for hit in selected)
+    # 未绑定网站且未显式指定 doc_ids 时，默认检索本人已生效私有手册；绑定了未勾选手册的网站时仍保持隔离
+    unbound = retrieve_for_case(container, identity["tenant_id"], identity["sub"],
+                                {"profile": {}}, "SITE_ONLY_MANUAL rollback", 5)
+    assert any(hit["doc_id"] == doc_id and hit["source_kind"] == "private" for hit in unbound)
+    bound_empty = retrieve_for_case(container, identity["tenant_id"], identity["sub"],
+                                    {"site_id": "site-without-docs", "profile": {"doc_ids": []}}, "SITE_ONLY_MANUAL rollback", 5)
+    assert all(hit["doc_id"] != doc_id for hit in bound_empty)
+    admin_identity = decode_token(admin_headers["Authorization"].split(" ", 1)[1])
+    admin_unbound = retrieve_for_case(container, admin_identity["tenant_id"], admin_identity["sub"],
+                                      {"profile": {}}, "SITE_ONLY_MANUAL rollback", 5)
+    assert all(hit["doc_id"] != doc_id for hit in admin_unbound)
     assert client.post('/api/support/sites', headers=admin_headers, json={"name": "other", "doc_ids": [doc_id]}).status_code == 400
 
 

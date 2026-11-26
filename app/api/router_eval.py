@@ -9,7 +9,8 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from app.auth.deps import AuthUser, require_roles
+from app.auth.deps import AuthUser, get_current_user
+from app.services.visitor_history import DEMO_RUNS, visitor_eval_report
 
 router = APIRouter(prefix="/api/eval", tags=["eval-results"])
 
@@ -69,8 +70,8 @@ def _default_run(runs: list[dict]) -> str:
     return candidates[0]["id"] if candidates else ""
 
 
-async def require_evaluation_access(user: AuthUser = Depends(require_roles("admin"))) -> AuthUser:
-    if user.tenant_id != "default":
+async def require_evaluation_access(user: AuthUser = Depends(get_current_user)) -> AuthUser:
+    if not user.is_guest and (user.role != "admin" or user.tenant_id != "default"):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "需要平台管理员权限")
     return user
 
@@ -78,6 +79,8 @@ async def require_evaluation_access(user: AuthUser = Depends(require_roles("admi
 @router.get("/runs")
 def eval_runs(include_development: bool = False, user: AuthUser = Depends(require_evaluation_access)):
     """列出可查看的评测运行（历史基线 / 重排恢复批），供工作台切换。"""
+    if user.is_guest:
+        return {"runs": DEMO_RUNS, "default_run": DEMO_RUNS[0]["id"], "development_count": 0}
     all_runs = list(_discover_runs().values())
     runs = [r for r in all_runs if include_development or r["category"] == "evaluation" and r["question_count"]]
     return {
@@ -94,6 +97,11 @@ def eval_results(user: AuthUser = Depends(require_evaluation_access), run: str =
     数据来源为评测脚本落盘的 results.json 与 scenarios_frozen.json（只读）。缺省返回
     发现清单中的第一个运行（night20261031/real_run 历史基线）。
     """
+    if user.is_guest:
+        report = visitor_eval_report(run or DEMO_RUNS[0]["id"])
+        if report is None:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "演示评测运行不存在")
+        return report
     records, ctx = _load_run(run)
     # 冻结文件兼容：历史批为 scenarios[]，quality 轮为 questions[]（含 gold_program/gold_notes）
     frozen_qs = ctx["frozen"].get("scenarios") or ctx["frozen"].get("questions") or []

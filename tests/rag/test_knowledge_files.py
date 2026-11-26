@@ -2,8 +2,11 @@
 import io
 import json
 import uuid
+from zipfile import ZipFile
 
+import httpx
 import pytest
+from pydantic import SecretStr
 from pypdf import PdfWriter
 from pypdf.generic import DecodedStreamObject, DictionaryObject, NameObject
 
@@ -32,6 +35,8 @@ def text_pdf(*texts):
 def serial_ingestion(monkeypatch, tmp_path):
     container = get_container()
     monkeypatch.setattr(container.settings, "kb_storage_path", str(tmp_path))
+    monkeypatch.setattr(container.settings, "mineru_api_key", SecretStr(""))
+    monkeypatch.setattr(container.settings, "pdf_parser_mode", "auto")
     monkeypatch.setattr("app.api.router_kb.enqueue", process_version)
 
 
@@ -104,6 +109,59 @@ def test_mineru_structure_and_tenant_permissions(client, admin_headers, viewer_h
 def test_bad_pdf_is_visible_failed_task(client, admin_headers):
     version = upload(client, admin_headers, b"not a pdf", "bad.pdf")
     assert version["status"] == "failed" and not version["active"] and version["error"]
+
+
+@pytest.mark.parametrize("failure", [None, "failed", "timeout"])
+def test_mineru_online_upload_and_index(client, admin_headers, monkeypatch, failure):
+    settings = get_container().settings
+    monkeypatch.setattr(settings, "mineru_api_key", SecretStr("mineru-test-token"))
+    raw = text_pdf(f"First source page: {failure or 'success'}", "Second source page")
+    content_list = [
+        {"type": "text", "text": "MINERU_ONLINE_PAGE_ONE", "page_idx": 0},
+        {"type": "text", "text": "MINERU_ONLINE_PAGE_TWO", "page_idx": 1},
+    ]
+    archive = io.BytesIO()
+    with ZipFile(archive, "w") as result:
+        result.writestr("nested/document_content_list.json", json.dumps(content_list))
+    steps = []
+
+    def respond(request):
+        steps.append((request.method, request.url.path))
+        if request.url.host == "mineru.net":
+            assert request.headers["authorization"] == "Bearer mineru-test-token"
+            if request.method == "POST":
+                assert json.loads(request.content)["files"] == [{"name": "document.pdf"}]
+                data = {"batch_id": "batch", "file_urls": ["https://uploads.example.test/document"]}
+            else:
+                if failure == "timeout":
+                    raise httpx.ReadTimeout("https://example.test/?signed=secret", request=request)
+                state = "failed" if failure else "running" if len(steps) == 3 else "done"
+                data = {"extract_result": [{"state": state, "full_zip_url": "https://results.example.test/result"}]}
+            return httpx.Response(200, json={"code": 0, "data": data})
+        assert "authorization" not in request.headers
+        if request.method == "PUT":
+            assert request.content == raw
+            assert "content-type" not in request.headers
+            return httpx.Response(200)
+        return httpx.Response(200, content=archive.getvalue())
+
+    monkeypatch.setattr("app.services.mineru.Client", lambda: httpx.Client(transport=httpx.MockTransport(respond)))
+    monkeypatch.setattr("app.services.mineru.sleep", lambda _: None)
+    version = upload(client, admin_headers, raw, "online.pdf")
+    assert steps[:3] == [
+        ("POST", "/api/v4/file-urls/batch"), ("PUT", "/document"), ("GET", "/api/v4/extract-results/batch/batch")
+    ]
+    if failure:
+        assert version["status"] == "failed" and not version["active"]
+        assert ("超时" if failure == "timeout" else "解析 PDF 失败") in version["error"]
+        assert "signed" not in version["error"] and "mineru-test-token" not in version["error"]
+        return
+    assert steps[-2:] == [("GET", "/api/v4/extract-results/batch/batch"), ("GET", "/result")]
+    assert version["status"] == "ready" and version["parser"] == "mineru-content-list"
+    assert [p["page"] for p in version["pages"]] == [1, 2]
+    hits = client.post("/api/kb/search", headers=admin_headers,
+                       json={"query": "MINERU_ONLINE_PAGE_TWO", "mode": "dense"}).json()["hits"]
+    assert any(hit["version_id"] == version["version_id"] for hit in hits)
 
 
 def test_qdrant_filters_versions_before_topk():

@@ -21,6 +21,7 @@ from app.db.models import (
 )
 from app.services.case_service import case_item
 from app.services.knowledge_access import personal_namespace
+from app.services.visitor_service import DEMO_DRILL_PREFIX, DEMO_RECORD_PREFIX
 
 router = APIRouter(prefix="/api/workspace", tags=["workspace"])
 T = TypeVar("T")
@@ -151,9 +152,12 @@ def read_page(kind, params, user, db):
         query = db.query(ChatSession).filter(
             ChatSession.tenant_id == user.tenant_id,
             ChatSession.user_id == user.user_id,
+            ChatSession.assistant_chat.is_(False),
             ChatSession.deleted_at.is_(None),
             ChatSession.id.notin_(personal),
         )
+        if user.is_guest:
+            query = query.filter(ChatSession.id.startswith(DEMO_DRILL_PREFIX) if get_settings().drill_enabled else False)
         if params.q:
             query = query.filter(ChatSession.title.icontains(params.q, autoescape=True))
         query = query.order_by(ChatSession.created_at.desc(), ChatSession.id.desc())
@@ -177,12 +181,14 @@ def read_page(kind, params, user, db):
                 "active_version_id": row.active_version_id,
             }
     elif kind in ("approvals", "tickets", "remediations"):
-        if user.role not in ("admin", "engineer"):
+        if not user.is_guest and user.role not in ("admin", "engineer"):
             raise HTTPException(403, "需要工程师或管理员权限")
         if kind == "remediations" and not get_settings().drill_enabled:
             raise HTTPException(404, "当前环境未开放故障演练")
         model = {"approvals": ApprovalRequest, "tickets": Ticket, "remediations": RemediationRequest}[kind]
         query = db.query(model).filter_by(tenant_id=user.tenant_id)
+        if user.is_guest:
+            query = query.filter(model.id.startswith(DEMO_RECORD_PREFIX))
         if params.status:
             query = query.filter(model.status == params.status)
         if params.q:
@@ -202,9 +208,14 @@ def read_page(kind, params, user, db):
                 if hasattr(value, "isoformat"):
                     data[key] = value.isoformat()
             if kind == "approvals":
+                data["approval_id"] = row.id
+            if kind == "remediations":
+                data["action_label"] = "关闭演练故障注入"
+            if user.is_guest:
+                return data
+            if kind == "approvals":
                 from app.services.preflight import evaluate_ticket_preflight
 
-                data["approval_id"] = row.id
                 data["preflight"] = evaluate_ticket_preflight(
                     row.ticket_draft,
                     requested_by=row.requested_by,
@@ -216,7 +227,6 @@ def read_page(kind, params, user, db):
                 from app.services.preflight import evaluate_remediation_preflight
 
                 settings = get_settings()
-                data["action_label"] = "关闭演练故障注入"
                 data["preflight"] = evaluate_remediation_preflight(
                     row.action,
                     service=row.service,

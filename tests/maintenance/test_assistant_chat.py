@@ -74,7 +74,7 @@ def test_guest_chat_is_private_and_counts_each_thread_once(client, monkeypatch):
 
     client.cookies.delete(VISITOR_COOKIE, path="/auth/login")
     other = login(client, VISITOR_USERNAME, VISITOR_PASSWORD)
-    assert client.get(ROOT, headers=other).json() == []
+    assert all(thread.get("read_only") and thread["id"] != session for thread in client.get(ROOT, headers=other).json())
     assert client.get(url, headers=other).status_code == 404
     assert client.patch(url, headers=other, json={"title": "不能跨访客改名"}).status_code == 404
     assert client.get("/api/support/sites/visitor-example-site", headers=other).status_code == 200

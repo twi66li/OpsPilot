@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Alert, App, Button, Drawer, Empty, Input, Modal, Select, Space, Tag } from 'antd';
 import { ArrowUpOutlined, HistoryOutlined, PlusOutlined, ToolOutlined } from '@ant-design/icons';
-import { api, followChat, newRequestId, post, savedAuth, streamChat } from './api';
+import { api, followChat, formatTime, newRequestId, post, savedAuth, streamChat } from './api';
 import ConversationMenu from './ConversationMenu';
 import ChatDiagnosisCard from './ChatDiagnosisCard';
 import EvidenceSummary, { RedactionNotice } from './EvidenceSummary';
@@ -9,7 +9,7 @@ import { askPersonalModel, type PersonalModel } from './AssistantSettings';
 import type { AgentEvent, ChatMessage, EvidencePreview, Hit, PersonalCase, SessionHistory, Site, Workflow } from './types';
 
 const conversations = '/api/assistant/conversations';
-type Thread = {id: string; title: string};
+type Thread = {id: string; title: string; created_at?: string; read_only?: boolean};
 type DiagnoseOut = {
   case: PersonalCase;
   workflow: Workflow;
@@ -43,6 +43,7 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
   const [pending, setPending] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [readOnly, setReadOnly] = useState(false);
   const [runId, setRunId] = useState('');
   const [diagCaseId, setDiagCaseId] = useState('');
   const [diagPhase, setDiagPhase] = useState('');
@@ -79,7 +80,7 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
     controller.current?.abort();
     const request = new AbortController();
     controller.current = request;
-    setMessages([]); setCases({}); setDraft(''); setQuestion(''); setError(''); setPending('');
+    setMessages([]); setCases({}); setDraft(''); setQuestion(''); setError(''); setPending(''); setReadOnly(false);
     setRunId(''); setDiagCaseId(''); setDiagPhase(''); setDiagRunId('');
     retry.current = null;
     setBusy(!!id);
@@ -117,6 +118,7 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
     const result = await api<SessionHistory>(conversations + '/' + threadId, {signal});
     if (signal.aborted) return;
     setMessages(result.messages);
+    setReadOnly(!!result.read_only);
     const loadedCases = result.cases || {};
     setCases(loadedCases);
     if (resume && result.active_run_id) {
@@ -149,7 +151,7 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
 
   async function send() {
     const text = question.trim();
-    if (!text || busy || !!diagCaseId) return;
+    if (!text || busy || !!diagCaseId || readOnly) return;
     if (model?.key && text.includes(model.key)) {
       setError('消息包含当前模型凭据，请移除后再发送。');
       return;
@@ -304,16 +306,24 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
     <Button size="small" icon={<PlusOutlined aria-hidden="true" />} onClick={() => choose()} disabled={working}>新对话</Button></div>
     <div className="support-case-list">
       {!threads.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无对话" />}
-      {threads.map(thread => <div className="conversation-row" key={thread.id}>
-        <button className={`session-item ${id === thread.id ? 'selected' : ''}`} disabled={working} onClick={() => choose(thread.id)}>{thread.title}</button>
-        <ConversationMenu title={thread.title} path={conversations + '/' + thread.id} disabled={working}
+      {threads.map((thread, index) => <div key={thread.id}>
+        {thread.read_only && !threads[index - 1]?.read_only && <div className="assistant-demo-heading muted">演示会话</div>}
+        <div className="conversation-row">
+        <button className={`session-item ${id === thread.id ? 'selected' : ''}`} disabled={working} onClick={() => choose(thread.id)}>
+          {thread.title}{thread.read_only && <small>{thread.created_at?.slice(0, 10)}</small>}
+        </button>
+        {!thread.read_only && <ConversationMenu title={thread.title} path={conversations + '/' + thread.id} disabled={working}
           renamed={name => setThreads(previous => previous.map(item => item.id === thread.id ? {...item, title: name} : item))}
-          deleted={() => {setThreads(previous => previous.filter(item => item.id !== thread.id)); if (id === thread.id) choose();}} />
+          deleted={() => {setThreads(previous => previous.filter(item => item.id !== thread.id)); if (id === thread.id) choose();}} />}
+        </div>
       </div>)}
     </div></>;
 
-  function bubble(role: string, content: string, key: string | number) {
-    return <article className={`support-message ${role}`} key={key}><div className="support-bubble"><div className="message-body">{content}</div></div></article>;
+  function bubble(role: string, content: string, key: string | number, at?: string) {
+    return <article className={`support-message ${role}`} key={key}><div className="support-bubble">
+      {at && <time className="demo-message-time muted">{formatTime(at)}</time>}
+      <div className="message-body">{content}</div>
+    </div></article>;
   }
 
   const modalCase = targetCaseId ? cases[targetCaseId] : undefined;
@@ -357,7 +367,7 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
               </div>
             );
           }
-          return bubble(item.role, item.content, i);
+          return bubble(item.role, item.content, i, readOnly ? item.created_at : undefined);
         })}
         {pending && bubble('user', pending, 'pending')}
         {busy && bubble('assistant', draft || '正在回复…', 'reply')}
@@ -382,8 +392,8 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
           </div>
         )}
         <div className="support-composer-box">
-          <textarea aria-label="给维护助手发消息" placeholder="发消息提问，或直接粘贴报错日志触发诊断" value={question}
-            rows={2} maxLength={8000} disabled={working} onChange={e => setQuestion(e.target.value)} onKeyDown={e => {
+          <textarea aria-label="给维护助手发消息" placeholder={readOnly?'演示会话 · 新建对话后可提问':'发消息提问，或直接粘贴报错日志触发诊断'} value={question}
+            rows={2} maxLength={8000} disabled={working || readOnly} onChange={e => setQuestion(e.target.value)} onKeyDown={e => {
               if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {e.preventDefault(); void send();}
             }} />
           <div className="support-composer-tools">
@@ -391,12 +401,12 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
               size="small"
               icon={<ToolOutlined aria-hidden="true" />}
               onClick={() => openDiagnoseModal(undefined, undefined, looksLikeLog(question) ? question : '')}
-              disabled={working}
+              disabled={working || readOnly}
             >
               诊断
             </Button>
             {busy && runId ? <Button size="small" onClick={() => void post('/api/agent/runs/' + runId + '/cancel').catch(e => setError(e.message))}>停止生成</Button>
-              : <Button aria-label="发送" title="发送" type="primary" icon={<ArrowUpOutlined />} disabled={working || !question.trim()} onClick={() => void send()} />}
+              : <Button aria-label="发送" title="发送" type="primary" icon={<ArrowUpOutlined />} disabled={working || readOnly || !question.trim()} onClick={() => void send()} />}
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, App, Button, Card, Collapse, Descriptions, Empty, Input, Modal, Pagination, Space, Tag, Timeline } from 'antd';
 import { savedAuth, api, followChat, formatTime, post, streamChat } from './api';
+import { Link } from 'react-router-dom';
 import ConversationList from './ConversationList';
 import DrillWalkthrough from './DrillWalkthrough';
 import StatusTag from './StatusTag';
@@ -9,7 +10,8 @@ import type { AgentEvent, Approval, ChatMessage, Hit, Remediation, Run, Session,
 const labels: Record<string, string> = {route_intent: '识别调查目标', retrieve: '检索运维手册', grade: '核对证据', rewrite: '补充检索',
   call_tools: '查询观测数据', generate: '整理调查结论', native_tools: '收集证据与分析', prepare_approval: '准备审批草稿',
   approval_gate: '等待人工审批', create_ticket: '创建工单', search_runbook: '检索运维手册', query_service_metrics: '查询服务指标',
-  query_logs: '查询服务日志', query_fault_history: '查询历史故障', delegate_retrieval: '委派手册检索'};
+  query_logs: '查询服务日志', query_fault_history: '查询历史故障', delegate_retrieval: '委派手册检索',
+  remediation: '执行演练恢复'};
 
 function toolHits(event: AgentEvent): Hit[] {
   if (event.agent === 'retrieval' || !['search_runbook', 'delegate_retrieval'].includes(event.name || '')) return [];
@@ -30,6 +32,7 @@ export default function Investigation({onSource, canApprove, initialId, initialR
   const [cancelling, setCancelling] = useState(false);
   const [repairReason, setRepairReason] = useState(''), [repairBusy, setRepairBusy] = useState(false);
   const controller = useRef<AbortController | null>(null), bottom = useRef<HTMLDivElement>(null);
+  const openedReplay = useRef(false);
   const [page,setPage]=useState(1),[total,setTotal]=useState(0),[search,setSearch]=useState('');
   const refresh=useCallback(async()=>{const r=await api<PageData<Session>>(`/api/workspace/sessions?page=${page}&page_size=10&q=${encodeURIComponent(search)}`);setSessions(r.items);setTotal(r.total);},[page,search]);
   useEffect(() => {refresh().catch(e => message.error(e.message));}, [refresh, message]);
@@ -42,6 +45,11 @@ export default function Investigation({onSource, canApprove, initialId, initialR
   }, []);
   useEffect(() => {bottom.current?.scrollIntoView({behavior: 'smooth', block: 'nearest'});}, [messages]);
   useEffect(()=>{if(initialId&&initialId!==sessionId)void selectSession(initialId);},[initialId]);
+  useEffect(()=>{
+    if (!guest || initialId || sessionId || openedReplay.current || !sessions[0]) return;
+    openedReplay.current = true;
+    void selectSession(sessions[0].id);
+  },[guest,initialId,sessionId,sessions]);
   function fresh() {setSessionId(''); setMessages([]); setHits([]); setEvents([]); setApproval(null); setTrace(null); setRunId('');setCancelling(false);opened?.('');}
   function receiveRunEvent(event: AgentEvent, answerIndex: number) {
     if (event.run_id) setRunId(event.run_id);
@@ -73,7 +81,7 @@ export default function Investigation({onSource, canApprove, initialId, initialR
       ]);
       if(subscription.signal.aborted) return;
       setSessionId(id);opened?.(id);setMessages(session.messages);setApproval(pending.pending ? pending : null);
-      const latestRun = initialRunId || session.active_run_id || [...session.messages].reverse().find(item => item.meta?.run_id)?.meta?.run_id;
+      const latestRun = (id === initialId ? initialRunId : undefined) || session.active_run_id || [...session.messages].reverse().find(item => item.meta?.run_id)?.meta?.run_id;
       if (!latestRun) return;
       setRunId(latestRun);
       if(latestRun===session.active_run_id) {
@@ -88,7 +96,7 @@ export default function Investigation({onSource, canApprove, initialId, initialR
       const recovered = savedRun.data.result?.hits || savedRun.data.events.filter(item => item.kind === 'tool').flatMap(item => toolHits(item.detail as AgentEvent));
       setHits(mergeHits([], recovered));
       setEvents(savedRun.data.events.filter(item => ['progress', 'tool'].includes(item.kind)).map(item => ({
-        ...item.detail, type:item.kind==='tool' ? 'tool' : (item.detail as AgentEvent).type,
+        ...item.detail, at:item.at, type:item.kind==='tool' ? 'tool' : (item.detail as AgentEvent).type,
       }) as AgentEvent));
     } catch (error) {
       if(!subscription.signal.aborted) message.error((error as Error).message);
@@ -158,22 +166,22 @@ export default function Investigation({onSource, canApprove, initialId, initialR
   return <div className="demo-workspace">
     <DrillWalkthrough guest={guest} hasActiveChat={messages.length > 0} />
     <div className="investigation-grid">
-    <aside className="session-panel"><div className="panel-heading"><strong>调查会话</strong><Button size="small" disabled={guest||busy} onClick={fresh}>新建</Button></div>
+    <aside className="session-panel"><div className="panel-heading"><strong>调查会话</strong>{!guest&&<Button size="small" disabled={busy} onClick={fresh}>新建</Button>}</div>
       <Input.Search aria-label="搜索演练会话" placeholder="搜索历史会话" onSearch={v=>{setSearch(v);setPage(1);}} />
       <ConversationList items={sessions.map(s=>({id:s.id,title:s.title,detail:formatTime(s.created_at)}))} current={sessionId} busy={busy} open={id=>void selectSession(id)} deleted={async ids=>{if(ids.includes(sessionId))fresh();await refresh();}} />
       {total>10&&<Pagination simple current={page} total={total} pageSize={10} onChange={setPage} />}
     </aside>
-    <section className="chat-panel"><div className="panel-heading"><strong>故障调查</strong><Tag color={busy ? 'processing' : 'default'}>{cancelling ? '已请求停止' : busy ? '正在调查' : '就绪'}</Tag></div>
+    <section className="chat-panel"><div className="panel-heading"><strong>{guest ? sessions.find(item=>item.id===sessionId)?.title || '故障调查' : '故障调查'}</strong><Tag color={busy ? 'processing' : 'default'}>{guest ? '演练回放' : cancelling ? '已请求停止' : busy ? '正在调查' : '就绪'}</Tag></div>
       <div className="chat-history">{!messages.length && <div className="chat-empty"><h2>体验一次故障调查与恢复</h2><p>测试环境会模拟连接池等待超时，可能看到请求失败、延迟上升和 ERR_5003 日志。先调查证据，再申请关闭故障注入，经审批后观察请求验证结果；实际异常以工具查询为准。</p>
-        {guest ? <Alert type="info" title="访客模式仅支持只读浏览，退出访客并登录个人账号后即可发起调查演练。" /> : <Button disabled={!drillService} onClick={() => setQuestion(`调查 ${drillService} 最近5分钟的错误，结合日志、指标和手册，说明已确认事实与证据缺口。`)}>填入调查示例</Button>}</div>}
-        {messages.map((item, i) => <article className={`chat-message ${item.role}`} key={i}><div className="message-label">{item.role === 'user' ? '你' : 'OpsPilot'}</div><div className="message-body">{item.content || (busy ? '正在收集证据…' : '本次没有生成回答，请查看执行记录。')}</div></article>)}
+        {guest ? <p className="muted">从调查会话选择一条历史回放。</p> : <Button disabled={!drillService} onClick={() => setQuestion(`调查 ${drillService} 最近5分钟的错误，结合日志、指标和手册，说明已确认事实与证据缺口。`)}>填入调查示例</Button>}</div>}
+        {messages.map((item, i) => <article className={`chat-message ${item.role}`} key={i}><div className="message-label">{item.role === 'user' ? (guest ? '当班维护者' : '你') : 'OpsPilot'}</div>{guest&&item.created_at&&<time className="demo-message-time muted">{formatTime(item.created_at)}</time>}<div className="message-body">{item.content || (busy ? '正在收集证据…' : '本次没有生成回答，请查看执行记录。')}</div></article>)}
         {approval && <Card className="approval-card" title="工单等待审批" size="small"><Descriptions column={1} size="small" items={['title','service','severity','description'].map((key,index)=>({key,label:['标题','服务','严重度','说明'][index],children:String(draft?.[key]||'未提供')}))}/><Collapse size="small" ghost items={[{key:'draft',label:'查看工单原始数据',children:<pre>{JSON.stringify(draft,null,2)}</pre>}]}/><Input.TextArea aria-label="审批意见" value={comment} onChange={e => setComment(e.target.value)} placeholder="审批意见" />
           <Space className="section-gap"><Button type="primary" disabled={!canApprove} loading={deciding} onClick={() => decide(true)}>批准创建工单</Button><Button disabled={!canApprove} loading={deciding} onClick={() => decide(false)}>拒绝</Button></Space>
         </Card>}<div ref={bottom} />
       </div>
-      <div className="composer"><Input.TextArea aria-label="调查问题" disabled={guest} value={question} onChange={e => setQuestion(e.target.value)} autoSize={{minRows: 2, maxRows: 5}} placeholder="服务名、异常表现、时间范围，以及需要核对的证据…" onKeyDown={e => {if (e.ctrlKey && e.key === 'Enter') void send();}} />
-        <div className="composer-footer"><span>Ctrl + Enter 发送 · 手册经验需结合当前证据判断</span>{busy ? <Button danger disabled={!runId || cancelling} onClick={stop}>停止调查</Button> : <Button type="primary" disabled={guest||!question.trim() || !!approval} onClick={send}>开始调查</Button>}</div>
-      </div>
+      {!guest&&<div className="composer"><Input.TextArea aria-label="调查问题" value={question} onChange={e => setQuestion(e.target.value)} autoSize={{minRows: 2, maxRows: 5}} placeholder="服务名、异常表现、时间范围，以及需要核对的证据…" onKeyDown={e => {if (e.ctrlKey && e.key === 'Enter') void send();}} />
+        <div className="composer-footer"><span>Ctrl + Enter 发送 · 手册经验需结合当前证据判断</span>{busy ? <Button danger disabled={!runId || cancelling} onClick={stop}>停止调查</Button> : <Button type="primary" disabled={!question.trim() || !!approval} onClick={send}>开始调查</Button>}</div>
+      </div>}
     </section>
     <aside className="evidence-panel"><div className="panel-heading"><strong>证据与执行过程</strong></div><div className="evidence-scroll">
       {(busy||trace||lastEvent)&&<section className="investigation-summary" aria-label="本次调查摘要"><h4>本次调查</h4>{trace&&<StatusTag status={trace.status}/>}<p>{busy?'正在收集证据与整理结论':trace?.data.result?.message||trace?.data.result?.end_reason==='answered'&&'已保存本次调查回答；请结合证据核对。'||'按保存的执行记录查看进展。'}</p>{lastEvent&&<p>最近阶段：{labels[lastEvent.name||lastEvent.node||'']||'调查进展'} · {lastEvent.summary||lastEvent.message||'已记录'}</p>}{elapsed!==null&&Number.isFinite(elapsed)&&elapsed>=0&&<p className="muted">从开始至最后记录更新 {elapsed.toFixed(1)} 秒 · {formatTime(trace!.updated_at!)}</p>}
@@ -181,7 +189,8 @@ export default function Investigation({onSource, canApprove, initialId, initialR
       </section>}
       <h4>知识引用 · {hits.length}</h4>{!hits.length && <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="检索到手册后显示来源" />}
       {hits.map((hit, i) => <button className="evidence-card" key={`${hit.chunk_id}-${i}`} onClick={() => onSource(hit)}><strong>[{hit.citation_id || i + 1}] {hit.doc_title}</strong><small>{hit.version ? `v${hit.version} · ` : ''}{hit.page_start ? `第${hit.page_start}页` : '文本来源'}</small><p>{hit.text.slice(0, 160)}</p><span>查看原文与上下文 →</span></button>)}
-      <Collapse className="section-bottom" size="small" items={[{key:'process',label:`执行过程 · ${events.length} 条记录${lastEvent?' · '+(labels[lastEvent.name||lastEvent.node||'']||'调查进展'):''}`,children:<Timeline items={events.map((event, i) => ({key: i, color: event.type === 'error' ? 'red' : 'blue', content: <><strong>{labels[event.name || event.node || ''] || (event.type === 'error' ? '执行异常' : '调查进展')}</strong><p className="muted">{event.summary || event.message || (event.type === 'tool_start' ? '正在查询…' : '已记录')}</p><Collapse size="small" ghost items={[{key: 'raw', label: '查看记录', children: <pre>{JSON.stringify(event, null, 2)}</pre>}]} /></>}))}/>}]}/>
+      <Collapse className="section-bottom" size="small" items={[{key:'process',label:`执行过程 · ${events.length} 条记录${lastEvent?' · '+(labels[lastEvent.name||lastEvent.node||'']||'调查进展'):''}`,children:<Timeline items={events.map((event, i) => ({key: i, color: event.type === 'error' ? 'red' : 'blue', content: <><strong>{labels[event.name || event.node || ''] || (event.type === 'error' ? '执行异常' : '调查进展')}</strong>{event.at&&<time className="demo-message-time muted">{formatTime(event.at)}</time>}<p className="muted">{event.summary || event.message || (event.type === 'tool_start' ? '正在查询…' : '已记录')}</p><Collapse size="small" ghost items={[{key: 'raw', label: '查看记录', children: <pre>{JSON.stringify(event, null, 2)}</pre>}]} /></>}))}/>}]}/>
+      {guest&&trace?.data.demo_operation_id&&<Link to={'/operations/'+trace.data.demo_operation_id}>查看审批与三次复测</Link>}
       {runId && <><small className="muted">Run {runId.slice(0, 12)}</small><Button size="small" onClick={() => api<Run>(`/api/agent/runs/${runId}`).then(setTrace).catch(e => message.error(e.message))}>读取完整记录</Button></>}
       {runId && repairEnabled && canApprove && <Button className="section-gap" disabled={busy} onClick={() => {setRepairReason(`根据本次调查，申请关闭 ${drillService} 的演练故障注入，并核对实际请求结果。`); setRepairOpen(true);}}>申请演练修复</Button>}
       {trace && <Collapse size="small" items={[{key: 'trace', label: '查看调查原始数据', children: <pre>{JSON.stringify(trace.data, null, 2)}</pre>}]} />}

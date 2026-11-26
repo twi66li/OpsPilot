@@ -20,6 +20,7 @@ export default function Home({navigate,canWrite,drillEnabled}: {navigate:(path:s
   const [errors,setErrors]=useState<Partial<Record<Section,string>>>({});
   const versions=useRef<Partial<Record<Section,number>>>({});
   const guest=!!savedAuth()?.is_guest;
+  const canReadApprovals=canWrite||guest;
   const refresh=useCallback(async(section?:Section)=>{
     const requests: Record<Section, () => Promise<() => void>> = {
       cases: async()=>{const data=await api<PageData<PersonalCase>>('/api/workspace/cases?case_kind=problem&archived=false&page=1&page_size=6');return ()=>setCases(data);},
@@ -28,7 +29,7 @@ export default function Home({navigate,canWrite,drillEnabled}: {navigate:(path:s
       approvals: async()=>{const data=await api<PageData<Record<string,unknown>>>('/api/workspace/approvals?status=pending&page=1&page_size=1');return ()=>setApprovals(data.total);},
       activity: async()=>{const data=await api<{events:Activity[]}>('/api/maintenance/activity');return ()=>setActivity(data.events);},
     };
-    const keys:Section[]=section?[section]:['cases','sites','todos','activity',...(canWrite?['approvals' as const]:[])];
+    const keys:Section[]=section?[section]:['cases','sites','todos','activity',...(canReadApprovals?['approvals' as const]:[])];
     await Promise.all(keys.map(async key=>{
       const version=(versions.current[key] || 0)+1;
       versions.current[key]=version;
@@ -41,7 +42,7 @@ export default function Home({navigate,canWrite,drillEnabled}: {navigate:(path:s
         if(versions.current[key]===version)setErrors(previous=>({...previous,[key]:(error as Error).message}));
       }
     }));
-  },[canWrite]);
+  },[canReadApprovals]);
   useEffect(()=>{
     const load=()=>void refresh();load();
     api<SkillItem[]>('/api/agent/skills').then(list=>{if(Array.isArray(list))setSkills(list);}).catch(()=>{});
@@ -69,8 +70,8 @@ export default function Home({navigate,canWrite,drillEnabled}: {navigate:(path:s
         <div className="home-kpi-top"><span>未归档问题</span>{highPriorityCases>0&&<Tag color="red">高优 {highPriorityCases}</Tag>}</div>
         <strong className="home-kpi-val">{cases?cases.total:'—'}</strong>
       </button>
-      <button type="button" className="home-kpi-card kpi-warn" onClick={()=>navigate(canWrite&&approvals?'/operations':'/issues')}>
-        <div className="home-kpi-top"><span>待办事项</span>{canWrite&&approvals!==null&&approvals>0&&<Tag color="gold">待审批 {approvals}</Tag>}</div>
+      <button type="button" className="home-kpi-card kpi-warn" onClick={()=>navigate(canReadApprovals&&approvals?'/operations':'/issues')}>
+        <div className="home-kpi-top"><span>待办事项</span>{canReadApprovals&&approvals!==null&&approvals>0&&<Tag color="gold">待审批 {approvals}</Tag>}</div>
         <strong className="home-kpi-val">{todos?activeTodos.length:'—'}</strong>
       </button>
       <button type="button" className="home-kpi-card" onClick={()=>navigate('/knowledge')}>
@@ -105,7 +106,7 @@ export default function Home({navigate,canWrite,drillEnabled}: {navigate:(path:s
           {errorNotice('todos','待办')}
           {activeTodos.length?activeTodos.slice(0,4).map(item=><div className="home-todo" key={item.id}><div><strong>{item.title}</strong><Tag>{item.state}</Tag></div><TodoAction item={item} canWrite={canWrite} navigate={navigate} changed={()=>void refresh('todos')}/></div>)
             :todos&&<p className="home-todo-empty">暂无待办</p>}
-          {canWrite&&<>{errorNotice('approvals','审批')}{approvals!==null&&<Button type="link" onClick={()=>navigate('/operations')}>待审批 {approvals}</Button>}</>}
+          {canReadApprovals&&<>{errorNotice('approvals','审批')}{approvals!==null&&<Button type="link" onClick={()=>navigate('/operations')}>待审批 {approvals}</Button>}</>}
         </section>
         {siteItems.length>0&&<section className="home-sites-panel"><div className="home-section-heading"><h3>纳管网站</h3><Button type="link" size="small" onClick={()=>navigate('/websites')}>管理</Button></div>
           {siteItems.slice(0,3).map(s=><button key={s.id} className="home-site-row" onClick={()=>navigate('/websites/'+s.id)}>

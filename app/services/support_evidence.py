@@ -46,6 +46,7 @@ class CaseIn(BaseModel):
     title: str = Field(default="网站排障", min_length=1, max_length=100)
     site_id: str | None = None
     kind: Literal["problem", "consult", "history"] = "problem"
+    draft: bool = False
     symptom: str = Field(default="", max_length=2000)
     endpoint: str = Field(default="", max_length=200)
     impact: str = Field(default="", max_length=500)

@@ -96,8 +96,8 @@ def get_workspace_capabilities(db, user):
         {
             "key": "analysis",
             "title": "维护助手",
-            "state": "read_only" if user.is_guest else "configured" if configured else "offline",
-            "description": "访客只能浏览教学记录；使用个人账号后可提交日志并分析。"
+            "state": "configured" if configured else "offline",
+            "description": "访客可以聊天和浏览教学记录；登录个人账号后可提交网站与日志进行排查。"
             if user.is_guest
             else "已配置聊天模型；这里未发起模型请求，实际可用性以分析结果为准。"
             if configured

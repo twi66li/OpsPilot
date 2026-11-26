@@ -1,6 +1,6 @@
 """FastAPI 依赖：当前用户解析与角色权限检查。"""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -24,7 +24,7 @@ class AuthUser:
     is_guest: bool = False
 
 
-def get_current_user(
+def authenticated_user(
     request: Request,
     credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
 ) -> AuthUser:
@@ -44,19 +44,17 @@ def get_current_user(
         if not session or session.user_id != user.id or session.revoked_at or session.expires_at <= _now():
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "登录已失效，请重新登录")
         from app.config import get_settings
-        from app.services.visitor_service import is_visitor
+        from app.services.visitor_service import VISITOR_USERNAME, is_visitor
 
         guest = is_visitor(user)
         user_id = user.id
-        username = user.username
+        username = VISITOR_USERNAME if guest else user.username
         tenant_id = user.tenant_id
         role = "viewer" if guest else user.role
         session_id = session.id
     if guest:
         if not get_settings().visitor_enabled and request.url.path != "/auth/logout":
             raise HTTPException(403, "访客体验已关闭")
-        if request.method not in ("GET", "HEAD") and request.url.path != "/auth/logout":
-            raise HTTPException(403, "访客账号为只读体验，请使用自己的账号进行修改或发起分析")
     return AuthUser(
         user_id=user_id,
         username=username,
@@ -65,6 +63,24 @@ def get_current_user(
         session_id=session_id,
         is_guest=guest,
     )
+
+
+def get_current_user(request: Request, user: AuthUser = Depends(authenticated_user)) -> AuthUser:
+    if user.is_guest:
+        from app.services.visitor_service import VISITOR_ID
+
+        if request.method not in ("GET", "HEAD") and request.url.path != "/auth/logout":
+            raise HTTPException(403, "教学区为只读体验，请使用个人账号修改或发起排查")
+        return replace(user, user_id=VISITOR_ID)
+    return user
+
+
+def get_assistant_user(user: AuthUser = Depends(authenticated_user)) -> AuthUser:
+    from app.services.visitor_service import VISITOR_ID
+
+    if user.is_guest and user.user_id == VISITOR_ID:
+        raise HTTPException(401, "访客身份已更新，请重新进入")
+    return user
 
 
 def require_roles(*roles: str):

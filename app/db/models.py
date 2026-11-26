@@ -60,6 +60,8 @@ class ChatSession(Base):
     tenant_id: Mapped[str] = mapped_column(String(64), ForeignKey("tenants.id"), index=True)
     user_id: Mapped[str] = mapped_column(String(64), ForeignKey("users.id"), index=True)
     title: Mapped[str] = mapped_column(String(256), default="新会话")
+    assistant_chat: Mapped[bool] = mapped_column(Boolean, default=False, server_default=text("false"))
+    first_turn_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     deleted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 

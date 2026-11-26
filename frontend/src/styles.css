@@ -38,8 +38,13 @@ small, .muted { color: var(--text-3); font-size: 12px; }
 .main-sidebar .ant-menu-item { margin-block: 4px; }
 .main-sidebar .ant-menu-item-selected { background: var(--accent-bg); }
 .brand { height: 64px; flex-shrink: 0; padding: 0 20px; display: flex; gap: 12px; align-items: center; color: var(--text); font-size: 18px; font-weight: 650; overflow: hidden; white-space: nowrap; }
-.assistant-entry { display: flex; align-items: center; justify-content: center; width: calc(100% - 24px); height: 38px; margin: 2px 12px 10px; box-shadow: none; }
-.assistant-entry.selected { outline: 1px solid var(--accent); outline-offset: 3px; }
+.assistant-icon.ant-btn { min-width:40px; height:36px; padding-inline:12px; gap:7px; font-weight:600; }
+.assistant-icon .anticon { font-size:19px; }
+.assistant-icon.selected.ant-btn { box-shadow:0 0 0 3px var(--accent-bg); }
+@media(max-width:700px) {
+  .assistant-icon.ant-btn { width:40px; padding-inline:0; }
+  .assistant-icon .assistant-label { display:none; }
+}
 .nav-overview { --gc: #0e6a61; --group-bg: #e3f1ee; }
 .nav-maintenance { --gc: #2a6a8f; --group-bg: #e3eff6; }
 .nav-resources { --gc: #6d5a9c; --group-bg: #eeebf4; }
@@ -292,7 +297,24 @@ small, .muted { color: var(--text-3); font-size: 12px; }
 .support-chat-top h3 { flex:1; min-width:0; margin:0; overflow:hidden; font-size:15px; font-weight:600; text-overflow:ellipsis; white-space:nowrap; }
 .support-top-actions { display:flex; align-items:center; gap:8px; min-width:0; }
 .support-top-actions .ant-select { width:180px; }
-.support-mobile-issues { display:none; }
+.assistant-mobile-history.ant-btn { display:none; }
+.support-heading-actions { min-width:0; }
+.support-heading-actions .ant-space-item { min-width:0; }
+.conversation-row { display:flex; align-items:center; gap:4px; margin-bottom:2px; }
+.conversation-row .session-item { flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.plain-assistant .support-chat-scroll { padding-inline:max(18px,calc((100% - 760px) / 2)); }
+.plain-assistant-greeting { margin:auto; text-align:center; }
+.plain-assistant-greeting h2 { margin:0; font-size:clamp(22px,3vw,30px); font-weight:600; }
+.plain-assistant .support-composer { width:min(100%,800px); margin-inline:auto; border-top:0; }
+.plain-assistant .support-composer-box { border-radius:14px; }
+.plain-assistant textarea { display:block; width:100%; padding:14px 14px 4px; border:0; outline:0; background:transparent; color:var(--text); resize:none; font:inherit; }
+.plain-assistant textarea::placeholder { color:var(--muted); }
+.plain-assistant .support-composer-tools { align-items:center; }
+.plain-assistant .support-message:not(.user) .support-bubble { max-width:100%; padding-inline:0; border:0; }
+.plain-assistant .support-message.user .support-bubble { border-color:var(--line); background:var(--sunken); color:var(--text); }
+.assistant-inline-error { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 2px 6px; color:var(--warn); }
+.assistant-usage > div { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); }
+.assistant-history-drawer .ant-drawer-body { padding:4px 8px; }
 .support-chat-scroll { display:flex; flex:1; flex-direction:column; gap:18px; min-height:0; overflow:auto; overscroll-behavior:contain; padding:24px clamp(16px,3vw,48px); }
 .support-greeting { width:100%; max-width:560px; margin:auto; padding:20px 0; text-align:center; }
 .support-greeting h3 { margin:0 0 18px; font-size:22px; font-weight:600; }
@@ -340,7 +362,7 @@ small, .muted { color: var(--text-3); font-size: 12px; }
 @media(max-width:760px) {
   .support-shell { grid-template-columns:minmax(0,1fr); }
   .support-conversations { display:none; }
-  .support-mobile-issues { display:inline-flex; }
+  .assistant-mobile-history.ant-btn { display:inline-flex; }
   .support-chat-top { padding:10px 12px; gap:8px; }
   .support-chat-top h3 { flex-basis:100%; }
   .support-top-actions { justify-content:space-between; width:100%; gap:6px; }

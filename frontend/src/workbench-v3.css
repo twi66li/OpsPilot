@@ -29,7 +29,6 @@
 .main-sidebar.ant-layout-sider-collapsed .brand { padding:24px 20px; }
 .main-sidebar.ant-layout-sider-collapsed .brand > span:last-child,.main-sidebar.ant-layout-sider-collapsed .nav-group-label,.main-sidebar.ant-layout-sider-collapsed .sidebar-controls .capability-trigger > span:last-child { display:none; }
 .main-sidebar.ant-layout-sider-collapsed .brand-symbol { flex-shrink:0; }
-.main-sidebar.ant-layout-sider-collapsed .assistant-entry { width:40px; margin:0 12px 12px; padding:0; }
 .main-sidebar.ant-layout-sider-collapsed .sidebar-controls { padding:12px 5px; gap:0; }
 .main-sidebar.ant-layout-sider-collapsed .sidebar-controls .status-dot { margin:0 3px; }
 .main-sidebar .ant-menu-inline-collapsed { width:100%; padding-inline:8px; }

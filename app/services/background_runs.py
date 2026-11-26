@@ -18,6 +18,7 @@ from app.db import base as db_base
 from app.db.base import SessionLocal, run_with_sqlite_retry
 from app.db.models import AgentRun, AgentRunEvent, ChatSession, SupportCase, User, _now
 from app.services import agent_service
+from app.services.assistant_quota import model_allowance
 from app.services.case_service import assert_editable
 from app.services.run_service import (
     LeaseLostError,
@@ -576,6 +577,7 @@ def execute(
                 user.id if user else None,
                 user.username if user else None,
                 user.tenant_id if user else None,
+                user.role if user else None,
                 personal_error,
             )
 
@@ -591,6 +593,7 @@ def execute(
         user_id,
         user_username,
         user_tenant_id,
+        user_role,
         personal_error,
     ) = meta
 
@@ -611,7 +614,7 @@ def execute(
             is_finished=lambda: recorder.finished,
             session_factory=factory,
         ):
-            with capture_run(recorder), live_events():
+            with capture_run(recorder), live_events(), model_allowance(user_id, run_tenant_id, user_role):
                 check_lease()
                 if run_status == "cancel_requested" or not user_id or user_tenant_id != run_tenant_id:
                     raise RunCancelled()
@@ -709,12 +712,16 @@ def read_events(run_id, tenant_id, user_id, after):
             if len(rows) == 100 or run.status in ACTIVE:
                 return rows, None
             result = run.data.get("result", {})
+            is_chat = run.data.get("workflow") == "chat"
             if run.status == "cancelled":
-                terminal = {"type": "cancelled", "message": "已停止，已有证据保留"}
+                terminal = {"type": "cancelled", "message": "已停止回复" if is_chat else "已停止，已有证据保留"}
             elif "answer" in result:
                 terminal = {**result, "type": "final"}
             else:
-                terminal = {"type": "error", "message": result.get("error") or "本次调查未完成，已有证据保留"}
+                message = result.get("error")
+                if not message:
+                    message = agent_service.chat_failure_message(result.get("error_type")) if is_chat else "本次调查未完成，已有证据保留"
+                terminal = {"type": "error", "message": message}
             return rows, {**terminal, "run_id": run_id, "status": run.status}
 
     return run_with_sqlite_retry(_read)

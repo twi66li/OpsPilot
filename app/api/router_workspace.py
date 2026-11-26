@@ -85,6 +85,8 @@ def read_page(kind, params, user, db):
             query = query.filter(SupportCase.site_id == params.site_id)
         if params.case_kind:
             query = query.filter(func.coalesce(SupportCase.data["kind"].as_string(), "problem") == params.case_kind)
+            if params.case_kind == "problem":
+                query = query.filter(SupportCase.data["draft"].as_boolean().is_not(True))
         if params.severity:
             query = query.filter(SupportCase.severity == params.severity)
         archived = or_(

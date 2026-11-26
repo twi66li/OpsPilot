@@ -13,7 +13,9 @@ from sqlalchemy import or_, select, update
 from app.config import get_settings
 from app.db import base as db_base
 from app.db.base import SessionLocal, run_with_sqlite_retry
-from app.db.models import Document, DocumentChunk, DocumentParent, DocumentVersion, _now
+from app.db.models import Document, DocumentChunk, DocumentParent, DocumentVersion, User, _now
+from app.services.assistant_quota import model_allowance
+from app.services.budget import BudgetExceededError
 from app.services.document_parser import build_version_chunks, parse_file
 from app.services.run_service import (
     LeaseLostError,
@@ -803,6 +805,8 @@ def process_version(
             doc_tenant_id = doc.tenant_id
             doc_title = doc.title
             doc_source = doc.source
+            owner = db.get(User, doc.created_by) if doc.created_by else None
+            owner_quota = (owner.id, owner.tenant_id, owner.role) if owner else ("", doc_tenant_id, "admin")
             original_path = version.original_path
             filename = version.filename
             parsed_path = version.parsed_path
@@ -877,7 +881,8 @@ def process_version(
             for offset in range(0, len(chunks), 16):
                 _assert_lease_active(version_id, lease, lost_event, session_factory=factory)
                 batch = chunks[offset : offset + 16]
-                vectors = container.embedder.embed([c["text"] for c in batch])
+                with model_allowance(*owner_quota):
+                    vectors = container.embedder.embed([c["text"] for c in batch])
                 if len(vectors) != len(batch):
                     raise ValueError("Embedding返回数量与片段数量不一致")
                 _assert_lease_active(version_id, lease, lost_event, session_factory=factory)
@@ -916,7 +921,7 @@ def process_version(
         return False
     except Exception as exc:
         error_msg = f"{current_stage}阶段失败：{type(exc).__name__}，请检查文档或服务后重试"
-        if isinstance(exc, ValueError):
+        if isinstance(exc, (ValueError, BudgetExceededError)):
             error_msg += f"；{str(exc)[:300]}"
         fail_version_with_lease(
             version_id,

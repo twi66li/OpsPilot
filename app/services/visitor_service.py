@@ -9,12 +9,13 @@ from app.services.maintenance_service import record_event
 VISITOR_ID = "opspilot-public-visitor"
 VISITOR_TENANT = "opspilot-public-demo"
 VISITOR_USERNAME = "visitor"
+VISITOR_COOKIE = "opspilot_visitor"
 # 公开体验口令，不用于任何真实账号或外部服务。
 VISITOR_PASSWORD = "OpsPilotDemo2026!"
 
 
 def is_visitor(user):
-    return user.id == VISITOR_ID and user.tenant_id == VISITOR_TENANT
+    return user.tenant_id == VISITOR_TENANT
 
 
 def ensure_visitor_context(db, site):

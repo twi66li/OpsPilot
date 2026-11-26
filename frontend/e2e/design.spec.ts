@@ -29,6 +29,7 @@ async function fixture(page:Page,{signedIn=true,role='viewer',tenantId='design',
     if(path==='/auth/options')value={registration_enabled:true,drill_enabled:true};
     else if(path.startsWith('/auth/'))value=auth;
     else if(path==='/ready')value={status:'ready'};
+    else if(path==='/api/assistant/conversations')value=[];
     else if(path==='/api/workspace/cases')value={items:[item],total:1,page:1,page_size:10};
     else if(path==='/api/workspace/sites')value={items:[site],total:1,page:1,page_size:6};
     else if(path==='/api/workspace/approvals')value={items:[],total:0,page:1,page_size:1};
@@ -163,6 +164,18 @@ for(const width of [1440,1024,390]) {
 
   test(`${width}px 助手输入区、导航和空状态`,async({page},info)=>{
     await page.setViewportSize({width,height:844});await fixture(page);await page.goto('/support');
+    const assistant = page.getByRole('button',{name:'智能维护助手',exact:true});
+    await expect(assistant).toHaveClass(/ant-btn-primary/);
+    await expect(assistant).toHaveAttribute('aria-current','page');
+    const assistantLabel = assistant.getByText('智能助手',{exact:true});
+    if(width===390) await expect(assistantLabel).toBeHidden();
+    else await expect(assistantLabel).toBeVisible();
+    await expect(page.getByRole('heading',{name:'今天想聊点什么？'})).toBeVisible();
+    await expect(page.getByLabel('给维护助手发消息')).toBeEnabled();
+    await expect(page.getByLabel('选择网站')).toHaveCount(0);
+    await expect(page.getByRole('button',{name:'添加日志',exact:true})).toHaveCount(0);
+    await noOverflow(page);await page.screenshot({path:info.outputPath('plain-assistant.png')});
+    await page.getByRole('button',{name:'网站排查',exact:true}).click();
     await expect(page.getByRole('heading',{name:'网站遇到了什么问题？'})).toBeVisible();
     await expect(page.locator('.support-suggestions button')).toHaveCount(4);
     const composer=await page.locator('.support-composer').boundingBox();expect(composer!.y+composer!.height).toBeLessThanOrEqual(844);
@@ -170,11 +183,11 @@ for(const width of [1440,1024,390]) {
     await expect(page.getByLabel('网站排障问题')).toHaveAttribute('placeholder',/脱敏后提交/);
     if(width===390){
       await expect(page.locator('.support-conversations')).toBeHidden();
-      await expect(page.getByRole('button',{name:'问题',exact:true})).toBeVisible();
+      await expect(page.getByRole('button',{name:'排查历史',exact:true})).toBeVisible();
       await page.getByRole('button',{name:'打开功能导航'}).click();
       await expect(page.getByRole('menuitem',{name:'我的网站'})).toBeInViewport();
       await expect(page.getByRole('menuitem',{name:'审批与工单'})).toHaveCount(0);
-      await page.getByRole('button',{name:'智能维护助手',exact:true}).click();
+      await page.keyboard.press('Escape');
       await expect(page.locator('.navigation-drawer')).toBeHidden();
     }
     await noOverflow(page);await page.screenshot({path:info.outputPath('assistant.png')});
@@ -196,7 +209,7 @@ for(const {role,tenantId} of [
     await expect(page.getByText('服务已就绪',{exact:true})).toBeVisible();
     if(role==='admin'&&tenantId!=='default'){
       await page.goto('/evaluation');
-      await expect(page.getByText('评测记录仅平台管理员可查看',{exact:true})).toBeVisible();
+      await expect(page.getByText(/需要平台管理员权限/)).toBeVisible();
     }
   });
 }
@@ -206,7 +219,7 @@ for(const existing of [true,false]) {
     await fixture(page,{messages:[]});
     await page.route('**/api/support/evidence/preview',route=>route.fulfill({json:{text:'password=[已脱敏]',replacements:1}}));
     await page.route(`**/api/support/cases/${record.id}/evidence`,route=>route.fulfill({json:{saved:true}}));
-    await page.goto(existing?'/support/'+record.id:'/support');
+    await page.goto(existing?'/support/'+record.id:'/support?mode=diagnose');
     if(existing)await expect(page.locator('.support-chat-top h3')).toHaveText(record.title!);
     else await page.getByLabel('网站排障问题').fill(record.title!);
     await page.getByRole('button',{name:'添加日志',exact:true}).click();
@@ -219,8 +232,8 @@ for(const existing of [true,false]) {
     await expect(page.getByText('证据已保存，点击「发送」开始分析。',{exact:true})).toBeVisible();
     await expect(page.locator('.support-chat-top h3')).toHaveText(record.title!);
     await page.reload();await expect(page.locator('.support-chat-top h3')).toHaveText(record.title!);
-    await page.getByRole('button',{name:'新对话',exact:true}).click();
-    await expect(page.locator('.support-chat-top h3')).toHaveText('新对话');
+    await page.getByRole('button',{name:'新排查',exact:true}).click();
+    await expect(page.locator('.support-chat-top h3')).toHaveText('网站排查');
   });
 }
 

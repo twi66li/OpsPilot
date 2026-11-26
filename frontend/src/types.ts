@@ -106,7 +106,7 @@ export interface SupportReport {
 export interface PersonalCase {
   severity?:string; labels?:string[]; updated_at?:string;
   id: string; title?: string; site_id?: string; status: string; created_at: string; saved?: boolean; profile?: Partial<Site>;
-  archived?: boolean; kind?:string; site_name?:string; summary?:string; sample_checks?: SampleChecks;
+  archived?: boolean; draft?: boolean; kind?:string; site_name?:string; summary?:string; sample_checks?: SampleChecks;
   problem?: {symptom?:string; endpoint?:string; impact?:string; started_at?:string; recent_changes?:string};
   evidence?: SubmittedEvidence[]; report?: SupportReport; report_hits?: Hit[]; revision?: number; last_run_id?: string;
   plan?: { revision: number; evidence_ids: string[]; steps: CheckStep[]; checks?: {status:string; note:string}[] }; solution?: string;

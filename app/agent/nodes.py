@@ -58,7 +58,7 @@ class DiagnosisNodes:
         self.tracer = get_tracer()
 
     def select_path(self, state):
-        if state.get("support_context") is not None:
+        if state.get("support_workflow") == "chat" or state.get("support_context") is not None:
             return "personal"
         mode = self.container.settings.agent_mode
         if mode not in ("rule", "native"):
@@ -68,6 +68,16 @@ class DiagnosisNodes:
         return mode
 
     def personal_support(self, state):
+        if state.get("support_workflow") == "chat":
+            model = getattr(self.container.llm, "_api", None)
+            if model is None:
+                return {"answer": "平台模型目前处于离线模式。你可以在「模型设置」连接自己的模型。"}
+            history = state.get("history") or [{"role": "user", "content": state["question"]}]
+            messages = [{"role": "system", "content": "你是 OpsPilot 维护助手。自然回答并承接用户追问。涉及故障时，区分一般建议和已有证据；需要网站或日志上下文时建议使用网站排查。"}]
+            messages.extend({"role": item["role"], "content": item["content"][:8000]} for item in history)
+            result = model.tool_turn(messages, [], allow_tools=False)
+            return {"answer": result["content"], "end_reason": "answered"}
+
         from app.services.support_service import run_personal
 
         return run_personal(self.container, state)

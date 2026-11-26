@@ -183,7 +183,7 @@ def test_migration_0007_upgrade_backfill_constraints_and_downgrade(tmp_path):
                 )
             )
 
-            command.upgrade(cfg, "head")
+            command.upgrade(cfg, "0007")
             assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "0007"
             assert conn.scalar(text("SELECT idempotency_key FROM agent_runs WHERE id='run-1'")) == "run:s1:req-1"
             assert conn.scalar(text("SELECT attempt FROM agent_runs WHERE id='run-1'")) == 0
@@ -224,8 +224,12 @@ def test_migration_0007_upgrade_backfill_constraints_and_downgrade(tmp_path):
             cfg.attributes["connection"] = conn
             command.downgrade(cfg, "0006")
             assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "0006"
-            command.upgrade(cfg, "head")
-            assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "0007"
+            command.upgrade(cfg, "0008")
+            assert conn.scalar(text("SELECT version_num FROM alembic_version")) == "0008"
+            saved = conn.execute(text("SELECT title, assistant_chat, first_turn_at FROM chat_sessions WHERE id='s1'")).one()
+            assert saved == ("S1", 0, None)
+            command.downgrade(cfg, "0007")
+            assert conn.scalar(text("SELECT title FROM chat_sessions WHERE id='s1'")) == "S1"
     finally:
         eng.dispose()
 

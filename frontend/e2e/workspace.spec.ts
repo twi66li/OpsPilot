@@ -59,6 +59,7 @@ test('390px导航和提问区可见',async({page,request},testInfo)=>{
   await page.addInitScript(value=>sessionStorage.setItem('opspilot.auth',JSON.stringify(value)),auth);
   await page.setViewportSize({width:390,height:844});
   await page.goto('/support');
+  await page.getByRole('button',{name:'网站排查',exact:true}).click();
   const box=await page.getByLabel('网站排障问题').boundingBox();
   expect(box?.y).toBeLessThan(844);
   await expect(page.locator('.support-suggestions button')).toHaveCount(4);

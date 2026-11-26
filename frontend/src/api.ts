@@ -107,7 +107,7 @@ async function connectChat(start: RequestInit | null, onEvent: (event: AgentEven
   }
 }
 
-export function streamChat(sessionId: string, message: string, onEvent: (event: AgentEvent) => void, signal: AbortSignal, workflow: Workflow = 'auto', requestId = newRequestId()) {
+export function streamChat(sessionId: string, message: string, onEvent: (event: AgentEvent) => void, signal: AbortSignal, workflow: Workflow | 'chat' = 'auto', requestId = newRequestId()) {
   return connectChat({method:'POST', body:JSON.stringify({
     session_id:sessionId, message, workflow, request_id:requestId, background:true,
   })}, onEvent, signal);

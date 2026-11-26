@@ -25,7 +25,7 @@ class ChatIn(BaseModel):
     request_id: str | None = Field(default=None, min_length=8, max_length=80)
     session_id: str = Field(min_length=1, max_length=64)
     message: str = Field(min_length=1, max_length=8000)
-    workflow: Literal["auto", "consult", "diagnose", "review", "history"] = "auto"
+    workflow: Literal["auto", "consult", "diagnose", "review", "history", "chat"] = "auto"
     background: bool = False
 
 

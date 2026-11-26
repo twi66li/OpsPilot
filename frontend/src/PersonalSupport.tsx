@@ -1,6 +1,7 @@
 import InfoTip from './InfoTip';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, App, Button, Card, Checkbox, Collapse, Drawer, Empty, Input, Modal, Pagination, Select, Skeleton, Space, Steps, Tag } from 'antd';
+import { Alert, App, Button, Card, Checkbox, Collapse, Drawer, Dropdown, Empty, Input, Modal, Pagination, Select, Skeleton, Space, Steps, Tag } from 'antd';
+import { ArrowLeftOutlined, HistoryOutlined, MoreOutlined } from '@ant-design/icons';
 import { savedAuth, api, followChat, newRequestId, post, streamChat } from './api';
 import type { AgentEvent, ChatMessage, EvidencePreview, Hit, PageData, PersonalCase, SessionHistory, Site, SupportEntry, Workflow } from './types';
 import { caseStates as states, workflowNames, workflows } from './supportTypes';
@@ -18,7 +19,7 @@ import { HandoffEditor } from './CaseHandoff';
 
 const verdicts: Record<string, string> = {inconclusive: '证据仍不足', still_failing: '样本中仍有异常', improved: '样本显示改善', sample_recovered: '提交样本支持原症状不再复现'};
 
-export default function PersonalSupport({entry, onSource, onKnowledge, onIssues, opened, issueDetail=false}: {issueDetail?:boolean;opened?:(id:string)=>void; entry?: SupportEntry; onSource: (hit: Hit) => void; onKnowledge: () => void; onIssues: () => void}) {
+export default function PersonalSupport({entry, onSource, onKnowledge, onIssues, onChat, opened, issueDetail=false}: {issueDetail?:boolean;opened?:(id:string)=>void; entry?: SupportEntry; onSource: (hit: Hit) => void; onKnowledge: () => void; onIssues: (id?: string) => void; onChat?: () => void}) {
   const {message} = App.useApp();
   const [cases, setCases] = useState<PersonalCase[]>([]), [sites, setSites] = useState<Site[]>([]);
   const [current, setCurrent] = useState<PersonalCase | null>(null), [siteId, setSiteId] = useState<string | undefined>();
@@ -40,6 +41,7 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
   const [phase,setPhase] = useState(''), [draft,setDraft] = useState(''), [updated,setUpdated] = useState<number|null>(null), [cancelling,setCancelling] = useState(false);
   const [startedAt,setStartedAt]=useState<number|null>(null),[loadError,setLoadError]=useState(''),[loadingCase,setLoadingCase]=useState(false);
   const [lastQuestion,setLastQuestion] = useState(''), [failed,setFailed] = useState(false);
+  const [historyOpen,setHistoryOpen] = useState(false);
   const refresh = useCallback(async () => {
     const [records, profiles] = await Promise.all([api<PageData<PersonalCase>>(`/api/workspace/cases?page=${casePage}&page_size=10`), api<Site[]>('/api/support/sites')]);
     setCases(records.items);setCaseTotal(records.total); setSites(profiles);
@@ -94,7 +96,7 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
     if (current) return current;
     const kind = workflow === 'history' ? 'history' : workflow === 'diagnose' || workflow === 'review' || /报错|异常|错误|超时|502|504|反复退出/.test(question) ? 'problem' : 'consult';
     const title = question.trim().slice(0, 70) || '网站维护';
-    const created = await post<PersonalCase>('/api/support/cases', {title, site_id: siteId || null, kind, symptom: kind === 'problem' ? question.trim().slice(0,2000) : ''});
+    const created = await post<PersonalCase>('/api/support/cases', {title, site_id: siteId || null, kind, draft: !!onChat, symptom: kind === 'problem' ? question.trim().slice(0,2000) : ''});
     setCurrent(created); setCaseTitle(title); opened?.(created.id); await refresh(); return created;
   }
   function receiveRunEvent(event: AgentEvent, chosenWorkflow: Workflow) {
@@ -190,6 +192,16 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
       setRecordAction(null);await refresh();
     } catch (error) {message.error((error as Error).message);} finally {setActionBusy(false);}
   }
+  async function trackIssue() {
+    if (!current) return;
+    setActionBusy(true);
+    try {
+      setCurrent(await post<PersonalCase>(`/api/support/cases/${current.id}/track`));
+      message.success('已保存到问题中心');
+      window.dispatchEvent(new Event('opspilot:workspace-changed'));
+    } catch(error) {message.error((error as Error).message);}
+    finally {setActionBusy(false);}
+  }
   const report = current?.report, planConfirmed = !!current?.plan;
   const problemFlow = report && ['diagnose','review'].includes(report.workflow || 'diagnose');
   const guest=!!savedAuth()?.is_guest;
@@ -214,13 +226,24 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
   const issueStatus = current?.status === 'sample_recovered' && !resultReady ? 'awaiting_results' : current?.status;
   useEffect(()=>{const node=conversation.current;if(node&&!issueDetail&&(node.scrollHeight-node.scrollTop-node.clientHeight<140||messages.length<=2))node.scrollTop=node.scrollHeight;},[messages,draft,phase,report,issueDetail]);
   const examples = ['不知道如何取日志？','网站返回 502，但我还没有日志，应该先收集什么信息？','日志出现 QueuePool 连接等待超时，这说明什么，下一步怎么检查？','Docker 里的 Python 应用反复退出，该怎么看日志？'];
+  const history = <><div className="support-list-heading"><strong>{guest?'排查示例':'排查记录'}</strong>{!guest&&<Button size="small" disabled={running || actionBusy} onClick={()=>{fresh();setSiteId(undefined);opened?.('');}}>新排查</Button>}</div>
+    <div className="support-case-list">{!cases.length&&<Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无排查记录"/>}
+      <ConversationList items={cases.map(c=>({id:c.id,title:c.title || '维护对话',detail:`${c.kind === 'problem' ? states[c.status] || c.status : c.kind === 'history' ? '历史查询' : '知识咨询'}${c.archived ? ' · 已归档' : ''}`}))}
+        current={current?.id} busy={running || actionBusy} open={id=>{setHistoryOpen(false);void load(id);}}
+        renamed={(id,title)=>{setCases(previous=>previous.map(item=>item.id===id?{...item,title}:item));if(current?.id===id)setCaseTitle(title);}}
+        deleted={async ids=>{if(current && ids.includes(current.id)){fresh();setSiteId(undefined);opened?.('');}await refresh();}} />
+    </div>
+    {caseTotal>10&&<div className="support-list-footer"><Pagination simple current={casePage} total={caseTotal} pageSize={10} onChange={setCasePage}/></div>}</>;
   return <>
-    <div className={issueDetail ? 'support-shell issue-detail' : 'support-shell'}>{!issueDetail && <aside className="support-conversations">
-      <div className="support-list-heading"><strong>对话</strong><Button size="small" disabled={guest || running || actionBusy} onClick={()=>{fresh();opened?.('');}}>新对话</Button></div>
-      <div className="support-case-list">{!cases.length&&<Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="暂无对话"/>}<ConversationList items={cases.map(c=>({id:c.id,title:c.title || '维护对话',detail:`${c.kind === 'problem' ? states[c.status] || c.status : c.kind === 'history' ? '历史查询' : '知识咨询'}${c.archived ? ' · 已归档' : ''}`}))} current={current?.id} busy={running || actionBusy} open={id=>void load(id)} deleted={async ids=>{if(current && ids.includes(current.id)){fresh();setSiteId(undefined);}await refresh();}} /></div>
-      <div className="support-list-footer">{caseTotal>10&&<Pagination simple current={casePage} total={caseTotal} pageSize={10} onChange={setCasePage}/>}<Button type="link" onClick={onIssues}>全部问题 →</Button></div>
-    </aside>}<main className="support-chat">
-      <div className="support-chat-top"><h3 title={loadingCase?'正在加载记录':caseTitle||'新对话'}>{loadingCase?'正在加载记录…':caseTitle||'新对话'}</h3><div className="support-top-actions"><Button className="support-mobile-issues" size="small" onClick={onIssues}>问题</Button><Select aria-label="选择网站" allowClear disabled={guest || !!current || running} placeholder="关联网站（选填）" value={siteId} onChange={setSiteId} options={sites.map(s=>({value:s.id,label:s.name}))}/><Button className="support-evidence-trigger" size="small" disabled={loadingCase} onClick={()=>{setEvidenceFocus(null);setEvidencePanelOpen(true);}}>证据与资料 · {(current?.evidence?.length||0)+hits.length}</Button></div></div>
+    <div className={issueDetail ? 'support-shell issue-detail' : 'support-shell'}>
+      {!issueDetail&&<><aside className="support-conversations">{history}</aside>
+        <Drawer className="assistant-history-drawer" placement="left" title="排查记录" size={300} open={historyOpen} onClose={()=>setHistoryOpen(false)}>{history}</Drawer></>}
+      <main className="support-chat">
+      <div className="support-chat-top"><Space className="support-heading-actions">
+        {onChat&&<Button type="text" size="small" icon={<ArrowLeftOutlined aria-hidden="true"/>} onClick={onChat}>返回聊天</Button>}
+        {!issueDetail&&<Button className="assistant-mobile-history" type="text" icon={<HistoryOutlined/>} aria-label="排查历史" onClick={()=>setHistoryOpen(true)}/>}
+        <h3 title={caseTitle}>{loadingCase?'正在加载记录…':caseTitle||'网站排查'}</h3></Space>
+        <div className="support-top-actions"><Select aria-label="选择网站" allowClear disabled={guest || !!current || running} placeholder="关联网站（选填）" value={siteId} onChange={setSiteId} options={sites.map(s=>({value:s.id,label:s.name}))}/><Button className="support-evidence-trigger" size="small" disabled={loadingCase} onClick={()=>{setEvidenceFocus(null);setEvidencePanelOpen(true);}}>证据与资料 · {(current?.evidence?.length||0)+hits.length}</Button></div></div>
       <div className="support-chat-scroll" ref={conversation} role="log" aria-label="维护对话" aria-live="polite">
         {loadingCase&&<Card className="section-bottom"><Skeleton active paragraph={{rows:5}}/></Card>}
         {issueDetail && current && <section className="issue-overview" aria-label="处理进度">
@@ -248,7 +271,9 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
           <Steps size="small" current={current?.saved ? 3 : resultReady ? 2 : planConfirmed ? 1 : 0} items={[{title:'确认方案'},{title:'提交新结果'},{title:'核对证据'},{title:'保存案例'}]} />
           {verification && <Alert className="section-gap" type={resultReady ? 'success' : 'info'} title={verdicts[verification.verdict]} description={verification.reason} />}
           <SampleResults value={sampleChecks} />
-          <Space wrap>{!issueDetail && <><Button disabled={running || actionBusy || readOnly || !planConfirmed} onClick={() => openEvidence('check_result')}>添加新的检查结果</Button><Button onClick={onIssues}>确认问题结局 / 管理记录</Button></>}
+          <Space wrap>{!issueDetail && !guest && <><Button disabled={running || actionBusy || readOnly || !planConfirmed} onClick={() => openEvidence('check_result')}>添加新的检查结果</Button>
+            {current?.draft?<Button disabled={running||actionBusy} onClick={()=>void trackIssue()}>保存到问题中心</Button>
+              :<Button onClick={()=>onIssues(current?.id)}>在问题中心打开</Button>}</>}
           <Button disabled={running || actionBusy || readOnly} onClick={() => {setSolution(current?.solution || '');setConfirmed(false);setRecordAction('archive');}}>归档当前记录</Button></Space>
         </Card>
       </>}
@@ -260,9 +285,11 @@ export default function PersonalSupport({entry, onSource, onKnowledge, onIssues,
         </div>
       </div>
       <div className="support-composer">
-        {readOnly&&<Alert className="section-bottom" type="info" title={guest?'访客可查看教学记录、证据和检查步骤':current?.archived?'当前记录已归档，原问题状态保留。':'这个问题已由你确认解决。'} description={guest?'需要提交自己的日志或发起分析时，请退出访客并使用个人账号。':'可以查看历史和证据；需要继续排查时，请在问题中心重新打开。'} action={<Button onClick={onIssues}>前往问题中心</Button>}/>}
         <div className="support-composer-box"><Input.TextArea aria-label="网站排障问题" disabled={readOnly||!!loadError} placeholder="描述异常、发生时间和影响。日志请通过「添加日志」脱敏后提交" value={question} maxLength={6000} autoSize={{minRows:2,maxRows:5}} onChange={e=>setQuestion(e.target.value)} onKeyDown={e=>{if(e.ctrlKey&&e.key==='Enter')void send();}}/>
-          <div className="support-composer-tools"><div className="support-input-actions"><Button size="small" disabled={running||actionBusy||readOnly||!!loadError} onClick={()=>openEvidence('initial')}>添加日志</Button>{planConfirmed&&<Button size="small" disabled={running||actionBusy||readOnly} onClick={()=>openEvidence('check_result')}>提交操作后结果</Button>}<Select aria-label="维护任务类型" disabled={running||readOnly} value={workflow} onChange={setWorkflow} options={workflows.map(w=>({...w,label:({auto:'自动判断任务',consult:'知识咨询',diagnose:'异常排查',review:'结果核对',history:'历史查询'}[w.value])}))}/></div>
+          <div className="support-composer-tools"><div className="support-input-actions"><Button size="small" disabled={running||actionBusy||(!guest&&readOnly)||!!loadError} onClick={()=>guest?message.info('登录个人账号后可上传日志并排查'):openEvidence('initial')}>添加日志</Button>{planConfirmed&&<Button size="small" disabled={running||actionBusy||readOnly} onClick={()=>openEvidence('check_result')}>提交操作后结果</Button>}
+            {!guest&&<Dropdown trigger={['click']} menu={{selectable:true,selectedKeys:[workflow],items:workflows.map(w=>({key:w.value,label:w.label})),onClick:({key})=>setWorkflow(key as Workflow)}}>
+              <Button type="text" size="small" aria-label="维护任务类型" disabled={running||readOnly} icon={<MoreOutlined/>}/>
+            </Dropdown>}</div>
             {running&&!loadingCase?<Button danger disabled={!run.current||cancelling} onClick={stop}>停止生成</Button>:<Button type="primary" disabled={!question.trim()||actionBusy||readOnly||!!loadError||loadingCase} onClick={()=>void send()}>发送</Button>}
           </div>
         </div>

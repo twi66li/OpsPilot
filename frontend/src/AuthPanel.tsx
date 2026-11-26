@@ -18,7 +18,7 @@ export default function AuthPanel({signedIn}: {signedIn: (auth: Auth) => void}) 
     try {
       const guest=visitor&&values.username===visitor.username;
       const auth = await post<Auth>(`/auth/${guest?'login':mode}`, {username: values.username, password: values.password});
-      saveAuth(auth); signedIn(auth); message.success(auth.is_guest?'已进入只读示例工作区':registering ? '注册成功，已进入你的私人工作区' : '登录成功');
+      saveAuth(auth); signedIn(auth); message.success(auth.is_guest?'已进入访客工作区':registering ? '注册成功，已进入你的私人工作区' : '登录成功');
     } catch (error) {message.error((error as Error).message);} finally {setBusy(false);}
   }
   return <div className="auth-screen">
@@ -53,7 +53,7 @@ export default function AuthPanel({signedIn}: {signedIn: (auth: Auth) => void}) 
     </div>
 
     <div className="auth-topbar">
-      <div>{visitor && <NoticeBanner>可先以访客浏览示例网站与排障记录；自己的数据请使用个人账号。</NoticeBanner>}</div>
+      <div>{visitor && <NoticeBanner>访客可以使用维护助手并查看示例排障记录。</NoticeBanner>}</div>
       <ThemeToggleButton />
     </div>
 

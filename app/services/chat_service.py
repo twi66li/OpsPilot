@@ -5,8 +5,8 @@ from sqlalchemy.orm import Session
 from app.db.models import AgentRun, ApprovalRequest, ChatSession, Message, RemediationRequest, _now
 
 
-def create_session(db: Session, tenant_id: str, user_id: str, title: str = "新会话") -> ChatSession:
-    session = ChatSession(tenant_id=tenant_id, user_id=user_id, title=title[:200])
+def create_session(db: Session, tenant_id: str, user_id: str, title: str = "新会话", *, assistant_chat=False) -> ChatSession:
+    session = ChatSession(tenant_id=tenant_id, user_id=user_id, title=title[:200], assistant_chat=assistant_chat)
     db.add(session)
     db.commit()
     return session
@@ -20,9 +20,9 @@ def get_session(db: Session, tenant_id: str, session_id: str, user_id: str) -> C
     ).first()
 
 
-def list_sessions(db: Session, tenant_id: str, user_id: str) -> list[ChatSession]:
+def list_sessions(db: Session, tenant_id: str, user_id: str, *, assistant_chat=False) -> list[ChatSession]:
     query = db.query(ChatSession).filter(ChatSession.tenant_id == tenant_id, ChatSession.user_id == user_id,
-                                        ChatSession.deleted_at.is_(None))
+                                        ChatSession.deleted_at.is_(None), ChatSession.assistant_chat == assistant_chat)
     return query.order_by(ChatSession.created_at.desc()).limit(100).all()
 
 

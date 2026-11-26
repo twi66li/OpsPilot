@@ -9,6 +9,8 @@ from sqlalchemy.orm import Session
 from app.api.router_kb import require_retrieval_allowance
 from app.auth.deps import AuthUser, get_current_user
 from app.db.base import get_db
+from app.services.assistant_quota import model_allowance
+from app.services.budget import BudgetExceededError
 from app.services.evidence_checks import summarize_evidence
 from app.services.maintenance_report import collection_guide
 from app.services.maintenance_timeline import list_recent_activity
@@ -79,14 +81,18 @@ def retrieval_test(body: RetrievalIn, user: AuthUser = Depends(require_retrieval
     container = get_container()
     with container.db_session() as db:
         validate_private_docs(db, user, body.doc_ids)
-    hits = retrieve_for_case(
-        container,
-        user.tenant_id,
-        user.user_id,
-        {"profile": {"doc_ids": body.doc_ids}, "exclude_official": not body.include_official},
-        body.query,
-        5,
-    )
+    try:
+        with model_allowance(user.user_id, user.tenant_id, user.role):
+            hits = retrieve_for_case(
+                container,
+                user.tenant_id,
+                user.user_id,
+                {"profile": {"doc_ids": body.doc_ids}, "exclude_official": not body.include_official},
+                body.query,
+                5,
+            )
+    except BudgetExceededError as exc:
+        raise HTTPException(429, str(exc)) from exc
     return {
         "hits": hits,
         "config": {"mode": "dense + BM25 + RRF", "rerank_enabled": container.settings.rerank_enabled},

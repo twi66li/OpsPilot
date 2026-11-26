@@ -6,15 +6,18 @@ from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import FileResponse
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from app.api.schemas import DocumentIn, SearchIn
 from app.auth.deps import AuthUser, get_current_user, require_roles
 from app.container import get_container
-from app.db.base import SessionLocal, get_db
+from app.db.base import SessionLocal, get_db, run_with_sqlite_retry
 from app.db.models import Document, DocumentChunk, DocumentParent, DocumentVersion, Tenant, User
 from app.services import kb_service
+from app.services.assistant_quota import check_upload, model_allowance
+from app.services.budget import BudgetExceededError
 from app.services.cache import check_rate_limit
 from app.services.ingestion_service import enqueue
 from app.services.knowledge_access import personal_namespace, readable_namespaces
@@ -77,6 +80,25 @@ def store_upload(file: UploadFile, title: str, doc_id: str, parsed_file: UploadF
     container = get_container()
     if not check_rate_limit(container.cache, f"kb-upload:{user.user_id}", UPLOADS_PER_MINUTE):
         raise HTTPException(429, "资料上传过于频繁，请一分钟后重试")
+    version_id = uuid.uuid4().hex
+
+    def persist():
+        try:
+            file.file.seek(0)
+            if parsed_file:
+                parsed_file.file.seek(0)
+            return _store_upload(file, title, doc_id, parsed_file, user, db, version_id, container)
+        except OperationalError:
+            db.rollback()
+            raise
+
+    result = run_with_sqlite_retry(persist)
+    if not result.get("duplicate"):
+        enqueue(version_id, container)
+    return result
+
+
+def _store_upload(file, title, doc_id, parsed_file, user, db, version_id, container):
     filename = Path((file.filename or "").replace("\\", "/")).name
     if len(filename) > 200 or Path(filename).suffix.lower() not in (".pdf", ".md", ".txt"):
         raise HTTPException(400, "请上传PDF、Markdown或TXT文件，文件名不超过200字符")
@@ -91,15 +113,14 @@ def store_upload(file: UploadFile, title: str, doc_id: str, parsed_file: UploadF
         raise HTTPException(400, "标题不超过200字符")
     digest = hashlib.sha256(data).hexdigest()
     input_hash = hashlib.sha256(data + b"\0" + parsed_data).hexdigest()
+    personal = user.tenant_id == personal_namespace(user.user_id)
+    if personal:
+        db.execute(update(User).where(User.id == user.user_id).values(id=User.id))
     namespace = db.query(Tenant.id).filter_by(id=user.tenant_id).with_for_update().first()
-    if namespace is None and user.tenant_id == personal_namespace(user.user_id):
-        # 首次并发上传时锁住用户行，串行创建个人资料空间。
-        db.query(User.id).filter_by(id=user.user_id).with_for_update().one()
-        namespace = db.query(Tenant.id).filter_by(id=user.tenant_id).with_for_update().first()
-        if namespace is None:
-            namespace = Tenant(id=user.tenant_id, name="个人网站手册")
-            db.add(namespace)
-            db.flush()
+    if namespace is None and personal:
+        namespace = Tenant(id=user.tenant_id, name="个人网站手册")
+        db.add(namespace)
+        db.flush()
     if namespace is None:
         raise HTTPException(404, "资料空间不存在")
     existing = db.query(DocumentVersion).filter_by(tenant_id=user.tenant_id, content_hash=digest).all()
@@ -108,6 +129,7 @@ def store_upload(file: UploadFile, title: str, doc_id: str, parsed_file: UploadF
             continue
         if (not doc_id or version.doc_id == doc_id) and version.index_config.get("input_hash") == input_hash:
             return {**_version_dict(version, db.get(Document, version.doc_id)), "duplicate": True}
+    check_upload(db, user)
     # 已移出检索的版本仍占用原文件存储，计入上限。
     if db.query(DocumentVersion).filter_by(tenant_id=user.tenant_id).count() >= FILE_VERSIONS_PER_NAMESPACE:
         raise HTTPException(409, "资料空间已达到上传版本上限")
@@ -129,7 +151,6 @@ def store_upload(file: UploadFile, title: str, doc_id: str, parsed_file: UploadF
         db.add(doc)
         db.flush()
     number = (db.query(func.max(DocumentVersion.number)).filter_by(doc_id=doc.id).scalar() or 0) + 1
-    version_id = uuid.uuid4().hex
     folder = Path(container.settings.kb_storage_path).resolve() / user.tenant_id / version_id
     folder.mkdir(parents=True, exist_ok=True)
     original = folder / ("original" + Path(filename).suffix.lower())
@@ -152,9 +173,7 @@ def store_upload(file: UploadFile, title: str, doc_id: str, parsed_file: UploadF
     )
     db.add(version)
     db.commit()
-    response = _version_dict(version, doc)
-    enqueue(version.id, container)
-    return response
+    return _version_dict(version, doc)
 
 
 @router.get("/versions/{version_id}")
@@ -338,7 +357,11 @@ def search(body: SearchIn, user: AuthUser = Depends(require_retrieval_allowance)
     if body.mode not in ("dense", "bm25", "hybrid"):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "mode 必须是 dense/bm25/hybrid")
     container = get_container()
-    result = container.retriever.retrieve(db, user.tenant_id, body.query, mode=body.mode, top_k=body.top_k)
+    try:
+        with model_allowance(user.user_id, user.tenant_id, user.role):
+            result = container.retriever.retrieve(db, user.tenant_id, body.query, mode=body.mode, top_k=body.top_k)
+    except BudgetExceededError as exc:
+        raise HTTPException(429, str(exc)) from exc
     return {
         "mode": result.mode,
         "reranked": result.reranked,

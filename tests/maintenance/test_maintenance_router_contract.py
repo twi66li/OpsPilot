@@ -64,6 +64,7 @@ EXPECTED_SUPPORT_OPERATIONS = {
     ("/api/support/cases/{session_id}/problem", "put"): "update_problem_api_support_cases__session_id__problem_put",
     ("/api/support/cases/{session_id}/save", "post"): "save_case_api_support_cases__session_id__save_post",
     ("/api/support/cases/{session_id}/status", "post"): "change_status_api_support_cases__session_id__status_post",
+    ("/api/support/cases/{session_id}/track", "post"): "track_case_api_support_cases__session_id__track_post",
     ("/api/support/documents/upload", "post"): "upload_personal_api_support_documents_upload_post",
     ("/api/support/documents/{doc_id}", "delete"): "delete_personal_document_api_support_documents__doc_id__delete",
     ("/api/support/evidence/preview", "post"): "preview_api_support_evidence_preview_post",

@@ -40,7 +40,22 @@ def create_case(body: CaseIn, user: AuthUser = Depends(get_current_user), db: Se
         site=site,
         kind=body.kind,
     )
+    if body.draft:
+        case.data = {**case.data, "draft": True}
     db.commit()
+    return case_dict(case)
+
+
+@router.post("/cases/{session_id}/track")
+def track_case(session_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+    case = owned_case(db, user, session_id)
+    if case.data.get("kind") != "problem":
+        raise HTTPException(409, "请先完成一次网站排查")
+    if case.data.get("draft"):
+        case.data = {**case.data, "draft": False}
+        record_event(db, user.tenant_id, user.user_id, "case", session_id, "problem_updated",
+                     {"actor": user.username, "note": "已保存到问题中心"})
+        db.commit()
     return case_dict(case)
 
 
@@ -168,6 +183,7 @@ def save_case(session_id: str, body: SaveIn, user: AuthUser = Depends(get_curren
         **case.data,
         "saved": True,
         "archived": True,
+        "draft": False,
         "solution": redact(body.solution)["text"],
         "result_label": "用户确认的处理记录；恢复结论以报告中的证据范围为限",
     }

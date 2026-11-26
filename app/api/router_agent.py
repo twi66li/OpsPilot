@@ -6,11 +6,12 @@ from sqlalchemy.orm import Session
 
 from app.agent.tools import DRILL_TOOLS, TOOL_REGISTRY
 from app.api.schemas import ChatIn, DecisionIn
-from app.auth.deps import AuthUser, get_current_user, require_roles
+from app.auth.deps import AuthUser, get_assistant_user, get_current_user, require_roles
 from app.container import get_container
 from app.db.base import SessionLocal, get_db
 from app.db.models import SupportCase
 from app.services import agent_service, background_runs, chat_service
+from app.services.assistant_quota import claim_chat, model_allowance
 from app.services.cache import check_rate_limit
 from app.services.case_service import assert_editable
 
@@ -18,11 +19,13 @@ router = APIRouter(prefix="/api/agent", tags=["agent"])
 _SSE_HEADERS = {"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"}
 
 
-def _check_session_and_ratelimit(user: AuthUser, db: Session, session_id: str, question: str):
+def _check_session_and_ratelimit(user: AuthUser, db: Session, session_id: str, workflow: str):
     container = get_container()
     session = chat_service.get_session(db, user.tenant_id, session_id, user.user_id)
     if not session:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "会话不存在")
+    if session.assistant_chat != (workflow == "chat") or (user.is_guest and not session.assistant_chat):
+        raise HTTPException(403, "请在对应模式中继续对话")
     personal = db.get(SupportCase, session_id)
     if personal:
         assert_editable(personal)
@@ -36,32 +39,28 @@ def _check_session_and_ratelimit(user: AuthUser, db: Session, session_id: str, q
 @router.post("/chat")
 def chat(body: ChatIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     """非流式诊断：一次返回最终结果与全部过程事件（便于测试与调试）。"""
-    container = _check_session_and_ratelimit(user, db, body.session_id, body.message)
+    container = _check_session_and_ratelimit(user, db, body.session_id, body.workflow)
     existing = existing_request(db, body, user)
     if existing:
         return JSONResponse(
             {**existing.data.get("result", {}), "run_id": existing.id, "status": existing.status},
             status_code=202 if existing.status in ("running", "cancel_requested") else 200,
         )
-    return agent_service.chat_once(
-        container,
-        db,
-        user.tenant_id,
-        user.user_id,
-        user.username,
-        body.session_id,
-        body.message,
-        body.workflow,
-        body.request_id,
-    )
+    db.rollback()
+    claim_chat(user, body.session_id)
+    with model_allowance(user.user_id, user.tenant_id, user.role):
+        return agent_service.chat_once(
+            container, db, user.tenant_id, user.user_id, user.username, body.session_id,
+            body.message, body.workflow, body.request_id,
+        )
 
 
 @router.post("/chat/stream")
-def chat_stream(body: ChatIn, user: AuthUser = Depends(get_current_user)):
+def chat_stream(body: ChatIn, user: AuthUser = Depends(get_assistant_user)):
     """SSE 流式诊断：推送节点状态、检索命中、工具事件、回答与审批请求。"""
     # 前置校验使用短生命周期同步工作单元，流式响应开始前立即归还数据库连接。
     with SessionLocal() as db:
-        container = _check_session_and_ratelimit(user, db, body.session_id, body.message)
+        container = _check_session_and_ratelimit(user, db, body.session_id, body.workflow)
         existing = existing_request(db, body, user)
         existing_info = (
             {
@@ -73,6 +72,8 @@ def chat_stream(body: ChatIn, user: AuthUser = Depends(get_current_user)):
             if existing is not None
             else None
         )
+    if existing_info is None:
+        claim_chat(user, body.session_id)
     if body.background and (existing_info is None or existing_info["background"]):
         if existing_info is None:
             try:
@@ -107,6 +108,7 @@ def chat_stream(body: ChatIn, user: AuthUser = Depends(get_current_user)):
             body.message,
             body.workflow,
             body.request_id,
+            role=user.role,
         )
     return StreamingResponse(
         generator,
@@ -119,7 +121,7 @@ def chat_stream(body: ChatIn, user: AuthUser = Depends(get_current_user)):
 def run_events(
     run_id: str,
     after: int = Query(default=0, ge=0),
-    user: AuthUser = Depends(get_current_user),
+    user: AuthUser = Depends(get_assistant_user),
 ):
     from app.services.run_service import get_run
 
@@ -211,7 +213,7 @@ def tools(user: AuthUser = Depends(get_current_user)):
 
 
 @router.get("/runs/{run_id}")
-def get_run(run_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_run(run_id: str, user: AuthUser = Depends(get_assistant_user), db: Session = Depends(get_db)):
     from app.services.run_service import get_run as read_run
 
     run = read_run(db, user.tenant_id, run_id, user.user_id)
@@ -223,7 +225,7 @@ def get_run(run_id: str, user: AuthUser = Depends(get_current_user), db: Session
 
 
 @router.post("/runs/{run_id}/cancel")
-def cancel_run(run_id: str, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def cancel_run(run_id: str, user: AuthUser = Depends(get_assistant_user), db: Session = Depends(get_db)):
     from app.services.run_service import get_run, request_cancel
 
     run = get_run(db, user.tenant_id, run_id, user.user_id)

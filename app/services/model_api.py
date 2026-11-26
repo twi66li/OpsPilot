@@ -140,11 +140,19 @@ def reserve_for_channel(
     """发送前统一预留；拒绝时留 budget_refused 审计记录并抛出，调用方不触达供应商。"""
     if guard is None:
         raise BudgetLedgerError("真实模型通道缺少预算账本实例，fail closed")
+    from app.services.assistant_quota import model_ledgers
+
+    personal_holds = []
     try:
-        if idempotency_key is not None:
-            return guard, guard.reserve(kind, model, estimate, idempotency_key=idempotency_key)
-        return guard, guard.reserve(kind, model, estimate)
+        for ledger in model_ledgers(guard):
+            try:
+                personal_holds.append((ledger, ledger.reserve(kind, model, estimate)))
+            except BudgetExceededError as exc:
+                raise BudgetExceededError("今天的平台模型额度不足，北京时间零点恢复额度") from exc
+        options = {"idempotency_key": idempotency_key} if idempotency_key is not None else {}
+        return guard, [(guard, guard.reserve(kind, model, estimate, **options)), *personal_holds]
     except (BudgetExceededError, BudgetLedgerError) as exc:
+        release_for_channel({}, guard, personal_holds, reason="not_dispatched")
         calls.append(
             {
                 "model": model,
@@ -159,17 +167,13 @@ def reserve_for_channel(
 
 def settle_for_channel(record: dict, guard, reservation, *, idempotency_key: str | None = None):
     """结算失败不得掩盖模型自身结果；账本内部已 fail closed，后续调用将被拒绝。"""
-    if reservation is None:
-        return
-    try:
-        usage = record.get("usage") or None
-        if idempotency_key is not None:
-            guard.settle(reservation, usage, idempotency_key=idempotency_key)
-        else:
-            guard.settle(reservation, usage)
-    except BudgetLedgerError as exc:
-        record["settlement_error"] = type(exc).__name__
-        logger.error("预算结算写入失败（%s），账本 fail closed，后续真实调用将被拒绝", exc)
+    for ledger, hold in reservation or []:
+        try:
+            options = {"idempotency_key": idempotency_key} if idempotency_key is not None and ledger is guard else {}
+            ledger.settle(hold, record.get("usage") or None, **options)
+        except BudgetLedgerError as exc:
+            record["settlement_error"] = type(exc).__name__
+            logger.error("预算结算写入失败（%s），账本 fail closed，后续真实调用将被拒绝", exc)
 
 
 def release_for_channel(
@@ -181,20 +185,17 @@ def release_for_channel(
     idempotency_key: str | None = None,
 ):
     """确认供应商未收到请求时释放预留；不支持释放的账本保守退回 unknown 结算。"""
-    if reservation is None:
-        return
-    if not hasattr(guard, "release"):
-        settle_for_channel(record, guard, reservation, idempotency_key=idempotency_key)
-        return
-    try:
-        if idempotency_key is not None:
-            guard.release(reservation, reason=reason, idempotency_key=idempotency_key)
-        else:
-            guard.release(reservation, reason=reason)
-        record["budget_action"] = "released"
-    except BudgetLedgerError as exc:
-        record["settlement_error"] = type(exc).__name__
-        logger.error("预算预留释放失败（%s），账本 fail closed", exc)
+    for ledger, hold in reservation or []:
+        if not hasattr(ledger, "release"):
+            settle_for_channel(record, guard, [(ledger, hold)], idempotency_key=idempotency_key)
+            continue
+        try:
+            options = {"idempotency_key": idempotency_key} if idempotency_key is not None and ledger is guard else {}
+            ledger.release(hold, reason=reason, **options)
+            record["budget_action"] = "released"
+        except BudgetLedgerError as exc:
+            record["settlement_error"] = type(exc).__name__
+            logger.error("预算预留释放失败（%s），账本 fail closed", exc)
 
 
 class ChatAPI:
@@ -396,8 +397,7 @@ class ChatAPI:
             response = self._completion(
                 model=model,
                 messages=messages,
-                tools=tools,
-                tool_choice="auto" if allow_tools else "none",
+                **({"tools": tools, "tool_choice": "auto" if allow_tools else "none"} if tools else {}),
                 temperature=0,
                 max_tokens=1536,
                 **(
@@ -468,8 +468,7 @@ class ChatAPI:
             consume,
             model=model,
             messages=messages,
-            tools=tools,
-            tool_choice="auto" if allow_tools else "none",
+            **({"tools": tools, "tool_choice": "auto" if allow_tools else "none"} if tools else {}),
             temperature=0,
             max_tokens=_CHAT_OUTPUT_CAP,
             **(

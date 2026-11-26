@@ -69,6 +69,7 @@ def list_cases(db, user, site_id=None, kind=None, status=None, archived=None):
         case_item(c, s)
         for c, s in rows
         if (not kind or c.data.get("kind", "problem") == kind)
+        and (kind != "problem" or not c.data.get("draft"))
         and (not status or case_status(c) == status)
         and (archived is None or is_archived(c) == archived)
     ]

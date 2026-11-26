@@ -16,6 +16,7 @@ from app.agent.tools import TOOL_REGISTRY
 from app.db.base import postgres_lock, run_with_sqlite_retry
 from app.db.models import AgentRun, ApprovalRequest, Message, Ticket, _now
 from app.services import chat_service, ticket_service
+from app.services.assistant_quota import model_allowance
 from app.services.budget import BudgetExceededError
 from app.services.run_service import (
     LeaseLostError,
@@ -35,6 +36,14 @@ logger = logging.getLogger(__name__)
 # SQLite 离线环境使用进程锁；PostgreSQL 跨副本按审批单加锁。
 _approval_lock = threading.Lock()
 _ACTIVE_RUN_STATUSES = ("running", "cancel_requested")
+
+
+def chat_failure_message(error_type: str | None) -> str:
+    if error_type == "APITimeoutError":
+        return "平台模型响应超时，请稍后重试。"
+    if error_type == "APIConnectionError":
+        return "连接平台模型失败，请稍后重试。"
+    return "本次回复失败，请重试。"
 
 
 def _assert_recorder_lease_on_row(db: Session, locked: AgentRun | None, recorder) -> None:
@@ -219,7 +228,7 @@ def chat_once(
     except BudgetExceededError as exc:
         # 预算门控拒绝（请求未到达供应商）：给出明确语义而非 5xx，便于操作者分辨额度与故障
         recorder.finish({"status": "budget_refused", "error": str(exc)[:200]})
-        raise HTTPException(status.HTTP_409_CONFLICT, detail=f"预算不足：{exc}") from exc
+        raise HTTPException(status.HTTP_429_TOO_MANY_REQUESTS, detail=f"预算不足：{exc}") from exc
     except Exception as exc:
         recorder.finish({"status": "failed", "error_type": type(exc).__name__})
         raise
@@ -287,6 +296,8 @@ def chat_stream(
     question: str,
     workflow="auto",
     request_id=None,
+    *,
+    role="admin",
 ):
     with container.db_session() as db:
         if context_for_session(db, session_id, tenant_id, user_id) is not None:
@@ -298,7 +309,7 @@ def chat_stream(
         try:
             while True:
                 # SSE每次next可由不同工作线程执行，ContextVar不能跨yield保留token。
-                with capture_run(recorder), live_events():
+                with capture_run(recorder), live_events(), model_allowance(user_id, tenant_id, role):
                     item = next(iterator)
                 yield item
         except StopIteration:
@@ -310,16 +321,17 @@ def chat_stream(
             raise
         except RunCancelled:
             recorder.finish({"status": "cancelled", "end_reason": "user_cancelled"})
-            yield _sse({"type": "cancelled", "message": "已停止，已有证据保留"})
+            yield _sse({"type": "cancelled", "message": "已停止回复" if workflow == "chat" else "已停止，已有证据保留"})
             yield _sse({"type": "done"})
         except Exception as exc:
-            recorder.finish({"status": "failed", "error_type": type(exc).__name__})
+            error_type = type(exc).__name__
+            recorder.finish({"status": "failed", "error_type": error_type})
             yield _sse(
                 {
                     "type": "error",
                     "run_id": recorder.id,
-                    "error_type": type(exc).__name__,
-                    "message": "调查执行失败，请保留运行编号并检查服务状态",
+                    "error_type": error_type,
+                    "message": chat_failure_message(error_type) if workflow == "chat" else "调查执行失败，请保留运行编号并检查服务状态",
                 }
             )
         finally:

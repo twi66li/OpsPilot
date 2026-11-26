@@ -1,10 +1,11 @@
 """认证接口：注册 / 登录 / 当前用户。"""
 
 import hashlib
+import secrets
 import uuid
 from datetime import timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy import select, update
 from sqlalchemy.exc import IntegrityError
@@ -56,7 +57,7 @@ def auth_limit(request: Request, username: str = ""):
 
 
 def issue_token(db: Session, user: User) -> TokenResponse:
-    from app.services.visitor_service import is_visitor
+    from app.services.visitor_service import VISITOR_USERNAME, is_visitor
 
     session = LoginSession(
         user_id=user.id,
@@ -66,9 +67,10 @@ def issue_token(db: Session, user: User) -> TokenResponse:
     db.commit()
     guest = is_visitor(user)
     role = "viewer" if guest else user.role
-    token = create_access_token(user.id, user.username, user.tenant_id, role, session_id=session.id)
+    username = VISITOR_USERNAME if guest else user.username
+    token = create_access_token(user.id, username, user.tenant_id, role, session_id=session.id)
     return TokenResponse(
-        access_token=token, role=role, tenant_id=user.tenant_id, username=user.username, is_guest=guest
+        access_token=token, role=role, tenant_id=user.tenant_id, username=username, is_guest=guest
     )
 
 
@@ -116,7 +118,7 @@ def register(body: RegisterRequest, request: Request):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(body: LoginRequest, request: Request):
+def login(body: LoginRequest, request: Request, response: Response):
     auth_limit(request, body.username)
     with SessionLocal() as db:
         user = db.scalar(select(User).where(User.username == body.username))
@@ -124,14 +126,37 @@ def login(body: LoginRequest, request: Request):
         stored_hash = user.password_hash if user else ""
     if not user_id or not verify_password(body.password, stored_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "用户名或密码错误")
-    from app.services.visitor_service import is_visitor
+    from app.services.visitor_service import VISITOR_COOKIE, VISITOR_ID, VISITOR_TENANT
+
+    if user_id == VISITOR_ID:
+        if not get_settings().visitor_enabled:
+            raise HTTPException(403, "访客体验已关闭")
+        browser_token = request.cookies.get(VISITOR_COOKIE, "")
+        if len(browser_token) != 64 or any(ch not in "0123456789abcdef" for ch in browser_token):
+            browser_token = secrets.token_hex(32)
+        visitor_id = hashlib.sha256(browser_token.encode()).hexdigest()
+
+        def sign_in_visitor():
+            with SessionLocal() as db:
+                # 同一浏览器并发登录时先锁教学租户，再读取或创建私有身份。
+                db.execute(update(Tenant).where(Tenant.id == VISITOR_TENANT).values(id=Tenant.id))
+                guest = db.get(User, visitor_id)
+                if guest is None:
+                    guest = User(id=visitor_id, tenant_id=VISITOR_TENANT, username="~guest-" + visitor_id[:56],
+                                 password_hash="", role="viewer")
+                    db.add(guest)
+                    db.flush()
+                return issue_token(db, guest)
+
+        result = run_with_sqlite_retry(sign_in_visitor)
+        response.set_cookie(VISITOR_COOKIE, browser_token, httponly=True, samesite="strict",
+                            secure=request.url.scheme == "https", max_age=30 * 24 * 3600, path="/auth/login")
+        return result
 
     with SessionLocal() as db:
         user = db.get(User, user_id)
         if not user:
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "用户名或密码错误")
-        if is_visitor(user) and not get_settings().visitor_enabled:
-            raise HTTPException(403, "访客体验已关闭")
         return issue_token(db, user)
 
 

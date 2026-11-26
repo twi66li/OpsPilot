@@ -22,7 +22,8 @@ for(const width of [1440,1024,390]){
     await expect(page.getByRole('checkbox')).toHaveCount(0);
     await page.getByRole('button',{name:'查看记录',exact:true}).first().click();
     await expect(page.getByLabel('网站排障问题')).toBeDisabled();
-    await expect(page.getByRole('button',{name:'添加日志',exact:true})).toBeDisabled();
+    await page.getByRole('button',{name:'添加日志',exact:true}).click();
+    await expect(page.getByText('登录个人账号后可上传日志并排查',{exact:true})).toBeVisible();
     await expect(page.locator('.support-conversations')).toBeHidden();
     await expect(page.getByRole('button',{name:'删除选中（0）',exact:true})).toHaveCount(0);
     await page.getByRole('button',{name:'证据与资料 · 1',exact:true}).click();

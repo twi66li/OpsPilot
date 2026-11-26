@@ -106,7 +106,11 @@ def test_personal_handbook_is_private_even_with_same_tenant(client, admin_header
 def test_no_manual_personal_flow_and_evidence_feedback(client, admin_headers, monkeypatch):
     user = register(client, "personal-new-user", "user123456")
     library = client.get('/api/support/library', headers=user).json()
-    assert len(library) >= 6 and all(a["url"].startswith("https://") for a in library)
+    assert len(library) >= 20 and all(a["url"].startswith("https://") for a in library)
+    products = {a["product"] for a in library}
+    assert {"MySQL", "PostgreSQL", "Redis", "Kafka", "Kubernetes", "Nginx", "Java / JVM", "Node.js", "Go", "Elasticsearch"}.issubset(products)
+    k8s_hits = retrieve_for_case(get_container(), "default", "u-lib", {"profile": {}}, "CrashLoopBackOff OOMKilled kubectl", 5)
+    assert any(h["doc_id"] == "official-k8s-pod-crashloop-oom" for h in k8s_hits)
     profile = client.post('/api/support/sites', headers=user, json={"name": "个人站点", "framework": "FastAPI", "database": "PostgreSQL 16"}).json()
     created = client.post('/api/support/cases', headers=user, json={"title": "连接池超时", "site_id": profile["id"]}).json()
     session_id = created["id"]

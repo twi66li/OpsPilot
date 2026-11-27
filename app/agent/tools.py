@@ -164,10 +164,13 @@ def make_tool_executor(container, tenant_id, user_id=None, *, evaluation_time=No
                 return {"status": "delegation_limit", "summary": "检索子Agent未启用或本次调查已完成委派。", "hits": []}
             delegated = True
             from app.agent.retrieval_agent import run_retrieval_agent
+            from app.services.custom_model import active_llm
             from app.services.model_api import ChatAPI
 
             settings = container.settings
-            api = ChatAPI(settings.openai_api_key, settings.openai_base_url, settings.chat_model)
+            api = getattr(active_llm(container), "_api", None) or ChatAPI(
+                settings.openai_api_key, settings.openai_base_url, settings.chat_model
+            )
             return number_hits(run_retrieval_agent(args["query"], api, retrieve, top_k=args["top_k"], timeout=settings.tool_timeout_seconds))
         if name in DRILL_TOOLS and not container.settings.drill_enabled:
             return {"status": "unavailable", "summary": "当前环境未开放故障演练工具。"}

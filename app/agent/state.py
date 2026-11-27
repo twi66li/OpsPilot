@@ -51,7 +51,7 @@ class RoutingState(TypedDict, total=False):
     # range_stats_direct = 租户文档权威读取+程序统计（零 embedding/rerank/LLM）；
     # range_hybrid = 统计已程序化 + 混合检索补充语义上下文；hybrid = 常规混合检索。
     strategy: str
-    intent: str  # diagnose | create_ticket
+    intent: str  # diagnose | create_ticket | chat | chat_retrieve
     end_reason: str
 
 

@@ -1,6 +1,12 @@
 import type { AgentEvent, Auth, Workflow } from './types';
 
+export type PersonalModel = {endpoint: string; model: string; key?: string};
+
 const storageKey = 'opspilot.auth';
+let activePersonalModel: PersonalModel | null = null;
+export function setActivePersonalModel(model: PersonalModel | null) {
+  activePersonalModel = model;
+}
 export const formatTime = (value: string) => new Date(/[zZ]$|[+-]\d{2}:\d{2}$/.test(value) ? value : value + 'Z').toLocaleString();
 export function savedAuth(): Auth | null {
   try { return JSON.parse(sessionStorage.getItem(storageKey) || 'null'); } catch { return null; }
@@ -8,10 +14,15 @@ export function savedAuth(): Auth | null {
 export function saveAuth(auth: Auth | null) {
   if (auth) sessionStorage.setItem(storageKey, JSON.stringify(auth)); else sessionStorage.removeItem(storageKey);
 }
-function headers(init?: HeadersInit) {
+function headers(init?: HeadersInit, includeCustomModel = false) {
   const value = new Headers(init);
   const auth = savedAuth();
   if (auth) value.set('Authorization', `Bearer ${auth.access_token}`);
+  if (includeCustomModel && activePersonalModel) {
+    value.set('X-OpsPilot-Model-Endpoint', activePersonalModel.endpoint);
+    value.set('X-OpsPilot-Model-Id', activePersonalModel.model);
+    if (activePersonalModel.key) value.set('X-OpsPilot-Model-Key', activePersonalModel.key);
+  }
   return value;
 }
 async function checked(response: Response) {
@@ -23,7 +34,7 @@ async function checked(response: Response) {
   return response;
 }
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const requestHeaders = headers(init.headers);
+  const requestHeaders = headers(init.headers, path.startsWith('/api/agent/chat'));
   if (init.body && !(init.body instanceof FormData)) requestHeaders.set('Content-Type', 'application/json');
   const result:T = await (await checked(await fetch(path, { ...init, headers: requestHeaders }))).json();
   const method=(init.method||'GET').toUpperCase();
@@ -92,7 +103,7 @@ async function connectChat(start: RequestInit | null, onEvent: (event: AgentEven
     try {
       const url = runId ? '/api/agent/runs/' + runId + '/events?after=' + after : '/api/agent/chat/stream';
       const response = await checked(await fetch(url, {...(!runId && start ? start : {}), signal,
-        headers: headers(!runId && start ? {'Content-Type': 'application/json'} : undefined)}));
+        headers: headers(!runId && start ? {'Content-Type': 'application/json'} : undefined, !runId && !!start)}));
       await readChatEvents(response, (event, id) => {
         if (event.type === 'connected' && event.run_id) runId = event.run_id;
         if (id) after = id;

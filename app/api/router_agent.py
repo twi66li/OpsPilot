@@ -1,6 +1,6 @@
 """Agent 接口：SSE 流式诊断 / 非流式诊断 / 工单审批 / 工具清单。"""
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse, StreamingResponse
 from sqlalchemy.orm import Session
 
@@ -14,6 +14,7 @@ from app.services import agent_service, background_runs, chat_service
 from app.services.assistant_quota import claim_chat, model_allowance
 from app.services.cache import check_rate_limit
 from app.services.case_service import assert_editable
+from app.services.custom_model import custom_llm_context, parse_custom_model_headers
 from app.services.visitor_service import DEMO_DRILL_PREFIX, VISITOR_ID
 
 router = APIRouter(prefix="/api/agent", tags=["agent"])
@@ -38,9 +39,10 @@ def _check_session_and_ratelimit(user: AuthUser, db: Session, session_id: str, w
 
 
 @router.post("/chat")
-def chat(body: ChatIn, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
+def chat(body: ChatIn, request: Request, user: AuthUser = Depends(get_current_user), db: Session = Depends(get_db)):
     """非流式诊断：一次返回最终结果与全部过程事件（便于测试与调试）。"""
     container = _check_session_and_ratelimit(user, db, body.session_id, body.workflow)
+    custom_model = parse_custom_model_headers(request, allow_loopback=container.settings.app_env != "production")
     existing = existing_request(db, body, user)
     if existing:
         return JSONResponse(
@@ -49,7 +51,7 @@ def chat(body: ChatIn, user: AuthUser = Depends(get_current_user), db: Session =
         )
     db.rollback()
     claim_chat(user, body.session_id)
-    with model_allowance(user.user_id, user.tenant_id, user.role):
+    with model_allowance(user.user_id, user.tenant_id, user.role), custom_llm_context(custom_model):
         return agent_service.chat_once(
             container, db, user.tenant_id, user.user_id, user.username, body.session_id,
             body.message, body.workflow, body.request_id,
@@ -57,11 +59,12 @@ def chat(body: ChatIn, user: AuthUser = Depends(get_current_user), db: Session =
 
 
 @router.post("/chat/stream")
-def chat_stream(body: ChatIn, user: AuthUser = Depends(get_assistant_user)):
+def chat_stream(body: ChatIn, request: Request, user: AuthUser = Depends(get_assistant_user)):
     """SSE 流式诊断：推送节点状态、检索命中、工具事件、回答与审批请求。"""
     # 前置校验使用短生命周期同步工作单元，流式响应开始前立即归还数据库连接。
     with SessionLocal() as db:
         container = _check_session_and_ratelimit(user, db, body.session_id, body.workflow)
+        custom_model = parse_custom_model_headers(request, allow_loopback=container.settings.app_env != "production")
         existing = existing_request(db, body, user)
         existing_info = (
             {
@@ -75,10 +78,12 @@ def chat_stream(body: ChatIn, user: AuthUser = Depends(get_assistant_user)):
         )
     if existing_info is None:
         claim_chat(user, body.session_id)
-    if body.background and (existing_info is None or existing_info["background"]):
+    # 多副本下自带模型凭据不落盘，不跨进程入队；单副本时走进程内短暂绑定，仍支持断线续传与停止生成。
+    use_background = body.background and not (custom_model is not None and container.settings.multi_replica_enabled)
+    if use_background and (existing_info is None or existing_info["background"]):
         if existing_info is None:
             try:
-                run_id = background_runs.enqueue(container, user, body)
+                run_id = background_runs.enqueue(container, user, body, custom_model=custom_model)
             except HTTPException as exc:
                 # 断线重试可能先于原请求提交返回。同一请求只订阅已经创建的运行。
                 with SessionLocal() as db:
@@ -110,6 +115,7 @@ def chat_stream(body: ChatIn, user: AuthUser = Depends(get_assistant_user)):
             body.workflow,
             body.request_id,
             role=user.role,
+            custom_model=custom_model,
         )
     return StreamingResponse(
         generator,

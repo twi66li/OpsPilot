@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react
 import { Alert, App as AntApp, Button, Drawer, Dropdown, Layout, Menu, Space, Spin } from 'antd';
 import { BookOutlined, CommentOutlined, DashboardOutlined, ExperimentOutlined, FileSearchOutlined, GlobalOutlined, LockOutlined, LogoutOutlined, MenuFoldOutlined, MenuOutlined, MenuUnfoldOutlined, RobotOutlined, SearchOutlined, SafetyCertificateOutlined, UnorderedListOutlined, UserOutlined } from '@ant-design/icons';
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { api, post, savedAuth, saveAuth } from './api';
+import { api, post, savedAuth, saveAuth, setActivePersonalModel } from './api';
 import type { Auth, Hit, SupportEntry } from './types';
 import SourceDrawer from './SourceDrawer';
 import Home from './Home';
@@ -73,7 +73,7 @@ export default function App() {
   }
   function askHere(entry?:SupportEntry){setSideEntry(entry||{...(page==='websites'&&resourceId?{siteId:resourceId}:page==='issues'&&resourceId?{caseId:resourceId}:{}),workflow:'consult'});}
   useEffect(()=>{setSideEntry(null);},[location.pathname,location.search]);
-  function clearAuth() {saveAuth(null);setAuth(null);setSource(null);setPasswordOpen(false);setSideEntry(null);setCapabilitiesOpen(false);setSearchOpen(false);setResourceTitle(null);setModel(null);setModelOpen(false);setUsageOpen(false);}
+  function clearAuth() {saveAuth(null);setActivePersonalModel(null);setAuth(null);setSource(null);setPasswordOpen(false);setSideEntry(null);setCapabilitiesOpen(false);setSearchOpen(false);setResourceTitle(null);setModel(null);setModelOpen(false);setUsageOpen(false);}
   async function logout() {try{await post('/auth/logout');clearAuth();}catch(e){message.error((e as Error).message);}}
   useEffect(()=>{
     const unauthorized=clearAuth;window.addEventListener('opspilot:unauthorized',unauthorized);
@@ -108,7 +108,7 @@ export default function App() {
         <Dropdown trigger={['click']} menu={{items:[
           {key:'identity',label:<span className="account-identity">{auth.username} · {roleLabel}</span>,disabled:true},
           {type:'divider' as const},
-          {key:'model',label:'模型设置'}, {key:'usage',label:'今日用量'}, {key:'capabilities',label:'查看能力状态'},
+          {key:'model',label:model?'模型设置（自带模型）':'模型设置'}, {key:'usage',label:'今日用量'}, {key:'capabilities',label:'查看能力状态'},
           ...(!auth.is_guest?[{key:'password',icon:<LockOutlined/>,label:'修改密码'}]:[]),
           {type:'divider' as const}, {key:'logout',icon:<LogoutOutlined/>,label:auth.is_guest?'退出访客':'退出登录'},
         ],onClick:({key})=>{
@@ -137,7 +137,7 @@ export default function App() {
       </Suspense></ErrorBoundary>
     </Layout.Content></Layout><SourceDrawer hit={source} close={()=>setSource(null)} ask={hit=>{setSource(null);askHere({...sideEntry,workflow:'consult',question:`请解释资料「${hit.doc_title}」${hit.applicable_version?`（适用版本：${hit.applicable_version}）`:''}中的检查方法、适用条件和证据要求；不要把手册当作本次故障现场证据。`});}}/><PasswordDialog open={passwordOpen} close={()=>setPasswordOpen(false)} changed={clearAuth}/>
     <Capabilities open={capabilitiesOpen} close={()=>setCapabilitiesOpen(false)} navigate={url=>navigate(url)}/>
-    {modelOpen&&<AssistantSettings value={model} save={value=>{setModel(value);setModelOpen(false);}} close={()=>setModelOpen(false)}/>}
+    {modelOpen&&<AssistantSettings value={model} save={value=>{setActivePersonalModel(value);setModel(value);setModelOpen(false);}} close={()=>setModelOpen(false)}/>}
     {usageOpen&&<AssistantUsage close={()=>setUsageOpen(false)}/>}
     <CommandPalette key={auth.tenant_id+':'+auth.username} open={searchOpen} close={()=>setSearchOpen(false)} navigate={navigate} onSource={setSource} guest={!!auth.is_guest} canApprove={canReadOperations} admin={canReadEvaluation} drillEnabled={drillEnabled===true}/>
     <Drawer className="side-assistant" open={!!sideEntry} onClose={()=>setSideEntry(null)} title="随页维护助手" width={Math.min(1000, windowWidth)} destroyOnHidden>

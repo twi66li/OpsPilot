@@ -425,7 +425,9 @@ def _find_idempotent_run(db, tenant_id: str, session_id: str, request_id: str | 
     return None
 
 
-def enqueue(container, user, body, *, idempotency_key: str | None = None):
+def enqueue(container, user, body, *, idempotency_key: str | None = None, custom_model=None):
+    from app.services.custom_model import bind_run_custom_model
+
     if _worker is None:
         raise HTTPException(503, "调查后台尚未就绪")
     factory = _resolve_session_factory()
@@ -483,6 +485,7 @@ def enqueue(container, user, body, *, idempotency_key: str | None = None):
         else:
             raise
 
+    bind_run_custom_model(run_id, custom_model)
     runtime = _current_runtime()
     if runtime is not None:
         runtime.wake_event.set()
@@ -605,6 +608,9 @@ def execute(
         attempt=lease.attempt,
         session_factory=factory,
     )
+    from app.services.custom_model import clear_run_custom_model, custom_llm_context, pop_run_custom_model
+
+    custom_model = pop_run_custom_model(run_id)
     try:
         with _lease_heartbeat(
             lease,
@@ -614,7 +620,12 @@ def execute(
             is_finished=lambda: recorder.finished,
             session_factory=factory,
         ):
-            with capture_run(recorder), live_events(), model_allowance(user_id, run_tenant_id, user_role):
+            with (
+                capture_run(recorder),
+                live_events(),
+                model_allowance(user_id, run_tenant_id, user_role),
+                custom_llm_context(custom_model),
+            ):
                 check_lease()
                 if run_status == "cancel_requested" or not user_id or user_tenant_id != run_tenant_id:
                     raise RunCancelled()
@@ -682,12 +693,19 @@ def execute(
         logger.error("background_run_failed run_id=%s error_type=%s", run_id, type(exc).__name__)
         if not recorder.finished:
             try:
-                recorder.finish({"status": "failed", "error_type": type(exc).__name__})
+                recorder.finish(
+                    {
+                        "status": "failed",
+                        "error_type": type(exc).__name__,
+                        **({"custom_model": True} if custom_model is not None else {}),
+                    }
+                )
             except LeaseLostError:
                 logger.warning("background_run_fail_rejected_lease_lost run_id=%s owner=%s", run_id, lease.owner)
                 return False
         return True
     finally:
+        clear_run_custom_model(run_id)
         _notify(run_id)
 
 
@@ -720,7 +738,11 @@ def read_events(run_id, tenant_id, user_id, after):
             else:
                 message = result.get("error")
                 if not message:
-                    message = agent_service.chat_failure_message(result.get("error_type")) if is_chat else "本次调查未完成，已有证据保留"
+                    used_custom = bool(result.get("custom_model"))
+                    if is_chat or used_custom:
+                        message = agent_service.chat_failure_message(result.get("error_type"), custom_model=used_custom)
+                    else:
+                        message = "本次调查未完成，已有证据保留"
                 terminal = {"type": "error", "message": message}
             return rows, {**terminal, "run_id": run_id, "status": run.status}
 

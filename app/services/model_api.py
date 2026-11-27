@@ -199,15 +199,41 @@ def release_for_channel(
 
 
 class ChatAPI:
-    def __init__(self, api_key: str, base_url: str, model: str, *, budget_guard=None):
-        # 真实供应商入口：无持久账本配置即 fail closed，Mock 路径（MockLLM 等）不经过本类
-        self._budget = budget_guard if budget_guard is not None else get_budget_guard()
-        if self._budget is None:
-            raise BudgetLedgerError(
-                "真实对话模型入口未配置持久预算账本（BUDGET_LEDGER_BACKEND/BUDGET_LEDGER_PATH/BUDGET_TOKEN_LIMIT），拒绝启动"
-            )
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str,
+        model: str,
+        *,
+        budget_guard=None,
+        skip_budget: bool = False,
+        allow_model_switch: bool = True,
+        follow_redirects: bool = True,
+    ):
+        # 真实平台供应商入口：无持久账本配置即 fail closed；仅用户自带模型（BYOK）显式跳过平台账本
+        self._skip_budget = skip_budget
+        self._allow_model_switch = allow_model_switch
+        self._follow_redirects = follow_redirects
+        if skip_budget:
+            self._budget = None
+        else:
+            self._budget = budget_guard if budget_guard is not None else get_budget_guard()
+            if self._budget is None:
+                raise BudgetLedgerError(
+                    "真实对话模型入口未配置持久预算账本（BUDGET_LEDGER_BACKEND/BUDGET_LEDGER_PATH/BUDGET_TOKEN_LIMIT），拒绝启动"
+                )
         self._client_options = dict(api_key=api_key, base_url=base_url or None, timeout=60, max_retries=0)
-        self.client = OpenAI(**self._client_options)
+        from urllib.parse import urlsplit
+
+        host = (urlsplit(base_url or "").hostname or "").lower().strip("[]")
+        self._trust_env = host not in ("localhost", "127.0.0.1", "::1")
+        if not follow_redirects:
+            self.client = OpenAI(
+                **self._client_options,
+                http_client=httpx.Client(follow_redirects=False, timeout=60, trust_env=self._trust_env),
+            )
+        else:
+            self.client = OpenAI(**self._client_options)
         self.model = model
         self.is_dashscope = "aliyuncs.com" in (base_url or "")
         self.calls: list[dict] = []
@@ -215,7 +241,9 @@ class ChatAPI:
 
     def _completion(self, on_chunk=None, **params):
         if on_chunk is not None:
-            params.update(stream=True, stream_options={"include_usage": True})
+            params["stream"] = True
+            if not self._skip_budget:
+                params["stream_options"] = {"include_usage": True}
 
         if getattr(current_run(), "cancel_signal", None) is None:
             response = self.client.chat.completions.create(**params)
@@ -230,6 +258,18 @@ class ChatAPI:
             options = dict(self._client_options)
             if (remaining := tool_time_left()) is not None:
                 options["timeout"] = min(options["timeout"], remaining)
+            if not self._follow_redirects:
+                async with httpx.AsyncClient(
+                    follow_redirects=False, timeout=options["timeout"], trust_env=self._trust_env
+                ) as http_client:
+                    async with AsyncOpenAI(**options, http_client=http_client) as client:
+                        response = await client.chat.completions.create(**params)
+                        if on_chunk is None:
+                            return response
+                        async with response as stream:
+                            async for chunk in stream:
+                                on_chunk(chunk)
+                return None
             async with AsyncOpenAI(**options) as client:
                 response = await client.chat.completions.create(**params)
                 if on_chunk is None:
@@ -255,6 +295,8 @@ class ChatAPI:
         output_cap: int,
         thinking_cap: int = 0,
     ):
+        if self._skip_budget:
+            return None, []
         estimate = estimate_chat_bound(
             messages, tools, output_cap=output_cap, thinking_cap=thinking_cap + self._thinking_cap(model)
         )
@@ -262,6 +304,8 @@ class ChatAPI:
 
     @staticmethod
     def _settle(guard, reservation, record: dict):
+        if guard is None:
+            return
         settle_for_channel(record, guard, reservation)
 
     def chat(self, system: str, user: str, *, json_mode: bool = False, output_cap: int = _CHAT_OUTPUT_CAP) -> str:
@@ -270,7 +314,11 @@ class ChatAPI:
         - 总额不足/halt、认证/参数错误不切换（不能借换模型突破总额）；
         - 供应商 429/5xx 同模型最多额外重试一次（每次尝试独立预留并记账）。"""
         check_cancelled()
-        models = _available_chat_models(self.model, getattr(self, "_quota_exhausted", ()))
+        models = (
+            _available_chat_models(self.model, getattr(self, "_quota_exhausted", ()))
+            if self._allow_model_switch
+            else [self.model]
+        )
         i = 0
         retried = False
         while True:
@@ -362,7 +410,11 @@ class ChatAPI:
 
     def tool_turn(self, messages: list[dict], tools: list[dict], *, allow_tools: bool = True) -> dict:
         check_cancelled()
-        models = _available_chat_models(self.model, getattr(self, "_quota_exhausted", ()))
+        models = (
+            _available_chat_models(self.model, getattr(self, "_quota_exhausted", ()))
+            if self._allow_model_switch
+            else [self.model]
+        )
         for index, model in enumerate(models):
             try:
                 return self._tool_turn_once(model, messages, tools, allow_tools=allow_tools)

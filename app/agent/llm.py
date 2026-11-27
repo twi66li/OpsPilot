@@ -158,10 +158,27 @@ def extract_error_code_hint(question: str) -> str | None:
 class OpenAIChatLLM(BaseLLM):
     """OpenAI 兼容 API 实现；调用失败时回退到规则式，保证服务不中断。"""
 
-    def __init__(self, api_key: str, base_url: str, model: str, strict: bool = False):
+    def __init__(
+        self,
+        api_key: str,
+        base_url: str,
+        model: str,
+        strict: bool = False,
+        *,
+        skip_budget: bool = False,
+        allow_model_switch: bool = True,
+        follow_redirects: bool = True,
+    ):
         from app.services.model_api import ChatAPI
 
-        self._api = ChatAPI(api_key, base_url, model)
+        self._api = ChatAPI(
+            api_key,
+            base_url,
+            model,
+            skip_budget=skip_budget,
+            allow_model_switch=allow_model_switch,
+            follow_redirects=follow_redirects,
+        )
         self.model = model
         self.strict = strict
         self._fallback = MockLLM()

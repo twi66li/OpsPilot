@@ -307,14 +307,17 @@ small, .muted { color: var(--text-3); font-size: 12px; }
 .demo-message-time { display:block; margin-bottom:5px; font-size:11px; }
 .conversation-row .session-item { flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .plain-assistant .support-chat-scroll { padding-inline:max(18px,calc((100% - 760px) / 2)); }
-.plain-assistant-greeting { margin:auto; text-align:center; }
+.plain-assistant-greeting { display:flex; flex-direction:column; align-items:center; gap:10px; max-width:520px; margin:auto; padding:16px 0; text-align:center; }
 .plain-assistant-greeting h2 { margin:0; font-size:clamp(22px,3vw,30px); font-weight:600; }
+.plain-assistant-intro { margin:0; color:var(--muted); font-size:14px; line-height:1.7; }
+.plain-assistant-avatar { display:inline-grid; place-items:center; flex-shrink:0; border:1px solid var(--accent-line); border-radius:50%; background:var(--accent-bg); color:var(--accent); }
+.plain-assistant .support-message.assistant .plain-assistant-avatar { margin-top:2px; }
 .plain-assistant .support-composer { width:min(100%,800px); margin-inline:auto; border-top:0; }
 .plain-assistant .support-composer-box { border-radius:14px; }
 .plain-assistant textarea { display:block; width:100%; padding:14px 14px 4px; border:0; outline:0; background:transparent; color:var(--text); resize:none; font:inherit; }
-.plain-assistant textarea::placeholder { color:var(--muted); }
+.plain-assistant textarea::placeholder { color:var(--muted); opacity:.52; }
 .plain-assistant .support-composer-tools { align-items:center; }
-.plain-assistant .support-message:not(.user) .support-bubble { max-width:100%; padding-inline:0; border:0; }
+.plain-assistant .support-message:not(.user) .support-bubble { flex:1; min-width:0; max-width:100%; padding:0; border:0; background:transparent; }
 .plain-assistant .support-message.user .support-bubble { border-color:var(--line); background:var(--sunken); color:var(--text); }
 .assistant-inline-error { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 2px 6px; color:var(--warn); }
 .assistant-log-banner { display:flex; align-items:center; justify-content:space-between; gap:8px; margin:0 2px 6px; padding:6px 12px; border:1px solid var(--line); border-radius:8px; background:var(--panel); font-size:13px; }

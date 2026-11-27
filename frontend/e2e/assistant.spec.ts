@@ -1,54 +1,101 @@
+import { createServer } from 'node:http';
+import type { AddressInfo } from 'node:net';
 import { expect, test } from '@playwright/test';
 
 test('访客用自带模型聊天、改名并查看本日额度', async ({page}, info) => {
   expect(process.env.OPSPILOT_E2E_ISOLATED).toBe('1');
   const credential = 'test-only-gateway-key';
   const platformBodies: string[] = [];
-  const platformAuth: string[] = [];
+  const leakedKeyPaths: string[] = [];
   page.on('request', request => {
-    if (new URL(request.url()).origin === new URL(page.url()).origin) {
+    const parsed = new URL(request.url());
+    if (parsed.origin === new URL(page.url()).origin) {
       platformBodies.push(request.postData() || '');
-      platformAuth.push(request.headers()['authorization'] || '');
+      if (!parsed.pathname.startsWith('/api/agent/chat') && request.headers()['x-opspilot-model-key']) {
+        leakedKeyPaths.push(parsed.pathname);
+      }
     }
   });
-  const base = 'https://assistant-gateway.example.test/v1';
+
   let modelCalls = 0;
-  await page.route(base + '/chat/completions', async route => {
-    const cors = {'access-control-allow-origin': '*', 'access-control-allow-headers': 'authorization,content-type'};
-    if (route.request().method() === 'OPTIONS') return route.fulfill({status: 204, headers: cors});
-    modelCalls++;
-    expect(route.request().headers().authorization).toBe('Bearer ' + credential);
-    expect(route.request().postDataJSON().messages.at(-1).content).toBe('502 一般是什么意思？');
-    return route.fulfill({headers: cors, json: {choices: [{message: {content: '代理收到了无效的上游响应。'}}]}});
+  let receivedSystem = '';
+  let receivedUser = '';
+  const server = createServer((req, res) => {
+    if (req.method !== 'POST' || req.url !== '/v1/chat/completions') {
+      res.writeHead(404);
+      res.end();
+      return;
+    }
+    const chunks: Buffer[] = [];
+    req.on('data', c => chunks.push(c));
+    req.on('end', () => {
+      modelCalls++;
+      expect(req.headers.authorization).toBe('Bearer ' + credential);
+      const body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+      expect(body.model).toBe('test-assistant');
+      receivedSystem = body.messages[0]?.content || '';
+      receivedUser = body.messages.at(-1)?.content || '';
+      const answer = 'OpsPilot 是网站维护工作台。';
+      if (body.stream) {
+        res.writeHead(200, {'Content-Type': 'text/event-stream'});
+        res.write(`data: ${JSON.stringify({id: 'c1', object: 'chat.completion.chunk', choices: [{index: 0, delta: {role: 'assistant', content: answer}, finish_reason: null}]})}\n\n`);
+        res.write(`data: ${JSON.stringify({id: 'c1', object: 'chat.completion.chunk', choices: [{index: 0, delta: {}, finish_reason: 'stop'}]})}\n\n`);
+        res.write('data: [DONE]\n\n');
+        res.end();
+      } else {
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        res.end(JSON.stringify({id: 'c1', object: 'chat.completion', choices: [{index: 0, message: {role: 'assistant', content: answer}, finish_reason: 'stop'}]}));
+      }
+    });
   });
-  await page.setViewportSize({width: 1440, height: 900});
-  await page.goto('/home');
-  await page.getByRole('button', {name: '访客直接进入', exact: true}).click();
-  await page.getByRole('button', {name: '智能维护助手', exact: true}).click();
-  await expect(page.getByLabel('给维护助手发消息')).toBeEnabled();
-  await page.getByRole('button', {name: '模型设置', exact: true}).click();
-  await page.getByLabel('模型 API 基础地址').fill(base);
-  await page.getByLabel('模型名称').fill('test-assistant');
-  await page.getByLabel(/网关凭据或短期 API Key/).fill(credential);
-  await page.getByRole('button', {name: '使用自带模型', exact: true}).click();
-  await page.getByLabel('给维护助手发消息').fill('502 一般是什么意思？');
-  await page.getByRole('button', {name: '发送', exact: true}).click();
-  await expect(page.getByRole('log', {name: '聊天记录'})).toContainText('代理收到了无效的上游响应。');
-  expect(modelCalls).toBe(1);
-  expect([...platformBodies, ...platformAuth].join(' ')).not.toContain(credential);
-  await page.getByRole('button', {name: /更多操作/}).click();
-  await page.getByRole('menuitem', {name: '重命名'}).click();
-  await page.getByLabel('对话名称').fill('HTTP 常见错误');
-  await page.getByRole('button', {name: '保存', exact: true}).click();
-  await expect(page.getByRole('heading', {name: 'HTTP 常见错误'})).toBeVisible();
-  await page.reload();
-  await expect(page.getByRole('heading', {name: 'HTTP 常见错误'})).toBeVisible();
-  await expect(page.getByRole('button', {name: '模型设置', exact: true})).toBeVisible();
-  await page.screenshot({path: info.outputPath('assistant-conversation.png')});
-  await page.getByRole('button', {name: /^账号：/}).click();
-  await page.getByRole('menuitem', {name: '今日用量'}).click();
-  await expect(page.getByRole('dialog', {name: '今日用量'})).toContainText('1 / 3');
-  await expect(page.getByRole('dialog', {name: '今日用量'})).toContainText('0 / 50,000');
+  await new Promise<void>(resolve => server.listen(0, '127.0.0.1', resolve));
+  const port = (server.address() as AddressInfo).port;
+  const base = `http://127.0.0.1:${port}/v1`;
+
+  try {
+    await page.setViewportSize({width: 1440, height: 900});
+    await page.goto('/home');
+    await page.getByRole('button', {name: '访客直接进入', exact: true}).click();
+    await page.getByRole('button', {name: '智能维护助手', exact: true}).click();
+    await expect(page.getByLabel('给维护助手发消息')).toBeEnabled();
+    await expect(page.locator('.plain-assistant-greeting .plain-assistant-avatar')).toBeVisible();
+    await expect(page.locator('.plain-assistant-intro')).toContainText('OpsPilot 智能维护助手');
+    await page.getByRole('button', {name: '模型设置', exact: true}).click();
+    await expect(page.getByLabel('Base URL')).toHaveValue('https://api.deepseek.com');
+    await expect(page.getByLabel('模型 ID')).toHaveValue('deepseek-flash');
+    await page.getByRole('button', {name: '使用自带模型', exact: true}).click();
+    await expect(page.getByText('请输入 API Key', {exact: true})).toBeVisible();
+    await page.getByLabel('Base URL').fill('http://127.0.0.1:11434/v1');
+    await page.getByRole('button', {name: '使用自带模型', exact: true}).click();
+    await page.getByRole('button', {name: '自带模型', exact: true}).click();
+    await page.getByLabel('Base URL').fill(base);
+    await page.getByLabel('模型 ID').fill('test-assistant');
+    await page.getByLabel('API Key', {exact: true}).fill(credential);
+    await page.getByRole('button', {name: '使用自带模型', exact: true}).click();
+    await page.getByLabel('给维护助手发消息').fill('介绍下本系统');
+    await page.getByRole('button', {name: '发送', exact: true}).click();
+    await expect(page.getByRole('log', {name: '聊天记录'})).toContainText('OpsPilot 是网站维护工作台。');
+    expect(modelCalls).toBe(1);
+    expect(receivedSystem).toContain('OpsPilot');
+    expect(receivedUser).toBe('介绍下本系统');
+    expect(platformBodies.join(' ')).not.toContain(credential);
+    expect(leakedKeyPaths).toEqual([]);
+    await page.getByRole('button', {name: /更多操作/}).click();
+    await page.getByRole('menuitem', {name: '重命名'}).click();
+    await page.getByLabel('对话名称').fill('HTTP 常见错误');
+    await page.getByRole('button', {name: '保存', exact: true}).click();
+    await expect(page.getByRole('heading', {name: 'HTTP 常见错误'})).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole('heading', {name: 'HTTP 常见错误'})).toBeVisible();
+    await expect(page.getByRole('button', {name: '模型设置', exact: true})).toBeVisible();
+    await page.screenshot({path: info.outputPath('assistant-conversation.png')});
+    await page.getByRole('button', {name: /^账号：/}).click();
+    await page.getByRole('menuitem', {name: '今日用量'}).click();
+    await expect(page.getByRole('dialog', {name: '今日用量'})).toContainText('1 / 3');
+    await expect(page.getByRole('dialog', {name: '今日用量'})).toContainText('0 / 50,000');
+  } finally {
+    await new Promise<void>(resolve => server.close(() => resolve()));
+  }
 });
 
 test('在同一聊天内粘贴日志触发诊断卡片、确认方案并完成复测核对', async ({page, request}) => {

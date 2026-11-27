@@ -116,12 +116,14 @@ def run_personal(container, state):
         "evidence": summaries,
     }
     from app.agent.skills import effective_tools
+    from app.services.custom_model import active_llm
 
+    llm = active_llm(container)
     runtime_allowed = ["search_runbook", "search_saved_cases", "get_site_overview"]
     if any(item["line_count"] > len(visible[item["id"]]) for item in summaries):
         runtime_allowed.append("read_evidence_lines")
     available_tools = () if workflow == "welcome" else effective_tools(workflow, runtime_allowed=runtime_allowed)
-    if workflow != "welcome" and not hasattr(container.llm, "_api"):
+    if workflow != "welcome" and not hasattr(llm, "_api"):
         return {
             "answer": "当前为离线模型模式。请配置真实聊天模型后开始排障；文档和背景仍可准备。",
             "end_reason": "model_error",
@@ -143,7 +145,7 @@ def run_personal(container, state):
         with agent_scope("support"):
             result = run_tool_loop(
                 state["question"],
-                container.llm._api,
+                llm._api,
                 execute,
                 history=state.get("history", []),
                 tool_names=available_tools,

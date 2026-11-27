@@ -14,6 +14,7 @@ export interface ChatMessage {
   meta?: {
     run_id?: string;
     citations?: string[];
+    hits?: Hit[];
     case_id?: string;
     evidence_id?: string;
     workflow?: Workflow;

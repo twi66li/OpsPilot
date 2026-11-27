@@ -36,6 +36,8 @@ def retrieve_for_case(container, tenant_id, user_id, context, query, top_k):
             if context.get("exclude_official")
             else db.query(Document).filter_by(tenant_id=OFFICIAL_TENANT, deleted_at=None).all()
         )
+        if not private and not official:
+            return []
         vector = container.embedder.embed([query])[0]
         routes = []
         for scope, docs in (

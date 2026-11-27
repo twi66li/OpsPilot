@@ -38,7 +38,17 @@ _approval_lock = threading.Lock()
 _ACTIVE_RUN_STATUSES = ("running", "cancel_requested")
 
 
-def chat_failure_message(error_type: str | None) -> str:
+def chat_failure_message(error_type: str | None, *, custom_model: bool = False) -> str:
+    if custom_model:
+        if error_type == "APITimeoutError":
+            return "自带模型响应超时，请稍后重试。"
+        if error_type == "AuthenticationError":
+            return "自带模型鉴权失败，请检查 API Key 是否有效。"
+        if error_type in ("NotFoundError", "BadRequestError"):
+            return "自带模型调用被拒绝，请检查 Base URL 与模型 ID 是否正确。"
+        if error_type == "APIConnectionError":
+            return "连接自带模型失败，请检查 Base URL 与网络连通性。"
+        return "自带模型调用失败，请检查配置后重试。"
     if error_type == "APITimeoutError":
         return "平台模型响应超时，请稍后重试。"
     if error_type == "APIConnectionError":
@@ -280,6 +290,7 @@ def _chat_once(container, db, tenant_id, user_id, username, session_id, question
             "intent": result["intent"],
             "ticket_id": result["ticket_id"],
             "run_id": run_id,
+            **({"hits": result["hits"]} if workflow == "chat" and result["hits"] else {}),
         },
         run_id=run_id,
     )
@@ -298,7 +309,10 @@ def chat_stream(
     request_id=None,
     *,
     role="admin",
+    custom_model=None,
 ):
+    from app.services.custom_model import custom_llm_context
+
     with container.db_session() as db:
         if context_for_session(db, session_id, tenant_id, user_id) is not None:
             question = redact(question)["text"]
@@ -309,7 +323,12 @@ def chat_stream(
         try:
             while True:
                 # SSE每次next可由不同工作线程执行，ContextVar不能跨yield保留token。
-                with capture_run(recorder), live_events(), model_allowance(user_id, tenant_id, role):
+                with (
+                    capture_run(recorder),
+                    live_events(),
+                    model_allowance(user_id, tenant_id, role),
+                    custom_llm_context(custom_model),
+                ):
                     item = next(iterator)
                 yield item
         except StopIteration:
@@ -331,7 +350,13 @@ def chat_stream(
                     "type": "error",
                     "run_id": recorder.id,
                     "error_type": error_type,
-                    "message": chat_failure_message(error_type) if workflow == "chat" else "调查执行失败，请保留运行编号并检查服务状态",
+                    "message": chat_failure_message(error_type, custom_model=custom_model is not None)
+                    if workflow == "chat"
+                    else (
+                        chat_failure_message(error_type, custom_model=True)
+                        if custom_model is not None
+                        else "调查执行失败，请保留运行编号并检查服务状态"
+                    ),
                 }
             )
         finally:
@@ -503,6 +528,7 @@ def _chat_stream(container, tenant_id, user_id, username, session_id, question, 
                         "intent": result["intent"],
                         "ticket_id": result["ticket_id"],
                         "run_id": run_id,
+                        **({"hits": result["hits"]} if workflow == "chat" and result["hits"] else {}),
                     },
                     run_id=run_id,
                 )

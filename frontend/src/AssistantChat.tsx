@@ -5,8 +5,20 @@ import { api, followChat, formatTime, newRequestId, post, savedAuth, streamChat 
 import ConversationMenu from './ConversationMenu';
 import ChatDiagnosisCard from './ChatDiagnosisCard';
 import EvidenceSummary, { RedactionNotice } from './EvidenceSummary';
-import { askPersonalModel, type PersonalModel } from './AssistantSettings';
+import { type PersonalModel } from './AssistantSettings';
 import type { AgentEvent, ChatMessage, EvidencePreview, Hit, PersonalCase, SessionHistory, Site, Workflow } from './types';
+
+function AssistantAvatar({size = 30}: {size?: number}) {
+  const iconSize = Math.round(size * 0.56);
+  return (
+    <span className="plain-assistant-avatar" style={{width: size, height: size}} aria-hidden="true">
+      <svg width={iconSize} height={iconSize} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2.5L4 6.8v5.4c0 5 3.4 8.2 8 9.3 4.6-1.1 8-4.3 8-9.3V6.8l-8-4.3z" />
+        <path d="M8.5 12.2h2.2l1.3-2.6 1.8 4.4 1.2-1.8h1.5" />
+      </svg>
+    </span>
+  );
+}
 
 const conversations = '/api/assistant/conversations';
 type Thread = {id: string; title: string; created_at?: string; read_only?: boolean};
@@ -59,7 +71,7 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
   const [modalBusy, setModalBusy] = useState(false);
   const current = useRef<string | undefined>(undefined);
   const controller = useRef<AbortController | null>(null);
-  const retry = useRef<{id: string; text: string; direct: PersonalModel | null; answer?: string} | null>(null);
+  const retry = useRef<{id: string; text: string; direct: PersonalModel | null} | null>(null);
   const timeline = useRef<HTMLDivElement>(null);
   const title = threads.find(thread => thread.id === id)?.title;
 
@@ -95,6 +107,7 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
 
   function events(event: AgentEvent) {
     if (event.run_id) setRunId(event.run_id);
+    if (event.type === 'phase') setDraft(event.message || '');
     if (event.type === 'answer_reset') setDraft('');
     if (event.type === 'token') setDraft(previous => previous + (event.delta || ''));
     if (event.type === 'error') setError(event.message || '回复失败，请稍后重试');
@@ -166,26 +179,14 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
     try {
       const threadId = await ensureThread(text, signal);
       if (signal.aborted) return;
-      if (turn.direct) {
-        const url = conversations + '/' + threadId + '/personal-turn';
-        const requestId = {request_id: turn.id, message: text};
-        const started = await api<{answer: string | null}>(url, {method: 'POST', body: JSON.stringify(requestId), signal});
-        if (!started.answer) {
-          const context = messages.filter(m => (m.role === 'assistant' || m.role === 'user') && !m.meta?.case_id).slice(-10)
-            .map(m => ({role: m.role, content: m.content.slice(0, 8000)}));
-          turn.answer ??= await askPersonalModel(turn.direct, [...context, {role: 'user', content: text}], signal);
-          await api(url, {method: 'POST', body: JSON.stringify({...requestId, answer: turn.answer}), signal});
-        }
-      } else {
-        let failed = false;
-        await streamChat(threadId, text, event => {
-          if (event.type === 'error') failed = true;
-          events(event);
-        }, signal, 'chat', turn.id);
-        if (failed) {
-          retry.current = null;
-          setQuestion(text);
-        }
+      let failed = false;
+      await streamChat(threadId, text, event => {
+        if (event.type === 'error') failed = true;
+        events(event);
+      }, signal, 'chat', turn.id);
+      if (failed) {
+        retry.current = null;
+        setQuestion(text);
       }
       await read(threadId, signal);
       retry.current = null;
@@ -319,10 +320,19 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
       </div>)}
     </div></>;
 
-  function bubble(role: string, content: string, key: string | number, at?: string) {
-    return <article className={`support-message ${role}`} key={key}><div className="support-bubble">
+  function bubble(role: string, content: string, key: string | number, at?: string, hits?: Hit[]) {
+    return <article className={`support-message ${role}`} key={key}>
+      {role === 'assistant' && <AssistantAvatar size={28} />}
+      <div className="support-bubble">
       {at && <time className="demo-message-time muted">{formatTime(at)}</time>}
       <div className="message-body">{content}</div>
+      {!!hits?.length && <section className="section-gap" aria-label="参考片段">
+        <p className="muted">参考片段</p>
+        {hits.map(hit => <button className="evidence-card" type="button" key={hit.chunk_id} onClick={() => onSource(hit)}>
+          <strong>[{hit.citation_id}] {hit.doc_title}{hit.page_start ? ` · 第 ${hit.page_start} 页` : ''}</strong>
+          <small>{hit.text.length > 160 ? hit.text.slice(0, 160) + '…' : hit.text}</small>
+        </button>)}
+      </section>}
     </div></article>;
   }
 
@@ -339,7 +349,13 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
         <Button type="text" onClick={configure}>{model ? '自带模型' : '模型设置'}</Button>
       </div>
       <div className="support-chat-scroll" ref={timeline} role="log" aria-label="聊天记录" aria-live="polite">
-        {!messages.length && !pending && !working && <div className="plain-assistant-greeting"><h2>今天想聊点什么？</h2></div>}
+        {!messages.length && !pending && !working && (
+          <div className="plain-assistant-greeting">
+            <AssistantAvatar size={52} />
+            <h2>今天想聊点什么？</h2>
+            <p className="plain-assistant-intro">我是 OpsPilot 智能维护助手，可以解答运维问题、结合你的网站手册作答，或直接粘贴报错日志做脱敏诊断。</p>
+          </div>
+        )}
         {messages.map((item, i) => {
           const cid = item.meta?.case_id;
           if (cid) {
@@ -367,7 +383,7 @@ export default function AssistantChat({id, open, model, configure, onSource, onI
               </div>
             );
           }
-          return bubble(item.role, item.content, i, readOnly ? item.created_at : undefined);
+          return bubble(item.role, item.content, i, readOnly ? item.created_at : undefined, item.meta?.hits);
         })}
         {pending && bubble('user', pending, 'pending')}
         {busy && bubble('assistant', draft || '正在回复…', 'reply')}

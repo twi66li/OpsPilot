@@ -72,7 +72,9 @@ def retrieve_docs(container, tracer, state: RetrievalInputState) -> dict:
 
 def grade_docs(container, state: RetrievalSubgraphState) -> dict:
     """相关性与目标行覆盖评估节点：仅写 docs_sufficient / iteration / range_coverage 与单步 grade 事件。"""
-    sufficient = container.llm.is_sufficient(state["question"], state.get("hits", []))
+    from app.services.custom_model import active_llm
+
+    sufficient = active_llm(container).is_sufficient(state["question"], state.get("hits", []))
     iteration = state.get("iteration", 0) + 1
     event = {"type": "grade", "docs_sufficient": sufficient, "iteration": iteration}
     # "相关"与"足以回答"分开（P1-ARAG-20261102）：问题引用显式行范围时，
@@ -125,8 +127,10 @@ def route_after_grade(state: RetrievalSubgraphState) -> str:
 
 def rewrite_query(container, tracer, state: RetrievalInputState) -> dict:
     """查询改写节点：仅写 rewritten_query 与单步 rewrite 事件。"""
+    from app.services.custom_model import active_llm
+
     with tracer.span("rewrite_query"):
-        rewritten = container.llm.rewrite_query(state["question"])
+        rewritten = active_llm(container).rewrite_query(state["question"])
     return {
         "rewritten_query": rewritten,
         "events": [{"type": "rewrite", "rewritten": rewritten}],

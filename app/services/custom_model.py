@@ -147,7 +147,7 @@ def custom_llm_context(config: CustomModelConfig | None):
 
 
 def active_llm(container):
-    return _active_custom_llm.get() or container.llm
+    return _active_custom_llm.get() or getattr(container, "llm", None)
 
 
 def has_custom_llm() -> bool:

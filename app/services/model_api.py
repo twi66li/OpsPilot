@@ -199,6 +199,11 @@ def release_for_channel(
 
 
 class ChatAPI:
+    _skip_budget: bool = False
+    _allow_model_switch: bool = True
+    _follow_redirects: bool = True
+    _trust_env: bool = True
+
     def __init__(
         self,
         api_key: str,
